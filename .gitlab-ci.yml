@@ -4,7 +4,7 @@ image: registry.lidonation.com/infra-ops/gitlab-runner:main
 
 variables:
   KUBERNETES_VERSION: 1.24.9
-  HELM_VERSION: 3.2.4
+  HELM_VERSION: 3.10.2
   KUBE_CONTEXT: voltaire/www.1694.io:voltaire
 
 build_image:
