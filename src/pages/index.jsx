@@ -145,7 +145,7 @@ export default function Home({articles, cip}) {
                     <div className="abstract-wrapper">
                         <p className="mt-6 text-base text-zinc-600 dark:text-zinc-400 abstract">
                             <b className="inline mr-2">Abstract</b>
-                            We propose a revision of Cardano's on-chain governance system to support the new requirements for Voltaire.
+                            We propose a revision of Cardano&apos;s on-chain governance system to support the new requirements for Voltaire.
                             The existing specialized governance support for protocol parameter updates and MIR certificates will be deprecated,
                             and two new fields will be added to normal transaction bodies: <b>governance actions</b>, <b>votes</b>.
                         </p>
@@ -165,7 +165,8 @@ export default function Home({articles, cip}) {
             <Container className="mt-24 md:mt-28">
                 <div className="mx-auto grid max-w-xl grid-cols-1 gap-y-20 lg:max-w-none lg:grid-cols-3">
                     <div className="flex flex-col gap-3 lg:col-span-2 p-2 cip-wrapper">
-                        <ReactMarkdown children={cip} remarkPlugins={[remarkGfm]}/>
+                        {// eslint-disable-next-line
+                        }<ReactMarkdown children={cip} remarkPlugins={[remarkGfm]} />
                     </div>
                     <div className="space-y-10 lg:pl-8 xl:pl-18 p-2">
                         <h2 className="text-xl font-semibold xl:text-2xl">Conversations</h2>
