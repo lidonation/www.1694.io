@@ -1,4 +1,4 @@
-include: 'https://gitlab.lidonation.com/infra-ops/autodevop/raw/main/gitlab-ci-20230108.yml'
+include: 'https://gitlab.lidonation.com/infra-ops/autodevop/raw/main/gitlab-ci-20230305.yml'
 
 image: registry.lidonation.com/infra-ops/gitlab-runner:main
 
