@@ -43,7 +43,7 @@ ingress:
     ingress.kubernetes.io/rewrite-target: /,
     cert-manager.io/cluster-issuer: letsencrypt-issuer,
     traefik.ingress.kubernetes.io/router.entrypoints: "websecure,web",
-    traefik.ingress.kubernetes.io/router.middlewares: "traefik-redirect-http-to-https@kubernetescrd,traefik-redirect-to-www@kubernetescrd"
+    traefik.ingress.kubernetes.io/router.middlewares: "traefik-redirect-http-to-https@kubernetescrd,traefik-redirect-to-www@kubernetescrd,traefik-redirect-to-www@kubernetescrd"
   }
   path: "/"
   hosts:

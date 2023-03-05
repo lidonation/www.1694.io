@@ -4,7 +4,7 @@ metadata:
   name: "{{ $.Chart.Name }}-service"
   namespace: {{ .Values.namespace }}
   labels:
-    service: "{{ $.Chart.Name }}"
+    service: "{{ .Values.labels.service }}"
 spec:
   ports:
     - port: 80
@@ -12,4 +12,4 @@ spec:
       targetPort: node
       protocol: TCP
   selector:
-    service: "{{ $.Chart.Name }}"
+    service: "{{ .Values.labels.service }}"
