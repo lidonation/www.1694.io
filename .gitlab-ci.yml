@@ -36,6 +36,7 @@ build_image:
   script:
     - check_kube_domain
     - install_dependencies
+    - kubectl config get-contexts
     - kubectl config use-context voltaire/www.1694.io:voltaire
     - download_chart
     - create_secret
