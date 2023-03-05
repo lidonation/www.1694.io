@@ -140,12 +140,12 @@ export default function Home({articles, cip}) {
                 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
             </Head>
             <Container className="mt-9">
-                <div className="max-w-2xl">
-                    <h1 className="text-4xl font-bold tracking-tight text-zinc-800 dark:text-zinc-100 sm:text-5xl">
+                <div className="max-w-2xl text-zinc-800 dark:text-zinc-200">
+                    <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
                         CIP 1694 - An On-Chain Decentralized Governance Mechanism for Voltaire
                     </h1>
                     <div className="abstract-wrapper">
-                        <p className="mt-6 text-base text-zinc-600 dark:text-zinc-400 abstract">
+                        <p className="mt-6 text-base abstract">
                             <b className="inline mr-2">Abstract</b>
                             We propose a revision of Cardano&apos;s on-chain governance system to support the new requirements for Voltaire.
                             The existing specialized governance support for protocol parameter updates and MIR certificates will be deprecated,
@@ -164,15 +164,23 @@ export default function Home({articles, cip}) {
                 </div>
             </Container>
             <Photos/>
-            <Container className="w-full mt-24 overflow-x-hidden md:mt-28">
+            <Container className="w-full mt-24 overflow-x-hidden md:mt-28 text-zinc-800 dark:text-zinc-200">
                 <div className="grid max-w-xl grid-cols-1 mx-auto gap-y-20 lg:max-w-none lg:grid-cols-3">
-                    <div className="flex flex-col w-full gap-3 p-2 overflow-x-auto lg:col-span-2 cip-wrapper">
+                    <div className="flex flex-col w-full gap-3 p-2 lg:col-span-2 cip-wrapper">
                         {// eslint-disable-next-line
                         }<ReactMarkdown children={cip} remarkPlugins={[remarkGfm]} />
                     </div>
-                    <div className="p-2 space-y-10 lg:pl-8 xl:pl-18">
-                        <h2 className="text-xl font-semibold xl:text-2xl">Conversations</h2>
-                        <p>Coming Soon</p>
+                    <div className="p-2 ol-span-1 lg:pl-8 xl:pl-18">                        
+                        <div className='sticky flex flex-col space-y-8 top-8'>                        
+                            <h2 className="text-xl font-semibold xl:text-2xl">Conversations</h2>
+                            <p>Join the conversation on Github</p>
+                            <a href="https://github.com/cardano-foundation/CIPs/pull/380#issue-comment-box"
+                                type="button" 
+                                class="rounded-md bg-zinc-800 text-zinc-100 dark:bg-rose-100 py-2.5 px-3.5 text-center text-sm xl:text-xl font-semibold dark:text-zinc-600 shadow-sm w-full hover:bg-rose-100">
+                                Leave a Comment
+                            </a>
+                            
+                        </div>           
                     </div>
                 </div>
             </Container>
