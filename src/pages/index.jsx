@@ -174,7 +174,7 @@ export default function Home({articles, cip}) {
                         <div className='sticky flex flex-col space-y-8 top-8'>                        
                             <h2 className="text-xl font-semibold xl:text-2xl">Conversations</h2>
                             <p>Join the conversation on Github</p>
-                            <a href="https://github.com/cardano-foundation/CIPs/pull/380#issue-comment-box"
+                            <a rel="noreferrer" target='_blank' href="https://github.com/cardano-foundation/CIPs/pull/380#issue-comment-box"
                                 type="button" 
                                 class="rounded-md bg-zinc-800 text-zinc-100 dark:bg-rose-100 py-2.5 px-3.5 text-center text-sm xl:text-xl font-semibold dark:text-zinc-600 shadow-sm w-full hover:bg-rose-100">
                                 Leave a Comment
