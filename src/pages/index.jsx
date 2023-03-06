@@ -154,7 +154,7 @@ export default function Home({comments, cip}) {
                     </div>
                     <div className="flex gap-6 mt-6">
                         <SocialLink
-                            target="_blank"
+                            target="_blank"  rel="noreferrer"
                             href="https://github.com/cardano-foundation/CIPs/pull/380"
                             title="Join the conversation on GitHub"
                             aria-label="Join the conversation on GitHub"
@@ -186,31 +186,31 @@ export default function Home({comments, cip}) {
 
                             <div className="w-full">
                                 {comments.map((comment) => (
-                                    <div key={comment.id} className="flex max-w-xl flex-col items-start justify-between overflow-x-auto mb-4 pb-8 border-b">
-                                        <div className="group relative">
+                                    <div key={comment.id} className="flex flex-col items-start justify-between max-w-xl pb-8 mb-4 overflow-x-auto border-b">
+                                        <div className="relative group">
                                             {// eslint-disable-next-line
                                             }<ReactMarkdown children={comment.body} remarkPlugins={[remarkGfm]} />
                                             {/*<p className="mt-5 text-sm leading-6 line-clamp-3">*/}
                                             {/*    {comment.body}*/}
                                             {/*</p>*/}
                                         </div>
-                                        <div className="flex items-center gap-x-4 text-xs mt-4">
+                                        <div className="flex items-center mt-4 text-xs gap-x-4">
                                             <time dateTime={comment.created_at} className="text-gray-500">
                                                 {comment.created_at}
                                             </time>
                                             <a
-                                                target="_blank"
+                                                target="_blank"  rel="noreferrer"
                                                 href={comment.html_url}
                                                 className="relative z-10 text-xs rounded-md bg-gray-50 py-0.5 px-2 font-medium text-gray-600 hover:bg-gray-100"
                                             >
                                                 view on Github
                                             </a>
                                         </div>
-                                        <div className="relative mt-8 flex items-center gap-x-4">
-                                            <img src={comment.user.avatar_url} alt="" className="h-10 w-10 rounded-full bg-gray-50" />
+                                        <div className="relative flex items-center mt-8 gap-x-4">
+                                            <Image src={comment.user.avatar_url} alt="User avatar" className="w-10 h-10 rounded-full bg-gray-50" />
                                             <div className="text-sm leading-6">
-                                                <p className="font-semibold mt-0">
-                                                    <a target="_blank" href={comment.user.html_url}>
+                                                <p className="mt-0 font-semibold">
+                                                    <a target="_blank"  rel="noreferrer" href={comment.user.html_url}>
                                                         <span className="absolute inset-0" />
                                                         {comment.user.login}
                                                     </a>
