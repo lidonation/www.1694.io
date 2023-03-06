@@ -24,8 +24,13 @@ p {
 .cip-wrapper h2 + p,
 .cip-wrapper h3 + p,
 .cip-wrapper h4 + p ,
-.cip-wrapper h5 + p {
+.cip-wrapper h5 + p,
+.conversations p{
   @apply mt-0;
+}
+
+.conversations p {
+  @apply text-left;
 }
 
 h1, h2 {

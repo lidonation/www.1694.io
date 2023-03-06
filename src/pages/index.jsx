@@ -11,7 +11,7 @@ import image3 from '@/images/photos/image-3.jpg'
 import image4 from '@/images/photos/image-4.jpg'
 import image5 from '@/images/photos/image-5.jpg'
 import {formatDate} from '@/lib/formatDate'
-import {getAllArticles} from '@/lib/getAllArticles'
+// import {getAllArticles} from '@/lib/getAllArticles'
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 
@@ -125,7 +125,7 @@ function Photos() {
     )
 }
 
-export default function Home({articles, cip}) {
+export default function Home({comments, cip}) {
     return (
         <>
             <Head>
@@ -165,21 +165,67 @@ export default function Home({articles, cip}) {
             </Container>
             <Photos/>
             <Container className="w-full mt-24 overflow-x-hidden md:mt-28 text-zinc-800 dark:text-zinc-200">
-                <div className="grid max-w-xl grid-cols-1 mx-auto gap-y-20 lg:max-w-none lg:grid-cols-3">
-                    <div className="flex flex-col w-full gap-3 p-2 lg:col-span-2 cip-wrapper">
+                <div className="grid max-w-xl grid-cols-1 mx-auto gap-y-20 lg:max-w-none lg:grid-cols-5">
+                    <div className="flex flex-col w-full gap-3 p-2 lg:col-span-3 cip-wrapper">
                         {// eslint-disable-next-line
                         }<ReactMarkdown children={cip} remarkPlugins={[remarkGfm]} />
                     </div>
-                    <div className="p-2 ol-span-1 lg:pl-8 xl:pl-18">                        
+                    <div className="p-2 lg:col-span-2 lg:pl-8 xl:pl-20 conversations">
                         <div className='sticky flex flex-col space-y-8 top-8'>                        
                             <h2 className="text-xl font-semibold xl:text-2xl">Conversations</h2>
                             <p>Join the conversation on Github</p>
                             <a rel="noreferrer" target='_blank' href="https://github.com/cardano-foundation/CIPs/pull/380#issue-comment-box"
                                 type="button" 
-                                class="rounded-md bg-zinc-800 text-zinc-100 dark:bg-rose-100 py-2.5 px-3.5 text-center text-sm xl:text-xl font-semibold dark:text-zinc-600 shadow-sm w-full hover:bg-rose-100">
+                                className="rounded-md bg-zinc-800 text-zinc-100 dark:bg-rose-100 py-2.5 px-3.5 text-center text-sm xl:text-xl font-semibold dark:text-zinc-600 shadow-sm w-full hover:bg-rose-100">
                                 Leave a Comment
                             </a>
-                            
+
+
+
+
+
+                            <div className="w-full">
+                                {comments.map((comment) => (
+                                    <div key={comment.id} className="flex max-w-xl flex-col items-start justify-between overflow-x-auto mb-4 pb-8 border-b">
+                                        <div className="group relative">
+                                            {// eslint-disable-next-line
+                                            }<ReactMarkdown children={comment.body} remarkPlugins={[remarkGfm]} />
+                                            {/*<p className="mt-5 text-sm leading-6 line-clamp-3">*/}
+                                            {/*    {comment.body}*/}
+                                            {/*</p>*/}
+                                        </div>
+                                        <div className="flex items-center gap-x-4 text-xs mt-4">
+                                            <time dateTime={comment.created_at} className="text-gray-500">
+                                                {comment.created_at}
+                                            </time>
+                                            <a
+                                                target="_blank"
+                                                href={comment.html_url}
+                                                className="relative z-10 text-xs rounded-md bg-gray-50 py-0.5 px-2 font-medium text-gray-600 hover:bg-gray-100"
+                                            >
+                                                view on Github
+                                            </a>
+                                        </div>
+                                        <div className="relative mt-8 flex items-center gap-x-4">
+                                            <img src={comment.user.avatar_url} alt="" className="h-10 w-10 rounded-full bg-gray-50" />
+                                            <div className="text-sm leading-6">
+                                                <p className="font-semibold mt-0">
+                                                    <a target="_blank" href={comment.user.html_url}>
+                                                        <span className="absolute inset-0" />
+                                                        {comment.user.login}
+                                                    </a>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+
+
+
+
+
                         </div>           
                     </div>
                 </div>
@@ -192,12 +238,14 @@ export async function getStaticProps() {
     const cip = await (
         await fetch('https://raw.githubusercontent.com/cardano-foundation/CIPs/3a0d2824fe502a8593d63bbf00bf8d9a7b5cbdeb/CIP-1694/README.md')
     ).text()
+    const comments = await (
+        await fetch('https://api.github.com/repos/cardano-foundation/CIPs/issues/380/comments')
+    ).json()
+    // console.log({comments})
     return {
         props: {
             cip,
-            articles: (await getAllArticles())
-                .slice(0, 4)
-                .map(({component, ...meta}) => meta),
+            comments
         },
     }
 }
