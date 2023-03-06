@@ -207,7 +207,7 @@ export default function Home({comments, cip}) {
                                             </a>
                                         </div>
                                         <div className="relative flex items-center mt-8 gap-x-4">
-                                            <Image src={comment.user.avatar_url} alt="User avatar" className="w-10 h-10 rounded-full bg-gray-50" />
+                                            <img src={comment.user?.avatar_url} alt="User avatar" className="w-10 h-10 rounded-full bg-gray-50" />
                                             <div className="text-sm leading-6">
                                                 <p className="mt-0 font-semibold">
                                                     <a target="_blank"  rel="noreferrer" href={comment.user.html_url}>
