@@ -125,7 +125,7 @@ function Photos() {
     )
 }
 
-export default function Home({comments, cip}) {
+export default function Home({comments, translations, cip}) {
     return (
         <>
             <Head>
@@ -170,18 +170,30 @@ export default function Home({comments, cip}) {
                         {// eslint-disable-next-line
                         }<ReactMarkdown children={cip} remarkPlugins={[remarkGfm]} />
                     </div>
-                    <div className="p-2 lg:col-span-2 lg:pl-8 xl:pl-20 conversations">
-                        <div className='sticky flex flex-col space-y-8 top-8'>                        
+                    <div className="p-2 lg:col-span-2 flex flex-col gap-4 xl:gap-8 lg:pl-8 xl:pl-20 conversations top-6 sticky">
+                        <div className='flex flex-col space-y-3'>
+                            <h2 className="text-xl font-semibold xl:text-2xl">
+                                Community Translations
+                            </h2>
+
+                            <div className="flex flex-col gap-2">
+                                {translations.map((tran) => (
+                                <a key={tran.lang} rel="noreferrer" target='_blank' href={tran.link}
+                                    className="text-rose-400 text-sm xl:text-xl font-semibold dark:text-rose-200 w-full hover:text-rose-600 dark:hover:text-rose-500">
+                                    {tran.lang}
+                                </a>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className='sticky flex flex-col space-y-8 top-8'>
                             <h2 className="text-xl font-semibold xl:text-2xl">Conversations</h2>
                             <p>Join the conversation on Github</p>
                             <a rel="noreferrer" target='_blank' href="https://github.com/cardano-foundation/CIPs/pull/380#issue-comment-box"
-                                type="button" 
+                                type="button"
                                 className="rounded-md bg-zinc-800 text-zinc-100 dark:bg-rose-100 py-2.5 px-3.5 text-center text-sm xl:text-xl font-semibold dark:text-zinc-600 shadow-sm w-full hover:bg-rose-100">
                                 Leave a Comment
                             </a>
-
-
-
 
 
                             <div className="w-full">
@@ -223,20 +235,18 @@ export default function Home({comments, cip}) {
 
 
 
-
-
-
                         </div>           
                     </div>
                 </div>
             </Container>
         </>
+
     )
 }
 
 export async function getStaticProps() {
     const cip = await (
-        await fetch('https://raw.githubusercontent.com/cardano-foundation/CIPs/3a0d2824fe502a8593d63bbf00bf8d9a7b5cbdeb/CIP-1694/README.md')
+        await fetch('https://raw.githubusercontent.com/JaredCorduan/CIPs/voltaire-v1/CIP-1694/README.md')
     ).text()
     const comments = await (
         await fetch('https://api.github.com/repos/cardano-foundation/CIPs/issues/380/comments')
@@ -245,7 +255,49 @@ export async function getStaticProps() {
     return {
         props: {
             cip,
-            comments
+            comments,
+            translations: [
+                {
+                    lang: 'Arabic',
+                    link: 'https://docs.google.com/document/d/1pMPifPW2gcFSJ82bMN1HqHJnsk7jM0G5qqf2LaiuXmo/edit?usp=sharing'
+                },
+                {
+                    lang: 'Dutch',
+                    link: 'https://docs.google.com/document/d/1kq_VCmiQDv-Pncg67LRmX5kWSB_pmW62JRioo-Djh60/edit?usp=sharing'
+                },
+                {
+                    lang: 'German',
+                    link: 'https://docs.google.com/document/d/170k-HUid8mI0WaoOfTgSi2FbTQ5RS_1xOw0ZF9AyXdM/edit?usp=sharing'
+                },
+                {
+                    lang: 'Greek',
+                    link: 'https://docs.google.com/document/d/1qzQfA0dWQDG_tXpPVvnkuKWbM3b5uRMPn-RyNwn7cDc/edit?usp=sharing'
+                },
+                {
+                    lang: 'French',
+                    link: 'https://docs.google.com/document/d/1OJaVdvWsvuaTldMsPgEMTCbmsjaFuHcrrtYivVFmB9o/edit?usp=sharing'
+                },
+                {
+                    lang: 'Japanese',
+                    link: 'https://docs.google.com/document/d/182h4TUHQhrnhn-7NJ_Tez7BaPOKmovkF5WWJi73bkRg/edit?usp=sharing'
+                },
+                {
+                    lang: 'Indonesian',
+                    link: 'https://docs.google.com/document/d/188qxKaTLJX0fIrzJpE_TX_5WIc3bcIJMzRC9x3nIRFc/edit?usp=sharing'
+                },
+                {
+                    lang: 'Portuguese',
+                    link: 'https://docs.google.com/document/d/1xgykELMz7KH-zY9Iv69XwWWfTmrGUmFONVh-ZH6kIXo/edit?usp=sharing'
+                },
+                {
+                    lang: 'Spanish',
+                    link: 'https://docs.google.com/document/d/1TKJwtpjGiTibJbFv7LlCWTw5qDTzGxqzKAN9QO7EXvo/edit?usp=sharing'
+                },
+                {
+                    lang: 'Swahili',
+                    link: 'https://docs.google.com/document/d/1OWz-zywtgmB9U4ObmuAzQCrC-6bor97j0RIYHXavpYM/edit?usp=sharing'
+                },
+            ]
         },
     }
 }
