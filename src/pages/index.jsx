@@ -184,6 +184,15 @@ export default function Home({comments, translations, cip}) {
                                 </a>
                                 ))}
                             </div>
+                            <div className="text-sm">
+                                <p>Translations done through rewarded bounties at the Catalyst Swarm Bounty Board</p>
+                                <p className='mt-4'>
+                                    Donations to Catalyst Swarm:
+                                    <span className="mt-1 block break-all font-bold">
+                                        Addr1qxhxg0mwzahfv8x4nr5s9zmffssxueqsnxxv282kz2c30nykg8fw8x99crukwyc7yftwfgxmhsu2xx0n8elfvj7mljlqm45kgs
+                                    </span>
+                                </p>
+                            </div>
                         </div>
 
                         <div className='sticky flex flex-col space-y-8 top-8'>
