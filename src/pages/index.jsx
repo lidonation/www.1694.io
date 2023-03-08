@@ -271,8 +271,12 @@ export async function getStaticProps() {
                     link: 'https://docs.google.com/document/d/1pMPifPW2gcFSJ82bMN1HqHJnsk7jM0G5qqf2LaiuXmo/edit?usp=sharing'
                 },
                 {
-                    lang: 'Dutch',
+                    lang: 'Dutch - Google Doc',
                     link: 'https://docs.google.com/document/d/1kq_VCmiQDv-Pncg67LRmX5kWSB_pmW62JRioo-Djh60/edit?usp=sharing'
+                },
+                {
+                    lang: 'Dutch - Cardano Forum',
+                    link: 'https://forum.cardano.org/t/cip-1694-een-on-chain-gedecentraliseerd-bestuursmechanisme-voor-voltaire/113402'
                 },
                 {
                     lang: 'German',
