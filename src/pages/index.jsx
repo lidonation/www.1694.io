@@ -13,7 +13,7 @@ import image5 from '@/images/photos/image-5.jpg'
 import {formatDate} from '@/lib/formatDate'
 // import {getAllArticles} from '@/lib/getAllArticles'
 import ReactMarkdown from "react-markdown"
-import remarkGfm from "remark-gfm"
+import gfm from "remark-gfm"
 
 function MailIcon(props) {
     return (
@@ -168,7 +168,7 @@ export default function Home({comments, translations, cip}) {
                 <div className="grid max-w-xl grid-cols-1 mx-auto gap-y-20 lg:max-w-none lg:grid-cols-5">
                     <div className="flex flex-col w-full gap-3 p-2 lg:col-span-3 cip-wrapper">
                         {// eslint-disable-next-line
-                        }<ReactMarkdown children={cip} remarkPlugins={[remarkGfm]} />
+                        }<ReactMarkdown remarkPlugins={[gfm]}>{cip}</ReactMarkdown>
                     </div>
                     <div className="p-2 lg:col-span-2 flex flex-col gap-4 xl:gap-8 lg:pl-8 xl:pl-20 conversations top-6 sticky">
                         <div className='flex flex-col space-y-3'>
@@ -210,7 +210,7 @@ export default function Home({comments, translations, cip}) {
                                     <div key={comment.id} className="flex flex-col items-start justify-between max-w-xl pb-8 mb-4 overflow-x-auto border-b">
                                         <div className="relative group">
                                             {// eslint-disable-next-line
-                                            }<ReactMarkdown children={comment.body} remarkPlugins={[remarkGfm]} />
+                                            }<ReactMarkdown children={comment.body} remarkPlugins={[gfm]} />
                                             {/*<p className="mt-5 text-sm leading-6 line-clamp-3">*/}
                                             {/*    {comment.body}*/}
                                             {/*</p>*/}
@@ -293,6 +293,10 @@ export async function getStaticProps() {
                 {
                     lang: 'Japanese',
                     link: 'https://docs.google.com/document/d/182h4TUHQhrnhn-7NJ_Tez7BaPOKmovkF5WWJi73bkRg/edit?usp=sharing'
+                },
+                {
+                    lang: 'Korean',
+                    link: 'https://oscarwest.notion.site/CIP-1694-f9ec6e269a3f43b1922e3334114d102c'
                 },
                 {
                     lang: 'Indonesian',
