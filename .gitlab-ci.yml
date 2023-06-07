@@ -67,7 +67,6 @@ build_image:
 # If you prefer to automatically deploy to staging and
 # only manually promote to production, enable this job by setting
 # STAGING_ENABLED.
-
 .production: &production_template
   stage: production
   image: "${CI_TEMPLATE_REGISTRY_HOST}/gitlab-org/cluster-integration/auto-deploy-image:${AUTO_DEPLOY_IMAGE_VERSION}"
