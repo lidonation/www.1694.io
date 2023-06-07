@@ -1,9 +1,12 @@
 variables:
-  KUBERNETES_VERSION: 1.24.9
-  HELM_VERSION: 3.10.2
-  KUBE_CONTEXT: voltaire/www.1694.io:1694 
   AUTO_DEPLOY_IMAGE_VERSION: v1.1.0
   CI_TEMPLATE_REGISTRY_HOST: registry.gitlab.com
+  DOCKER_TLS_CERTDIR: ""
+  DOCKER_HOST: tcp://docker:2375/
+  DOCKER_DRIVER: overlay2  
+  HELM_VERSION: 3.10.2
+  KUBE_CONTEXT: voltaire/www.1694.io:1694 
+  KUBERNETES_VERSION: 1.24.9
 
 stages:
   - .pre
@@ -40,7 +43,9 @@ services:
 
 build_image:
   stage: build
-  image: docker:stable-git
+  image: docker:24.0.2-git
+  services:
+    - docker:dind
   retry: 2
   script:
     - *setup
