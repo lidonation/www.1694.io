@@ -7,8 +7,7 @@ stages:
   - .pre
   - build
   - test
-  - preview
-  - mainnet
+  - production
   - .post
 
 cache:
