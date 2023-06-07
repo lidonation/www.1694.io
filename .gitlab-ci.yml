@@ -78,7 +78,7 @@ build_image:
     - auto-deploy create_secret
     - |
       DEPLOYMENT_NAME="www-1694.$CI_ENVIRONMENT_SLUG"
-      helm upgrade $DEPLOYMENT_NAME --install \
+      helm upgrade $DEPLOYMENT_NAME ./chart --install \
         --timeout 300s \
         --wait \
         --atomic \
