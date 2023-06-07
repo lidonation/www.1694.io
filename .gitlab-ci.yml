@@ -44,8 +44,6 @@ services:
 build_image:
   stage: build
   image: docker:24.0.2-git
-  services:
-    - docker:dind
   retry: 2
   script:
     - *setup
