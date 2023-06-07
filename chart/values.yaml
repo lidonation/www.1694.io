@@ -1,7 +1,6 @@
 affinity: {}
 
 app: {
-  ADMIN_USER: "kami",
   ADMIN_EMAIL: "webmaster@raddcreative.io",
 
   APP_NAME: "CIP 1694",
@@ -69,7 +68,7 @@ persistence:
   mountPath: "/app/uploads"
 
 redis:
-  image: redis:6.0.5-alpine
+  image: redis:7.2-rc2-alpine
 
 replicaCount: 2
 
