@@ -1,8 +1,8 @@
 variables:
   KUBERNETES_VERSION: 1.24.9
   HELM_VERSION: 3.10.2
-  KUBE_CONTEXT: voltaire/www.1694.io:voltaire
-  AUTO_DEPLOY_IMAGE_VERSION: v0.1.0
+  KUBE_CONTEXT: voltaire/www.1694.io:1694 
+  AUTO_DEPLOY_IMAGE_VERSION: v1.1.0
   CI_TEMPLATE_REGISTRY_HOST: registry.gitlab.com
 
 stages:
@@ -31,7 +31,7 @@ services:
   - curl -LO https://dl.k8s.io/release/v1.25.9/bin/linux/amd64/kubectl && chmod +x kubectl && mv kubectl /usr/local/bin/kubectl
   - curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 && chmod 700 get_helm.sh && DESIRED_VERSION=v$HELM_VERSION ./get_helm.sh
   - kubectl config get-contexts
-  - kubectl config use-context voltaire/www.1694.io:voltaire
+  - kubectl config use-context voltaire/www.1694.io:1694 
 
 build_image:
   stage: build
