@@ -2,6 +2,8 @@ variables:
   KUBERNETES_VERSION: 1.24.9
   HELM_VERSION: 3.10.2
   KUBE_CONTEXT: voltaire/www.1694.io:voltaire
+  AUTO_DEPLOY_IMAGE_VERSION: v0.1.0
+  CI_TEMPLATE_REGISTRY_HOST: registry.gitlab.com
 
 stages:
   - .pre
@@ -60,10 +62,10 @@ build_image:
   script:
     - auto-deploy check_kube_domain
     - auto-deploy ensure_namespace
-    - download_chart
-    - create_secret
+    - auto-deploy download_chart
+    - auto-deploy create_secret
     - deploy
-    - persist_environment_url
+    - auto-deploy persist_environment_url
   environment:
     name: production
     url: https://$CI_PROJECT_PATH_SLUG.$AUTO_DEVOPS_DOMAIN
