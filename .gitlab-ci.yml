@@ -73,8 +73,7 @@ build_image:
   image: "${CI_TEMPLATE_REGISTRY_HOST}/gitlab-org/cluster-integration/auto-deploy-image:${AUTO_DEPLOY_IMAGE_VERSION}"
   retry: 1
   script:
-    - auto-deploy check_kube_domain
-    - auto-deploy ensure_namespace
+    - auto-deploy check_kube_domain    
     - auto-deploy download_chart
     - auto-deploy create_secret
     - |
