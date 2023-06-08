@@ -86,6 +86,8 @@ build_image:
         --timeout 300s \
         --wait \
         --atomic \
+        --set image.repository=$CI_APPLICATION_REPOSITORY/www.1694.io \
+        --set image.tag=$CI_APPLICATION_TAG \
         --namespace="$KUBE_NAMESPACE" \
         --create-namespace
     - auto-deploy persist_environment_url
