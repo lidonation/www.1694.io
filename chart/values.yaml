@@ -2,7 +2,6 @@ affinity: {}
 
 app: {
   ADMIN_EMAIL: "webmaster@raddcreative.io",
-
   APP_NAME: "CIP 1694",
   APP_ENV: "production",
   APP_DEBUG: "false",

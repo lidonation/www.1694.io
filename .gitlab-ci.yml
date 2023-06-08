@@ -50,10 +50,10 @@ build_image:
     - *setup
     - |
       docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
-      echo "Building ockerfile with tags $CI_APPLICATION_REPOSITORY/www.1694.com:$CI_APPLICATION_TAG and $CI_APPLICATION_REPOSITORY/www.1694.com:latests ..."
+      echo "Building ockerfile with tags $CI_APPLICATION_REPOSITORY/www.1694.io:$CI_APPLICATION_TAG and $CI_APPLICATION_REPOSITORY/www.1694.io:latests ..."
       docker build --network host -f Dockerfile \
-        -t "$CI_APPLICATION_REPOSITORY/www.1694.com:$CI_APPLICATION_TAG" \
-        -t "$CI_APPLICATION_REPOSITORY/www.1694.com:latest" .
+        -t "$CI_APPLICATION_REPOSITORY/www.1694.io:$CI_APPLICATION_TAG" \
+        -t "$CI_APPLICATION_REPOSITORY/www.1694.io:latest" .
   only:
     - branches
 
@@ -80,6 +80,7 @@ build_image:
     - |
       DEPLOYMENT_NAME="www-1694.$CI_ENVIRONMENT_SLUG"
       helm upgrade $DEPLOYMENT_NAME ./chart --install \
+        -f ./chart/values.yaml \
         --timeout 300s \
         --wait \
         --atomic \
