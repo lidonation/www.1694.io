@@ -170,7 +170,7 @@ export default function Home({comments, translations, cip}) {
                         {// eslint-disable-next-line
                         }<ReactMarkdown remarkPlugins={[gfm]}>{cip}</ReactMarkdown>
                     </div>
-                    <div className="p-2 lg:col-span-2 flex flex-col gap-4 xl:gap-8 lg:pl-8 xl:pl-20 conversations top-6 sticky">
+                    <div className="sticky flex flex-col gap-4 p-2 lg:col-span-2 xl:gap-8 lg:pl-8 xl:pl-20 conversations top-6">
                         <div className='flex flex-col space-y-3'>
                             <h2 className="text-xl font-semibold xl:text-2xl">
                                 Community Translations
@@ -179,7 +179,7 @@ export default function Home({comments, translations, cip}) {
                             <div className="flex flex-col gap-2">
                                 {translations.map((tran) => (
                                 <a key={tran.lang} rel="noreferrer" target='_blank' href={tran.link}
-                                    className="text-rose-400 text-sm xl:text-xl font-semibold dark:text-rose-200 w-full hover:text-rose-600 dark:hover:text-rose-500">
+                                    className="w-full text-sm font-semibold text-rose-400 xl:text-xl dark:text-rose-200 hover:text-rose-600 dark:hover:text-rose-500">
                                     {tran.lang}
                                 </a>
                                 ))}
@@ -188,7 +188,7 @@ export default function Home({comments, translations, cip}) {
                                 <p>Translations done through rewarded bounties at the Catalyst Swarm Bounty Board</p>
                                 <p className='mt-4'>
                                     Donations to Catalyst Swarm:
-                                    <span className="mt-1 block break-all font-bold">
+                                    <span className="block mt-1 font-bold break-all">
                                         Addr1qxhxg0mwzahfv8x4nr5s9zmffssxueqsnxxv282kz2c30nykg8fw8x99crukwyc7yftwfgxmhsu2xx0n8elfvj7mljlqm45kgs
                                     </span>
                                 </p>
@@ -228,7 +228,8 @@ export default function Home({comments, translations, cip}) {
                                             </a>
                                         </div>
                                         <div className="relative flex items-center mt-8 gap-x-4">
-                                            <img src={comment.user?.avatar_url} alt="User avatar" className="w-10 h-10 rounded-full bg-gray-50" />
+                                            {// eslint-disable-next-line
+                                            }<img src={comment.user?.avatar_url} alt="User avatar" className="w-10 h-10 rounded-full bg-gray-50" />
                                             <div className="text-sm leading-6">
                                                 <p className="mt-0 font-semibold">
                                                     <a target="_blank"  rel="noreferrer" href={comment.user.html_url}>
