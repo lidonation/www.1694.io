@@ -7,7 +7,7 @@ FROM node:lts as builder
 WORKDIR /app
 COPY . .
 COPY --from=dependencies /app/node_modules ./node_modules
-RUN npx next telemetry disable && next build
+RUN npx next telemetry disable && npx next build
 
 FROM node:lts as runner
 WORKDIR /app
