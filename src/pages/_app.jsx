@@ -37,7 +37,7 @@ export default function App({ Component, pageProps, router }) {
     return () => {
       router.events.off('routeChangeComplete', onRouteChangeComplete);
     };
-  }, []);
+  });
 
   return (
     <>

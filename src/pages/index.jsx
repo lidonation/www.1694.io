@@ -260,7 +260,7 @@ export async function getStaticProps() {
     const comments = await (
         await fetch('https://api.github.com/repos/cardano-foundation/CIPs/issues/380/comments')
     ).json()
-    // console.log({comments})
+    
     return {
         props: {
             cip,

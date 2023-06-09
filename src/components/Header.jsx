@@ -139,7 +139,7 @@ function NavItem({ href, children }) {
   let isActive = useRouter().pathname === href
 
   return (
-    <li>
+    <li className="mb-0 list-none">
       <Link
         href={href}
         className={clsx(
@@ -161,12 +161,14 @@ function NavItem({ href, children }) {
 function DesktopNavigation(props) {
   return (
     <nav {...props}>
-      <ul className="flex px-3 text-sm font-medium rounded-full shadow-lg bg-white/90 text-zinc-800 shadow-zinc-800/5 ring-1 ring-zinc-900/5 backdrop-blur dark:bg-zinc-800/90 dark:text-zinc-200 dark:ring-white/10">
-        <NavItem href="/about">About</NavItem>
-        <NavItem href="/articles">Articles</NavItem>
-        <NavItem href="/projects">Projects</NavItem>
-        <NavItem href="/speaking">Speaking</NavItem>
-        <NavItem href="/uses">Uses</NavItem>
+      <ul className="flex px-3 py-0 text-sm font-medium rounded-full shadow-lg bg-white/90 text-zinc-800 shadow-zinc-800/5 ring-1 ring-zinc-900/5 backdrop-blur dark:bg-zinc-800/90 dark:text-zinc-200 dark:ring-white/10">
+      <NavItem href="/">Home</NavItem>
+      <NavItem href="/workshops">Workshops</NavItem>
+        {/* <NavItem href="/about">Home</NavItem> */}
+        {/* <NavItem href="/articles">Workshops</NavItem> */}
+        {/* <NavItem href="/projects">Projects</NavItem> */}
+        {/* <NavItem href="/speaking">Speaking</NavItem> */}
+        {/* <NavItem href="/uses">Uses</NavItem> */}
       </ul>
     </nav>
   )
@@ -408,10 +410,10 @@ export function Header() {
                   </AvatarContainer>
                 )}
               </div>
-              {/*<div className="flex justify-end flex-1 md:justify-center">*/}
-              {/*  <MobileNavigation className="pointer-events-auto md:hidden" />*/}
-              {/*  <DesktopNavigation className="hidden pointer-events-auto md:block" />*/}
-              {/*</div>*/}
+              <div className="flex justify-end flex-1 md:justify-center">
+               <MobileNavigation className="pointer-events-auto md:hidden" />
+               <DesktopNavigation className="hidden pointer-events-auto md:block" />
+              </div>
               <div className="flex justify-end md:flex-1">
                 <div className="pointer-events-auto">
                   <ModeToggle />

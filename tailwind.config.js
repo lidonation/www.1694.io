@@ -193,16 +193,16 @@ module.exports = {
             marginBottom: theme('spacing.6'),
             paddingLeft: theme('spacing[3.5]'),
           },
-          'li::marker': {
-            fontSize: theme('fontSize.sm')[0],
-            fontWeight: theme('fontWeight.semibold'),
-          },
-          'ol > li::marker': {
-            color: 'var(--tw-prose-counters)',
-          },
-          'ul > li::marker': {
-            color: 'var(--tw-prose-bullets)',
-          },
+          // 'li::marker': {
+          //   fontSize: theme('fontSize.sm')[0],
+          //   fontWeight: theme('fontWeight.semibold'),
+          // },
+          // 'ol > li::marker': {
+          //   color: 'var(--tw-prose-counters)',
+          // },
+          // 'ul > li::marker': {
+          //   color: 'var(--tw-prose-bullets)',
+          // },
           'li :is(ol, ul)': {
             marginTop: theme('spacing.4'),
             marginBottom: theme('spacing.4'),
