@@ -7,7 +7,7 @@ FROM node:lts as builder
 WORKDIR /app
 COPY . .
 COPY --from=dependencies /app/node_modules ./node_modules
-RUN CI= yarn build
+RUN yarn build --silent
 
 FROM node:lts as runner
 WORKDIR /app
