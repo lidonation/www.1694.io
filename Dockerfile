@@ -1,15 +1,15 @@
-FROM node:lts as dependencies
+FROM node:19.4 as dependencies
 WORKDIR /app
 COPY package.json yarn.lock ./
 RUN yarn install --frozen-lockfile
 
-FROM node:lts as builder
+FROM node:19.4 as builder
 WORKDIR /app
 COPY . .
 COPY --from=dependencies /app/node_modules ./node_modules
 RUN npx next telemetry disable && npx next build
 
-FROM node:lts as runner
+FROM node:19.4 as runner
 WORKDIR /app
 ENV NODE_ENV production
 
