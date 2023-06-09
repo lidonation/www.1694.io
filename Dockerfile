@@ -1,6 +1,7 @@
 FROM node:19.4 as dependencies
 WORKDIR /app
 COPY package.json yarn.lock ./
+RUN npm install -g npm@9.7.1
 RUN yarn install --frozen-lockfile
 
 FROM node:19.4 as builder
