@@ -85,30 +85,38 @@ export function getStaticProps() {
   return {
       props: {
           whorkshops: [
-              {
-                  name: 'Minneapolis',
-                  link: 'https://www.eventbrite.com/e/cip-1694-governance-workshop-tickets-655290169537',
-                  locationDescription: 'Coco Working: 4th Floor Grain Exchange Building',
-                  location: '400 South 4th Street, Minneapolis, MN, 55415',
-                  startDateTime: '2023-06-23T09:00:00-05:00',
-                  endDateTime: '2023-06-23T17:00:00-05:00'
-              },
-              {
-                  name: 'Philadelphia',
-                  link: 'https://www.meetup.com/phillyada/events/293744781/',
-                  locationDescription: 'Blockspace Philly',
-                  location: '21 S 11th Street, 4th FL · Philadelphia, PA',
-                  startDateTime: '2023-06-17T12:00:00+04:00',
-                  endDateTime: '2023-06-08T17:16:00+04:00'
-              },
-              {
-                  name: 'Worcester',
-                  link: 'https://www.meetup.com/gimbalabs-worcester/events/293145623/',
-                  locationDescription: 'Courtyard by Marriott',
-                  location: '72 Grove St, Worcester, MA 01605',
-                  startDateTime: '2023-06-08T09:00:00+04:00',
-                  endDateTime: '2023-06-08T17:00:00+04:00'
-              },            
+            {
+              name: 'Abu Dhabi',
+              link: 'https://forms.gle/1HuKu2hB5FScg4Fm9',
+              locationDescription: 'Abu Dhabi - Creative Hub (Cornish)',
+              location: '309 Al Meena St - Al Zahiyah - Abu Dhabi - United Arab Emirates',
+              startDateTime: '2023-06-25T16:00:00+04:00',
+              endDateTime: '2023-06-23T19:00:00+04:00'
+            },
+            {
+              name: 'Minneapolis',
+              link: 'https://www.eventbrite.com/e/cip-1694-governance-workshop-tickets-655290169537',
+              locationDescription: 'Coco Working: 4th Floor Grain Exchange Building',
+              location: '400 South 4th Street, Minneapolis, MN, 55415',
+              startDateTime: '2023-06-23T09:00:00-05:00',
+              endDateTime: '2023-06-23T17:00:00-05:00'
+            },
+            {
+              name: 'Philadelphia',
+              link: 'https://www.meetup.com/phillyada/events/293744781/',
+              locationDescription: 'Blockspace Philly',
+              location: '21 S 11th Street, 4th FL · Philadelphia, PA',
+              startDateTime: '2023-06-17T12:00:00+04:00',
+              endDateTime: '2023-06-08T17:16:00+04:00'
+            },
+            {
+              name: 'Worcester',
+              link: 'https://www.meetup.com/gimbalabs-worcester/events/293145623/',
+              locationDescription: 'Courtyard by Marriott',
+              location: '72 Grove St, Worcester, MA 01605',
+              startDateTime: '2023-06-08T09:00:00+04:00',
+              endDateTime: '2023-06-08T17:00:00+04:00'
+            },            
           ]
       },
   }
