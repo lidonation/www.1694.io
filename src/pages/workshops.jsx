@@ -97,6 +97,14 @@ export function getStaticProps() {
               endDateTime: '2023-05-27T18:00:00-05:00'
             },
             {
+              name: 'Johannesburg',
+              link: 'https://www.meetup.com/cardano-blockchain-johannesburg-sa/events/293523683/',
+              locationDescription: 'UNISA Conference Centre',
+              location: '2 Vinton Rd· Johannesburg South',
+              startDateTime: '2023-05-25T08:00:00+02:00',
+              endDateTime: '2023-05-25T15:00:00+02:00'
+            },
+            {
               name: 'Minneapolis',
               link: 'https://www.eventbrite.com/e/cip-1694-governance-workshop-tickets-655290169537',
               locationDescription: 'Coco Working: 4th Floor Grain Exchange Building',
