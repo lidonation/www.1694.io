@@ -107,6 +107,14 @@ export function getStaticProps() {
               endDateTime: '2023-05-27T18:00:00-05:00'
             },
             {
+              name: 'Chicago',
+              link: 'https://docs.google.com/forms/d/e/1FAIpQLSd_s6Kex6eeo8VBZOubwFfY_dMXsNnkqkDDzf6lyo77SLjVBw/viewform',
+              locationDescription: 'Hilton Garden Inn Chicago OHare Airport',
+              location: '2930 S River Rd, Des Plaines, IL 60018',
+              startDateTime: '2023-05-27T09:00:00-05:00',
+              endDateTime: '2023-05-27T16:00:00-05:00'
+            },
+            {
               name: 'Fukuoka',
               link: 'https://www.meetup.com/cardano-kyushu-okinawa/events/293559858/',
               locationDescription: 'Office New Gaea Hakata Station 3F',
