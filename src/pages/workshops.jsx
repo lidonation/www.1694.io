@@ -96,7 +96,7 @@ export function getStaticProps() {
               locationDescription: 'Abu Dhabi - Creative Hub (Cornish)',
               location: '309 Al Meena St - Al Zahiyah - Abu Dhabi - United Arab Emirates',
               startDateTime: '2023-06-25T16:00:00+04:00',
-              endDateTime: '2023-06-23T19:00:00+04:00'
+              endDateTime: '2023-06-25T20:00:00+04:00'
             },
             {
               name: 'Accra',
