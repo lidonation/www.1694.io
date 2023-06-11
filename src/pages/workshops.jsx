@@ -1,8 +1,8 @@
 import Head from 'next/head'
-
 import { Card } from '@/components/Card'
 import { Section } from '@/components/Section'
 import { SimpleLayout } from '@/components/SimpleLayout'
+import cipNutShellImage from '@/images/photos/iog-cip-in-a-nutshell.png'
 
 function WorkshopSection({ children, ...props }) {
   return (
@@ -69,6 +69,15 @@ export default function Speaking({whorkshops}) {
               description="The be the most helpful and egaged with with the workshop we recommend you read the entire CIP here on the homepage. If this is all brand new to you, here's a video give you a 10 thousand foot view before diving in."
               event="CIPs & CIP 1694"
               cta="Watch video"
+            />
+
+            <Appearance
+              href={cipNutShellImage.src}
+              target='_blank'
+              title="CIP-1694 IN A NUTSHELL"
+              description="A short infographic introduction to CIP-1694 by IOG and able-pool.io"
+              event="Infographic"
+              cta="Open Diagram video"
             />
           </WorkshopSection>
         </div>        
