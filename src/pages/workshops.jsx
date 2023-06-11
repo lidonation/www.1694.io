@@ -163,6 +163,14 @@ export function getStaticProps() {
               endDateTime: '2023-06-17T17:20:00+04:00'
             },
             {
+              name: 'Seoul',
+              link: 'https://www.meetup.com/cardano-blockchain-korea/events/293558264/',
+              locationDescription: 'Belgium',
+              location: '37.508747, 127.057526',
+              startDateTime: '2023-06-24T10:00:00+09:00',
+              endDateTime: '2023-06-24T18:20:00+09:00'
+            },
+            {
               name: 'Vancouver',
               link: 'https://www.meetup.com/cardano-blockchain-vancouver-community/events/293698824/',
               locationDescription: 'Cascades Casino Delta',
