@@ -131,6 +131,14 @@ export function getStaticProps() {
               endDateTime: '2023-06-23T16:00:00-05:00'
             },
             {
+              name: 'Monterey',
+              link: 'https://www.meetup.com/buffy-bot-publishing/events/293198753/',
+              locationDescription: 'Monterey Marriott',
+              location: '350 Calle Principal, Monterey, CA',
+              startDateTime: '2023-05-28T12:00:00-07:00',
+              endDateTime: '2023-05-28T18:30:00-07:00'
+            },
+            {
               name: 'Philadelphia',
               link: 'https://www.meetup.com/phillyada/events/293744781/',
               locationDescription: 'Blockspace Philly',
