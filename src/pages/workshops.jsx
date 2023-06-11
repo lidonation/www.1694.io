@@ -40,6 +40,18 @@ export default function Speaking({whorkshops}) {
         intro="Given importance of CIP 1694, achieving broad consensus is vital as Cardano looks to the future. To that end, IOG have joined with the community to finance and put 20 workshops around the globe cummunating with three workshops in Zug (Switzerland), Tokyo ( Japan) , and Edinburgh ( Scotland) during June and July, co-hosted by the Cardano Foundation, EMURGO, and IOG."
       >
         <div className="mb-16 space-y-20">
+        <WorkshopSection title="Workshops" className="border-none">
+          <p className='text-sm text-center text-zinc-400 dark:text-zinc-500'>Attend a Workshop</p>
+            <div className="flex flex-row flex-wrap justify-center gap-4">                
+                {whorkshops.map((workshop) => (
+                  <a key={workshop.name} rel="noreferrer" target='_blank' href={workshop.link}
+                      className="text-sm font-semibold text-rose-400 xl:text-xl dark:text-rose-200 hover:text-rose-600 dark:hover:text-rose-500">
+                      {workshop.name}
+                  </a>
+                ))}
+              </div>
+          </WorkshopSection>
+          
           <WorkshopSection title="Knowledge Base" className="border-none">
             <Appearance
               href="https://www.youtube.com/watch?v=UMUztLQNqSI"
@@ -57,25 +69,8 @@ export default function Speaking({whorkshops}) {
               event="CIPs & CIP 1694"
               cta="Watch video"
             />
-          </WorkshopSection>        
-
-                  
-          <WorkshopSection title="Workshops" className="border-none">
-          <p className='text-sm text-center text-zinc-400 dark:text-zinc-500'>Attend a Workshop</p>
-            <div className="flex flex-row flex-wrap justify-center gap-4">                
-                {whorkshops.map((workshop) => (
-                  <a key={workshop.name} rel="noreferrer" target='_blank' href={workshop.link}
-                      className="text-sm font-semibold text-rose-400 xl:text-xl dark:text-rose-200 hover:text-rose-600 dark:hover:text-rose-500">
-                      {workshop.name}
-                  </a>
-                ))}
-              </div>
           </WorkshopSection>
-        </div>
-
-
-
-        
+        </div>        
       </SimpleLayout>
     </>
   )
@@ -92,6 +87,14 @@ export function getStaticProps() {
               location: '309 Al Meena St - Al Zahiyah - Abu Dhabi - United Arab Emirates',
               startDateTime: '2023-06-25T16:00:00+04:00',
               endDateTime: '2023-06-23T19:00:00+04:00'
+            },
+            {
+              name: 'Bogotá',
+              link: 'https://www.eventbrite.com/e/taller-de-gobernanza-cip-1694-tickets-639570842607',
+              locationDescription: 'College of Higher Administration Studies - CESA',
+              location: '5a-57 Diagonal 35 Bogotá, Bogotá 110311 Colombia',
+              startDateTime: '2023-05-27T08:00:00-05:00',
+              endDateTime: '2023-05-27T18:00:00-05:00'
             },
             {
               name: 'Minneapolis',
