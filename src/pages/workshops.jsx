@@ -39,7 +39,7 @@ export default function Speaking({whorkshops}) {
         title="IOG is partnering with community members in 20 locations around the globe."
         intro="Given importance of CIP 1694, achieving broad consensus is vital as Cardano looks to the future. To that end, IOG have joined with the community to finance and put 20 workshops around the globe cummunating with three workshops in Zug (Switzerland), Tokyo ( Japan) , and Edinburgh ( Scotland) during June and July, co-hosted by the Cardano Foundation, EMURGO, and IOG."
       >
-        <div className="mb-16 space-y-20">
+        <div className="mb-16 space-y-40">
         <WorkshopSection title="Workshops" className="border-none">
           <p className='text-sm text-center text-zinc-400 dark:text-zinc-500'>Attend a Workshop</p>
             <div className="flex flex-row flex-wrap justify-center gap-4">                
@@ -53,6 +53,7 @@ export default function Speaking({whorkshops}) {
           </WorkshopSection>
           
           <WorkshopSection title="Knowledge Base" className="border-none">
+            <p className='text-sm text-center text-zinc-400 dark:text-zinc-500'>Preparing for the workshop</p>
             <Appearance
               href="https://www.youtube.com/watch?v=UMUztLQNqSI"
               target='_blank'
@@ -105,12 +106,20 @@ export function getStaticProps() {
               endDateTime: '2023-05-25T15:00:00+02:00'
             },
             {
+              name: 'Kyoto',
+              link: 'https://www.meetup.com/cardano-blockchain-kansai/events/293559859/',
+              locationDescription: 'Kyoto Chuo Gakuin, Building 2, Room 282',
+              location: 'Japan, 〒600-8236 Kyoto, Shimogyo Ward, Nishiaburanokōjichō, 27',
+              startDateTime: '2023-06-27T10:00:00+09:00',
+              endDateTime: '2023-06-27T16:00:00+09:00'
+            },
+            {
               name: 'Minneapolis',
               link: 'https://www.eventbrite.com/e/cip-1694-governance-workshop-tickets-655290169537',
               locationDescription: 'Coco Working: 4th Floor Grain Exchange Building',
               location: '400 South 4th Street, Minneapolis, MN, 55415',
-              startDateTime: '2023-06-23T09:00:00-05:00',
-              endDateTime: '2023-06-23T17:00:00-05:00'
+              startDateTime: '2023-06-23T10:00:00-05:00',
+              endDateTime: '2023-06-23T16:00:00-05:00'
             },
             {
               name: 'Philadelphia',
