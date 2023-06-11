@@ -99,6 +99,14 @@ export function getStaticProps() {
               endDateTime: '2023-06-23T19:00:00+04:00'
             },
             {
+              name: 'Accra',
+              link: 'https://www.meetup.com/cardano-blockchain-accra/events/293689905/',
+              locationDescription: 'TBD',
+              location: 'TBD',
+              startDateTime: '2023-06-24T09:00:00+00:00',
+              endDateTime: '2023-06-24T16:00:00+00:00'
+            },
+            {
               name: 'Bogotá',
               link: 'https://www.eventbrite.com/e/taller-de-gobernanza-cip-1694-tickets-639570842607',
               locationDescription: 'College of Higher Administration Studies - CESA',
