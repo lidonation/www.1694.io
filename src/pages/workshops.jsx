@@ -107,6 +107,14 @@ export function getStaticProps() {
               endDateTime: '2023-05-27T18:00:00-05:00'
             },
             {
+              name: 'Fukuoka',
+              link: 'https://www.meetup.com/cardano-kyushu-okinawa/events/293559858/',
+              locationDescription: 'Office New Gaea Hakata Station 3F',
+              location: '1-chōme-12 Hakataekihigashi, Hakata Ward, Fukuoka, 812-0013, Japan',
+              startDateTime: '2023-06-10T10:00:00+09:00',
+              endDateTime: '2023-06-10T17:00:00+09:00'
+            },
+            {
               name: 'Johannesburg',
               link: 'https://www.meetup.com/cardano-blockchain-johannesburg-sa/events/293523683/',
               locationDescription: 'UNISA Conference Centre',
@@ -119,8 +127,8 @@ export function getStaticProps() {
               link: 'https://www.meetup.com/cardano-blockchain-kansai/events/293559859/',
               locationDescription: 'Kyoto Chuo Gakuin, Building 2, Room 282',
               location: 'Japan, 〒600-8236 Kyoto, Shimogyo Ward, Nishiaburanokōjichō, 27',
-              startDateTime: '2023-06-27T10:00:00+09:00',
-              endDateTime: '2023-06-27T16:00:00+09:00'
+              startDateTime: '2023-05-27T10:00:00+09:00',
+              endDateTime: '2023-05-27T16:00:00+09:00'
             },
             {
               name: 'Minneapolis',
@@ -144,15 +152,15 @@ export function getStaticProps() {
               locationDescription: 'Blockspace Philly',
               location: '21 S 11th Street, 4th FL · Philadelphia, PA',
               startDateTime: '2023-06-17T12:00:00+04:00',
-              endDateTime: '2023-06-08T17:16:00+04:00'
+              endDateTime: '2023-06-17T17:20:00+04:00'
             },
             {
               name: 'Vancouver',
               link: 'https://www.meetup.com/cardano-blockchain-vancouver-community/events/293698824/',
               locationDescription: 'Cascades Casino Delta',
               location: '6005 BC-17A, Delta, BC V4K 5B8, Canada',
-              startDateTime: '2023-06-17T10:00:00+00:00',
-              endDateTime: '2023-06-08T17:16:00+00:00'
+              startDateTime: '2023-06-03T10:00:00+00:00',
+              endDateTime: '2023-06-03T17:16:00+00:00'
             },
             {
               name: 'Worcester',
@@ -160,7 +168,7 @@ export function getStaticProps() {
               locationDescription: 'Courtyard by Marriott',
               location: '72 Grove St, Worcester, MA 01605',
               startDateTime: '2023-06-08T09:00:00+04:00',
-              endDateTime: '2023-06-08T17:00:00+04:00'
+              endDateTime: '2023-06-08T18:00:00+04:00'
             },            
           ]
       },
