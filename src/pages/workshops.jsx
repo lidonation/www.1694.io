@@ -77,7 +77,7 @@ export default function Speaking({whorkshops}) {
               title="CIP-1694 IN A NUTSHELL"
               description="A short infographic introduction to CIP-1694 by IOG and able-pool.io"
               event="Infographic"
-              cta="Open Diagram video"
+              cta="Open Diagram"
             />
           </WorkshopSection>
         </div>        
@@ -128,7 +128,7 @@ export function getStaticProps() {
               locationDescription: 'Coco Working: 4th Floor Grain Exchange Building',
               location: '400 South 4th Street, Minneapolis, MN, 55415',
               startDateTime: '2023-06-23T10:00:00-05:00',
-              endDateTime: '2023-06-23T16:00:00-05:00'
+              endDateTime: '2023-06-23T17:00:00-05:00'
             },
             {
               name: 'Monterey',
@@ -145,6 +145,14 @@ export function getStaticProps() {
               location: '21 S 11th Street, 4th FL · Philadelphia, PA',
               startDateTime: '2023-06-17T12:00:00+04:00',
               endDateTime: '2023-06-08T17:16:00+04:00'
+            },
+            {
+              name: 'Vancouver',
+              link: 'https://www.meetup.com/cardano-blockchain-vancouver-community/events/293698824/',
+              locationDescription: 'Cascades Casino Delta',
+              location: '6005 BC-17A, Delta, BC V4K 5B8, Canada',
+              startDateTime: '2023-06-17T10:00:00+00:00',
+              endDateTime: '2023-06-08T17:16:00+00:00'
             },
             {
               name: 'Worcester',
