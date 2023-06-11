@@ -8,8 +8,7 @@ FROM node:19.4 as builder
 WORKDIR /app
 COPY . .
 COPY --from=dependencies /app/node_modules ./node_modules
-RUN npx next telemetry disable
-RUN npx next build
+RUN yarn build
 
 FROM node:19.4 as runner
 WORKDIR /app
