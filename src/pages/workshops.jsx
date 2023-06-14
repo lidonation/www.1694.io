@@ -3,6 +3,9 @@ import { Card } from '@/components/Card'
 import { Section } from '@/components/Section'
 import { SimpleLayout } from '@/components/SimpleLayout'
 import cipNutShellImage from '@/images/photos/iog-cip-in-a-nutshell.png'
+import { useState } from 'react'
+import Modal from '@/workshops/components/Modal'
+import WorkshopDetails from '@/workshops/components/WorkshopDetails'
 
 function WorkshopSection({ children, ...props }) {
   return (
@@ -26,6 +29,18 @@ function Appearance({ title, description, event, cta, href, target="_self" }) {
 }
 
 export default function Speaking({whorkshops}) {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedWorkshop, setSelectedWorkshop] = useState({});
+
+  const openModal = (workshop) => {
+    setSelectedWorkshop(workshop);
+    // console.log(workshop);
+    setModalOpen(true);
+  };
+
+  const updateIsOpen = () => {
+    setModalOpen(false);
+  }
   return (
     <>
       <Head>
@@ -44,12 +59,15 @@ export default function Speaking({whorkshops}) {
           <p className='text-sm text-center text-zinc-400 dark:text-zinc-500'>Attend a Workshop</p>
             <div className="flex flex-row flex-wrap justify-center gap-4">                
                 {whorkshops.map((workshop) => (
-                  <a key={workshop.name} rel="noreferrer" target='_blank' href={workshop.link}
-                      className="text-sm font-semibold text-rose-400 xl:text-xl dark:text-rose-200 hover:text-rose-600 dark:hover:text-rose-500">
+                  <span key={workshop.name} rel="noreferrer" onClick={() => openModal(workshop)}
+                      className="text-sm font-semibold text-rose-400 xl:text-xl dark:text-rose-200 hover:text-rose-600 dark:hover:text-rose-500 cursor-pointer">
                       {workshop.name}
-                  </a>
+                  </span>
                 ))}
               </div>
+              <Modal isOpen={modalOpen} updateOpen={updateIsOpen}>
+                <WorkshopDetails workshop={selectedWorkshop}/>
+              </Modal>
           </WorkshopSection>
           
           <WorkshopSection title="Knowledge Base" className="border-none">
