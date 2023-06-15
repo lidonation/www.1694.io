@@ -7,8 +7,8 @@ function Map({ location }) {
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_API,
   })
   const center = {
-    lat: location.latitude,
-    lng: location.longitude,
+    lat: location[0],
+    lng: location[1],
   }
   if (!isLoaded) {
     return <h2 className="text-center text-2xl text-black dark:text-white">Loading map..</h2>
