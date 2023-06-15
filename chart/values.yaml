@@ -19,7 +19,7 @@ certificate:
   hosts:
     - "'*.1694.io'"
 
-secret:
+secrets:
   NEXT_PUBLIC_GOOGLE_API:
 
 image:
