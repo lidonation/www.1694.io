@@ -29,6 +29,12 @@ spec:
         - name: app
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: NEXT_PUBLIC_GOOGLE_API
+              value: {{ .Values.secrets.NEXT_PUBLIC_GOOGLE_API }}
+          envFrom:
+            - secretRef:
+                name: "{{ $.Chart.Name }}-secrets"
           livenessProbe:
             httpGet:
               path: /
