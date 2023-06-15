@@ -1,12 +1,11 @@
 import React from 'react';
 import { GoogleMap, useJsApiLoader, MarkerF } from '@react-google-maps/api';
 import getConfig from "next/config";
-const { publicRuntimeConfig } = getConfig();
 
 function Map({ location }) {
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
-    googleMapsApiKey: publicRuntimeConfig.NEXT_PUBLIC_GOOGLE_API,
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_API,
   })
   const center = {
     lat: location[0],
