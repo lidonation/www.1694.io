@@ -2,6 +2,7 @@ import React from 'react'
 import { GoogleMap, useJsApiLoader, MarkerF } from '@react-google-maps/api'
 
 function Map({ location }) {
+  console.log('NEXT_PUBLIC_GOOGLE_API::', process.env.NEXT_PUBLIC_GOOGLE_API);
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_API,
