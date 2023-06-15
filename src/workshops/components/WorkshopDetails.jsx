@@ -4,6 +4,7 @@ import {
   EnvelopeIcon,
   PhoneIcon,
 } from '@heroicons/react/24/outline'
+import Map from './Map'
 
 function WorkshopDetails({ workshop }) {
   return (
@@ -67,7 +68,7 @@ function WorkshopDetails({ workshop }) {
                     aria-hidden="true"
                   />
                 </dt>
-                <dd>{workshop.location}</dd>
+                <dd>{workshop.location_address}</dd>
               </div>
               <div className="flex gap-x-4">
                 <dt className="flex-none">
@@ -111,7 +112,7 @@ function WorkshopDetails({ workshop }) {
           </div>
         </div>
         <div>
-          <h2></h2>
+          <Map location={workshop.location_lat_lng}/>
         </div>
       </div>
     </div>
