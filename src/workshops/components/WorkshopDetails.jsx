@@ -3,10 +3,19 @@ import { BuildingOffice2Icon} from '@heroicons/react/24/outline'
 import Map from './Map'
 
 function WorkshopDetails({ workshop }) {
+  const localTime = (time) => {
+    const timestamp = time;
+    const date = new Date(timestamp);
+    const options = {
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    };
+    const localTimeString = date.toLocaleString(undefined, options);
+    return localTimeString;
+  };
   return (
-    <div className="relative bg-white isolate dark:bg-black">
+    <section className="relative bg-white isolate dark:bg-black">
       <div className="grid grid-cols-1 mx-auto max-w-7xl lg:grid-cols-2">
-        <div className="relative px-6 pt-24 pb-20 sm:pt-32 lg:static lg:px-8 lg:py-48">
+        <section className="relative px-6 pt-24 pb-20 sm:pt-32 lg:static lg:px-8 lg:py-24">
           <div className="max-w-xl mx-auto lg:mx-0 lg:max-w-lg">
             <div className="absolute inset-y-0 left-0 w-full overflow-hidden -z-10 ring-1 ring-white/5 lg:w-1/2">
               <svg
@@ -66,12 +75,12 @@ function WorkshopDetails({ workshop }) {
                   />
                 </dt>
                 <dd className='text-left'>
-                  <div>
+                  <p>
                     {workshop.locationDescription}
-                    </div>
-                  <div>
-                    {workshop.location_address}
-                  </div>
+                    </p>
+                  <p>
+                    {workshop.locationAddress}
+                  </p>
                 </dd>
               </div>                    
               
@@ -91,8 +100,8 @@ function WorkshopDetails({ workshop }) {
                   />
                 </svg>
                 <div className="flex flex-col items-start">
-                  <span>Start date and time: {workshop.startDateTime}</span>
-                  <span>End date and time: {workshop.endDateTime}</span>
+                  <p>Start date and time: <span>{localTime(workshop.startDateTime)}</span></p>
+                  <p>End date and time: <span>{localTime(workshop.endDateTime)}</span></p>
                 </div>
               </div>
           
@@ -107,12 +116,12 @@ function WorkshopDetails({ workshop }) {
               </div>
             </dl>
           </div>
-        </div>
-        <div>
-          <Map location={workshop.location_lat_lng}/>
-        </div>
+        </section>
+        <section>
+          <Map location={workshop.locationLatLng}/>
+        </section>
       </div>
-    </div>
+    </section>
   )
 }
 
