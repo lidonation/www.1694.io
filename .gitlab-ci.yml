@@ -57,7 +57,7 @@ build_image:
   script:
     - *setup
     - |
-      mv $ENV_FILE .env.production      
+      cp $ENV_FILE .env.production      
       docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
       echo "Building ockerfile with tags $CI_APPLICATION_REPOSITORY/www.1694.io:$CI_APPLICATION_TAG and $CI_APPLICATION_REPOSITORY/www.1694.io:latests ..."
       docker build --network host -f Dockerfile \
