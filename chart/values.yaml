@@ -19,6 +19,9 @@ certificate:
   hosts:
     - "'*.1694.io'"
 
+secret:
+  NEXT_PUBLIC_GOOGLE_API:
+
 image:
   repository: registry.lidonation.com/voltaire/www.1694.io
   tag: stable

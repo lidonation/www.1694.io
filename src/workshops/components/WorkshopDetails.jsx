@@ -11,8 +11,7 @@ function WorkshopDetails({ workshop }) {
             <div className="absolute inset-y-0 left-0 w-full overflow-hidden -z-10 ring-1 ring-white/5 lg:w-1/2">
               <svg
                 className="absolute inset-0 h-full w-full stroke-gray-700 [mask-image:radial-gradient(100%_100%_at_top_right,white,transparent)]"
-                aria-hidden="true"
-              >
+                aria-hidden="true">
                 <defs>
                   <pattern
                     id="54f88622-e7f8-4f1d-aaf9-c2f5e46dd1f2"
@@ -52,10 +51,12 @@ function WorkshopDetails({ workshop }) {
                 />
               </div>
             </div>
-            <h2 className="text-3xl font-bold tracking-tight text-black dark:text-white">
+            
+            <h2 className="text-3xl font-bold tracking-tight text-black border-none dark:text-white">
               {workshop.name}
             </h2>
-            <dl className="mt-10 space-y-4 text-base leading-7 text-black dark:text-gray-300">
+            
+            <dl className="mt-4 space-y-4 text-base leading-7 text-black dark:text-gray-300">
               <div className="flex gap-x-4">
                 <dt className="flex-none">
                   <span className="sr-only">Address</span>
@@ -72,19 +73,7 @@ function WorkshopDetails({ workshop }) {
                     {workshop.location_address}
                   </div>
                 </dd>
-              </div>
-              
-              {/* <div className="flex gap-x-4">
-                <dt className="flex-none">
-                  <span className="sr-only">Location</span>
-                  <BuildingOffice2Icon
-                    className="w-6 text-black h-7 dark:text-gray-400"
-                    aria-hidden="true"
-                  />
-                </dt>
-                <dd>{workshop.locationDescription}</dd>
-              </div> */}
-              
+              </div>                    
               
               <div className="flex items-center gap-x-4">
                 <svg

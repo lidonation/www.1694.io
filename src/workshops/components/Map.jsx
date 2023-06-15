@@ -11,14 +11,14 @@ function Map({ location }) {
     lng: location.longitude,
   }
   if (!isLoaded) {
-    return <h2 className="text-center text-2xl text-black dark:text-white">Loading map..</h2>
+    return <h2 className="text-2xl text-center text-black dark:text-white">Loading map..</h2>
   }
   return (
     <div className="h-full">
       <GoogleMap
         mapContainerStyle={{ width: '100%', height: '100%' }}
         center={center}
-        zoom={10}
+        zoom={16}
       >
         <MarkerF position={center} />
       </GoogleMap>
