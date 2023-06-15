@@ -17,6 +17,9 @@ const nextConfig = {
   experimental: {
     scrollRestoration: true,
   },
+  publicRuntimeConfig: { 
+    NEXT_PUBLIC_GOOGLE_API: process.env.NEXT_PUBLIC_GOOGLE_API,
+  }
 }
 
 const withMDX = nextMDX({
