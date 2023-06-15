@@ -75,12 +75,12 @@ function WorkshopDetails({ workshop }) {
                   />
                 </dt>
                 <dd className='text-left'>
-                  <p>
+                  <div>
                     {workshop.locationDescription}
-                    </p>
-                  <p>
+                  </div>
+                  <div>
                     {workshop.locationAddress}
-                  </p>
+                  </div>
                 </dd>
               </div>                    
               
@@ -100,8 +100,8 @@ function WorkshopDetails({ workshop }) {
                   />
                 </svg>
                 <div className="flex flex-col items-start">
-                  <p>Start date and time: <span>{localTime(workshop.startDateTime)}</span></p>
-                  <p>End date and time: <span>{localTime(workshop.endDateTime)}</span></p>
+                  <div>Start date and time: <span>{localTime(workshop.startDateTime)}</span></div>
+                  <div>End date and time: <span>{localTime(workshop.endDateTime)}</span></div>
                 </div>
               </div>
           
