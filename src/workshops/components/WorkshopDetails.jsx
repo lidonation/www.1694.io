@@ -1,18 +1,14 @@
 import React from 'react'
-import {
-  BuildingOffice2Icon,
-  EnvelopeIcon,
-  PhoneIcon,
-} from '@heroicons/react/24/outline'
+import { BuildingOffice2Icon} from '@heroicons/react/24/outline'
 import Map from './Map'
 
 function WorkshopDetails({ workshop }) {
   return (
-    <div className="relative isolate bg-white dark:bg-black">
-      <div className="mx-auto grid max-w-7xl grid-cols-1 lg:grid-cols-2">
-        <div className="relative px-6 pb-20 pt-24 sm:pt-32 lg:static lg:px-8 lg:py-48">
-          <div className="mx-auto max-w-xl lg:mx-0 lg:max-w-lg">
-            <div className="absolute inset-y-0 left-0 -z-10 w-full overflow-hidden ring-1 ring-white/5 lg:w-1/2">
+    <div className="relative bg-white isolate dark:bg-black">
+      <div className="grid grid-cols-1 mx-auto max-w-7xl lg:grid-cols-2">
+        <div className="relative px-6 pt-24 pb-20 sm:pt-32 lg:static lg:px-8 lg:py-48">
+          <div className="max-w-xl mx-auto lg:mx-0 lg:max-w-lg">
+            <div className="absolute inset-y-0 left-0 w-full overflow-hidden -z-10 ring-1 ring-white/5 lg:w-1/2">
               <svg
                 className="absolute inset-0 h-full w-full stroke-gray-700 [mask-image:radial-gradient(100%_100%_at_top_right,white,transparent)]"
                 aria-hidden="true"
@@ -64,22 +60,32 @@ function WorkshopDetails({ workshop }) {
                 <dt className="flex-none">
                   <span className="sr-only">Address</span>
                   <BuildingOffice2Icon
-                    className="h-7 w-6 text-black dark:text-gray-400"
+                    className="w-6 text-black h-7 dark:text-gray-400"
                     aria-hidden="true"
                   />
                 </dt>
-                <dd>{workshop.location_address}</dd>
+                <dd className='text-left'>
+                  <div>
+                    {workshop.locationDescription}
+                    </div>
+                  <div>
+                    {workshop.location_address}
+                  </div>
+                </dd>
               </div>
-              <div className="flex gap-x-4">
+              
+              {/* <div className="flex gap-x-4">
                 <dt className="flex-none">
                   <span className="sr-only">Location</span>
                   <BuildingOffice2Icon
-                    className="h-7 w-6 text-black dark:text-gray-400"
+                    className="w-6 text-black h-7 dark:text-gray-400"
                     aria-hidden="true"
                   />
                 </dt>
                 <dd>{workshop.locationDescription}</dd>
-              </div>
+              </div> */}
+              
+              
               <div className="flex items-center gap-x-4">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -87,7 +93,7 @@ function WorkshopDetails({ workshop }) {
                   viewBox="0 0 24 24"
                   strokeWidth={1.5}
                   stroke="currentColor"
-                  className="h-6 w-6"
+                  className="w-6 h-6"
                 >
                   <path
                     strokeLinecap="round"
@@ -100,14 +106,16 @@ function WorkshopDetails({ workshop }) {
                   <span>End date and time: {workshop.endDateTime}</span>
                 </div>
               </div>
-              <a
-                rel="noreferrer"
-                target="_blank"
-                href={workshop.link}
-                className="text-sm font-semibold text-rose-400 hover:text-rose-600 dark:text-rose-200 dark:hover:text-rose-500 hover:underline"
-              >
-                Click here for more information.
-              </a>
+          
+              <div className='pt-16'>
+                <a rel="noreferrer"               
+                    target="_blank"
+                    href={workshop.link}
+                    type="button"
+                    className="rounded-md bg-zinc-800 text-zinc-100 dark:bg-rose-100 py-2.5 px-3.5 text-center text-sm xl:text-xl font-semibold dark:text-zinc-600 shadow-sm w-full hover:bg-rose-100">
+                    View Workshop Details
+                </a>
+              </div>
             </dl>
           </div>
         </div>

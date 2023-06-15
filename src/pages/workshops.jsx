@@ -33,8 +33,7 @@ export default function Speaking({whorkshops}) {
   const [selectedWorkshop, setSelectedWorkshop] = useState({});
 
   const openModal = (workshop) => {
-    setSelectedWorkshop(workshop);
-    // console.log(workshop);
+    setSelectedWorkshop(workshop);    
     setModalOpen(true);
   };
 
@@ -60,7 +59,7 @@ export default function Speaking({whorkshops}) {
             <div className="flex flex-row flex-wrap justify-center gap-4">                
                 {whorkshops.map((workshop) => (
                   <span key={workshop.name} rel="noreferrer" onClick={() => openModal(workshop)}
-                      className="text-sm font-semibold text-rose-400 xl:text-xl dark:text-rose-200 hover:text-rose-600 dark:hover:text-rose-500 cursor-pointer">
+                      className="text-sm font-semibold cursor-pointer text-rose-400 xl:text-xl dark:text-rose-200 hover:text-rose-600 dark:hover:text-rose-500">
                       {workshop.name}
                   </span>
                 ))}
