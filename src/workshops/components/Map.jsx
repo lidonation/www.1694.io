@@ -3,11 +3,7 @@ import { GoogleMap, useJsApiLoader, MarkerF } from '@react-google-maps/api';
 import getConfig from "next/config";
 const { publicRuntimeConfig } = getConfig();
 
-
 function Map({ location }) {
-  console.log('NEXT_PUBLIC_GOOGLE_API::', process.env.NEXT_PUBLIC_GOOGLE_API);
-  console.log('NEXT_PUBLIC_GOOGLE_API public runtime::', publicRuntimeConfig.NEXT_PUBLIC_GOOGLE_API);
-  console.log({publicRuntimeConfig});
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: publicRuntimeConfig.NEXT_PUBLIC_GOOGLE_API,
