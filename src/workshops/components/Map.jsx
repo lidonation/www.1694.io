@@ -1,6 +1,5 @@
 import React from 'react';
 import { GoogleMap, useJsApiLoader, MarkerF } from '@react-google-maps/api';
-import getConfig from "next/config";
 
 function Map({ location }) {
   const { isLoaded } = useJsApiLoader({
