@@ -61,9 +61,11 @@ function WorkshopDetails({ workshop }) {
               </div>
             </div>
             
-            <h2 className="text-3xl font-bold tracking-tight text-black border-none dark:text-white">
-              {workshop.name}
-            </h2>
+            <header>
+              <h2 className="text-3xl font-bold tracking-tight text-black border-none dark:text-white">
+                {workshop.name}
+              </h2>
+            </header>
             
             <dl className="mt-4 space-y-4 text-base leading-7 text-black dark:text-gray-300">
               <div className="flex gap-x-4">
@@ -100,8 +102,8 @@ function WorkshopDetails({ workshop }) {
                   />
                 </svg>
                 <div className="flex flex-col items-start">
-                  <div>Start date and time: <span>{localTime(workshop.startDateTime)}</span></div>
-                  <div>End date and time: <span>{localTime(workshop.endDateTime)}</span></div>
+                  <div>Start date and time: <time>{localTime(workshop.startDateTime)}</time></div>
+                  <div>End date and time: <time>{localTime(workshop.endDateTime)}</time></div>
                 </div>
               </div>
           
