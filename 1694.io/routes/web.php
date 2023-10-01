@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Homecontroller;
+use App\Http\Controllers\WorkshopsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -13,6 +15,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', [Homecontroller::class, 'show']);
+
+
+Route::get('/workshops', [WorkshopsController::class, 'show']);
