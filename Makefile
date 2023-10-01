@@ -1,12 +1,12 @@
 include 1694.io/.env
 sail := 1694.io/vendor/bin/sail
 
-$(eval export $(shell sed -ne 's/ *#.*$$//; /./ s/=.*$$// p' application/.env))
+$(eval export $(shell sed -ne 's/ *#.*$$//; /./ s/=.*$$// p' 1694.io/.env))
 
 .PHONY: init
 init:
 	docker run --rm --interactive --tty \
-          --volume ${PWD}/application:/app \
+          --volume ${PWD}/1694.io:/app \
           composer install --ignore-platform-reqs
 	make up
 	sleep 20
