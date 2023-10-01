@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.dark-mode {
+  background-color: #000; /* Dark background color */
+  color: #fff; /* Light text color for dark mode */
+}
+.semidark-mode{
+  background-color: #161616; /* Dark background color */
+  color: #ffffffd2; 
+}
+.darkmode-table{
+  background-color: rgb(102, 167, 197);
+  color: #000;
+  border-color: gray;
+}
+
+@media (min-width: 900px) {
+    .container {
+      @apply grid grid-cols-3 gap-4;
+    }
+  
+    .left-column {
+      @apply col-span-3 md:col-span-2;
+    }
+  
+    .right-column {
+      @apply col-span-3 md:col-span-1;
+    }
+  }
+
+  .custom-paragraph {
+    word-wrap: break-word;
+}
+
+  
