@@ -6,12 +6,12 @@
         </h1>
     </a>
     <hr>
-    <div class="mt-10 bg-slate-100 h 20 p-5 border-4  border-l-slate-400 p-5">
-        <div class="bg-slate-100 h 20 p-5 border-4  border-l-slate-400 ">
+    <div class="mt-10 bg-slate-100 h 20 p-5 border-l-2  border-l-slate-400 dark:bg-gray-300 dark:bg-opacity-50 dark:border-l-white p-5">
+        <div class="bg-slate-100 h 20 p-5 border-l-2  border-l-slate-400 dark:bg-gray-300 dark:bg-opacity-50 dark:border-l-white ">
             <p>@michael-liesenfelt : limit the voting power of all SPO's to some leverage limit multiple of the SPO's pledge: L.</p>
         </div>
     </div>
-    <div class="mt-10 bg-slate-100 h 20 p-5 border-4  border-l-slate-400">
+    <div class="mt-10 bg-slate-100 h 20 p-5 border-l-2  border-l-slate-400 dark:bg-gray-300 dark:bg-opacity-50 dark:border-l-white">
         <p>
             @JaredCorduan : How do we reconcile this, however, with the fact that SPOs that do not wish for a hard fork can always just not upgrade their software?
          </p>

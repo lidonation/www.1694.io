@@ -9,11 +9,12 @@
               <a target="_blank" class="transition hover:text-teal-500 dark:hover:text-teal-400" href="https://www.lidonation.com/en/catalyst-explorer/proposals">Catalyst Explorer</a>
               <a target="_blank" class="transition hover:text-teal-500 dark:hover:text-teal-400" href="https://cips.cardano.org/">Cardano CIPs</a>
             </div>
-            <p class="text-sm text-zinc-400 dark:text-zinc-500">© <!-- -->2023<!-- --> A LIDO Nation Project</p>
+            <p class="text-sm text-zinc-400 dark:text-zinc-500">© 2023 A LIDO Nation Project</p>
           </div>
         </div>
       </div>
     </div>
   </div>
 </div>
+
 </footer>

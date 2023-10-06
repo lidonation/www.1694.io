@@ -26,7 +26,7 @@
 
         <ul class="list-disc mt-4">
             <li>
-                <div class="mt-4 bg-slate-100 h 20 p-5 border-4  border-l-slate-400">
+                <div class="mt-4 bg-slate-100 h 20 p-5 border-l-2  border-l-slate-400 dark:bg-gray-300 dark:bg-opacity-50 dark:border-l-white">
                     <p>
                         Otherwise, SPO vote endorsement is required. <br>The :x: symbol indicates that the AVST will be <br> ignored, and only the DRep and SPO votes will <br>be considered regardless of the AVST.
                     </p>

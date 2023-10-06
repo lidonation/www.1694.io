@@ -5,8 +5,8 @@
     </a>
     <hr>
 
-    <div class="mt-4 bg-slate-100 h 20 p-5 border-4  border-l-slate-400">
-        <div class="mt-2 bg-slate-100 h 20 p-2 border-2  border-l-slate-400">
+    <div class="mt-4 bg-slate-100 h 20 p-5 border-l-2  border-l-slate-400 dark:bg-gray-300 dark:bg-opacity-50 dark:border-l-white">
+        <div class="mt-2 bg-slate-100 h 20 p-2 border-l-2  border-l-slate-400 dark:bg-gray-300 dark:bg-opacity-50 dark:border-l-white">
             <p>
                 Applying this lesson to social decentralization and governance it would be wise to limit the voting power of all SPO's to some leverage limit multiple of the SPO's pledge: L. This has a profound effect: there is an added social/governance motivation for pledge. Groups like Binance and Coinbase which do not pledge any ADA would have no voting power.
             </p>

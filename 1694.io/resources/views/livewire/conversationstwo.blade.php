@@ -5,7 +5,7 @@
     </a>
     <hr>
 
-    <div class="mt-10 bg-slate-100 h 20 p-5 border-4  border-l-slate-400 max-w-sx">
+    <div class="mt-10 bg-slate-100 h 20 p-5 border-l-2  border-l-slate-400 dark:bg-gray-300 dark:bg-opacity-50 dark:border-l-white max-w-sx">
         <p class="sm:max-w-2xl">
         One feature of this CIP that I really like is that there is no mandatory hierarchical structure for how payouts must be made. This leaves funding the future community structure of the (members based organization, professional society, Catalyst startup incubator, whatever outcome of the Cardano constitutional process) entirely flexible. This flexibility is wise and is absolutely necessary for financial (fund/defund) checks-and-balances of future Cardano (organizations/ societies/ companies/ developers/ contractors/ ect).
         </p>

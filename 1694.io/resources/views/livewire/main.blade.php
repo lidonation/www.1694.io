@@ -310,7 +310,7 @@
             
             <h3 class="text-2xl font-medium mt-10">Delegated representatives (DReps)</h3>
 
-            <div class="mt-10 bg-slate-100 h 20 p-5 border-4  border-l-slate-400" id="darkmode-table">
+            <div class="mt-10 bg-slate-100 h 20 p-5 border-l-2  border-l-slate-400 dark:bg-gray-300 dark:bg-opacity-50 dark:border-l-white">
                 <p>
                 <b>Warning </b>CIP-1694 DReps <b>should not be conflated</b> with Project Catalyst DReps.
                 </p>
@@ -327,7 +327,7 @@
 
 
 <!--articles-->
-        <div class=" right-column max-w-sm p-2">
+        <div class=" right-column max-w-sm p-2 pl-20">
             @livewire('CommunityTranslations')
             @livewire("Conversations")
             @livewire(" Conversationsone ")
@@ -351,11 +351,6 @@
             @livewire("Conversation19")
             @livewire("Conversation20")
         </div>
-
-
-
-
-
     </div>
     
 

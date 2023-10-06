@@ -27,6 +27,7 @@
   
     .right-column {
       @apply col-span-3 md:col-span-1;
+      
     }
   }
 
