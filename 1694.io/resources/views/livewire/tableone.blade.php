@@ -2,8 +2,8 @@
         <table class="w-full border border-collapse divide-y divide-gray-200">
             <thead>
                 <tr>
-                    <th class="px-6 py-3 bg-gray-100 border">Action</th>
-                    <th class="px-6 py-3 bg-gray-100 border">	Description</th>
+                    <th class="px-6 py-3 bg-gray-100 border bg-gray-200 dark:bg-gray-300 dark:bg-opacity-50 dark:text-black">Action</th>
+                    <th class="px-6 py-3 bg-gray-100 border bg-gray-200 dark:bg-gray-300 dark:bg-opacity-50 dark:text-black">	Description</th>
                     
                 </tr>
             </thead>
@@ -15,7 +15,7 @@
                     
                 </tr>
                 <!-- Row 2 -->
-                <tr class="bg-gray-200">
+                <tr class="bg-gray-200 dark:bg-gray-300 dark:bg-opacity-50 dark:text-black">
                     <td class="px-6 py-3 border">2. New constitutional committee and/or threshold</td>
                     <td class="px-6 py-3 border">Changes to the members of the constitutional committee and/or to its signature threshold and/or term limits</td>
                     
@@ -27,7 +27,7 @@
                  
                 </tr>
                 <!-- Row 4-->
-                <tr class="bg-gray-200">
+                <tr class="bg-gray-200 bg-gray-200 dark:bg-gray-300 dark:bg-opacity-50 dark:text-black">
                     <td class="px-6 py-3 border">4. Hard-Fork2 Initiation</td>
                     <td class="px-6 py-3 border">Triggers a non-backwards compatible upgrade of the network; requires a prior software upgrade</td>
                     
@@ -39,7 +39,7 @@
                    
                 </tr>
                 <!-- Row 6 -->
-                <tr class="bg-gray-200">
+                <tr class="bg-gray-200 bg-gray-200 dark:bg-gray-300 dark:bg-opacity-50 dark:text-black">
                     <td class="px-6 py-3 border">6. Treasury Withdrawals</td>
                     <td class="px-6 py-3 border">Movements from the treasury, sub-categorized into small, medium or large withdrawals (based on the amount of Lovelace to be withdrawn). The thresholds for treasury withdrawals are discussed below.</td>
                    

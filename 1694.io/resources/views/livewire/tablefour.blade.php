@@ -3,8 +3,8 @@
         <table class="w-full border border-collapse divide-y divide-gray-200">
             <thead>
                 <tr>
-                    <th class="px-6 py-3 bg-gray-100 border">Governance action type</th>
-                    <th class="px-6 py-3 bg-gray-100 border">Additional data</th>
+                    <th class="px-6 py-3 bg-gray-100 border bg-gray-200 dark:bg-gray-300 dark:bg-opacity-50 dark:text-black">Governance action type</th>
+                    <th class="px-6 py-3 bg-gray-100 border bg-gray-200 dark:bg-gray-300 dark:bg-opacity-50 dark:text-black">Additional data</th>
                 </tr>
             </thead>
             <tbody>
@@ -14,7 +14,7 @@
                     <td class="px-6 py-3 border">None</td>
                 </tr>
                 <!-- Row 2 -->
-                <tr class="bg-gray-200">
+                <tr class="bg-gray-200 bg-gray-200 dark:bg-gray-300 dark:bg-opacity-50 dark:text-black">
                     <td class="px-6 py-3 border">2. New committee/threshold</td>
                     <td class="px-6 py-3 border">The set of verification key hash digests (members to be removed), a map of verification key hash digests to epoch numbers (new members and their term limit), and a fraction (quorum threshold)</td>
                 </tr>
@@ -24,17 +24,17 @@
                     <td class="px-6 py-3 border">A hash digest of the Constitution document</td>
                 </tr>
                 <!-- Row 4-->
-                <tr class="bg-gray-200">
+                <tr class="bg-gray-200 bg-gray-200 dark:bg-gray-300 dark:bg-opacity-50 dark:text-black">
                     <td class="px-6 py-3 border">4. Hard-fork initiation</td>
                     <td class="px-6 py-3 border">The new (greater) major protocol version</td>
                 </tr>
                 <!-- Row 5 -->
                 <tr>
-                    <td class="px-6 py-3 border">5. Protocol parameters changes</td>
+                    <td class="px-6 py-3 border ">5. Protocol parameters changes</td>
                     <td class="px-6 py-3 border">The changed parameters</td>
                 </tr>
                 <!-- Row 6 -->
-                <tr class="bg-gray-200">
+                <tr class="bg-gray-200 bg-gray-200 dark:bg-gray-300 dark:bg-opacity-50 dark:text-black">
                     <td class="px-6 py-3 border">6. Treasury withdrawal</td>
                     <td class="px-6 py-3 border">A map from stake credentials to a positive number of Lovelace</td>
                 </tr>
@@ -46,19 +46,19 @@
             </tbody>
         </table>
     </div>
-    <div class="mt-10 bg-slate-100 h 20 p-5 border-4  border-l-slate-400">
+    <div class="mt-10 bg-slate-100 h 20 p-5 border-l-2  border-l-slate-400 dark:bg-gray-300 dark:bg-opacity-50 dark:border-l-white">
         <p>
             <b>Warning </b>For treasury withdrawals, there will be upper and lower thresholds on the amount: the withdrawal threshold is the <b>total</b> amount of Lovelace that is withdrawn by the action, not the amount of any single withdrawal if the action specifies more than one withdrawal.
         </p>
     </div>
 
-    <div class="mt-10 bg-slate-100 h 20 p-5 border-4  border-l-slate-400">
+    <div class="mt-10 bg-slate-100 h 20 p-5 border-l-2  border-l-slate-400 dark:bg-gray-300 dark:bg-opacity-50 dark:border-l-white">
         <p>
             <b>Note </b>The new major protocol version must be precisely one greater than the current protocol version. Any two consecutive epochs will therefore either have the same major protocol version, or the later one will have a major protocol version that is one greater.
         </p>
     </div>
 
-    <div class="mt-10 bg-slate-100 h 20 p-5 border-4  border-l-slate-400">
+    <div class="mt-10 bg-slate-100 h 20 p-5 border-l-2  border-l-slate-400 dark:bg-gray-300 dark:bg-opacity-50 dark:border-l-white">
         <p>
             <b>Note </b>There can be no duplicate committee members - each pair of credentials in a committee must be unique.
         </p>
@@ -146,7 +146,7 @@
 
     <p class="mt-4">For SPOs and DReps, the number of votes that are cast (whether 'Yes', 'No' or 'Abstain') is proportional to the Lovelace that is delegated to them at the point the action is checked for ratification. For constitututional committee members, each current committee member has one vote. Votes from unregistered SPOs or DReps count as having zero stake.</p>
 
-    <div class="mt-10 bg-slate-100 h 20 p-5 border-4  border-l-slate-400">
+    <div class="mt-10 bg-slate-100 h 20 p-5 border-l-2  border-l-slate-400 dark:bg-gray-300 dark:bg-opacity-50 dark:border-l-white">
         <p>
             <b>Warning</b>'Abstain' votes are not included in the "active voting stake".
         </p>
@@ -385,7 +385,7 @@
         <li class="pb-2"><input type="checkbox" id="myCheckbox" disabled> A new Voting purpose will be added to Plutus script contexts. This will provide, in particular, the vote to on-chain scripts.</li>
     </ul>
 
-    <div class="mt-10 bg-slate-100 h 20 p-5 border-4  border-l-slate-400">
+    <div class="mt-10 bg-slate-100 h 20 p-5 border-l-2  border-l-slate-400 dark:bg-gray-300 dark:bg-opacity-50 dark:border-l-white">
         <p>
             <b>Warning</b> As usual, we will provide a CDDL specification for each of those changes.
         </p>
@@ -506,7 +506,7 @@
             <li>
                 For funds transfers, the DELEG transition rule (Figure 24) describes how MIR certificates are processed, and the MIR transition rule (Figure 55) describes how treasury and reserve movements are enacted.
             </li>
-            <div class="mt-10 bg-slate-100 h 20 p-5 border-4  border-l-slate-400">
+            <div class="mt-10 bg-slate-100 h 20 p-5 border-l-2  border-l-slate-400 dark:bg-gray-300 dark:bg-opacity-50 dark:border-l-white">
                 <p>
                     <b>Note </b>The capabilities of the MIR transition rule were expanded in the Alonzo ledger specification
                 </p>
@@ -519,7 +519,7 @@
         </li>
     </ul>
 
-   
 
-    
+
+
 </div>

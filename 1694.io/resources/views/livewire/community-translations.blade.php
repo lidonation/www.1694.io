@@ -1,3 +1,4 @@
+<div class="flex flex-col space-y-3 ">
 <div class="pt-10 sm:pt-20 pl-5 ">
     <h3 class="text-2xl sm:text-middle font-medium pb-2">Community Translations</h3>
     <hr>
@@ -44,8 +45,10 @@
     </p>
     <p class="max-w-xs">
         <b>
-            Addr1qxhxg0mwzahfv8x4nr5s9zmffssxueqsnxx<br>v282kz2c30nykg8fw8x99crukwyc7yftwfgxmhsu<br>2xx0n8elfvj7mljlqm45kgs
+            Addr1qxhxg0mwzahfv8x4nr5s9zmff<br>ssxueqsnxxv282kz2c30nykg8fw8x99<br>crukwyc7yftwfgxmhsu2xx0n8elfvj7<br>mljlqm45kgs
         </b>
     </p>
+
+</div>
 
 </div>

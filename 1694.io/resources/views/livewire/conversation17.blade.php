@@ -5,7 +5,7 @@
     </a>
     <hr>
     <div style="overflow-x: auto; white-space: nowrap;">
-        <div class="mt-4 bg-slate-100 h 20 p-5 border-4  border-l-slate-400">
+        <div class="mt-4 bg-slate-100 h 20 p-5 border-l-2  border-l-slate-400 dark:bg-gray-300 dark:bg-opacity-50 dark:border-l-white">
             <p>
                 I do not believe that a governance model for <br> Cardano can work without fiduciary obligation.<br> The draft CIP it Takes a Village, for example,<br> seeks to propose a model of government for<br> Cardano that does not aim to introduce a <br>systemic denial or avoidance of fiduciary <br>responsibility into the Cardano ecosystem.
             </p>
@@ -45,13 +45,13 @@
 
     <div style="overflow-x: auto; white-space: nowrap;">
 
-        <div class="mt-4 bg-slate-100 h 20 p-5 border-4  border-l-slate-400">
+        <div class="mt-4 bg-slate-100 h 20 p-5 border-l-2  border-l-slate-400 dark:bg-gray-300 dark:bg-opacity-50 dark:border-l-white">
             <p>
                 @paradoxicalsphere : [...] somehow mutually <br>exclusive of my draft, so far. I don't see why the <br>two >proposals could not co-exist, potentially.
             </p>
         </div>
 
-        <div class="mt-4 bg-slate-100 h 20 p-5 border-4  border-l-slate-400">
+        <div class="mt-4 bg-slate-100 h 20 p-5 border-l-2  border-l-slate-400 dark:bg-gray-300 dark:bg-opacity-50 dark:border-l-white">
             <p>
                 https://discord.com/channels/97178511077083<br>1360/1047472328566657084/1048148685311<br>184976 @KtorZ : There's a reason why CIPs are<br> on Github and are purposely geared towards <br>developers / software engineers. CIPs offer a <br>way to discussion technical evolutions of the <br>network. They aren't about how IO, CF or<br> Emurgo manage their respective entities. If <br>there are suggestions about how the CF should <br>manage their funds and what their internal <br>policies should be then CIPs are certainly not<br> the right place to discuss that.
                 This is also true <br>of this channel which is meant to discuss <br>CIP-1694 primarily, and more broadly, <br>what on-chain mechanisms can be put in place <br>to support Cardano's governance.

@@ -8,7 +8,7 @@
     </ul>
 
 
-    <div class="mt-10 bg-slate-100 h 20 p-5 border-4  border-l-slate-400" >
+    <div class="mt-10 bg-slate-100 h 20 p-5 border-l-2  border-l-slate-400 dark:bg-gray-300 dark:bg-opacity-50 dark:border-l-white" >
         
         <p>
             <b>Note</b> The pre-defined DReps do not cast votes inside of transactions, their behavior is accounted for at the protocol level. The Abstain DRep may be chosen for a variety of reasons, including the desire to not participate in the governance system.
@@ -16,7 +16,7 @@
     </div>
 
 
-    <div class="mt-10 bg-slate-100 h 20 p-5 border-4  border-l-slate-400" id="darkmode-table">
+    <div class="mt-10 bg-slate-100 h 20 p-5 border-l-2  border-l-slate-400 dark:bg-gray-300 dark:bg-opacity-50 dark:border-l-white" >
         <p>
             <b>Note</b> Any Ada holder may register themselves as a DRep and delegate to themselves if they wish to actively participate in voting.
         </p>
@@ -86,7 +86,7 @@
         <li class="mb-2">the stake credential for the delegator</li>
         <li class="mb-2">an optional anchor</li>
     </ul>
-    <div class="mt-10 bg-slate-100 h 20 p-5 border-4  border-l-slate-400">
+    <div class="mt-10 bg-slate-100 h 20 p-5 border-l-2  border-l-slate-400 dark:bg-gray-300 dark:bg-opacity-50 dark:border-l-white">
         <p>
             <b>Note</b> <br>DRep delegation always maps a stake credential to a DRep credential. This means that a DRep cannot delegate voting stake to another DRep.
         </p>
@@ -100,7 +100,7 @@
     <p class="mt-5">
         In addition to the existing per-stake-credential distribution and the per-stake-pool distribution, the ledger will now also determine the per-DRep stake distribution. This distribution will determine how much stake is backed by each Yes vote from a DRep.
     </p>
-    <div class="mt-10 bg-slate-100 h 20 p-5 border-4  border-l-slate-400">
+    <div class="mt-10 bg-slate-100 h 20 p-5 border-l-2  border-l-slate-400 dark:bg-gray-300 dark:bg-opacity-50 dark:border-l-white">
         <p>
             <b>Note</b> <br><br><b>Unlike</b> the distribution that is used for block production, we will always use the most current version of the per-DRep stake distribution as given on the epoch boundary.
         </p>
@@ -113,7 +113,7 @@
         There will be a short bootstrapping phase during which rewards will be earned for stake delegation etc. and may be withdrawn at any time. After this phase, although rewards will continue to be earned for block delegation etc., reward accounts will be blocked from withdrawing any rewards unless their associated stake credential is also delegated to a DRep (either pre-defined or registered). This helps to ensure high participation, and so, legitimacy.
     </p>
 
-    <div class="mt-10 bg-slate-100 h 20 p-5 border-4  border-l-slate-400">
+    <div class="mt-10 bg-slate-100 h 20 p-5 border-l-2  border-l-slate-400 dark:bg-gray-300 dark:bg-opacity-50 dark:border-l-white">
         <p>
             <b>Note</b> <br> <br>Even though rewards cannot be withdrawn, they are not lost. As soon as a stake credential is delegated (including to a pre-defined DRep), the rewards can be withdrawn.
         </p>
@@ -158,7 +158,7 @@
         Note that a motion of no-confidence is an extreme measure that enables Ada holders to revoke the power that has been granted to the current constitutional committee. Any outstanding governance actions, including ones that the committee has ratified or ones that would be enacted this epoch, will be dropped if the motion is enacted.
     </p>
 
-    <div class="mt-10 bg-slate-100 h 20 p-5 border-4  border-l-slate-400">
+    <div class="mt-10 bg-slate-100 h 20 p-5 border-l-2  border-l-slate-400 dark:bg-gray-300 dark:bg-opacity-50 dark:border-l-white">
         <p>
             <b>Note </b>A <b>single</b> governance action might contain <b>multiple</b> protocol parameter updates. Many parameters are inter-connected and might require moving in lockstep.
         </p>
@@ -179,7 +179,7 @@
         </li>
     </ul>
 
-    <div class="mt-10 bg-slate-100 h 20 p-5 border-4  border-l-slate-400">
+    <div class="mt-10 bg-slate-100 h 20 p-5 border-l-2  border-l-slate-400 dark:bg-gray-300 dark:bg-opacity-50 dark:border-l-white">
         <p>
             <b>Warning </b>As explained above, different stake distributions apply to DReps and SPOs.
         </p>

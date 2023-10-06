@@ -4,7 +4,7 @@
         <h1 class="ml-4">ParadoxicalSphere</h1>
     </a>
     <hr>
-    <div class="mt-4 bg-slate-100 h 20 p-5 border-4  border-l-slate-400">
+    <div class="mt-4 bg-slate-100 h 20 p-5 border-l-2  border-l-slate-400 dark:bg-gray-300 dark:bg-opacity-50 dark:border-l-white">
         <p>
             DReps is a role in Project Catalyst already with hundreds of people signed up. I fear that using the same term for this CIP will cause a fair amount of confusion. Is it possible to use a different name so we're not overloading DRep to represent two different roles? </p>
 

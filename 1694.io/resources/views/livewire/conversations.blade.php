@@ -3,7 +3,7 @@
     <hr>
     <div class="mt-6 " >
         <p>Join the conversation on Github</p>
-        <a href="https://github.com/cardano-foundation/CIPs/pull/380#issue-comment-box" target="_blank" class="inline-block font-semibold text-lg rounded-md mt-6  px-20  py-5 bg-black hover:bg-rose-200 text-white font-medium transition-colors duration-300 ">
+        <a href="https://github.com/cardano-foundation/CIPs/pull/380#issue-comment-box" target="_blank" class="inline-block font-semibold text-lg rounded-md mt-6  px-10  py-5 bg-black hover:bg-rose-200 dark:bg-gray-700 text-white font-medium transition-colors duration-300 ">
             Leave a comment
         </a>
         <p class="mt-6">

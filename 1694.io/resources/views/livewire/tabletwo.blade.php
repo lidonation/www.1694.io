@@ -3,10 +3,10 @@
         <table class="w-full border border-collapse divide-y divide-gray-200">
             <thead>
                 <tr>
-                    <th class="px-6 py-3 bg-gray-100 border">Governance action type</th>
-                    <th class="px-6 py-3 bg-gray-100 border">CC</th>
-                    <th class="px-6 py-3 bg-gray-100 border">DReps</th>
-                    <th class="px-6 py-3 bg-gray-100 border">SPOs</th>
+                    <th class="px-6 py-3 bg-gray-100 border bg-gray-200 dark:bg-gray-300 dark:bg-opacity-50 dark:text-black">Governance action type</th>
+                    <th class="px-6 py-3 bg-gray-100 border bg-gray-200 dark:bg-gray-300 dark:bg-opacity-50 dark:text-black">CC</th>
+                    <th class="px-6 py-3 bg-gray-100 border bg-gray-200 dark:bg-gray-300 dark:bg-opacity-50 dark:text-black">DReps</th>
+                    <th class="px-6 py-3 bg-gray-100 border bg-gray-200 dark:bg-gray-300 dark:bg-opacity-50 dark:text-black">SPOs</th>
                 </tr>
             </thead>
             <tbody>
@@ -18,7 +18,7 @@
                     <td class="px-6 py-3 border">$Q_1$</td>
                 </tr>
                 <!-- Row 2 -->
-                <tr class="bg-gray-200">
+                <tr class="bg-gray-200 bg-gray-200 dark:bg-gray-300 dark:bg-opacity-50 dark:text-black">
                     <td class="px-6 py-3 border">2.<sub>a</sub>. New committee/threshold (normal state)</td>
                     <td class="px-6 py-3 border">-</td>
                     <td class="px-6 py-3 border">$P_{2a}$</td>
@@ -32,7 +32,7 @@
                     <td class="px-6 py-3 border">$Q_{2b}$</td>
                 </tr>
                 <!-- Row 4-->
-                <tr class="bg-gray-200">
+                <tr class="bg-gray-200 bg-gray-200 dark:bg-gray-300 dark:bg-opacity-50 dark:text-black">
                     <td class="px-6 py-3 border">3. Update to the Constitution</td>
                     <td class="px-6 py-3 border">✓</td>
                     <td class="px-6 py-3 border">$P_3$</td>
@@ -46,7 +46,7 @@
                     <td class="px-6 py-3 border">$Q_4$</td>
                 </tr>
                 <!-- Row 6 -->
-                <tr class="bg-gray-200">
+                <tr class="bg-gray-200 bg-gray-200 dark:bg-gray-300 dark:bg-opacity-50 dark:text-black">
                     <td class="px-6 py-3 border">5<sub>a</sub>. Protocol parameter changes, network group</td>
                     <td class="px-6 py-3 border">✓</td>
                     <td class="px-6 py-3 border">$P_{5a}$</td>
@@ -60,7 +60,7 @@
                     <td class="px-6 py-3 border">-</td>
                 </tr>
 
-                <tr class="bg-gray-200">
+                <tr class="bg-gray-200 bg-gray-200 dark:bg-gray-300 dark:bg-opacity-50 dark:text-black">
                     <td class="px-6 py-3 border">5<sub>c</sub>. Protocol parameter changes, technical group</td>
                     <td class="px-6 py-3 border">✓</td>
                     <td class="px-6 py-3 border">$P_{5c}$</td>
@@ -74,7 +74,7 @@
                     <td class="px-6 py-3 border">-</td>
                 </tr>
 
-                <tr class="bg-gray-200">
+                <tr class="bg-gray-200 bg-gray-200 dark:bg-gray-300 dark:bg-opacity-50 dark:text-black">
                     <td class="px-6 py-3 border">6. Treasury withdrawal</td>
                     <td class="px-6 py-3 border">✓</td>
                     <td class="px-6 py-3 border">$P_6$</td>
@@ -96,13 +96,13 @@
         Each of these thresholds is a governance parameter. The initial thresholds should be chosen by the Cardano community as a whole. The two thresholds for the Info action are set to 100% since setting <br> it any lower would result in not being able to poll above the threshold.
     </p>
 
-    <div class="mt-10 bg-slate-100 h 20 p-5 border-4  border-l-slate-400">
+    <div class="mt-10 bg-slate-100 h 20 p-5 border-l-2  border-l-slate-400 dark:bg-gray-300 dark:bg-opacity-50 dark:border-l-white">
         <p>
             <b>Note </b>It may make sense for some or all thresholds to be adaptive with respect to the Lovelace that is actively registered to vote. For example, a threshold could vary between 51% for a high level of registration and 75% for a low level registration. Moreover, the treasury threshold could also be adaptive, depending on the total Lovelace that is being withdrawn, or different thresholds could be set for different levels of withdrawal.
         </p>
     </div>
 
-    <div class="mt-10 bg-slate-100 h 20 p-5 border-4  border-l-slate-400">
+    <div class="mt-10 bg-slate-100 h 20 p-5 border-l-2  border-l-slate-400 dark:bg-gray-300 dark:bg-opacity-50 dark:border-l-white">
         <p>
             <b>Note </b>To achieve legitimacy, the minimum acceptable threshold should be no less than 50% of the delegated stake.
         </p>
@@ -134,7 +134,7 @@
         <li class="mb-2">Info</li>
     </ul>
 
-    <div class="mt-10 bg-slate-100 h 20 p-5 border-4  border-l-slate-400">
+    <div class="mt-10 bg-slate-100 h 20 p-5 border-l-2  border-l-slate-400 dark:bg-gray-300 dark:bg-opacity-50 dark:border-l-white">
         <p>
             <b>Note </b>Enactment for Info actions is a null action, since they do not have any effect on the protocol.
         </p>

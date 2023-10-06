@@ -15,7 +15,7 @@
                     @JaredCorduan commented on this pull request. <br>
                     In CIP-1694/README.mdhttps://github.com/cardano <br>-foundation/CIPs/pull/380#discussion_r1034757533:
                 </p>
-                <div class="mt-4 bg-slate-100 h 20 p-5 border-4  border-l-slate-400">
+                <div class="mt-4 bg-slate-100 h 20 p-5 border-l-2  border-l-slate-400 dark:bg-gray-300 dark:bg-opacity-50 dark:border-l-white">
                     <ul class="list-disc ml-10 ">
                         <li></li>
                     </ul>
@@ -60,7 +60,7 @@
             To encourage community involvement while also keeping the <br>discussion here on GitHub confined to the technical proposal and <br>its documentation, we've resolved at the CIP Editors' Meeting <br> today to create a Discord channel for more liberal discussion: <br>#voltaire-governance (server invite)
         </p>
 
-        <div class="mt-4 bg-slate-100  p-5 border-4  border-l-slate-400 sm:max">
+        <div class="mt-4 bg-slate-100  p-5 border-l-2  border-l-slate-400 dark:bg-gray-300 dark:bg-opacity-50 dark:border-l-white sm:max">
             <p>
                 Voltaire entry & governance discussions - For <br>observations and feedback around the pending <br>CIP-1694 (https://github.com/cardano-<br>foundation/CIPs/pull/380) and other CIPs which <br>may relate to the technical aspects of Cardano <br> on-chain governance.
 

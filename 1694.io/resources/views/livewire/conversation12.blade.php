@@ -6,7 +6,7 @@
     </a>
     <hr>
     <div style="overflow-x: auto; white-space: nowrap;">
-        <div class="bg-slate-100 border-4 border-l-slate-400" style="display: inline-block;">
+        <div class="bg-slate-100 border-l-2  border-l-slate-400 dark:bg-gray-300 dark:bg-opacity-50 dark:border-l-white" style="display: inline-block;">
             <div class="mt-4 p-2 ml-5">
                 <p>
                     2. I was thinking about the point 1 and another idea comes to me. Maybe we need an initial Constitutional Committee which creates the constitution and has a grace period to govern with its rules. After this grace period, we would need to revalidate all the members and/or add new ones for the first "Governance Committee".
@@ -35,7 +35,7 @@
         </a>
     </div>
 
-    <div class="mt-10 bg-slate-100 h 20 p-5 border-4  border-l-slate-400 sm:max-w-2xl">
+    <div class="mt-10 bg-slate-100 h 20 p-5 border-l-2  border-l-slate-400 dark:bg-gray-300 dark:bg-opacity-50 dark:border-l-white sm:max-w-2xl">
         <p>
             Applying this lesson to social decentralization and governance it would be wise to limit the voting power of all SPO's to some leverage limit multiple of the SPO's pledge: L. This has a profound effect: there is an added social/governance motivation for pledge. Groups like Binance and Coinbase which do not pledge any ADA would have no voting power.
         </p>

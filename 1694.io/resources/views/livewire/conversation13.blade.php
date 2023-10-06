@@ -6,7 +6,7 @@
         </h1>
     </a>
     <hr>
-    <div class="mt-10 bg-slate-100 h 20 p-5 border-4  border-l-slate-400">
+    <div class="mt-10 bg-slate-100 h 20 p-5 border-l-2  border-l-slate-400 dark:bg-gray-300 dark:bg-opacity-50 dark:border-l-white">
         <p>
             On the topic of pledge and leverage, would it be possible to include time duration for pledge existence? The use of time duration for a pools pledge (i.e. 10 epochs) could prevent pools from updating their pledge to increase vote impact then remove the pledge to keep their ADA in a more liquid state.
         </p>
@@ -32,12 +32,12 @@
         </h1>
     </a>
     <hr>
-    <div class="mt-10 bg-slate-100 h 20 p-5 border-4  border-l-slate-400">
+    <div class="mt-10 bg-slate-100 h 20 p-5 border-l-2  border-l-slate-400 dark:bg-gray-300 dark:bg-opacity-50 dark:border-l-white">
         <p>
             I’m interested in learning about your CIP. Could you please give me some links where I can read about the background for the idea?
         </p>
     </div>
-    <div class="mt-10 bg-slate-100 h 20 p-5 border-4  border-l-slate-400">
+    <div class="mt-10 bg-slate-100 h 20 p-5 border-l-2  border-l-slate-400 dark:bg-gray-300 dark:bg-opacity-50 dark:border-l-white">
         <p>
             Is there a documented business case for CIP-1694? If so, could someone please post the link? I would like to get up to speed as quickly as possible. </p>
     </div>
