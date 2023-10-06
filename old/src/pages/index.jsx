@@ -242,9 +242,6 @@ export default function Home({comments, translations, cip}) {
                                     </div>
                                 ))}
                             </div>
-
-
-
                         </div>           
                     </div>
                 </div>

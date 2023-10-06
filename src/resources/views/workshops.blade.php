@@ -6,5 +6,4 @@
   <hr>
   @livewire('footer')
 </div>
-
 @endsection

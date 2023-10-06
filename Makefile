@@ -1,19 +1,17 @@
-include 1694.io/.env
-sail := 1694.io/vendor/bin/sail
+include src/.env
+sail := src/vendor/bin/sail
 
-$(eval export $(shell sed -ne 's/ *#.*$$//; /./ s/=.*$$// p' 1694.io/.env))
+$(eval export $(shell sed -ne 's/ *#.*$$//; /./ s/=.*$$// p' src/.env))
 
 .PHONY: init
 init:
 	docker run --rm --interactive --tty \
-          --volume ${PWD}/1694.io:/app \
+          --volume ${PWD}/src:/app \
           composer install --ignore-platform-reqs
 	make up
 	sleep 20
-	make -j2 backend-install frontend-install lucid-install
+	make -j2 backend-install frontend-install
 	$(sail) artisan key:generate
-	make migrate
-	make seed
 
 .PHONY: backend-install
 backend-install:
@@ -65,7 +63,7 @@ down:
 
 .PHONY: frontend-clean
 frontend-clean:
-	rm -rf 1694.io/node_modules 2>/dev/null || true
+	rm -rf src/node_modules 2>/dev/null || true
 	rm package-lock.json 2>/dev/null || true
 	rm yarn.lock 2>/dev/null || true
 	$(sail) yarn cache clean

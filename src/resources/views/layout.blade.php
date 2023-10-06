@@ -1,7 +1,6 @@
 <!doctype html>
 <html>
 
-
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,24 +12,14 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.0/dist/cdn.min.js"></script>
 </head>
 
-
-
-
 <body class="flex flex-col h-full bg-zinc-50 dark:bg-black" x-data="{'darkMode' :false }" x-init="
 darkMode = JSON.parse(localStorage.getItem('darkMode'));
 $watch('darkMode' , value => localStorage.setItem('darkMode', JSON.stringify(value)))">
     <div :class="{'dark' : darkMode === true}" class="overflow-hidden">
 
-
-    <div class="flex justify-center insert-0 sm:px-8  dark:bg-black dark:text-gray-300">
-
-    
-                @yield("content")
-        
+        <div class="flex justify-center insert-0 sm:px-8  dark:bg-black dark:text-gray-300">
+            @yield("content")
+        </div>
     </div>
-    
-
-    </div>
-    
 </body>
 </html>
