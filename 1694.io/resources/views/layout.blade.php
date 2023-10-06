@@ -16,13 +16,13 @@
 
 
 
-<body class="flex h-full flex-col bg-zinc-50 dark:bg-black" x-data="{'darkMode' :false }" x-init="
+<body class="flex flex-col h-full bg-zinc-50 dark:bg-black" x-data="{'darkMode' :false }" x-init="
 darkMode = JSON.parse(localStorage.getItem('darkMode'));
 $watch('darkMode' , value => localStorage.setItem('darkMode', JSON.stringify(value)))">
-    <div :class="{'dark' : darkMode === true}">
+    <div :class="{'dark' : darkMode === true}" class="overflow-hidden">
 
 
-    <div class=" flex justify-center insert-0  sm:px-8 dark:bg-black dark:text-gray-300">
+    <div class="flex justify-center insert-0 sm:px-8 dark:bg-black dark:text-gray-300">
 
     
                 @yield("content")
