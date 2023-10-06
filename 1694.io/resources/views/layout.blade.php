@@ -22,7 +22,7 @@ $watch('darkMode' , value => localStorage.setItem('darkMode', JSON.stringify(val
     <div :class="{'dark' : darkMode === true}" class="overflow-hidden">
 
 
-    <div class="flex justify-center insert-0 sm:px-8 dark:bg-black dark:text-gray-300">
+    <div class="flex justify-center insert-0 sm:px-8  dark:bg-black dark:text-gray-300">
 
     
                 @yield("content")
