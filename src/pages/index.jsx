@@ -253,7 +253,7 @@ export default function Home({comments, translations, cip}) {
 
 export async function getStaticProps() {
     const cip = await (
-        await fetch('https://raw.githubusercontent.com/JaredCorduan/CIPs/voltaire-v1/CIP-1694/README.md')
+        await fetch('https://raw.githubusercontent.com/cardano-foundation/CIPs/master/CIP-1694/README.md')
     ).text()
     const comments = await (
         await fetch('https://api.github.com/repos/cardano-foundation/CIPs/issues/380/comments')
@@ -286,7 +286,7 @@ export async function getStaticProps() {
                 },
                 {
                     lang: 'French',
-                    link: 'https://docs.google.com/document/d/1OJaVdvWsvuaTldMsPgEMTCbmsjaFuHcrrtYivVFmB9o/edit?usp=sharing'
+                    link: 'https://raw.githubusercontent.com/cardano-foundation/CIPs/master/CIP-1694/README.fr.md'
                 },
                 {
                     lang: 'Japanese',

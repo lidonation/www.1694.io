@@ -4,227 +4,305 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="afe9177a-bd1b-4b38-860a-5bb2eed61017" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/env.example" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/public/favicon.ico" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/src/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/src/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Console/Kernel.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Console/Kernel.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Exceptions/Handler.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Exceptions/Handler.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Http/Controllers/Controller.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Http/Controllers/Controller.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Http/Controllers/Homecontroller.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Http/Controllers/Homecontroller.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Http/Controllers/WorkshopsController.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Http/Controllers/WorkshopsController.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Http/Kernel.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Http/Kernel.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Http/Middleware/Authenticate.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Http/Middleware/Authenticate.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Http/Middleware/EncryptCookies.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Http/Middleware/EncryptCookies.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Http/Middleware/PreventRequestsDuringMaintenance.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Http/Middleware/PreventRequestsDuringMaintenance.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Http/Middleware/RedirectIfAuthenticated.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Http/Middleware/RedirectIfAuthenticated.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Http/Middleware/TrimStrings.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Http/Middleware/TrimStrings.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Http/Middleware/TrustHosts.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Http/Middleware/TrustHosts.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Http/Middleware/TrustProxies.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Http/Middleware/TrustProxies.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Http/Middleware/ValidateSignature.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Http/Middleware/ValidateSignature.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Http/Middleware/VerifyCsrfToken.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Http/Middleware/VerifyCsrfToken.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Livewire/CommunityTranslations.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Livewire/CommunityTranslations.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Livewire/Conversation11.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Livewire/Conversation11.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Livewire/Conversation12.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Livewire/Conversation12.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Livewire/Conversation13.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Livewire/Conversation13.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Livewire/Conversation14.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Livewire/Conversation14.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Livewire/Conversation15.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Livewire/Conversation15.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Livewire/Conversation16.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Livewire/Conversation16.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Livewire/Conversation17.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Livewire/Conversation17.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Livewire/Conversation18.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Livewire/Conversation18.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Livewire/Conversation19.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Livewire/Conversation19.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Livewire/Conversation20.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Livewire/Conversation20.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Livewire/Conversations.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Livewire/Conversations.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Livewire/Conversationseight.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Livewire/Conversationseight.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Livewire/Conversationsfive.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Livewire/Conversationsfive.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Livewire/Conversationsfour.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Livewire/Conversationsfour.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Livewire/Conversationsnine.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Livewire/Conversationsnine.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Livewire/Conversationsone.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Livewire/Conversationsone.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Livewire/Conversationsseven.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Livewire/Conversationsseven.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Livewire/Conversationssix.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Livewire/Conversationssix.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Livewire/Conversationsten.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Livewire/Conversationsten.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Livewire/Conversationsthree.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Livewire/Conversationsthree.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Livewire/Conversationstwo.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Livewire/Conversationstwo.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Livewire/Footer.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Livewire/Footer.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Livewire/Header.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Livewire/Header.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Livewire/Header2.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Livewire/Header2.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Livewire/Knowledge.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Livewire/Knowledge.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Livewire/Main.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Livewire/Main.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Livewire/Navbar.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Livewire/Navbar.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Livewire/Predefined.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Livewire/Predefined.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Livewire/Slantedimages.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Livewire/Slantedimages.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Livewire/Tablefour.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Livewire/Tablefour.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Livewire/Tableone.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Livewire/Tableone.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Livewire/Tablethree.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Livewire/Tablethree.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Livewire/Tabletwo.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Livewire/Tabletwo.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Livewire/Workshopnavbar.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Livewire/Workshopnavbar.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Livewire/Workshops2.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Livewire/Workshops2.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Livewire/workshops.php" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Models/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Models/User.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Providers/AppServiceProvider.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Providers/AppServiceProvider.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Providers/AuthServiceProvider.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Providers/AuthServiceProvider.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Providers/BroadcastServiceProvider.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Providers/BroadcastServiceProvider.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Providers/EventServiceProvider.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Providers/EventServiceProvider.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/app/Providers/RouteServiceProvider.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Providers/RouteServiceProvider.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/artisan" beforeDir="false" afterPath="$PROJECT_DIR$/src/artisan" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/bootstrap/app.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/bootstrap/app.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/bootstrap/cache/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/src/bootstrap/cache/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/composer.json" beforeDir="false" afterPath="$PROJECT_DIR$/src/composer.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/composer.lock" beforeDir="false" afterPath="$PROJECT_DIR$/src/composer.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/config/app.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/config/app.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/config/auth.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/config/auth.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/config/broadcasting.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/config/broadcasting.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/config/cache.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/config/cache.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/config/cors.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/config/cors.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/config/database.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/config/database.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/config/filesystems.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/config/filesystems.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/config/hashing.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/config/hashing.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/config/logging.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/config/logging.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/config/mail.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/config/mail.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/config/queue.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/config/queue.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/config/sanctum.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/config/sanctum.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/config/services.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/config/services.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/config/session.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/config/session.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/config/view.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/config/view.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/database/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/src/database/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/database/factories/UserFactory.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/database/factories/UserFactory.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/database/migrations/2014_10_12_000000_create_users_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/database/migrations/2014_10_12_000000_create_users_table.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/database/migrations/2014_10_12_100000_create_password_reset_tokens_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/database/migrations/2014_10_12_100000_create_password_reset_tokens_table.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/database/migrations/2019_08_19_000000_create_failed_jobs_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/database/migrations/2019_08_19_000000_create_failed_jobs_table.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/database/migrations/2019_12_14_000001_create_personal_access_tokens_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/database/migrations/2019_12_14_000001_create_personal_access_tokens_table.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/database/seeders/DatabaseSeeder.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/database/seeders/DatabaseSeeder.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/src/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/src/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/phpunit.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/phpunit.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/postcss.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/postcss.config.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/public/.htaccess" beforeDir="false" afterPath="$PROJECT_DIR$/src/public/.htaccess" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/public/favicon.ico" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/Livewire/workshops.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/public/images/android-chrome-192x192.png" beforeDir="false" afterPath="$PROJECT_DIR$/src/public/images/android-chrome-192x192.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/public/images/android-chrome-512x512.png" beforeDir="false" afterPath="$PROJECT_DIR$/src/public/images/android-chrome-512x512.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/public/images/apple-touch-icon.png" beforeDir="false" afterPath="$PROJECT_DIR$/src/public/images/apple-touch-icon.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/public/images/browserconfig.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/public/images/browserconfig.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/public/images/favicon-16x16.png" beforeDir="false" afterPath="$PROJECT_DIR$/src/public/images/favicon-16x16.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/public/images/favicon-32x32.png" beforeDir="false" afterPath="$PROJECT_DIR$/src/public/images/favicon-32x32.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/public/images/favicon.ico" beforeDir="false" afterPath="$PROJECT_DIR$/src/public/images/favicon.ico" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/public/images/images/avatar.png" beforeDir="false" afterPath="$PROJECT_DIR$/src/public/images/images/avatar.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/public/images/images/logos/airbnb.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/public/images/images/logos/airbnb.svg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/public/images/images/logos/animaginary.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/public/images/images/logos/animaginary.svg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/public/images/images/logos/cartoon.png" beforeDir="false" afterPath="$PROJECT_DIR$/src/public/images/images/logos/cartoon.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/public/images/images/logos/conversation1.jpeg" beforeDir="false" afterPath="$PROJECT_DIR$/src/public/images/images/logos/conversation1.jpeg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/public/images/images/logos/conversation12.jpeg" beforeDir="false" afterPath="$PROJECT_DIR$/src/public/images/images/logos/conversation12.jpeg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/public/images/images/logos/conversation2.png" beforeDir="false" afterPath="$PROJECT_DIR$/src/public/images/images/logos/conversation2.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/public/images/images/logos/conversation3.jpeg" beforeDir="false" afterPath="$PROJECT_DIR$/src/public/images/images/logos/conversation3.jpeg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/public/images/images/logos/conversation4.jpeg" beforeDir="false" afterPath="$PROJECT_DIR$/src/public/images/images/logos/conversation4.jpeg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/public/images/images/logos/conversation5.jpeg" beforeDir="false" afterPath="$PROJECT_DIR$/src/public/images/images/logos/conversation5.jpeg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/public/images/images/logos/conversation6.jpeg" beforeDir="false" afterPath="$PROJECT_DIR$/src/public/images/images/logos/conversation6.jpeg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/public/images/images/logos/cosmos.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/public/images/images/logos/cosmos.svg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/public/images/images/logos/facebook.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/public/images/images/logos/facebook.svg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/public/images/images/logos/helio-stream.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/public/images/images/logos/helio-stream.svg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/public/images/images/logos/moon.png" beforeDir="false" afterPath="$PROJECT_DIR$/src/public/images/images/logos/moon.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/public/images/images/logos/open-shuttle.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/public/images/images/logos/open-shuttle.svg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/public/images/images/logos/planetaria.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/public/images/images/logos/planetaria.svg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/public/images/images/logos/rhai.jpeg" beforeDir="false" afterPath="$PROJECT_DIR$/src/public/images/images/logos/rhai.jpeg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/public/images/images/logos/starbucks.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/public/images/images/logos/starbucks.svg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/public/images/images/logos/sun.png" beforeDir="false" afterPath="$PROJECT_DIR$/src/public/images/images/logos/sun.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/public/images/images/logos/white.png" beforeDir="false" afterPath="$PROJECT_DIR$/src/public/images/images/logos/white.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/public/images/images/photos/image-1.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/src/public/images/images/photos/image-1.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/public/images/images/photos/image-2.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/src/public/images/images/photos/image-2.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/public/images/images/photos/image-3.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/src/public/images/images/photos/image-3.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/public/images/images/photos/image-4.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/src/public/images/images/photos/image-4.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/public/images/images/photos/image-5.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/src/public/images/images/photos/image-5.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/public/images/images/photos/iog-cip-in-a-nutshell.png" beforeDir="false" afterPath="$PROJECT_DIR$/src/public/images/images/photos/iog-cip-in-a-nutshell.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/public/images/images/portrait.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/src/public/images/images/portrait.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/public/images/mstile-150x150.png" beforeDir="false" afterPath="$PROJECT_DIR$/src/public/images/mstile-150x150.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/public/images/safari-pinned-tab.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/public/images/safari-pinned-tab.svg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/public/images/site.webmanifest" beforeDir="false" afterPath="$PROJECT_DIR$/src/public/images/site.webmanifest" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/public/index.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/public/index.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/public/robots.txt" beforeDir="false" afterPath="$PROJECT_DIR$/src/public/robots.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/css/app.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/css/app.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/js/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/js/app.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/js/bootstrap.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/js/bootstrap.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/js/custom.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/js/custom.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/views/home.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/views/home.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/views/layout.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/views/layout.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/views/livewire/community-translations.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/views/livewire/community-translations.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/views/livewire/conversation11.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/views/livewire/conversation11.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/views/livewire/conversation12.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/views/livewire/conversation12.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/views/livewire/conversation13.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/views/livewire/conversation13.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/views/livewire/conversation14.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/views/livewire/conversation14.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/views/livewire/conversation15.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/views/livewire/conversation15.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/views/livewire/conversation16.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/views/livewire/conversation16.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/views/livewire/conversation17.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/views/livewire/conversation17.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/views/livewire/conversation18.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/views/livewire/conversation18.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/views/livewire/conversation19.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/views/livewire/conversation19.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/views/livewire/conversation20.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/views/livewire/conversation20.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/views/livewire/conversations.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/views/livewire/conversations.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/views/livewire/conversationseight.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/views/livewire/conversationseight.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/views/livewire/conversationsfive.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/views/livewire/conversationsfive.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/views/livewire/conversationsfour.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/views/livewire/conversationsfour.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/views/livewire/conversationsnine.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/views/livewire/conversationsnine.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/views/livewire/conversationsone.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/views/livewire/conversationsone.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/views/livewire/conversationsseven.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/views/livewire/conversationsseven.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/views/livewire/conversationssix.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/views/livewire/conversationssix.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/views/livewire/conversationsten.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/views/livewire/conversationsten.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/views/livewire/conversationsthree.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/views/livewire/conversationsthree.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/views/livewire/conversationstwo.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/views/livewire/conversationstwo.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/views/livewire/footer.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/views/livewire/footer.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/views/livewire/header.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/views/livewire/header.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/views/livewire/header2.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/views/livewire/header2.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/views/livewire/knowledge.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/views/livewire/knowledge.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/views/livewire/main.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/views/livewire/main.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/views/livewire/navbar.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/views/livewire/navbar.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/views/livewire/predefined.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/views/livewire/predefined.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/views/livewire/slantedimages.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/views/livewire/slantedimages.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/views/livewire/tablefour.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/views/livewire/tablefour.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/views/livewire/tableone.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/views/livewire/tableone.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/views/livewire/tablethree.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/views/livewire/tablethree.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/views/livewire/tabletwo.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/views/livewire/tabletwo.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/views/livewire/workshopnavbar.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/views/livewire/workshopnavbar.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/views/livewire/workshops2.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/views/livewire/workshops2.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/resources/views/workshops.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/views/workshops.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/routes/api.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/api.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/routes/channels.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/channels.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/routes/console.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/console.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/routes/web.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/web.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/storage/app/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/src/storage/app/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/storage/app/public/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/src/storage/app/public/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/storage/framework/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/src/storage/framework/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/storage/framework/cache/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/src/storage/framework/cache/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/storage/framework/cache/data/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/src/storage/framework/cache/data/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/storage/framework/sessions/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/src/storage/framework/sessions/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/storage/framework/testing/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/src/storage/framework/testing/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/storage/framework/views/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/src/storage/framework/views/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/storage/logs/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/src/storage/logs/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/tailwind.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/tailwind.config.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/tests/CreatesApplication.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/tests/CreatesApplication.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/tests/Feature/ExampleTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/tests/Feature/ExampleTest.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/tests/TestCase.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/tests/TestCase.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/tests/Unit/ExampleTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/tests/Unit/ExampleTest.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/vite.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/vite.config.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/1694.io/yarn.lock" beforeDir="false" afterPath="$PROJECT_DIR$/src/yarn.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/Makefile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/node_modules/.yarn-integrity" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/old/src/pages/index.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/old/src/pages/index.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/yarn.lock" beforeDir="false" />
+    <list default="true" id="e73fa6e9-285f-4e7d-9046-8cac36c17b13" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/codeception.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/php.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/php.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/phpspec.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/phpunit.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/www.1694.io.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/.env.example" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/.eslintrc.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/.gitlab-ci.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/.idea/1694.io.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/.idea/jsLibraryMappings.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/Dockerfile" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/LICENSE.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/jsconfig.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/next.config.mjs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/package-lock.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/package.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/postcss.config.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/prettier.config.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/public/android-chrome-192x192.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/public/android-chrome-512x512.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/public/apple-touch-icon.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/public/browserconfig.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/public/favicon-16x16.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/public/favicon-32x32.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/public/favicon.ico" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/public/mstile-150x150.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/public/safari-pinned-tab.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/public/site.webmanifest" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/components/ArticleLayout.jsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/components/Button.jsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/components/Card.jsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/components/Container.jsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/components/Footer.jsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/components/Header.jsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/components/Prose.jsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/components/Section.jsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/components/SimpleLayout.jsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/components/SocialIcons.jsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/images/avatar.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/images/logos/airbnb.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/images/logos/animaginary.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/images/logos/cosmos.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/images/logos/facebook.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/images/logos/helio-stream.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/images/logos/open-shuttle.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/images/logos/planetaria.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/images/logos/starbucks.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/images/photos/image-1.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/images/photos/image-2.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/images/photos/image-3.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/images/photos/image-4.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/images/photos/image-5.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/images/photos/iog-cip-in-a-nutshell.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/images/portrait.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/lib/formatDate.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/lib/generateRssFeed.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/lib/getAllArticles.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/pages/_app.jsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/pages/_document.jsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/pages/about.jsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/pages/articles/crafting-a-design-system-for-a-multiplanetary-future/index.mdx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/pages/articles/crafting-a-design-system-for-a-multiplanetary-future/planetaria-design-system.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/pages/articles/index.jsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/pages/articles/introducing-animaginary.mdx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/pages/articles/rewriting-the-cosmos-kernel-in-rust.mdx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/pages/index.jsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/pages/speaking.jsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/pages/thank-you.jsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/pages/uses.jsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/pages/workshops.jsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/styles/app.scss" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/styles/prism.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/styles/tailwind.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/workshops/components/Map.jsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/workshops/components/Modal.jsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/src/workshops/components/WorkshopDetails.jsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/tailwind.config.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/old/yarn.lock" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Console/Kernel.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Exceptions/Handler.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Http/Controllers/Controller.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Http/Controllers/Homecontroller.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Http/Controllers/WorkshopsController.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Http/Kernel.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Http/Middleware/Authenticate.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Http/Middleware/EncryptCookies.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Http/Middleware/PreventRequestsDuringMaintenance.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Http/Middleware/RedirectIfAuthenticated.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Http/Middleware/TrimStrings.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Http/Middleware/TrustHosts.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Http/Middleware/TrustProxies.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Http/Middleware/ValidateSignature.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Http/Middleware/VerifyCsrfToken.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Livewire/CommunityTranslations.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Livewire/Conversation11.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Livewire/Conversation12.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Livewire/Conversation13.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Livewire/Conversation14.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Livewire/Conversation15.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Livewire/Conversation16.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Livewire/Conversation17.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Livewire/Conversation18.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Livewire/Conversation19.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Livewire/Conversation20.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Livewire/Conversations.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Livewire/Conversationseight.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Livewire/Conversationsfive.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Livewire/Conversationsfour.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Livewire/Conversationsnine.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Livewire/Conversationsone.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Livewire/Conversationsseven.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Livewire/Conversationssix.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Livewire/Conversationsten.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Livewire/Conversationsthree.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Livewire/Conversationstwo.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Livewire/Footer.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Livewire/Header.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Livewire/Header2.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Livewire/Knowledge.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Livewire/Main.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Livewire/Navbar.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Livewire/Predefined.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Livewire/Slantedimages.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Livewire/Tablefour.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Livewire/Tableone.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Livewire/Tablethree.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Livewire/Tabletwo.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Livewire/Workshopnavbar.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Livewire/Workshops2.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Livewire/workshops.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Models/User.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Providers/AppServiceProvider.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Providers/AuthServiceProvider.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Providers/BroadcastServiceProvider.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Providers/EventServiceProvider.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/Providers/RouteServiceProvider.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/artisan" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/bootstrap/app.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/bootstrap/cache/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/composer.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/composer.lock" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/config/app.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/config/auth.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/config/broadcasting.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/config/cache.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/config/cors.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/config/database.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/config/filesystems.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/config/hashing.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/config/logging.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/config/mail.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/config/queue.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/config/sanctum.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/config/services.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/config/session.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/config/view.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/database/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/database/factories/UserFactory.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/database/migrations/2014_10_12_000000_create_users_table.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/database/migrations/2014_10_12_100000_create_password_reset_tokens_table.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/database/migrations/2019_08_19_000000_create_failed_jobs_table.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/database/migrations/2019_12_14_000001_create_personal_access_tokens_table.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/database/seeders/DatabaseSeeder.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/env.example" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/package-lock.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/package.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/phpunit.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/postcss.config.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/public/.htaccess" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/public/favicon.ico" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/public/images/android-chrome-192x192.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/public/images/android-chrome-512x512.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/public/images/apple-touch-icon.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/public/images/browserconfig.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/public/images/favicon-16x16.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/public/images/favicon-32x32.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/public/images/favicon.ico" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/public/images/images/avatar.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/public/images/images/logos/airbnb.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/public/images/images/logos/animaginary.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/public/images/images/logos/cartoon.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/public/images/images/logos/conversation1.jpeg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/public/images/images/logos/conversation12.jpeg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/public/images/images/logos/conversation2.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/public/images/images/logos/conversation3.jpeg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/public/images/images/logos/conversation4.jpeg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/public/images/images/logos/conversation5.jpeg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/public/images/images/logos/conversation6.jpeg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/public/images/images/logos/cosmos.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/public/images/images/logos/facebook.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/public/images/images/logos/helio-stream.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/public/images/images/logos/moon.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/public/images/images/logos/open-shuttle.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/public/images/images/logos/planetaria.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/public/images/images/logos/rhai.jpeg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/public/images/images/logos/starbucks.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/public/images/images/logos/sun.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/public/images/images/logos/white.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/public/images/images/photos/image-1.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/public/images/images/photos/image-2.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/public/images/images/photos/image-3.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/public/images/images/photos/image-4.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/public/images/images/photos/image-5.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/public/images/images/photos/iog-cip-in-a-nutshell.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/public/images/images/portrait.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/public/images/mstile-150x150.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/public/images/safari-pinned-tab.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/public/images/site.webmanifest" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/public/index.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/public/robots.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/css/app.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/js/app.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/js/bootstrap.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/js/custom.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/views/home.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/views/layout.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/views/livewire/community-translations.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/views/livewire/conversation11.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/views/livewire/conversation12.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/views/livewire/conversation13.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/views/livewire/conversation14.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/views/livewire/conversation15.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/views/livewire/conversation16.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/views/livewire/conversation17.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/views/livewire/conversation18.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/views/livewire/conversation19.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/views/livewire/conversation20.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/views/livewire/conversations.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/views/livewire/conversationseight.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/views/livewire/conversationsfive.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/views/livewire/conversationsfour.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/views/livewire/conversationsnine.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/views/livewire/conversationsone.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/views/livewire/conversationsseven.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/views/livewire/conversationssix.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/views/livewire/conversationsten.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/views/livewire/conversationsthree.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/views/livewire/conversationstwo.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/views/livewire/footer.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/views/livewire/header.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/views/livewire/header2.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/views/livewire/knowledge.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/views/livewire/main.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/views/livewire/navbar.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/views/livewire/predefined.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/views/livewire/slantedimages.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/views/livewire/tablefour.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/views/livewire/tableone.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/views/livewire/tablethree.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/views/livewire/tabletwo.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/views/livewire/workshopnavbar.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/views/livewire/workshops2.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/views/workshops.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/routes/api.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/routes/channels.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/routes/console.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/routes/web.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/storage/app/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/storage/app/public/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/storage/framework/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/storage/framework/cache/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/storage/framework/cache/data/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/storage/framework/sessions/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/storage/framework/testing/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/storage/framework/views/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/storage/logs/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/tailwind.config.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/tests/CreatesApplication.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/tests/Feature/ExampleTest.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/tests/TestCase.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/tests/Unit/ExampleTest.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/vite.config.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/yarn.lock" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="ComposerSettings" synchronizationState="SYNCHRONIZE">
-    <pharConfigPath>$PROJECT_DIR$/1694.io/composer.json</pharConfigPath>
+  <component name="ComposerSettings">
     <execution />
   </component>
-  <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  <component name="GitToolBoxStore">
+    <option name="projectConfigVersion" value="5" />
   </component>
-  <component name="MarkdownSettingsMigration">
-    <option name="stateVersion" value="1" />
-  </component>
-  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="/opt/homebrew/Cellar/php/8.2.9/bin/php">
+  <component name="PhpWorkspaceProjectConfiguration">
     <include_path>
       <path value="$PROJECT_DIR$/src/vendor/composer" />
       <path value="$PROJECT_DIR$/src/vendor/psr/event-dispatcher" />
@@ -340,62 +418,14 @@
       <path value="$PROJECT_DIR$/src/vendor/graham-campbell/result-type" />
     </include_path>
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "customColor": "",
-  "associatedIndex": 6
-}]]></component>
-  <component name="ProjectId" id="2Mk9DQvBHBgPu43bWHYpJTYwKdX" />
-  <component name="ProjectViewState">
-    <option name="hideEmptyMiddlePackages" value="true" />
-    <option name="showLibraryContents" value="true" />
-  </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.laravel-idea.search-composer-json": "true",
-    "WebServerToolWindowFactoryState": "false",
     "git-widget-placeholder": "main",
-    "last_opened_file_path": "/Users/ken/dev/www.1694.io",
-    "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "yarn",
-    "vue.rearranger.settings.migration": "true"
+    "node.js.selected.package.tslint": "(autodetect)"
   }
 }]]></component>
-  <component name="RunManager">
-    <configuration name="/Users/ken/dev/www.1694.io/src/vendor/autoload.php" type="PHPUnitRunConfigurationType" factoryName="PHPUnit">
-      <TestRunner configuration_file="$PROJECT_DIR$/src/phpunit.xml" scope="XML" use_alternative_configuration_file="true" />
-      <method v="2" />
-    </configuration>
-  </component>
-  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
-    <task active="true" id="Default" summary="Default task">
-      <changelist id="afe9177a-bd1b-4b38-860a-5bb2eed61017" name="Changes" comment="" />
-      <created>1678300592970</created>
-      <option name="number" value="Default" />
-      <option name="presentableId" value="Default" />
-      <updated>1678300592970</updated>
-      <workItem from="1678300594078" duration="4396000" />
-      <workItem from="1696618691660" duration="2373000" />
-    </task>
     <servers />
-  </component>
-  <component name="TypeScriptGeneratedFilesManager">
-    <option name="version" value="3" />
-  </component>
-  <component name="Vcs.Log.Tabs.Properties">
-    <option name="TAB_STATES">
-      <map>
-        <entry key="MAIN">
-          <value>
-            <State />
-          </value>
-        </entry>
-      </map>
-    </option>
   </component>
 </project>
