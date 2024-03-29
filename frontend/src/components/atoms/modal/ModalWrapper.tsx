@@ -1,6 +1,8 @@
 import { SxProps, styled } from "@mui/material/styles";
 
 import { ICONS } from "@/constants"; 
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faTimes } from "@fortawesome/free-solid-svg-icons";
 
 interface Props {
   variant?: "modal" | "popup";
@@ -23,12 +25,14 @@ export function ModalWrapper({
   return (
     <BaseWrapper variant={variant} data-testid={dataTestId} sx={sx}>
       {variant !== "popup" && !hideCloseButton && (
-        <CloseButton
+        <FontAwesomeIcon
+        style={{position:'absolute', top:20, right:20, cursor:'pointer'}}
+        size="xl"
           data-testid={"close-modal-button"}
-          alt="close"
+          icon={faTimes}
           onClick={onClose}
-          src={ICONS.closeIcon}
         />
+        
       )}
       {children}
     </BaseWrapper>

@@ -1,6 +1,8 @@
 import { Box, Button, Typography } from "@mui/material";
 
 import { useCardano } from "@/context/walletContext";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faTimes } from "@fortawesome/free-solid-svg-icons";
 
 export const WalletInfoCard = () => {
   const { address, disconnectWallet } = useCardano();
@@ -19,6 +21,7 @@ export const WalletInfoCard = () => {
           px: 1.75,
           py: 1.5,
           position: "relative",
+          width:'200px'
         }}
       >
         <Typography sx={{ color: "#ADAEAD", fontSize: 12, fontWeight: 500 }}>
@@ -41,8 +44,9 @@ export const WalletInfoCard = () => {
             data-testid={"disconnect-button"}
             variant="text"
             onClick={onClickDisconnect}
+            style={{display:"flex", width:'1px', justifyContent:'right'}}
           >
-            Disconnect
+            <FontAwesomeIcon icon={faTimes} size="xl"/>
           </Button>
         </Box>
       </Box>
