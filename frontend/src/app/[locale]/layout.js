@@ -2,10 +2,13 @@ import { locales } from "@/constants";
 import { AppContextProvider } from "@/context/context";
 import { NextIntlClientProvider } from "next-intl";
 import { unstable_setRequestLocale } from "next-intl/server";
-import { Inter } from "next/font/google";
+import { Inter , Poppins} from "next/font/google";
 import { notFound } from "next/navigation";
-const inter = Inter({ subsets: ["latin"] });
-
+const poppins=Poppins({
+	weight:'400',
+	style:'normal',
+	subsets:['devanagari']
+  })
 export function generateStaticParams() {
 	// Generate static params for each locale, used in static generation methods.
 	return locales.variants.map((locale) => ({ locale }));
@@ -38,7 +41,7 @@ async function RootLayout({ children, params: { locale } }) {
 				<link rel="icon" href="/favicon.ico" sizes="any" />
 			</head>
 			{/* Apply font class and suppress hydration warning. */}
-			<body className={inter.className} suppressHydrationWarning={true}>
+			<body className={poppins.className} suppressHydrationWarning={true}>
 				{/* Provide internationalization context. */}
 				<NextIntlClientProvider locale={locale} messages={messages}>
 					{/* Wrap children in global state context */}

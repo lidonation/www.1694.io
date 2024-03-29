@@ -32,7 +32,7 @@
     ".next/types/**/*.ts",
     "**/*.ts",
     "**/*.tsx"
-  ],
+, "src/context/context.js"  ],
   "exclude": [
     "node_modules"
   ]
