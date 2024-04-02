@@ -2,13 +2,16 @@ import { locales } from "@/constants";
 import { AppContextProvider } from "@/context/context";
 import { NextIntlClientProvider } from "next-intl";
 import { unstable_setRequestLocale } from "next-intl/server";
-import { Inter } from "next/font/google";
+import { Inter , Poppins} from "next/font/google";
 import { notFound } from "next/navigation";
-const inter = Inter({ subsets: ["latin"] });
-
+const poppins=Poppins({
+	weight:'400',
+	style:'normal',
+	subsets:['devanagari']
+  })
 export function generateStaticParams() {
 	// Generate static params for each locale, used in static generation methods.
-	return locales.map((locale) => ({ locale }));
+	return locales.variants.map((locale) => ({ locale }));
 }
 
 // Define common metadata for the application.
@@ -20,7 +23,7 @@ export const metadata = {
 async function RootLayout({ children, params: { locale } }) {
 	// Root layout component, sets up locale, loads messages, and wraps the app with providers.
 	unstable_setRequestLocale(locale); // Set the locale for the request, use with caution due to unstable API.
-	if (!locales.includes(locale)) notFound(); // Check if the locale is supported, otherwise trigger a 404.
+	if (!locales.variants.includes(locale)) notFound(); // Check if the locale is supported, otherwise trigger a 404.
 
 	let messages;
 	try {
@@ -38,11 +41,13 @@ async function RootLayout({ children, params: { locale } }) {
 				<link rel="icon" href="/favicon.ico" sizes="any" />
 			</head>
 			{/* Apply font class and suppress hydration warning. */}
-			<body className={inter.className} suppressHydrationWarning={true}>
+			<body className={poppins.className} suppressHydrationWarning={true}>
 				{/* Provide internationalization context. */}
 				<NextIntlClientProvider locale={locale} messages={messages}>
 					{/* Wrap children in global state context */}
+					
 					<AppContextProvider>{children}</AppContextProvider>
+					
 				</NextIntlClientProvider>
 			</body>
 		</html>
