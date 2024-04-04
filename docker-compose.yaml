@@ -4,22 +4,21 @@ services:
     container_name: backend # Name of the backend container
     build: # Build configuration for the backend
       context: ./backend # Directory containing Dockerfile
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     image: strapi:latest # Use the latest Strapi image
     restart: unless-stopped # Always restart unless explicitly stopped
     environment: # Environment variables for configuration
       HOST: 0.0.0.0
-      PORT: 1337
+      PORT: 8080
       DATABASE_HOST: database # Link to the database service by name
       DATABASE_NAME: pdf_db
       DATABASE_USERNAME: postgres
       DATABASE_PASSWORD: postgres
       NODE_ENV: development # Set node environment to development
     volumes: # Mount points for persistent data and source code
-      - ./backend/config:/opt/app/config
-      - ./backend/public/uploads:/opt/app/public/uploads
+      - "./backend:/app"
     ports:
-      - "1337:1337" # Expose port 1337 to the host
+      - "8080:8080" # Expose port 8080 to the host
     networks:
       - strapi # Connect to the 'strapi' network
     depends_on:
@@ -41,14 +40,16 @@ services:
     container_name: frontend # Name of the frontend container
     build: # Build configuration for the frontend
       context: ./frontend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     restart: unless-stopped
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:1337 # Environment variable for the API URL
+      NEXT_PUBLIC_API_URL: http://localhost:4000 # Environment variable for the API URL
     ports:
-      - "3000:3000" # Expose port 3000 to the host
+      - "4000:3000" # Expose port 4000 to the host
     networks:
       - strapi # Connect to the 'strapi' network
+    volumes:
+      - "./frontend:/app"
     depends_on:
       - backend # Depends on the backend service
 volumes:

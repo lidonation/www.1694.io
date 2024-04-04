@@ -4,11 +4,11 @@ import { PostgresConnectionOptions } from "typeorm/driver/postgres/PostgresConne
 //sample config object
 const config:PostgresConnectionOptions={
     type:'postgres',
-    database:'postgres',
-    host:'localhost',
+    database:'pdf_db',
+    host:'database',
     port:5432,
     username:'postgres',
-    password:"0000",
+    password:"postgres",
     entities:[Drep],
     //Setting to true will update in real time for dev envt only. In prod, risks loss of data
     synchronize:true
