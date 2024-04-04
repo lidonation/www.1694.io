@@ -10,4 +10,4 @@ RUN yarn install --frozen-lockfile
 EXPOSE 8080
 
 # Specify the command to run the application
-CMD ["yarn", "start:dev"]
+CMD ["npx", "nest", "start", "--watch"]

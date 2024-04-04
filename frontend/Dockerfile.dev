@@ -6,11 +6,4 @@ RUN yarn install --frozen-lockfile
 
 EXPOSE 3000
 
-
-CMD ["yarn","--max-old-space-size=8192", "dev"]
-
-
-
-
-
-
+CMD ["npx","--max-old-space-size=8192", "next", "dev"]
