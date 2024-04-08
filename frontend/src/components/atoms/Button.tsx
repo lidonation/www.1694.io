@@ -1,6 +1,6 @@
 import React from "react";
 import { Button as MUIButton } from "@mui/material";
-import { Poppins } from "next/font/google";
+import "./Button.css"; // Import the CSS file
 export interface ButtonProps {
   size?: "extraLarge" | "large" | "medium" | "small";
   variant?: "text" | "outlined" | "contained";
@@ -34,19 +34,17 @@ const Button: React.FC<ButtonProps> = ({
 
   return (
     <MUIButton
-      sx={{
-        fontSize: size === "extraLarge" ? 16 : 12,
-        fontFamily:"Poppins",
+      className={`button ${size}`} // Add classes based on size
+      style={{
         height: buttonHeight,
         width: width,
         backgroundColor: bgColor,
-        borderRadius:borderRadius,
+        borderRadius: borderRadius,
         ...sx,
       }}
-      
       variant={variant}
       color={color}
-      onClick={handleClick} // Pass the handleClick function to onClick
+      onClick={handleClick}
       {...props}
     >
       {children}
