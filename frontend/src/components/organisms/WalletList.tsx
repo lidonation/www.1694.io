@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { ModalContents, ModalHeader, ModalWrapper } from "../atoms"
 import type { WalletOption } from "../molecules"; 
 import { WalletOptionButton } from "../molecules";
-
+import './OrgStyles.css'
 export function ChooseWalletModal({handleClose}) {
 
   const walletOptions: WalletOption[] = useMemo(() => {
@@ -41,12 +41,7 @@ export function ChooseWalletModal({handleClose}) {
       <ModalHeader>Connect Your Wallet</ModalHeader>
       <ModalContents>
         <Typography
-          sx={{
-            fontSize: "16px",
-            fontWeight: "500",
-            marginBottom: "24px",
-            textAlign: "center",
-          }}
+          className="chooseWalletText"
         >
           Choose Wallet
         </Typography>
@@ -64,10 +59,9 @@ export function ChooseWalletModal({handleClose}) {
             <Typography
               color="primary"
               variant="body2"
-              fontWeight={600}
-              sx={{ textAlign: "center" }}
+              className="walletNoOptionsText"
             >
-              {"wallet.noWalletsToConnect"}
+              No wallets to Connect
             </Typography>
           ) : (
             walletOptions.map(({ icon, label, name, cip95Available }) => {

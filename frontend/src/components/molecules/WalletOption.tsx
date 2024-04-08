@@ -1,7 +1,7 @@
 import { FC, useCallback } from "react";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import { useCardano } from "@/context/walletContext";
-
+import './MoleculeStyles.css'
 export interface WalletOption {
   icon: string;
   label: string;
@@ -55,19 +55,10 @@ export const WalletOptionButton: FC<WalletOption> = ({ ...props }) => {
       <img
         alt={`${name} icon`}
         src={icon}
-        style={{
-          height: "24px",
-          width: "24px",
-          filter: isEnableLoading ? "grayscale(100%)" : "none",
-        }}
+        className={`walletIcon ${isEnableLoading && "walletIcon-loading"}`}
       />
       <Typography
-        color={isEnableLoading ? "#C1BED3" : "primaryBlue"}
-        sx={{
-          fontSize: "16px",
-          fontWeight: "500",
-        }}
-      >
+      className={`walletOptionButtonText ${isEnableLoading && "walletOptionButtonText-loading"}`}      >
         {name ?? label}
       </Typography>
       <div style={{ height: "24px", width: "24px" }} />
