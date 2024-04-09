@@ -4,6 +4,8 @@ import { NextIntlClientProvider } from "next-intl";
 import { unstable_setRequestLocale } from "next-intl/server";
 import { Inter , Poppins} from "next/font/google";
 import { notFound } from "next/navigation";
+import "@/assets/styles/globals.css";
+
 const poppins=Poppins({
 	weight:'400',
 	style:'normal',
