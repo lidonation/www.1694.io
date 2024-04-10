@@ -16,13 +16,13 @@ const Footer = () => {
         <a href="#">Cardano CIPs</a>
       </div>
       <div className="flex items-center justify-center gap-3 font-bold mb-4">
-        <a className="bg-[#00123D] cursor-pointer w-[40px] h-[40px] rounded-full flex items-center justify-center"  >
+        <a className="bg-[#00123D] w-[40px] h-[40px] rounded-full flex items-center justify-center" href="#"  >
           <img src="/fb.svg" alt="Facebook" />
         </a>
-        <a className="bg-[#00123D] cursor-pointer w-[40px] h-[40px] rounded-full flex items-center justify-center ">
+        <a className="bg-[#00123D] w-[40px] h-[40px] rounded-full flex items-center justify-center" href="#">
           <img src="/ig.svg" alt="Instagram" />
         </a>
-        <a className="bg-[#00123D] cursor-pointer w-[40px] h-[40px] rounded-full flex items-center justify-center ">
+        <a className="bg-[#00123D] w-[40px] h-[40px] rounded-full flex items-center justify-center" href="#">
           <img src="/github.svg" alt="Github" />
         </a>
       </div>
