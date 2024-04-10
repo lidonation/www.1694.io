@@ -23,7 +23,7 @@ export function ModalWrapper({
 }: Props) {
 
   return (
-    <BaseWrapper className={`base-wrapper ${variant}-variant`} data-testid={dataTestId} sx={sx}>
+    <BaseWrapper className={`base-wrapper ${variant}-variant z-[999]`} data-testid={dataTestId} sx={sx}>
       {variant !== "popup" && !hideCloseButton && (
         <FontAwesomeIcon
           className="close-button"

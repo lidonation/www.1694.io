@@ -1,3 +1,5 @@
+import Footer from "@/components/atoms/Footer"
+import Header from "@/components/atoms/Header"
 
 export const metadata = {
   title: 'Next.js',
@@ -11,7 +13,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" >
-      <body>{children}</body>
+      <body>
+        <Header/>
+        {children}
+        <Footer/>
+        </body>
     </html>
   )
 }

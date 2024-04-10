@@ -17,8 +17,7 @@ const page = () => {
   }
   return (
     <div>
-     {!isEnabled?<WalletConnectButton handleClick={connectWallet} />:<WalletInfoCard />}
-     {isModalOpen&&<ChooseWalletModal handleClose={()=>setisModalOpen(false)}/>}
+      Homepage
     </div>
   )
 }
