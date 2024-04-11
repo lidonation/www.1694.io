@@ -5,7 +5,7 @@ services:
     build: # Build configuration for the backend
       context: ./backend # Directory containing Dockerfile
       dockerfile: Dockerfile.dev
-    image: strapi:latest # Use the latest Strapi image
+    image: io-1694:latest # Use the latest io-1694 image
     restart: unless-stopped # Always restart unless explicitly stopped
     environment: # Environment variables for configuration
       HOST: 0.0.0.0
@@ -20,7 +20,7 @@ services:
     ports:
       - "8080:8080" # Expose port 8080 to the host
     networks:
-      - strapi # Connect to the 'strapi' network
+      - io-1694 # Connect to the 'io-1694' network
     depends_on:
       - database # Depends on the database service
   database:
@@ -33,9 +33,9 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: pdf_db
     volumes:
-      - strapi-data:/var/lib/postgresql/data/ # Persistent storage for the database
+      - db-data:/var/lib/postgresql/data/ # Persistent storage for the database
     networks:
-      - strapi # Connect to the 'strapi' network
+      - io-1694 # Connect to the 'io-1694' network
   frontend:
     container_name: frontend # Name of the frontend container
     build: # Build configuration for the frontend
@@ -47,14 +47,35 @@ services:
     ports:
       - "4000:3000" # Expose port 4000 to the host
     networks:
-      - strapi # Connect to the 'strapi' network
+      - io-1694
     volumes:
       - "./frontend:/app"
     depends_on:
       - backend # Depends on the backend service
+  cardano-node:
+    image: ghcr.io/intersectmbo/cardano-node:8.9.0
+    command: [
+      "run",
+      "--config", "/config/config.json",
+      "--database-path", "/data/db",
+      "--socket-path", "/ipc/node.socket",
+      "--topology", "/config/topology.json"
+    ]
+    volumes:
+      - ./cardanonode/config/network/${NETWORK:-sanchonet}/cardano-node:/config
+      - ./cardanonode/config/network/${NETWORK:-sanchonet}/genesis:/genesis
+      - node-db:/data
+      - node-ipc:/ipc
+    restart: on-failure
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "400k"
+        max-file: "20"
 volumes:
-  strapi-data: # Define a volume for PostgreSQL data
+  db-data:
+  node-db:
+  node-ipc:
 networks:
-  strapi: # Custom network for inter-container communication
-    name: Strapi
+  io-1694:
     driver: bridge
