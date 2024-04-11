@@ -1,25 +1,23 @@
 'use client'
-import { useCardano } from '@/context/walletContext'
-import React, { useEffect, useState } from 'react'
-import WalletConnectButton from '@/components/molecules/WalletConnectButton'
-import { ChooseWalletModal } from '@/components/organisms'
-import { WalletInfoCard } from '@/components/molecules'
+import {useCardano} from '@/context/walletContext'
+import React, {useState} from 'react'
+
 const page = () => {
-  const {isEnabled}=useCardano()
-  const [isModalOpen, setisModalOpen]=useState(false)
-  
-  const connectWallet=()=>{
-    try{
-      setisModalOpen(true)
-    }catch(err){
-      console.log(err)
+    const {isEnabled} = useCardano()
+    const [isModalOpen, setIsModalOpen] = useState(false)
+
+    const connectWallet = () => {
+        try {
+            setIsModalOpen(true)
+        } catch (err) {
+            console.log(err)
+        }
     }
-  }
-  return (
-    <div>
-      Homepage
-    </div>
-  )
+    return (
+        <div className={'container'}>
+            Homepage
+        </div>
+    )
 }
 
 export default page
