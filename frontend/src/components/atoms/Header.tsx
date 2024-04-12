@@ -1,14 +1,14 @@
 "use client";
-import React, { useState } from "react";
-import { useCardano } from "@/context/walletContext";
+import React, {useState} from "react";
+import {useCardano} from "@/context/walletContext";
 import WalletConnectButton from "@/components/molecules/WalletConnectButton";
 import { ChooseWalletModal } from "@/components/organisms";
 import { WalletInfoCard } from "@/components/molecules";
 import Link from "next/link";
 
 const Header = () => {
-  const { isEnabled } = useCardano();
-  const [isModalOpen, setisModalOpen] = useState(false);
+    const {isEnabled} = useCardano();
+    const [isModalOpen, setisModalOpen] = useState(false);
 
   const connectWallet = () => {
     try {
@@ -39,12 +39,7 @@ const Header = () => {
             <ChooseWalletModal handleClose={() => setisModalOpen(false)} />
           )}
         </div>
-        <div>
-          <img src="/bell.svg" alt="Bell logo" />
-        </div>
-      </div>
-    </div>
-  );
+    );
 };
 
 export default Header;
