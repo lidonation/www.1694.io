@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import React from "react";
 
 const Footer = () => {
@@ -9,11 +10,11 @@ const Footer = () => {
         <img src="/sancho-white.svg" alt="Sancho logo" width={'300px'} height={'77px'}/>
       </div>
       <div className="flex items-center justify-center gap-4 font-bold mb-16 text-[#C7CDD1]">
-        <a href="#">Voltaire </a>
-        <a href="#">Sancho Gov Tools</a>
-        <a href="#">Lido Nation</a>
-        <a href="#">Catalyst Explorer</a>
-        <a href="#">Cardano CIPs</a>
+        <Link href="#">Voltaire </Link>
+        <Link href="#">Sancho Gov Tools</Link>
+        <Link href="#">Lido Nation</Link>
+        <Link href="#">Catalyst Explorer</Link>
+        <Link href="#">Cardano CIPs</Link>
       </div>
       <div className="flex items-center justify-center gap-3 font-bold mb-4">
         <a className="bg-[#00123D] w-[40px] h-[40px] rounded-full flex items-center justify-center" href="#"  >

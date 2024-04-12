@@ -4,6 +4,7 @@ import { useCardano } from "@/context/walletContext";
 import WalletConnectButton from "@/components/molecules/WalletConnectButton";
 import { ChooseWalletModal } from "@/components/organisms";
 import { WalletInfoCard } from "@/components/molecules";
+import Link from "next/link";
 
 const Header = () => {
   const { isEnabled } = useCardano();
@@ -22,12 +23,12 @@ const Header = () => {
         <img src="/sancho-black.svg" alt="Sancho logo" />
       </div>
       <div className="flex m-5 items-center text-sm font-bold text-nowrap gap-4 md:mr-20 lg:mr-25">
-        <a href="#" className="text-orange-600">Home</a>
-        <a href="#">Dreps table</a>
-        <a href="#">Become a Drep</a>
-        <a href="#">Forum</a>
-        <a href="#">Voltaire</a>
-        <a href="#" className="text-blue-800 font-bold">Create profile</a>
+        <Link href="#" className="text-orange-600">Home</Link>
+        <Link href="#">DReps table</Link>
+        <Link href="#">Become a DRep</Link>
+        <Link href="#">Forum</Link>
+        <Link href="#">Voltaire</Link>
+        <Link href="#" className="text-blue-800 font-bold">Create profile</Link>
         <div>
           {!isEnabled ? (
             <WalletConnectButton handleClick={connectWallet} />
