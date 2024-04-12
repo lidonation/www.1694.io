@@ -17,8 +17,8 @@ export function generateStaticParams() {
 
 // Define common metadata for the application.
 export const metadata = {
-	title: "Web App Boilerplate",
-	description: "Web App Boilerplate",
+	title: "Voltaire DRep Campaign Module",
+	description: "Town Halls and Campaigns for Voltaire DReps and their communities."
 };
 
 async function RootLayout({ children, params: { locale } }) {
