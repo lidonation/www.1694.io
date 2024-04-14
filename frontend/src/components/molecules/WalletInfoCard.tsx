@@ -1,8 +1,6 @@
 import { Box, Button, Typography } from "@mui/material";
 
 import { useCardano } from "@/context/walletContext";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTimes } from "@fortawesome/free-solid-svg-icons";
 import './MoleculeStyles.css'
 export const WalletInfoCard = () => {
   const { address, disconnectWallet } = useCardano();
@@ -15,7 +13,6 @@ export const WalletInfoCard = () => {
       <Box
       data-testId='wallet-info-card'
         sx={{
-          
           border: 1,
           borderColor: "lightBlue",
           borderRadius: 3,
@@ -25,13 +22,12 @@ export const WalletInfoCard = () => {
           width:'200px'
         }}
       >
-        <Typography sx={{ color: "#ADAEAD", fontSize: 12, fontWeight: 500 }}>
+        <Typography className="text-wall-info-txt-color text-sm font-medium">
           Connected Wallet
         </Typography>
         <Box sx={{ alignItems: "center", display: "flex" }}>
           <Typography
-          className="walletAddrText"
-           
+          className="flex-1 text-sm font-normal overflow-hidden overflow-ellipsis max-w-2.5"
           >
             {address}
           </Typography>
@@ -39,10 +35,13 @@ export const WalletInfoCard = () => {
             data-testid={"disconnect-button"}
             variant="text"
             onClick={onClickDisconnect}
-            
-            className="disconnect-btn"
+            className="flex max-w-0.5 justify-end"
           >
-            <FontAwesomeIcon icon={faTimes} size="xl"/>
+            <img 
+            src="/close.svg"
+            alt="Close Icon"
+
+            />
           </Button>
         </Box>
       </Box>
