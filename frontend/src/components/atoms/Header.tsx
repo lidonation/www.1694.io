@@ -24,15 +24,15 @@ const Header = () => {
       </div>
       <div className="flex m-5 items-center text-sm font-bold font-poppins text-nowrap gap-4 md:mr-20 lg:mr-25">
         <Link href="/dreps"  className="text-orange-600">
-          Home
+          What are DReps
         </Link>
-        <Link href="/dreps/list">DReps</Link>
-        <Link href="#">Become a DRep</Link>
+        <Link href="/dreps/list">DRep List</Link>
+        {/*<Link href="#">Become a DRep</Link>*/}
         <Link href="#">Notes</Link>
         <Link href="#">Ecosystem</Link>
-        <Link href="#" className="text-blue-800 font-bold">
-          Create profile
-        </Link>
+        {/*<Link href="#" className="text-blue-800 font-bold">*/}
+        {/*  Create profile*/}
+        {/*</Link>*/}
         <div>
           {!isEnabled ? (
             <WalletConnectButton handleClick={connectWallet} />
