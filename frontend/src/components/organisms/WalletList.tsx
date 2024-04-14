@@ -1,6 +1,5 @@
-import { Box, Link, Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { useMemo } from "react";
-
 import { ModalContents, ModalHeader, ModalWrapper } from "../atoms"
 import type { WalletOption } from "../molecules"; 
 import { WalletOptionButton } from "../molecules";
@@ -40,7 +39,7 @@ export function ChooseWalletModal({handleClose}) {
             <ModalHeader>Connect Your Wallet</ModalHeader>
             <ModalContents>
                 <Typography
-                    className="chooseWalletText"
+                    className="text-sm font-medium mb-6 text-center"
                 >
                     Choose Wallet
                 </Typography>
@@ -58,12 +57,12 @@ export function ChooseWalletModal({handleClose}) {
                         <Typography
                             color="primary"
                             variant="body2"
-                            className="walletNoOptionsText"
+                            className="text-blue-800 font-semibold text-center"
                         >
                             No wallets to Connect
                         </Typography>
                     ) : (
-                        walletOptions.map(({icon, label, name, cip95Available}) => {
+                        walletOptions.map(({ icon, label, name, cip95Available }) => {
                             return (
                                 <WalletOptionButton
                                     dataTestId={name + "-wallet-button"}
@@ -78,50 +77,7 @@ export function ChooseWalletModal({handleClose}) {
                     )}
                 </Box>
 
-  return (
-    <ModalWrapper dataTestId="connect-your-wallet-modal" onClose={handleClose}>
-      <ModalHeader>Connect Your Wallet</ModalHeader>
-      <ModalContents>
-        <Typography
-          className="text-sm font-medium mb-6 text-center"
-        >
-          Choose Wallet
-        </Typography>
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            maxHeight: "500px",
-            overflow: "auto",
-            width: "100%",
-            padding: "8px",
-          }}
-        >
-          {!walletOptions.length ? (
-            <Typography
-              color="primary"
-              variant="body2"
-              className="text-blue-800 font-semibold text-center"
-            >
-              No wallets to Connect
-            </Typography>
-          ) : (
-            walletOptions.map(({ icon, label, name, cip95Available }) => {
-              return (
-                <WalletOptionButton
-                  dataTestId={name + "-wallet-button"}
-                  key={name}
-                  icon={icon}
-                  label={label}
-                  name={name}
-                  cip95Available={cip95Available}
-                />
-              );
-            })
-          )}
-        </Box>
-        
-      </ModalContents>
-    </ModalWrapper>
-  );
+            </ModalContents>
+        </ModalWrapper>
+    );
 }

@@ -26,10 +26,10 @@ const Header = () => {
         <Link href="/dreps"  className="text-orange-600">
           Home
         </Link>
-        <Link href="/dreps/list">DReps table</Link>
+        <Link href="/dreps/list">DReps</Link>
         <Link href="#">Become a DRep</Link>
-        <Link href="#">Forum</Link>
-        <Link href="#">Voltaire</Link>
+        <Link href="#">Notes</Link>
+        <Link href="#">Ecosystem</Link>
         <Link href="#" className="text-blue-800 font-bold">
           Create profile
         </Link>
