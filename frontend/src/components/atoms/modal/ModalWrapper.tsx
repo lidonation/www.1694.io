@@ -23,9 +23,9 @@ export function ModalWrapper({
 }: Props) {
 
   return (
-    <BaseWrapper className={`absolute shadow-lg max-h-[90vh] top-1/2 left-1/2 flex flex-col bg-[#fbfbff] rounded-md translate-x-[-50%] translate-y-[-50%]  ${variant}-variant z-[999]`} data-testid={dataTestId} sx={sx}>
+    <BaseWrapper className={`absolute shadow-lg max-h-[90vh] top-1/2 left-1/2 flex flex-col bg-base-wrapper-bg-color rounded-md -translate-x-1/2 -translate-y-1/2  ${variant}-variant z-50`} data-testid={dataTestId} sx={sx}>
       {variant !== "popup" && !hideCloseButton && (
-        <div className="cursor-pointer absolute top-[24px] right-[24px] ">
+        <div className="cursor-pointer absolute top-6 right-6 ">
           <img         
           data-testid={"close-modal-button"}
           src="/close.svg"

@@ -55,13 +55,13 @@ export const WalletOptionButton: FC<WalletOption> = ({ ...props }) => {
       <img
         alt={`${name} icon`}
         src={icon}
-        className={`h-[24px] w-[24px] ${isEnableLoading && "filter grayscale-[100%]"}`}
+        className={`max-h-6 max-w-6 ${isEnableLoading && "filter grayscale"}`}
       />
       <Typography
-      className={`text-blue-800 text-[16px] font-[500] ${isEnableLoading && "text-[#C1BED3]"}`}      >
+      className={`text-blue-800 text-lg font-medium ${isEnableLoading && "text-wall-info-txt-color"}`}      >
         {name ?? label}
       </Typography>
-      <div className="h-[24px] w-[24px]"/>
+      <div className="max-h-6 max-w-6"/>
       {isEnableLoading === name && (
         <Box
           position="absolute"

@@ -22,13 +22,12 @@ export const WalletInfoCard = () => {
           width:'200px'
         }}
       >
-        <Typography className="text-[#ADAEAD] text-[12px] font-[500]">
+        <Typography className="text-wall-info-txt-color text-sm font-medium">
           Connected Wallet
         </Typography>
         <Box sx={{ alignItems: "center", display: "flex" }}>
           <Typography
-          className="flex-1 text-[14px] font-[400] overflow-hidden overflow-ellipsis w-[10px]"
-           
+          className="flex-1 text-sm font-normal overflow-hidden overflow-ellipsis max-w-2.5"
           >
             {address}
           </Typography>
@@ -36,7 +35,7 @@ export const WalletInfoCard = () => {
             data-testid={"disconnect-button"}
             variant="text"
             onClick={onClickDisconnect}
-            className="flex w-[1px] justify-end"
+            className="flex max-w-0.5 justify-end"
           >
             <img 
             src="/close.svg"

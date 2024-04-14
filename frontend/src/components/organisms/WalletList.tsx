@@ -41,7 +41,7 @@ export function ChooseWalletModal({handleClose}) {
       <ModalHeader>Connect Your Wallet</ModalHeader>
       <ModalContents>
         <Typography
-          className="text-[16px] font-[500] mb-[24px] text-center"
+          className="text-sm font-medium mb-6 text-center"
         >
           Choose Wallet
         </Typography>
@@ -59,7 +59,7 @@ export function ChooseWalletModal({handleClose}) {
             <Typography
               color="primary"
               variant="body2"
-              className="text-blue-800 font-[600] text-center"
+              className="text-blue-800 font-semibold text-center"
             >
               No wallets to Connect
             </Typography>

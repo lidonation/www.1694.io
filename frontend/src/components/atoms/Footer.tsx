@@ -5,11 +5,11 @@ import React from "react";
 const Footer = () => {
   const currentYear = new Date().getFullYear();
   return (
-    <div className="absolute bottom-0 z-0 bg-[#242232] flex-col items-center justify-center text-white py-2 w-full">
+    <div className="absolute bottom-0 z-0 bg-dark-indigo flex-col items-center justify-center text-white py-2 w-full">
       <div className="flex items-center justify-center p-5 mb-12">
         <img src="/sancho-white.svg" alt="Sancho logo" width={'300px'} height={'77px'}/>
       </div>
-      <div className="flex items-center justify-center gap-4 font-bold mb-16 text-[#C7CDD1]">
+      <div className="flex items-center justify-center gap-4 font-bold mb-16 text-bottom-nav-text">
         <Link href="#">Voltaire </Link>
         <Link href="#">Sancho Gov Tools</Link>
         <Link href="#">Lido Nation</Link>
@@ -17,13 +17,13 @@ const Footer = () => {
         <Link href="#">Cardano CIPs</Link>
       </div>
       <div className="flex items-center justify-center gap-3 font-bold mb-4">
-        <a className="bg-[#00123D] w-[40px] h-[40px] rounded-full flex items-center justify-center" href="#"  >
+        <a className="bg-dark-blue w-socialButtons h-socialButtons rounded-full flex items-center justify-center" href="#"  >
           <img src="/fb.svg" alt="Facebook" />
         </a>
-        <a className="bg-[#00123D] w-[40px] h-[40px] rounded-full flex items-center justify-center" href="#">
+        <a className="bg-dark-blue w-socialButtons h-socialButtons rounded-full flex items-center justify-center" href="#">
           <img src="/ig.svg" alt="Instagram" />
         </a>
-        <a className="bg-[#00123D] w-[40px] h-[40px] rounded-full flex items-center justify-center" href="#">
+        <a className="bg-dark-blue w-socialButtons h-socialButtons rounded-full flex items-center justify-center" href="#">
           <img src="/github.svg" alt="Github" />
         </a>
       </div>
