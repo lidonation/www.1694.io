@@ -84,7 +84,7 @@ services:
     depends_on:
       - backend # Depends on the backend service
   cardano-node:
-    image: ghcr.io/intersectmbo/cardano-node:8.9.0
+    image: ghcr.io/intersectmbo/cardano-node:8.10.0-pre
     command: [
       "run",
       "--config", "/config/config.json",

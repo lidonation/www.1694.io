@@ -44,6 +44,10 @@ build:
 sh:
 	docker-compose exec backend sh
 
+.PHONY: sh-cardano
+sh-cardano:
+	docker-compose exec cardano-node sh
+
 .PHONY: test-backend
 test-backend:
 	docker-compose exec backend yarn run test
