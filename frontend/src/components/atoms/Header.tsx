@@ -11,10 +11,10 @@ const Header = () => {
   const { activeTab, setActiveTab } = useDRepContext();
   return (
     <div className="flex flex-row items-center justify-between bg-top-nav-bg-color">
-      <div className="ml-10 p-3">
+      <div className="ml-20 p-3">
         <img src="/sancho-black.svg" alt="Sancho logo" />
       </div>
-      <div className="flex m-5 items-center text-sm font-bold font-poppins text-nowrap gap-6 md:mr-20 lg:mr-25">
+      <div className="flex m-5 items-center text-sm font-bold  text-nowrap gap-6 md:mr-20 lg:mr-25">
         <Link
           href="/dreps"
           onClick={()=>setActiveTab('/dreps')}

@@ -2,7 +2,7 @@ import React from "react";
 
 const DRepIntroText = () => {
   return (
-    <div className="mt-20 ml-16">
+    <div className="mt-28 ml-4">
       <div className="font-black text-7xl text-drep-intro-text-color">
         <p>A next step</p>
         <p>in Cardano</p>

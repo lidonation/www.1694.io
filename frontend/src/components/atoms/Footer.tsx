@@ -5,7 +5,7 @@ import React from "react";
 const Footer = () => {
   const currentYear = new Date().getFullYear();
   return (
-    <div className="font-poppins bg-dark-indigo flex-col items-center justify-center text-white py-2 w-fullScale">
+    <div className=" bg-dark-indigo flex-col items-center justify-center text-white py-2 w-fullScale">
       <div className="flex items-center justify-center p-5 mb-12">
         <img src="/sancho-white.svg" alt="Sancho logo" width={'300px'} height={'77px'}/>
       </div>
@@ -27,7 +27,7 @@ const Footer = () => {
           <img src="/github.svg" alt="Github" />
         </a>
       </div>
-      <div className="text-center text-sm">
+      <div className="text-pure-white text-center text-sm">
         &copy; {currentYear} A LIDO Nation Project
       </div>
     </div>

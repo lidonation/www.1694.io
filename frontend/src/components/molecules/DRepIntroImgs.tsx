@@ -2,7 +2,7 @@ import React from "react";
 
 const DRepIntroImgs = () => {
   return (
-    <div className="relative w-fullScale h-[100%]">
+    <div className="drep_intro_radial_bg relative w-fullScale h-[100%]">
       {/* rainbow one */}
       <div className="absolute z-[10] top-24 left-0">
         <img src="/img/faces/img1.png" alt="Img1" width={"278px"} />

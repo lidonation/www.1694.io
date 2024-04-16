@@ -2,15 +2,17 @@
 import React from 'react'
 import ViewDRepTableBtn from '../molecules/ViewDRepTableButton'
 import { useRouter } from 'next/navigation'
-
+import { useDRepContext } from '@/context/drepContext'
 const PickADRep = () => {
+  const {setActiveTab}=useDRepContext()
   const router=useRouter()
   const navtoDRepList=()=>{
+    setActiveTab('/dreps/list')
     router.push('/dreps/list')
   }
   
   return (
-    <div className='grid grid-cols-2 gap-4 p-10 shadow-lg'>
+    <div className='grid grid-cols-2 gap-4 p-10 shadow-lg z-10'>
       <div className='col-span-1 flex flex-col items-start justify-center gap-3 p-20'>
         <div className='font-bold text-6xl'>
         <p>How can I</p>

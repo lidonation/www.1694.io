@@ -17,6 +17,9 @@ module.exports = {
       "base-wrapper-bg-color": "#f8f8f8",
       "wall-info-txt-color": "#ADAEAD",
       "drep-intro-text-color":" #242232",
+      "pale-white":"#f8f8f8",
+      "pure-white":"#ffffff",
+      "drep-info-bg-color":" #0033ad",
       "active":"#FF640A"
     },
     fontFamily: {

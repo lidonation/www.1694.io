@@ -3,7 +3,7 @@ import DrepInfoCard from "../atoms/DrepInfoCard";
 
 const DrepInfoCardRow = () => {
   return (
-    <div className="flex items-center justify-center gap-4 text-base-wrapper-bg-color mt-10">
+    <div className="flex items-center justify-center gap-4 text-pale-white mt-10">
       <DrepInfoCard
         img={"/img/credImg.png"}
         title={"Credentials"}

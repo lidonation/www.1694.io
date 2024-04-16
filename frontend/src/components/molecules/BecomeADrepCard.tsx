@@ -5,9 +5,9 @@ import WalletConnectButton from "./WalletConnectButton";
 const BecomeADrepCard = () => {
   const { isEnabled } = useCardano();
   return (
-    <div className="grid grid-cols-2 mx-20 text-base-wrapper-bg-color mb-10">
+    <div className="grid grid-cols-2 mx-20 text-pale-white mb-10">
       <div className="col-span-1 flex-col items-center justify-center">
-        <div className="font-bold text-5xl">
+        <div className="font-black text-5xl mb-3">
           <p>How can I</p>
           <p> become a DRep</p>
         </div>
@@ -24,11 +24,9 @@ const BecomeADrepCard = () => {
           <li>maybe this</li>
           <li>and definitely this</li>
         </ul>
-        <div>
-          {!isEnabled && <WalletConnectButton/>}
-        </div>
+        <div>{!isEnabled && <WalletConnectButton />}</div>
       </div>
-      <div className="col-span-1 flex items-center justify-center">
+      <div className="col-span-1 flex items-center justify-end mr-5">
         <img
           src="/img/becomeDrepImg.png"
           alt="Handholdingcardanocoin"

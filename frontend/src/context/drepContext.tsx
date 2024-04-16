@@ -18,7 +18,7 @@ DRepContext.displayName = "DRepContext";
 
 function DRepProvider(props: Props) {
   const [isWalletListModalOpen, setIsWalletListModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<string | null>('/dreps');
   const toggleModal = () => {
     setIsWalletListModalOpen((prev) => !prev);
   };

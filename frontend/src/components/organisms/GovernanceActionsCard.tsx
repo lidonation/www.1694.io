@@ -4,7 +4,7 @@ import GovernanceActionsTable from "../molecules/GovernanceActionsTable";
 
 const GovernanceActionsCard = () => {
   return (
-    <div className="grid grid-cols-2 gap-4 p-10 shadow-lg bg-gradient-to-b from-[#E9EFFF]  to-[#FFFFFF]">
+    <div className="grid grid-cols-2 gap-4 p-10 bg-gradient-to-b from-[#E9EFFF]  to-[#FFFFFF]">
       <div className="col-span-1 flex flex-col items-start justify-center gap-3 p-20">
         <div className="font-bold text-6xl">
           <p>Governance</p>
