@@ -3,7 +3,7 @@ import Button from '../atoms/Button'
 
 const WalletConnectButton = ({handleClick}) => {
   return (
-    <Button handleClick={handleClick}>
+    <Button handleClick={handleClick} data-testid='connect-wallet-button'>
      <p>Connect Wallet</p>
     </Button>
   )
