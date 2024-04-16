@@ -11,7 +11,7 @@ export const WalletInfoCard = () => {
   return (
     address && (
       <Box
-      data-testId='wallet-info-card'
+      data-testid='wallet-info-card'
         sx={{
           border: 1,
           borderColor: "lightBlue",
@@ -25,9 +25,9 @@ export const WalletInfoCard = () => {
         <Typography className="text-wall-info-txt-color text-sm font-medium">
           Connected Wallet
         </Typography>
-        <Box sx={{ alignItems: "center", display: "flex" }}>
-          <Typography
-          className="flex-1 text-sm font-normal overflow-hidden overflow-ellipsis max-w-2.5"
+        <Box sx={{ alignItems: "center", display: "flex", justifyContent:'space-between' }}>
+          <Typography  
+          className="flex-1 text-sm font-normal overflow-hidden overflow-ellipsis"
           >
             {address}
           </Typography>
@@ -35,7 +35,7 @@ export const WalletInfoCard = () => {
             data-testid={"disconnect-button"}
             variant="text"
             onClick={onClickDisconnect}
-            className="flex max-w-0.5 justify-end"
+            className="flex w-[1px] justify-end"
           >
             <img 
             src="/close.svg"

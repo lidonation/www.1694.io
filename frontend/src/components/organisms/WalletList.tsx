@@ -60,6 +60,7 @@ export function ChooseWalletModal() {
                             color="primary"
                             variant="body2"
                             className="text-blue-800 font-semibold text-center"
+                            data-testid='no-wallets-message'
                         >
                             No wallets to Connect
                         </Typography>

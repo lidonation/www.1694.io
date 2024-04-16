@@ -5,7 +5,7 @@ import { useDRepContext } from '@/context/drepContext'
 const WalletConnectButton = () => {
   const {setIsWalletListModalOpen}=useDRepContext()
   return (
-    <Button handleClick={()=>setIsWalletListModalOpen(true)}>
+    <Button handleClick={()=>setIsWalletListModalOpen(true)} data-testid='connect-wallet-button'>
      <p>Connect Wallet</p>
     </Button>
   )
