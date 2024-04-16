@@ -9,7 +9,7 @@ const DRepInfo = () => {
       bg-[url(/img/drepsBg.png)] bg-opacity-20 bg-cover bg-center mt-5 shadow-lg"
     >
       {/* Inner div for img background */}
-      <div className="containerSpacing drep_bg w-fullScale h-[100%] flex flex-col gap-10">
+      <div className="containerSpacing drep_bg w-fullScale h-fullScale flex flex-col gap-10">
         <div className="pl-14 pt-14 font-bold text-pale-white text-7xl">
           <p>Delegated Representatives</p>
           <p>(DReps)</p>

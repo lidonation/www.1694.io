@@ -32,6 +32,7 @@ module.exports = {
     },
     height: {
       socialButtons: "40px",
+      fullScale:"100%"
     },
   },
   plugins: [],
