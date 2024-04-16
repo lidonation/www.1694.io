@@ -26,7 +26,7 @@ const BecomeADrepCard = () => {
         </ul>
         <div>{!isEnabled && <WalletConnectButton />}</div>
       </div>
-      <div className="col-span-1 flex items-center justify-end mr-5">
+      <div className="col-span-1 flex items-center justify-end mr-8 md:mr-6 sm:mr-3">
         <img
           src="/img/becomeDrepImg.png"
           alt="Handholdingcardanocoin"

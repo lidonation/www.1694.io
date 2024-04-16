@@ -1,11 +1,10 @@
 import { createContext, useContext, useMemo, useState, useEffect } from "react";
-import { useRouter } from "next/router";
 
 interface DRepContext {
   isWalletListModalOpen: boolean;
-  activeTab: string;
+  currentLocale: string;
   setIsWalletListModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setActiveTab: React.Dispatch<React.SetStateAction<string>>;
+  setCurrentLocale: React.Dispatch<React.SetStateAction<string>>;
   toggleModal: () => void;
 }
 
@@ -18,7 +17,7 @@ DRepContext.displayName = "DRepContext";
 
 function DRepProvider(props: Props) {
   const [isWalletListModalOpen, setIsWalletListModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<string | null>('/dreps');
+  const [currentLocale, setCurrentLocale] = useState<string | null>(null);
   const toggleModal = () => {
     setIsWalletListModalOpen((prev) => !prev);
   };
@@ -26,12 +25,12 @@ function DRepProvider(props: Props) {
   const value = useMemo(
     () => ({
       isWalletListModalOpen,
-      activeTab,
+      currentLocale,
       setIsWalletListModalOpen,
-      setActiveTab,
+      setCurrentLocale,
       toggleModal,
     }),
-    [isWalletListModalOpen, activeTab]
+    [isWalletListModalOpen, currentLocale]
   );
 
   return <DRepContext.Provider value={value} {...props} />;
