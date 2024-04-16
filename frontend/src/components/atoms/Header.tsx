@@ -1,14 +1,16 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import { useCardano } from "@/context/walletContext";
 import WalletConnectButton from "@/components/molecules/WalletConnectButton";
 import { WalletInfoCard } from "@/components/molecules";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useDRepContext } from "@/context/drepContext";
 
 const Header = () => {
   const { isEnabled } = useCardano();
-  const { activeTab, setActiveTab } = useDRepContext();
+  const {currentLocale}=useDRepContext()
+  const pathname=usePathname()
   return (
     <div className="flex flex-row items-center justify-between bg-top-nav-bg-color">
       <div className="ml-20 p-3">
@@ -17,15 +19,13 @@ const Header = () => {
       <div className="flex m-5 items-center text-sm font-bold  text-nowrap gap-6 md:mr-20 lg:mr-25">
         <Link
           href="/dreps"
-          onClick={()=>setActiveTab('/dreps')}
-          className={activeTab === "/dreps" ? "text-active" : ""}
+          className={pathname === `/${currentLocale}/dreps` ? "text-active" : ""}
         >
           What are DReps
         </Link>
         <Link
           href="/dreps/list"
-          onClick={()=>setActiveTab('/dreps/list')}
-          className={activeTab === "/dreps/list" ? "text-active" : ""}
+          className={pathname === `/${currentLocale}/dreps/list` ? "text-active" : ""}
         >
           DRep List
         </Link>

@@ -5,12 +5,13 @@
 html {
     @apply font-poppins;
 }
+
 body {
-    @apply bg-gradient-to-b from-[#E9EFFF] to-[#FFFFFF] ;
+    @apply bg-gradient-to-b from-[#E9EFFF] to-[#FFFFFF];
 }
 
-body .container {
-    @apply px-5 mx-auto 2xl:px-10 3xl:max-w-screen-3xl ;
+.containerSpacing {
+    @apply px-5 mx-auto 2xl:px-10 3xl:max-w-screen-3xl;
 
 }
 
@@ -22,6 +23,7 @@ body .container {
 .table_container tbody td th {
     @apply pr-4;
 }
+
 /* Hover effect for the role part */
 .table_container tbody tr>td:first-child {
     @apply hover:text-[#5f5e5e];
@@ -29,6 +31,10 @@ body .container {
 
 .table_container tbody td {
     @apply pb-5;
+}
+
+.drep_white_gradient {
+    @apply bg-gradient-to-b from-[#E9EFFF] to-[#FFFFFF];
 }
 
 .drep_intro_radial_bg {
