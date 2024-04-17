@@ -11,7 +11,8 @@ import {
   RewardAddress,
   TransactionUnspentOutput,
   TransactionUnspentOutputs
- ,StakeCredential
+ ,StakeCredential,
+ Value
 } from "@emurgo/cardano-serialization-lib-asmjs";
 import { Buffer } from "buffer";
 import * as Sentry from "@sentry/react";
@@ -43,6 +44,7 @@ type TransactionHistoryItem = {
 
 interface CardanoContext {
   address?: string;
+  balance?: string;
   disconnectWallet: () => Promise<void>;
   enable: (walletName: string) => Promise<EnableResponse>;
   isEnableLoading: string | null;
@@ -122,6 +124,18 @@ function CardanoProvider(props: Props) {
       console.log(err);
     }
   };
+  const getBalance = async (enabledApi: CardanoApiWallet) => {
+    try {
+        const balanceCBORHex = await enabledApi.getBalance();
+
+        const balance = Value.from_bytes(Buffer.from(balanceCBORHex, "hex")).coin().to_str();
+        console.log(balance)
+        setWalletState((prev) => ({ ...prev, balance }));
+
+    } catch (err) {
+        console.log(err)
+    }
+}
 
   const getUsedAddresses = async (enabledApi: CardanoApiWallet) => {
     try {
@@ -245,6 +259,8 @@ function CardanoProvider(props: Props) {
           const network = await enabledApi.getNetworkId();
           console.log('net', network)
           setIsMainnet(network == 1);
+          //Check and set wallet balance
+          await getBalance(enabledApi)
           // Check and set wallet address
           const usedAddresses = await enabledApi.getUsedAddresses();
           const unusedAddresses = await enabledApi.getUnusedAddresses();

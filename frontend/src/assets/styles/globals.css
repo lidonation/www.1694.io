@@ -37,10 +37,34 @@ body {
     @apply bg-gradient-to-b from-[#E9EFFF] to-[#FFFFFF];
 }
 
-.drep_intro_radial_bg {
+.drep_radial_bg {
     background: radial-gradient(circle closest-side, #f10b314d 0%, #ffffff00 100%)
 }
 
 .drep_bg {
     background-image: linear-gradient(to bottom, rgba(0, 51, 173, 0.97), rgba(0, 41, 138, 0.97))
 }
+.toggle-tab {
+    position: relative;
+  }
+  
+  .toggle-tab::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: transparent;
+    transition: background-color 0.3s ease-in-out;
+  }
+  
+  .toggle-tab.active::after {
+    background-color: #007bff; 
+  }
+  
+  .toggle-tab.active {
+    background-color: #ffffff; 
+  }
+  
+  
