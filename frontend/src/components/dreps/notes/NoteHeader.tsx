@@ -4,7 +4,7 @@ import NoteHeaderInfo from "./NoteHeaderInfo";
 
 function NoteHeader() {
   return (
-    <div className="py-32 px-24 bg-pure-white flex flex-col gap-y-12">
+    <div className="py-24 px-24 bg-pure-white flex flex-col gap-y-12">
       <NoteHeaderTitle />
       <NoteHeaderInfo />
     </div>
