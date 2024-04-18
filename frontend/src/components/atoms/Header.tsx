@@ -30,7 +30,7 @@ const Header = () => {
           DRep List
         </Link>
         {/*<Link href="#">Become a DRep</Link>*/}
-        <Link href="#">Notes</Link>
+        <Link href="/dreps/notes">Notes</Link>
         <Link href="#">Ecosystem</Link>
         {/*<Link href="#" className="text-blue-800 font-bold">*/}
         {/*  Create profile*/}
