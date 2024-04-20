@@ -51,7 +51,7 @@ const NewNoteForm = () => {
       ) : (
         <NewNoteMediaForm />
       )}
-      <div className="text-[#c22727]">{error && error}</div>
+      <div className="text-[#c22727]" data-testid="error-msg">{error && error}</div>
     </form>
   );
 };

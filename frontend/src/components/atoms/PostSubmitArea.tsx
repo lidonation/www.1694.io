@@ -17,7 +17,7 @@ const PostSubmitArea = () => {
             Cancel
           </p>
         </Button>
-        <Button type="submit">
+        <Button type="submit" data-testid="post-submit-button">
           <p className="font-medium text-sm text-pure-white leading-4 text-center">
             Post in my notes
           </p>

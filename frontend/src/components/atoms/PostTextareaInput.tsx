@@ -81,7 +81,7 @@ const PostTextareaInput = ({ text, setText }) => {
         id="post-textarea"
         className="w-[80%] min-h-20 border-b border-r border-l border-input-border rounded-bl-xl rounded-br-xl flex items-center justify-center"
       >
-        <EditorContent editor={editor} className="w-fullScale min-h-20" />
+        <EditorContent editor={editor} className="w-fullScale min-h-20" data-testid="post-editor-input"/>
       </div>
     </div>
   );
