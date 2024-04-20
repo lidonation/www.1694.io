@@ -1,18 +1,18 @@
-import React from "react";
+import React, { useState } from "react";
 import PostInput from "../atoms/PostInput";
-import TextEditOptions from "./TextEditOptions";
 import PostSubmitArea from "../atoms/PostSubmitArea";
 import PostTextareaInput from "../atoms/PostTextareaInput";
 import PostVisiblityInput from "../atoms/PostVisiblityInput";
 
-const NewNotePostForm = () => {
+const NewNotePostForm = ({dataState, setdataState}) => {
+  
   return (
     <div>
-      <PostInput name={"Note Title"} placeholder={"Note Title"} />
-      <PostInput name={"Tags"} placeholder={"Note Tags"} />
-      <PostTextareaInput/>
-      <PostVisiblityInput/>
-      <PostSubmitArea/>
+      <PostInput name={"Note Title"} id={'postTitle'} placeholder={"Note Title"} value={dataState.postTitle} setValue={setdataState}/>
+      <PostInput name={"Tags"} id={'postTag'} placeholder={"Note Tags"} value={dataState.postTag} setValue={setdataState} />
+      <PostTextareaInput text={dataState.postText} setText={setdataState}/>
+      <PostVisiblityInput visibility={dataState.postVisibity} setVisibility={setdataState}/>
+      <PostSubmitArea />
     </div>
   );
 };

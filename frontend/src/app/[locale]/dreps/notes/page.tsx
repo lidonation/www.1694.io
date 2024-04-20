@@ -1,9 +1,11 @@
-import React from 'react'
+import NoteHeader from "@/components/dreps/notes/NoteHeader";
 
-const page = () => {
+function Notes() {
   return (
-    <div>Notes</div>
-  )
+    <div className="container">
+      <NoteHeader />
+    </div>
+  );
 }
 
-export default page
+export default Notes;

@@ -34,19 +34,9 @@ const Header = () => {
           DRep List
         </Link>
         {/*<Link href="#">Become a DRep</Link>*/}
-        <Link
-          href="/dreps/notes"
-          className={
+        <Link href="/dreps/notes" className={
             pathname === `/${currentLocale}/dreps/notes` ? "text-active" : ""
-          }
-        >
-          Notes
-        </Link>
-        <Link
-          href="/dreps/workflow/notes/new"
-        >
-          New note
-        </Link>
+          }>Notes</Link>
         <Link href="#">Ecosystem</Link>
         {/*<Link href="#" className="text-blue-800 font-bold">*/}
         {/*  Create profile*/}
