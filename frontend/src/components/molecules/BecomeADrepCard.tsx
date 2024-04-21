@@ -25,7 +25,7 @@ const BecomeADrepCard = () => {
                     <li>maybe this</li>
                     <li>and definitely this</li>
                 </ul>
-                <div>{!isEnabled && <WalletConnectButton/>}</div>
+                <div>{!isEnabled && <WalletConnectButton test_name={'within'}/>}</div>
             </div>
 
             <div className="col-span-1 flex items-center justify-end mr-8 md:mr-6 sm:mr-3">

@@ -42,7 +42,7 @@ const Header = () => {
                     {/*<Link href="#" className="text-blue-800 font-bold">*/}
                     {/*  Create profile*/}
                     {/*</Link>*/}
-                    <div>{!isEnabled ? <WalletConnectButton/> : <WalletInfoCard/>}</div>
+                    <div>{!isEnabled ? <WalletConnectButton test_name={'header'}/> : <WalletInfoCard/>}</div>
                     <div className="cursor-pointer">
                         <img src="/bell.svg" alt="Notifs"/>
                     </div>
