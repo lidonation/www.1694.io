@@ -10,8 +10,9 @@ body {
     @apply bg-gradient-to-b from-[#E9EFFF] to-[#FFFFFF];
 }
 
-.containerSpacing {
-    @apply px-5 mx-auto 2xl:px-10 3xl:max-w-screen-3xl;
+.container {
+    /*@apply px-5 mx-auto 2xl:px-10 3xl:max-w-screen-3xl;*/
+    @apply w-[1200px] mx-auto;
 
 }
 

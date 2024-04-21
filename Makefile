@@ -70,3 +70,8 @@ rm:
 .PHONY: logs
 logs:
 	docker-compose logs -f
+
+
+.PHONY: logs-frontend
+logs-frontend:
+	docker-compose logs -f frontend
