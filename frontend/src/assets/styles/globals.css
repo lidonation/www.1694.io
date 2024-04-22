@@ -83,7 +83,7 @@ body {
 }
 
 .tiptap {
-    @apply w-fullScale min-h-20 p-2;
+    @apply w-fullScale min-h-20 p-2 bg-pure-white;
     >*+* {
         margin-top: 0.75em;
     }
