@@ -16,7 +16,7 @@ import {
 } from "@emurgo/cardano-serialization-lib-asmjs";
 import { Buffer } from "buffer";
 import * as Sentry from "@sentry/react";
-
+import { useDRepContext } from "./drepContext";
 
 import { getPubDRepID,
   WALLET_LS_KEY,
@@ -87,6 +87,7 @@ function CardanoProvider(props: Props) {
   const [walletApi, setWalletApi] = useState<CardanoApiWallet | undefined>(
     undefined
   );
+  const {setIsWalletListModalOpen}=useDRepContext()
   const [isEnabling, setIsEnabling]=useState<boolean>(false)
   const [address, setAddress] = useState<string | undefined>(undefined);
   const [pubDRepKey, setPubDRepKey] = useState<string>("");
@@ -338,6 +339,7 @@ function CardanoProvider(props: Props) {
           setItemToLocalStorage(`${WALLET_LS_KEY}_name`, walletName);
 
           setIsEnabling(false)
+          setIsWalletListModalOpen(false)
           return { status: "ok", stakeKey: stakeKeySet };
         } catch (e) {
           Sentry.captureException(e);

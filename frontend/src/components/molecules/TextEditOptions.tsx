@@ -2,13 +2,13 @@ import { Editor } from "@tiptap/react";
 import React, { useState } from "react";
 type TextEditOptionsProps = {
   editor: Editor;
+  active:boolean
 };
 
-const TextEditOptions: React.FC<TextEditOptionsProps> = ({ editor }) => {
+const TextEditOptions: React.FC<TextEditOptionsProps> = ({ editor, active }) => {
   const handleFormatText = (format) => {
-    //bold,italic, strike, blockquote, code, bulletList, heading, codeBlock,orderedList
-    //insert:table,
-    // set: image
+    //active maps to isEnabled
+    if(!active) return
     switch (format) {
       case "table":
         if (editor.isActive("table")) {
@@ -43,7 +43,7 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({ editor }) => {
       className="w-[80%] bg-text-opt-bg flex items-center justify-start gap-3 p-2"
     >
       <div
-        className={`cursor-pointer ${
+        className={`${active?"cursor-pointer":"pointer-events-none"} ${
           editor.isActive("bold") ? "opacity-100" : "opacity-50"
         }`}
         onClick={() => handleFormatText("bold")}
@@ -51,7 +51,7 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({ editor }) => {
         <img src="/note/bold.svg" alt="Bold img" />
       </div>
       <div
-        className={`cursor-pointer ${
+        className={`${active?"cursor-pointer":"pointer-events-none"} ${
           editor.isActive("italic") ? "opacity-100" : "opacity-50"
         }`}
         onClick={() => handleFormatText("italic")}
@@ -59,7 +59,7 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({ editor }) => {
         <img src="/note/italic.svg" alt="Italic img" />
       </div>
       <div
-        className={`cursor-pointer ${
+        className={`${active?"cursor-pointer":"pointer-events-none"} ${
           editor.isActive("strike") ? "opacity-100" : "opacity-50"
         }`}
         onClick={() => handleFormatText("strike")}
@@ -67,7 +67,7 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({ editor }) => {
         <img src="/note/strikethrough.svg" alt="Strikethru" />
       </div>
       <div
-        className={`cursor-pointer ${
+        className={`${active?"cursor-pointer":"pointer-events-none"} ${
           editor.isActive("code") ? "opacity-100" : "opacity-50"
         }`}
         onClick={() => handleFormatText("code")}
@@ -75,7 +75,7 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({ editor }) => {
         <img src="/note/code.svg" alt="Code" />
       </div>
       <div
-        className={`cursor-pointer ${
+        className={`${active?"cursor-pointer":"pointer-events-none"} ${
           editor.isActive("superscript") ? "opacity-100" : "opacity-50"
         }`}
         onClick={() => handleFormatText("superscript")}
@@ -84,7 +84,7 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({ editor }) => {
       </div>
 
       <div
-        className={`cursor-pointer ${
+        className={`${active?"cursor-pointer":"pointer-events-none"} ${
           editor.isActive("highlight") ? "opacity-100" : "opacity-50"
         }`}
         onClick={() => handleFormatText("highlight")}
@@ -92,7 +92,7 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({ editor }) => {
         <img src="/note/highlight.svg" alt="Highlight" />
       </div>
       <div
-        className={`cursor-pointer ${
+        className={`${active?"cursor-pointer":"pointer-events-none"} ${
           editor.isActive("heading") ? "opacity-100" : "opacity-50"
         }`}
         onClick={() => handleFormatText("heading")}
@@ -100,7 +100,7 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({ editor }) => {
         <img src="/note/heading.svg" alt="Heading" />
       </div>
       <div
-        className={`cursor-pointer ${
+        className={`${active?"cursor-pointer":"pointer-events-none"} ${
           editor.isActive("bulletList") ? "opacity-100" : "opacity-50"
         }`}
         onClick={() => handleFormatText("bulletList")}
@@ -108,7 +108,7 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({ editor }) => {
         <img src="/note/list.svg" alt="List" />
       </div>
       <div
-        className={`cursor-pointer ${
+        className={`${active?"cursor-pointer":"pointer-events-none"} ${
           editor.isActive("orderedList") ? "opacity-100" : "opacity-50"
         }`}
         onClick={() => handleFormatText("orderedList")}
@@ -116,7 +116,7 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({ editor }) => {
         <img src="/note/list-numbers.svg" alt="Listnums" />
       </div>
       <div
-        className={`cursor-pointer ${
+        className={`${active?"cursor-pointer":"pointer-events-none"} ${
           editor.isActive("Blockquote") ? "opacity-100" : "opacity-50"
         }`}
         onClick={() => handleFormatText("blockquote")}
@@ -124,7 +124,7 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({ editor }) => {
         <img src="/note/quote.svg" alt="Quote" />
       </div>
       <div
-        className={`cursor-pointer ${
+        className={`${active?"cursor-pointer":"pointer-events-none"} ${
           editor.isActive("codeBlock") ? "opacity-100" : "opacity-50"
         }`}
         onClick={() => handleFormatText("codeBlock")}
@@ -132,13 +132,13 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({ editor }) => {
         <img src="/note/source-code.svg" alt="Srccode" />
       </div>
       <div
-        className={`cursor-pointer`}
+        className={`${active?"cursor-pointer":"pointer-events-none"}`}
         onClick={() => handleFormatText("table")}
       >
         <img src="/note/table.svg" alt="table" />
       </div>
       <div
-        className={`cursor-pointer ${
+        className={`${active?"cursor-pointer":"pointer-events-none"} ${
           editor.isActive("strike") ? "opacity-100" : "opacity-50"
         }`}
         onClick={() => handleFormatText("video")}

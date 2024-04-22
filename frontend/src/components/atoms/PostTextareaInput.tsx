@@ -82,7 +82,7 @@ const PostTextareaInput = ({ text, setText }) => {
   return (
     <div className="flex flex-col items-start justify-center">
       <label>Write your note</label>
-      {currentEditor && <TextEditOptions editor={currentEditor} />}
+      {currentEditor && <TextEditOptions editor={currentEditor} active={isEnabled} />}
       <div
         id="post-textarea"
         className="w-[80%] min-h-20 border-b border-r border-l border-input-border rounded-bl-xl rounded-br-xl flex items-center justify-center"

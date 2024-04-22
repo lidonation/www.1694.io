@@ -82,6 +82,10 @@ body {
     cursor: col-resize;
 }
 
+.blur-container {
+    backdrop-filter: blur(2px);
+  }
+  
 .tiptap {
     @apply w-fullScale min-h-20 p-2 bg-pure-white;
     >*+* {
