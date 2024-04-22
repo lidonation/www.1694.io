@@ -1,6 +1,8 @@
+import { useCardano } from '@/context/walletContext';
 import React, { useState } from 'react';
 
 const PostVisibilityInput = ({ visibility, setVisibility }) => {
+  const {isEnabled}=useCardano()
   const [selectedVisibility, setSelectedVisibility] = useState(visibility);
 
   const handleChange = (event) => {
@@ -11,7 +13,7 @@ const PostVisibilityInput = ({ visibility, setVisibility }) => {
   };
 
   return (
-    <div className="flex flex-col items-start justify-center mt-5">
+    <div className="flex flex-col items-start justify-center">
       <p>Set Visibility</p>
       <div className="flex flex-row items-center gap-3 ml-3">
         <input
@@ -19,6 +21,7 @@ const PostVisibilityInput = ({ visibility, setVisibility }) => {
           value="everyone"
           checked={selectedVisibility === 'everyone'}
           onChange={handleChange}
+          disabled={!isEnabled}
           name="visibility"
         />
         <label>Everyone</label>
@@ -27,6 +30,7 @@ const PostVisibilityInput = ({ visibility, setVisibility }) => {
           value="dreps"
           checked={selectedVisibility === 'dreps'}
           onChange={handleChange}
+          disabled={!isEnabled}
           name="visibility"
         />
         <label>DReps only</label>

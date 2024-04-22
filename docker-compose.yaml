@@ -9,7 +9,7 @@ services:
     restart: unless-stopped # Always restart unless explicitly stopped
     environment: # Environment variables for configuration
       HOST: 0.0.0.0
-      PORT: 8080
+      PORT: 8000
       DATABASE_HOST: web_db # Link to the database service by name
       DATABASE_NAME: 1694
       DATABASE_USERNAME: postgres
@@ -18,7 +18,7 @@ services:
     volumes: # Mount points for persistent data and source code
       - "./backend:/app"
     ports:
-      - "8080:8080" # Expose port 8080 to the host
+      - "8000:8000" # Expose port 8080 to the host
     networks:
       - io-1694 # Connect to the 'io-1694' network
     depends_on:
@@ -54,7 +54,7 @@ services:
         max-file: "10"
   web_db:
     container_name: voltaire_db # Name of the database container
-    platform: linux/arm64 # Specify the platform (important for ARM64 architectures)
+    platform: linux/amd64 # Specify the platform (important for ARM64 architectures)
     image: postgres:16.2-alpine # Use PostgreSQL 12 on Alpine for smaller size
     restart: unless-stopped
     ports:
@@ -74,15 +74,16 @@ services:
       dockerfile: Dockerfile.dev
     restart: unless-stopped
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:4000 # Environment variable for the API URL
+      NEXT_PUBLIC_API_URL: http://localhost:3000 # Environment variable for the API URL
     ports:
-      - "4000:3000" # Expose port 4000 to the host
+      - 3000:3000 # Expose port 3000 to the host
     networks:
       - io-1694
     volumes:
-      - "./frontend:/app"
-    depends_on:
-      - backend # Depends on the backend service
+      - ./frontend:/app
+    # depends_on:
+    #   - backend # Depends on the backend service
+
   cardano-node:
     image: ghcr.io/intersectmbo/cardano-node:8.10.0-pre
     command: [
@@ -105,6 +106,11 @@ services:
       options:
         max-size: "400k"
         max-file: "20"
+    healthcheck:
+      test: [ "CMD", "stat", "/ipc/node.socket" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
   cardano-db-sync:
     image: ghcr.io/intersectmbo/cardano-db-sync:sancho-4.1.0
     environment:
@@ -134,6 +140,28 @@ services:
       options:
         max-size: "200k"
         max-file: "10"
+  adminer: 
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+  cypress:
+    image: cypress/included:12.3.0
+    # the Docker image to use from https://github.com/cypress-io/cypress-docker-images
+    #  It is however recommended to use a specific image tag to avoid breaking changes when new images are released, especially when they include new major versions of Node.js or Cypress.
+    depends_on:
+      - frontend
+    environment:
+      # pass base url to test pointing at the web application
+      - CYPRESS_baseUrl=http://frontend:3000
+    working_dir: /e2e
+    networks:
+      - io-1694
+    command: ["npx", "cypress", "open",  "--browser", "chrome", "--config","video=false"]
+    restart: unless-stopped
+    # share the current folder as volume to avoid copying
+    volumes:
+      - ./frontend:/e2e
 volumes:
   db-data:
   db-sync-data:

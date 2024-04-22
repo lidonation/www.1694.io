@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { useEditor, EditorContent } from "@tiptap/react";
+import { useEditor, EditorContent, Editor } from "@tiptap/react";
 import TextEditOptions from "../molecules/TextEditOptions";
 import { Image } from "@tiptap/extension-image";
 import { BulletList } from "@tiptap/extension-bullet-list";
@@ -23,9 +23,13 @@ import TableHeader from "@tiptap/extension-table-header";
 import { Link } from "@tiptap/extension-link";
 import Blockquote from "@tiptap/extension-blockquote";
 import Superscript from "@tiptap/extension-superscript";
+import { useCardano } from "@/context/walletContext";
 const PostTextareaInput = ({ text, setText }) => {
-  const editor = useEditor({
-    extensions: [
+  const [currentEditor, setCurrentEditor] = useState<Editor>(null);
+  const { isEnabled } = useCardano();
+  
+  useEffect(() => {
+    const editor= new Editor({extensions:[
       Document,
       Paragraph,
       Text,
@@ -44,44 +48,50 @@ const PostTextareaInput = ({ text, setText }) => {
         openOnClick: true,
       }),
       Table.configure({
-        resizable:true,
+        resizable: true,
         HTMLAttributes: {
-         class:'border'
+          class: "border",
         },
       }),
       Image,
       BulletList,
       OrderedList,
       ListItem,
-      Heading
+      Heading,
     ],
-  });
-
+    editable: isEnabled,
+    injectCSS: false})
+    setCurrentEditor(editor);
+  }, [isEnabled]);
   const handleChange = (value) => {
-    const htmlContent = editor.getHTML();
-    const jsonContent = editor.getJSON();
+    const htmlContent = currentEditor.getHTML();
+    const jsonContent = currentEditor.getJSON();
     console.log(jsonContent);
     // Update the text state with the new value
     setText((prev) => ({ ...prev, postText: htmlContent }));
   };
   useEffect(() => {
-    if (editor) {
-      editor.on("update", handleChange);
+    if (currentEditor) {
+      currentEditor.on("update", handleChange);
       return () => {
-        editor.off("update", handleChange);
+        currentEditor.off("update", handleChange);
       };
     }
-  }, [editor]);
+  }, [currentEditor]);
 
   return (
-    <div className="flex flex-col items-start justify-center mt-5">
+    <div className="flex flex-col items-start justify-center">
       <label>Write your note</label>
-      {editor && <TextEditOptions editor={editor} />}
+      {currentEditor && <TextEditOptions editor={currentEditor} />}
       <div
         id="post-textarea"
         className="w-[80%] min-h-20 border-b border-r border-l border-input-border rounded-bl-xl rounded-br-xl flex items-center justify-center"
       >
-        <EditorContent editor={editor} className="w-fullScale min-h-20" data-testid="post-editor-input"/>
+        <EditorContent
+          editor={currentEditor}
+          className="w-fullScale min-h-20"
+          data-testid="post-editor-input"
+        />
       </div>
     </div>
   );

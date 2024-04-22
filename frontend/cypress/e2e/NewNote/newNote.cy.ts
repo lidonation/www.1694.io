@@ -1,7 +1,7 @@
 describe("Create new note if wallet is connected", () => {
   it("should create a new note and show a error if wallet aint connected after submitting", () => {
     // Load the page
-    cy.visit("localhost:3000/en/dreps/workflow/notes/new");
+    cy.visit("en/dreps/workflow/notes/new");
 
     cy.get("[data-testid=post-title-input]")
       .type("Sample Title")
