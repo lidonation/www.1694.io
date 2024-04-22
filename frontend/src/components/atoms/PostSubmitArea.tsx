@@ -3,7 +3,7 @@ import Button from "./Button";
 
 const PostSubmitArea = () => {
   return (
-    <div className="flex flex-row items-center justify-between w-[80%] mt-5">
+    <div className="flex flex-row items-center justify-between w-[80%]">
       <div className="flex items-center justify-center ml-5">
         <Button variant="text" bgColor="transparent">
           <p className="font-medium text-sm text-custom-blue leading-4 text-center">

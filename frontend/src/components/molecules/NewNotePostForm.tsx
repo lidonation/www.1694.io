@@ -7,7 +7,7 @@ import PostVisiblityInput from "../atoms/PostVisiblityInput";
 const NewNotePostForm = ({dataState, setdataState}) => {
   
   return (
-    <div>
+    <div className="flex flex-col gap-3 mt-3">
       <PostInput name={"Note Title"} id={'postTitle'} placeholder={"Note Title"} value={dataState.postTitle} setValue={setdataState} dataTestId={'post-title-input'}/>
       <PostInput name={"Tags"} id={'postTag'} placeholder={"Note Tags"} value={dataState.postTag} setValue={setdataState}  dataTestId={'post-tag-input'}/>
       <PostTextareaInput text={dataState.postText} setText={setdataState}/>

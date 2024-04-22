@@ -17,7 +17,8 @@ DRepContext.displayName = "DRepContext";
 
 function DRepProvider(props: Props) {
   const [isWalletListModalOpen, setIsWalletListModalOpen] = useState(false);
-  const [currentLocale, setCurrentLocale] = useState<string | null>(null);
+  //will fix later
+  const [currentLocale, setCurrentLocale] = useState<string | null>('en');
   const toggleModal = () => {
     setIsWalletListModalOpen((prev) => !prev);
   };
