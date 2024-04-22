@@ -26,38 +26,24 @@ const Header = () => {
         <div className="flex items-center text-sm font-bold text-nowrap gap-6">
           <Link
             href="/dreps"
-            className={
-              activeLink === `/${currentLocale}/dreps` ? "text-active" : ""
-            }
+            className={activeLink === `/${currentLocale}/dreps` ? "text-active" : ""}
           >
             What are DReps
           </Link>
           <Link
             href="/dreps/list"
-            className={
-              activeLink === `/${currentLocale}/dreps/list` ? "text-active" : ""
-            }
+            className={activeLink === `/${currentLocale}/dreps/list` ? "text-active" : ""}
           >
             DRep List
           </Link>
           <Link
             href="/dreps/notes"
-            className={
-              activeLink === `/${currentLocale}/dreps/notes`
-                ? "text-active"
-                : ""
-            }
+            className={activeLink === `/${currentLocale}/dreps/notes` ? "text-active" : ""}
           >
             Notes
           </Link>
           <Link href="#">Ecosystem</Link>
-          <div>
-            {!isEnabled ? (
-              <WalletConnectButton test_name={"header"} />
-            ) : (
-              <WalletInfoCard />
-            )}
-          </div>
+          <div>{!isEnabled ? <WalletConnectButton test_name={'header'} /> : <WalletInfoCard />}</div>
           <div className="cursor-pointer">
             <img src="/bell.svg" alt="Notifs" />
           </div>
