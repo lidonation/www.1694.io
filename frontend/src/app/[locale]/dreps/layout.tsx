@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import Footer from "@/components/atoms/Footer";
 import Header from "@/components/atoms/Header";
 import { ChooseWalletModal } from "@/components/organisms";
@@ -9,12 +9,17 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const {isWalletListModalOpen}=useDRepContext()
+  const { isWalletListModalOpen } = useDRepContext();
   return (
     <html lang="en">
       <body>
         <Header />
-        {isWalletListModalOpen && <ChooseWalletModal />}
+        {/* blur container wrapper */}
+        {isWalletListModalOpen && (
+          <div className="blur-container fixed w-fullScale h-fullScale z-50 flex items-center justify-center">
+            <ChooseWalletModal />
+          </div>
+        )}
         {children}
         <Footer />
       </body>

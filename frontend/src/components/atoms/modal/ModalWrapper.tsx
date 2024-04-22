@@ -1,7 +1,5 @@
 import React from "react";
 import { styled } from "@mui/material/styles";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTimes } from "@fortawesome/free-solid-svg-icons";
 import './Modal.css'
 
 interface Props {

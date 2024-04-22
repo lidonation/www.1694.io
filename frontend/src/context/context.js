@@ -22,9 +22,9 @@ export function AppContextProvider({ children }) {
   // Any child components will be able to access these values via the useAppContext hook.
   return (
     <AppContext.Provider value={{ testValue, testFunction }}>
-      <CardanoProvider>
-        <DRepProvider>{children}</DRepProvider>
-      </CardanoProvider>
+      <DRepProvider>
+        <CardanoProvider>{children}</CardanoProvider>
+      </DRepProvider>
     </AppContext.Provider>
   );
 }
