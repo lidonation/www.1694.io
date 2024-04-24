@@ -5,7 +5,7 @@ import { createDrepDto } from 'src/dto';
 @Controller('dreps')
 export class DrepController {
     constructor(private drepService:DrepService){}
-    @Get('all')
+    @Get('')
     getAll(){
         return this.drepService.getAllDreps()
     }

@@ -39,6 +39,8 @@ services:
     volumes:
       - dbsync-db-data:/var/lib/postgresql/data
     restart: on-failure
+    networks:
+      - io-1694 # Connect to the 'io-1694' network
     healthcheck:
       # Use pg_isready to check postgres is running. Substitute different
       # user `postgres` if you've setup differently to config/pgpass-mainnet
@@ -111,6 +113,8 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+    networks:
+      - io-1694 # Connect to the 'io-1694' network
   cardano-db-sync:
     image: ghcr.io/intersectmbo/cardano-db-sync:sancho-4.1.0
     environment:
@@ -135,6 +139,8 @@ services:
       - db-sync-data:/var/lib/cexplorer
       - node-ipc:/node-ipc
     restart: on-failure
+    networks:
+      - io-1694 # Connect to the 'io-1694' network
     logging:
       driver: "json-file"
       options:
@@ -145,6 +151,8 @@ services:
     restart: always
     ports:
       - 8080:8080
+    networks:
+      - io-1694 # Connect to the 'io-1694' network
   cypress:
     image: cypress/included:12.3.0
     # the Docker image to use from https://github.com/cypress-io/cypress-docker-images
