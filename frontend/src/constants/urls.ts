@@ -1,4 +1,4 @@
 export const urls={
     baseProdUrl:'',
-    baseLocalUrl:"http://localhost:1337"
+    baseServerUrl:"http://localhost:8000"
 }
