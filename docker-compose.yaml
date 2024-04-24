@@ -83,8 +83,8 @@ services:
       - io-1694
     volumes:
       - ./frontend:/app
-    # depends_on:
-    #   - backend # Depends on the backend service
+    depends_on:
+      - backend # Depends on the backend service
 
   cardano-node:
     image: ghcr.io/intersectmbo/cardano-node:8.10.0-pre

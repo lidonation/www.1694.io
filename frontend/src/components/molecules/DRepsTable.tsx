@@ -53,7 +53,7 @@ const DRepsTable = ({searchQuery}) => {
             </tr>
           ) : (
             filteredDreps.map((drep) => (
-              <tr key={drep.drep_hash_id} className="text-left text-sm text-nowrap">
+              <tr key={drep.drep_hash_id} data-testid={`drep-id-${drep.view}`} className="text-left text-sm text-nowrap">
                 <td className="px-4 py-2">{drep.view}</td>
                 <td className="px-4 py-2">{drep.epoch_no}</td>
                 <td className="px-4 py-2">Coming soon</td>
@@ -68,6 +68,7 @@ const DRepsTable = ({searchQuery}) => {
                 <td className="px-4 py-2">Representative for {drep.delegation_vote_count}</td>
                 <td className="px-4 py-2">
               <div className="flex space-x-2">
+                {/* Will be populated with links when comps are ready.Currently logs */}
                 <HoverChip icon="/link.svg" text="View Profile" handleClick={()=>console.log('going to drep', drep.view)} />
                 <HoverChip icon="/user-circle.svg" text="Link DRep" handleClick={()=>console.log('linked to drep', drep.view)}/>
                 <HoverChip icon="/medal.svg" text="Claim DRep Profile" handleClick={()=>console.log('claiming drep', drep.view)}/>
@@ -77,29 +78,6 @@ const DRepsTable = ({searchQuery}) => {
               </tr>
             ))
           )}
-          {/* <tr className="text-left text-nowrap text-sm">
-            <td className="px-4 py-2">877937979437979</td>
-            <td className="px-4 py-2">2 Epoch</td>
-            <td className="px-4 py-2">C. Miner</td>
-            <td className="px-4 py-2">
-              <StatusChip status="Not registered" />
-            </td>
-            <td className="px-4 py-2">
-              <StatusChip status="Active" />
-            </td>
-            <td className="px-4 py-2">₳ 123,020,987</td>
-            <td className="px-4 py-2">₳ 123,020,987</td>
-            <td className="px-4 py-2">Representative for 23</td>
-            
-            <td className="px-4 py-2">
-              <div className="flex space-x-2">
-                <HoverChip icon="/link.svg" text="View Profile" />
-                <HoverChip icon="/user-circle.svg" text="Link DRep" />
-                <HoverChip icon="/medal.svg" text="Claim DRep Profile" />
-              </div>
-            
-            </td>
-          </tr> */}
         </tbody>
       </table>
     </div>
@@ -107,20 +85,3 @@ const DRepsTable = ({searchQuery}) => {
 };
 
 export default DRepsTable;
-
-//   sample=<tr className='text-left text-nowrap'>
-//   <td className="px-4 py-2">877937979437979</td>
-//   <td className="px-4 py-2">2 Epoch</td>
-//   <td className="px-4 py-2">C. Miner</td>
-//   <td className="px-4 py-2"><StatusChip status='Not registered'/></td>
-//   <td className="px-4 py-2"><StatusChip status='Active'/></td>
-//   <td className="px-4 py-2">₳ 123,020,987</td>
-//   <td className="px-4 py-2">₳ 123,020,987</td>
-//   <td className="px-4 py-2">Representative for 23</td>
-//   <td className="pl-2 py-2">
-//     <img src="/link.svg" alt="Link icon" />
-//   </td>
-//   <td className="pr-2 py-2">
-//     <img src="/user-circle.svg" alt="User icon" />
-//   </td>
-// </tr>
