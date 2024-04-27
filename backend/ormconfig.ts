@@ -2,7 +2,7 @@ import { Attachment } from "src/entities/attachment.entity";
 import { AttachmentType } from "src/entities/attachmenttype.entity";
 import { Comment } from "src/entities/comment.entity";
 import { Delegator } from "src/entities/delegator.entity";
-import { Drep } from "src/entities/drep.entity";
+import { Drep  } from "src/entities/drep.entity";
 import { Note } from "src/entities/note.entity";
 import { Reaction } from "src/entities/reaction.entity";
 import { PostgresConnectionOptions } from "typeorm/driver/postgres/PostgresConnectionOptions";

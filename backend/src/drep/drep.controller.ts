@@ -5,9 +5,17 @@ import { createDrepDto } from 'src/dto';
 @Controller('dreps')
 export class DrepController {
     constructor(private drepService:DrepService){}
-    @Get('')
+    @Get('/cex')
     getAll(){
         return this.drepService.getAllDreps()
+    }
+    @Get('/vol')
+    getAllVol(){
+        return this.drepService.getAllDRepsVoltaire()
+    }
+    @Get('/migrate/vol')
+    migrateVol(){
+        return this.drepService.populateFakeDRepData()
     }
     @Get(':id/drep')
     getSingle(@Param('id') drepId:number){

@@ -1,11 +1,13 @@
 import { Editor } from "@tiptap/react";
 import React, { useState } from "react";
+import MultipartDataForm from "./MultipartDataForm";
 type TextEditOptionsProps = {
   editor: Editor;
   active:boolean
 };
 
 const TextEditOptions: React.FC<TextEditOptionsProps> = ({ editor, active }) => {
+  const [showOverlay, setShowOverlay]=useState(false)
   const handleFormatText = (format) => {
     //active maps to isEnabled
     if(!active) return
@@ -25,9 +27,10 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({ editor, active }) => 
         editor.chain().focus().toggleHeading({ level: 1}).run();
         break;
       case "video":
-        const previousUrl = editor.getAttributes("link").href;
-        const url = window.prompt("URL", previousUrl);
-        editor.chain().focus().toggleLink({ href: url }).run();
+        setShowOverlay(prev=>!prev)
+        // const previousUrl = editor.getAttributes("link").href;
+        // const url = window.prompt("URL", previousUrl);
+        // editor.chain().focus().toggleLink({ href: url }).run();
         break;
       default:
         editor.commands[
@@ -40,7 +43,7 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({ editor, active }) => 
   return (
     <div
       id="toolbar-container"
-      className="w-[80%] bg-text-opt-bg flex items-center justify-start gap-3 p-2"
+      className="w-[80%] bg-text-opt-bg flex items-center justify-start gap-3 px-2 h-9"
     >
       <div
         className={`${active?"cursor-pointer":"pointer-events-none"} ${
@@ -138,13 +141,20 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({ editor, active }) => 
         <img src="/note/table.svg" alt="table" />
       </div>
       <div
-        className={`${active?"cursor-pointer":"pointer-events-none"} ${
-          editor.isActive("strike") ? "opacity-100" : "opacity-50"
-        }`}
-        onClick={() => handleFormatText("video")}
+        className={`flex flex-row items-center justify-center gap-1 text-zinc-800 bg-violet-50 h-full text-nowrap px-2 rounded-lg ${active?"cursor-pointer":"pointer-events-none"}`}
+        onClick={() => handleFormatText("image")}
       >
-        <img src="/note/video.svg" alt="Video" />
+        <img src="/note/photo.svg" alt="Image" />
+        <p>Add File</p>
       </div>
+      <div
+        className={`flex flex-row items-center justify-center gap-1 text-zinc-800 bg-violet-50 h-full text-nowrap px-2 rounded-lg ${active?"cursor-pointer":"pointer-events-none"} `}
+        onClick={() => handleFormatText("link")}
+      >
+        <img src="/note/link.svg" alt="Link" />
+        <p>Add Link</p>
+      </div>
+      {showOverlay && <MultipartDataForm/>}
     </div>
   );
 };

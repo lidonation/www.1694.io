@@ -6,10 +6,12 @@ import {
   OneToMany,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToMany,
 } from "typeorm";
 import { Drep } from "./drep.entity";
 import { Attachment } from "./attachment.entity";
 import { Comment } from "./comment.entity";
+import { Reaction } from "./reaction.entity";
 
 @Entity()
 export class Note {
@@ -18,25 +20,28 @@ export class Note {
   id: number;
 
   @Column({ unique: true, nullable: false })
-  title: string;
+  note_title: string;
 
   @Column({})
-  tag: string;
+  note_tag: string;
 
   @Column({ nullable: false })
-  text: string;
+  note_content: string;
 
-  @ManyToOne(() => Drep, (drep) => drep.notes)
-  drep: Drep;
+  @ManyToOne(() => Drep, (drep) => drep.voter_id)
+  voter: Drep;
 
   @OneToMany(() => Comment, (comment) => comment.note)
   comments: Comment[];
 
-//   @OneToMany()
-//   reactions: string;
+  @ManyToMany(() => Reaction, (reaction) => reaction.note)
+  reactions: string;
 
-  @OneToMany(() => Attachment, (attachment) => attachment.notes)
+  @ManyToMany(() => Attachment, (attachment) => attachment.notes)
   attachments: Attachment[];
+
+  @Column()
+  note_visibility:string
 
   @CreateDateColumn()
   createdAt: Date;
