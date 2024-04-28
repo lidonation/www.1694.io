@@ -27,7 +27,7 @@ import { Controller } from "react-hook-form";
 import TextEditOptions from "../molecules/TextEditOptions";
 
 const EditorArticle = ({ editor,isEnabled, description, onChange}:{editor:Editor, isEnabled:boolean, description:string, onChange:any }) => {
-  description && editor.commands.setContent(description)
+  description && editor.commands.setContent(description, false, {preserveWhitespace:'full'})
   editor && editor.on("update", () => {onChange(editor.getHTML())});
   return (
     editor && (
@@ -38,7 +38,7 @@ const EditorArticle = ({ editor,isEnabled, description, onChange}:{editor:Editor
           id="post-textarea"
           className="w-[80%] min-h-40 border-b border-r border-l border-input-border rounded-bl-xl rounded-br-xl flex items-center justify-center"
         >
-          <EditorContent editor={editor} content={description} className="w-fullScale min-h-40" />
+          <EditorContent editor={editor} content={description} className="w-fullScale min-h-40" data-testid="post-editor-input"/>
         </div>
       </div>
     )
@@ -81,7 +81,10 @@ const PostTextareaInput = ({ control , errors}) => {
           ListItem,
           Heading,
         ],
-        editable: isEnabled
+        editable: isEnabled,
+        parseOptions:{
+          preserveWhitespace:"full"
+        }
       })
       setEditor(newEditor);
   }, [isEnabled]);
