@@ -2,18 +2,18 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { createNoteDto } from "src/dto";
 import { DataSource, Repository } from "typeorm";
-import { ConnectionService } from "src/connection/conn.service";
+import { ConnectionService } from "src/connection/connection.service";
 import { Note } from "src/entities/note.entity";
 
 @Injectable()
 export class NoteService {
   constructor(
     @InjectRepository(Note) private noteRepo: Repository<Note>,
-    private connService: ConnectionService
+    private connectionService: ConnectionService
   ) {}
 
   async initializeQueryRunner() {
-    const queryInstance = await this.connService.addVoltaireConnection();
+    const queryInstance = await this.connectionService.addVoltaireConnection();
     return queryInstance;
   }
   async getAllNotes() {

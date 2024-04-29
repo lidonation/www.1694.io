@@ -7,6 +7,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToMany,
+  DeleteDateColumn,
 } from "typeorm";
 import { Drep } from "./drep.entity";
 import { Attachment } from "./attachment.entity";
@@ -48,4 +49,7 @@ export class Note {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @DeleteDateColumn({nullable:true})
+  deletedAt: Date; 
 }

@@ -4,23 +4,17 @@ import { createDrepDto } from "src/dto";
 import { DataSource, Repository } from "typeorm";
 import { faker } from "@faker-js/faker";
 import { Drep } from "src/entities/drep.entity";
-import { ConnectionService } from "src/connection/conn.service";
+import { ConnectionService } from "src/connection/connection.service";
 
 @Injectable()
 export class DrepService {
   constructor(
     @InjectRepository(Drep) private userRepo: Repository<Drep>,
-    private connection: DataSource,
-    private connService: ConnectionService
+    private connectionService: ConnectionService
   ) {}
-  async initializequeryRunner() {
-    const queryRunner = this.connection.createQueryRunner();
-    return queryRunner;
-  }
   //get from cexplorer db
-  async getAllDreps() {
-    const queryInstance = await this.initializequeryRunner();
-    await queryInstance.connect();
+  async getAllDrepsCexplorer() {
+    const queryInstance=await this.connectionService.addCexplorerConnection()
     const drepList = await queryInstance.manager.query(
       `WITH RankedRows AS (
           SELECT 
@@ -44,7 +38,7 @@ export class DrepService {
               va.url, 
               va.data_hash, 
               va.type,
-              sa.view AS stake_address, -- Added stake_address field
+              sa.view AS stake_address,
               (
                   SELECT COUNT(*)
                   FROM delegation_vote
@@ -62,13 +56,13 @@ export class DrepService {
           LEFT JOIN 
               delegation_vote AS dv ON dh.id = dv.drep_hash_id 
           LEFT JOIN
-              stake_address AS sa ON dv.addr_id = sa.id -- Join to stake_addresses table
+              stake_address AS sa ON dv.addr_id = sa.id 
       )
       SELECT 
           drep_hash_id,
           view,
           delegation_vote_count,
-          stake_address, -- Included stake_address
+          stake_address,
           amount,
           epoch_no,
           active_until,
@@ -80,13 +74,11 @@ export class DrepService {
       WHERE 
           RowNum = 1`
     );
-
-    //Map across the response to convert deposit and amount from lovelace to ADA
     const drepListInADA = drepList.map((entry) => {
       return {
         ...entry,
-        deposit: (entry.deposit / 1000000).toFixed(1), // Convert deposit from lovelace to ADA
-        amount: (entry.amount / 1000000).toFixed(1), // Convert amount from lovelace to ADA
+        deposit: (entry.deposit / 1000000).toFixed(1), 
+        amount: (entry.amount / 1000000).toFixed(1), 
       };
     });
 
@@ -100,12 +92,12 @@ export class DrepService {
     return drepList;
   }
   async getAllDRepsVoltaire() {
-    const connVol=await this.connService.addVoltaireConnection()
-    return await connVol.getRepository('Drep').find()
+    const queryInstance=await this.connectionService.addVoltaireConnection()
+    return await queryInstance.getRepository('Drep').find()
   }
   async populateFakeDRepData() {
-    const dreps = await this.getAllDreps();
-
+    const dreps = await this.getAllDrepsCexplorer();
+    //seeding`
     const modified = dreps.map((drep) => {
       return {
         ...drep,
@@ -115,8 +107,8 @@ export class DrepService {
         voter_id: drep.view,
       };
     });
-    const connVol=await this.connService.addVoltaireConnection()
-    await connVol.getRepository('Drep').insert(modified)
+    const queryInstance=await this.connectionService.addVoltaireConnection()
+    await queryInstance.getRepository('Drep').insert(modified)
     return modified;
   }
   async registerDrep(drepDto: createDrepDto) {
@@ -128,13 +120,9 @@ export class DrepService {
     if (!foundDrep) {
       throw new NotFoundException("Drep to be updated not found!");
     }
-    // Iterate through the properties of the drep object
     Object.keys(drep).forEach((key) => {
-      // Update the corresponding field in foundDrep with the value from drep
       foundDrep[key] = drep[key];
     });
-
-    // Save the updated foundDrep object
     return await this.userRepo.save(foundDrep);
   }
 }

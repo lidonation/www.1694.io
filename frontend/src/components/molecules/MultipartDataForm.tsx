@@ -50,7 +50,8 @@ const MultipartDataForm = () => {
         "application/pdf",
         "image/webp",
         "image/jpeg",
-        "image/jpg",
+        "image/svg",
+        "image/jpg"
       ];
 
       if (file && allowedTypes.includes(file.type)) {

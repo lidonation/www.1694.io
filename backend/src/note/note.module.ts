@@ -3,7 +3,7 @@ import { NoteController } from './note.controller';
 import { NoteService } from './note.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Note } from 'src/entities/note.entity';
-import { ConnectionService } from 'src/connection/conn.service';
+import { ConnectionService } from 'src/connection/connection.service';
 
 @Module({
   imports:[TypeOrmModule.forFeature([Note])],

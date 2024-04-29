@@ -7,7 +7,8 @@ enum AttachmentTypeName {
   JPG = "jpg",
   PNG = "png",
   WEBP = "webp",
-  GIF = "gif"
+  GIF = "gif",
+  SVG = "svg"
 }
 
 @Entity()
