@@ -1,17 +1,8 @@
-import { useCardano } from '@/context/walletContext';
-import React, { useState } from 'react';
+import { useCardano } from "@/context/walletContext";
+import React, { useState } from "react";
 
-const PostVisibilityInput = ({ visibility, setVisibility }) => {
-  const {isEnabled}=useCardano()
-  const [selectedVisibility, setSelectedVisibility] = useState(visibility);
-
-  const handleChange = (event) => {
-    // Update the selected visibility state when a radio button is clicked
-    setSelectedVisibility(event.target.value);
-    // Update the parent component's visibility state with the selected value
-    setVisibility((prev) => ({ ...prev, postVisibility: event.target.value }));
-  };
-
+const PostVisibilityInput = ({ registerVisibility, errors }) => {
+  const { isEnabled } = useCardano();
   return (
     <div className="flex flex-col items-start justify-center">
       <p>Set Visibility</p>
@@ -19,21 +10,30 @@ const PostVisibilityInput = ({ visibility, setVisibility }) => {
         <input
           type="radio"
           value="everyone"
-          checked={selectedVisibility === 'everyone'}
-          onChange={handleChange}
           disabled={!isEnabled}
-          name="visibility"
+          {...registerVisibility("postVisibility")}
+          name="postVisibility"
         />
         <label>Everyone</label>
         <input
           type="radio"
-          value="dreps"
-          checked={selectedVisibility === 'dreps'}
-          onChange={handleChange}
+          value="delegators"
+          {...registerVisibility("postVisibility")}
           disabled={!isEnabled}
-          name="visibility"
+          name="postVisibility"
         />
-        <label>DReps only</label>
+        <label>Delegators only</label>
+        <input
+          type="radio"
+          value="myself"
+          {...registerVisibility("postVisibility")}
+          disabled={!isEnabled}
+          name="postVisibility"
+        />
+        <label>Myself</label>
+      </div>
+      <div className="text-red-700 text-sm" data-testid="error-msg">
+        {errors?.postVisibility && errors?.postVisibility?.message}
       </div>
     </div>
   );

@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import NewNotePostForm from "../molecules/NewNotePostForm";
 import { useCardano } from "@/context/walletContext";
 import { useDRepContext } from "@/context/drepContext";
 import { Address } from "@emurgo/cardano-serialization-lib-asmjs";
@@ -7,7 +6,9 @@ import { z } from "zod";
 import {zodResolver} from '@hookform/resolvers/zod'
 import { SubmitHandler, useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
-import { usePostNewNoteMutation } from "@/hooks/usePostNewNoteMutation";
+import UpdateNotePostForm from "../molecules/UpdateNotePostForm";
+import { usePostUpdateNoteMutation } from "@/hooks/usePostUpdateNoteMutation";
+
 const FormSchema = z.object({
   postTitle: z
     .string()
@@ -22,16 +23,23 @@ const FormSchema = z.object({
 });
 type InputType = z.infer<typeof FormSchema>;
 
-const NewNoteForm = () => {
-  const { register, handleSubmit, reset, control, formState:{errors} } = useForm<InputType>({
+const UpdateNoteForm = ({noteId,initialValues}) => {
+  const {setValue, register, handleSubmit, control, formState:{errors} } = useForm<InputType>({
     resolver:zodResolver(FormSchema)
   });
+  const mutation = usePostUpdateNoteMutation(); 
   const { isEnabled, dRepIDBech32, stakeKey } = useCardano();
   const router=useRouter()
-  const mutation=usePostNewNoteMutation()
   const {setIsNotDRepErrorModalOpen}=useDRepContext()
-  const [redirecting, setRedirecting] = useState(false);
-  const saveNote: SubmitHandler<InputType> =async(data) => {
+  useEffect(()=>{
+    if(initialValues){
+      setValue("postTitle", initialValues?.note_title)
+      setValue("postTag", initialValues?.note_tag)
+      setValue("postText", initialValues?.note_content)
+      setValue("postVisibility", initialValues?.note_visibility)
+    }
+  },[initialValues])
+  const updateNote: SubmitHandler<InputType> =async(data) => {
     try {
       console.log('submitting...')
       if (!dRepIDBech32 || dRepIDBech32 == "") {
@@ -42,10 +50,12 @@ const NewNoteForm = () => {
         Buffer.from(stakeKey, "hex")
       ).to_bech32();
       const {postTag, postText, postTitle, postVisibility}=data
-      const newNote={note_title:postTitle,note_tag:postTag,note_content:postText, note_visibility:postVisibility,  stake_addr:stakeAddress, voter:dRepIDBech32}
-      const {noteAdded}=await mutation.mutateAsync({note:newNote})
-      setRedirecting(true)
-      router.push(`/dreps/workflow/notes/${noteAdded}/update`)
+      const updatedNote={ note_title: postTitle, note_tag: postTag,note_content: postText,
+        note_visibility: postVisibility,
+        stake_addr: stakeAddress,
+        voter: dRepIDBech32}
+      const res = mutation.mutateAsync({noteId:noteId, note:updatedNote})
+      console.log(res)
     } catch (error) {
       console.log(error)
     }    
@@ -56,16 +66,16 @@ const NewNoteForm = () => {
   return (
     <form
       className="bg-note-form-bg shadow-lg mt-4 p-5 rounded-3xl mb-48"
-      onSubmit={handleSubmit(saveNote, onError)}
+      onSubmit={handleSubmit(updateNote, onError)}
     >
-      <NewNotePostForm
+      <UpdateNotePostForm
         register={register}
         control={control}
         errors={errors}
       />
-      {redirecting && <div className="text-green-500">Redirecting....</div>}
     </form>
   );
 };
 
-export default NewNoteForm;
+export default UpdateNoteForm;
+

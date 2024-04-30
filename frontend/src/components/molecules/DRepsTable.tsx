@@ -1,4 +1,3 @@
-"use client";
 import React from "react";
 import StatusChip from "../atoms/StatusChip";
 import { useGetDRepsQuery } from "@/hooks/useGetDRepsQuery";
@@ -51,9 +50,13 @@ const DRepsTable = ({searchQuery}) => {
             <tr >
               <td colSpan={10} className="text-center">Loading.....</td>
             </tr>
-          ) : (
+          ) : filteredDreps && filteredDreps.length > 0 ? (
             filteredDreps.map((drep) => (
-              <tr key={drep.drep_hash_id} data-testid={`drep-id-${drep.view}`} className="text-left text-sm text-nowrap">
+              <tr
+                key={drep.drep_hash_id}
+                data-testid={`drep-id-${drep.view}`}
+                className="text-left text-sm text-nowrap"
+              >
                 <td className="px-4 py-2">{drep.view}</td>
                 <td className="px-4 py-2">{drep.epoch_no}</td>
                 <td className="px-4 py-2">Coming soon</td>
@@ -61,22 +64,41 @@ const DRepsTable = ({searchQuery}) => {
                   <StatusChip status={statusChecker(drep.deposit)} />
                 </td>
                 <td className="px-4 py-2">
-                  <StatusChip status={isActive(drep.epoch_no, drep.active_until)?"Active":"Inactive"} />
+                  <StatusChip
+                    status={isActive(drep.epoch_no, drep.active_until) ? "Active" : "Inactive"}
+                  />
                 </td>
                 <td className="px-4 py-2">₳ {drep.amount}</td>
                 <td className="px-4 py-2">₳ {drep.amount}</td>
                 <td className="px-4 py-2">Representative for {drep.delegation_vote_count}</td>
                 <td className="px-4 py-2">
-              <div className="flex space-x-2">
-                {/* Will be populated with links when comps are ready.Currently logs */}
-                <HoverChip icon="/link.svg" text="View Profile" handleClick={()=>console.log('going to drep', drep.view)} />
-                <HoverChip icon="/user-circle.svg" text="Link DRep" handleClick={()=>console.log('linked to drep', drep.view)}/>
-                <HoverChip icon="/medal.svg" text="Claim DRep Profile" handleClick={()=>console.log('claiming drep', drep.view)}/>
-              </div>
-            
-            </td>
+                  <div className="flex space-x-2">
+                    {/* Will be populated with links when comps are ready.Currently logs */}
+                    <HoverChip
+                      icon="/link.svg"
+                      text="View Profile"
+                      handleClick={() => console.log("going to drep", drep.view)}
+                    />
+                    <HoverChip
+                      icon="/user-circle.svg"
+                      text="Link DRep"
+                      handleClick={() => console.log("linked to drep", drep.view)}
+                    />
+                    <HoverChip
+                      icon="/medal.svg"
+                      text="Claim DRep Profile"
+                      handleClick={() => console.log("claiming drep", drep.view)}
+                    />
+                  </div>
+                </td>
               </tr>
             ))
+          ) : (
+            <tr>
+              <td colSpan={10} className="text-center">
+                No Dreps to show for now
+              </td>
+            </tr>
           )}
         </tbody>
       </table>

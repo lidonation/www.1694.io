@@ -3,9 +3,8 @@ import PostInput from "../atoms/PostInput";
 import PostSubmitArea from "../atoms/PostSubmitArea";
 import PostTextareaInput from "../atoms/PostTextareaInput";
 import PostVisiblityInput from "../atoms/PostVisiblityInput";
-import PostTagInput from "../atoms/PostInput";
 
-const NewNotePostForm = ({register, control, errors}) => {
+const UpdateNotePostForm = ({register, control, errors}) => {
   
   return (
     <div className="flex flex-col gap-3 mt-3">
@@ -18,4 +17,4 @@ const NewNotePostForm = ({register, control, errors}) => {
   );
 };
 
-export default NewNotePostForm;
+export default UpdateNotePostForm;

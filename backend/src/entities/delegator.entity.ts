@@ -5,9 +5,11 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  ManyToMany,
 } from "typeorm";
 import { Comment } from "./comment.entity";
 import { Reaction } from "./reaction.entity";
+import { Note } from "./note.entity";
 
 @Entity()
 export class Delegator{
@@ -23,7 +25,7 @@ export class Delegator{
   wallet_addr:string 
   //a delegator can have many comments
   @OneToMany(()=>Comment, comment=>comment.delegator)
-  comments: Comment[];
+  comments: Comment[]
   //a delegator can have many rxns but of different types
   @OneToMany(()=>Reaction, reaction=>reaction.delegator)
   reactions: Reaction[];

@@ -2,6 +2,7 @@
 import Footer from "@/components/atoms/Footer";
 import Header from "@/components/atoms/Header";
 import { ChooseWalletModal } from "@/components/organisms";
+import { NotDRepErrorModal } from "@/components/organisms/NotDRepErrorModal";
 import { useDRepContext } from "@/context/drepContext";
 
 export default function RootLayout({
@@ -9,7 +10,7 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { isWalletListModalOpen } = useDRepContext();
+  const { isWalletListModalOpen, isNotDRepErrorModalOpen } = useDRepContext();
   return (
     <html lang="en">
       <body>
@@ -18,6 +19,11 @@ export default function RootLayout({
         {isWalletListModalOpen && (
           <div className="blur-container fixed w-fullScale h-fullScale z-50 flex items-center justify-center">
             <ChooseWalletModal />
+          </div>
+        )}
+        {isNotDRepErrorModalOpen && (
+          <div className="blur-container fixed w-fullScale h-fullScale z-50 flex items-center justify-center">
+            <NotDRepErrorModal/>
           </div>
         )}
         {children}
