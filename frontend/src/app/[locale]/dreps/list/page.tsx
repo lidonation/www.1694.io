@@ -16,7 +16,7 @@ const page = () => {
               <SearchBar searchText={searchText} setSearchText={setSearchText}/>
             </section>
 
-            <section className="p-5 bg-pure-white rounded-md shadow">
+            <section className="p-5 bg-white rounded-md shadow">
                 <DRepsTable searchQuery={searchText}/>
             </section>
         </div>

@@ -18,7 +18,7 @@ const Header = () => {
   }, [pathname]);
 
   return (
-    <header className="bg-top-nav-bg-color">
+    <header className="bg-white">
       <div className="container flex flex-row py-6 items-center justify-between">
         <div className="">
           <img src="/sancho-black.svg" alt="Sancho logo" />
@@ -26,19 +26,19 @@ const Header = () => {
         <div className="flex items-center text-sm font-bold text-nowrap gap-6">
           <Link
             href="/dreps"
-            className={activeLink === `/${currentLocale}/dreps` ? "text-active" : ""}
+            className={activeLink === `/${currentLocale}/dreps` ? "text-orange-500" : ""}
           >
             What are DReps
           </Link>
           <Link
             href="/dreps/list"
-            className={activeLink === `/${currentLocale}/dreps/list` ? "text-active" : ""}
+            className={activeLink === `/${currentLocale}/dreps/list` ? "text-orange-500" : ""}
           >
             DRep List
           </Link>
           <Link
             href="/dreps/notes"
-            className={activeLink === `/${currentLocale}/dreps/notes` ? "text-active" : ""}
+            className={activeLink === `/${currentLocale}/dreps/notes` ? "text-orange-500" : ""}
           >
             Notes
           </Link>

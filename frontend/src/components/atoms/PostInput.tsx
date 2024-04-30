@@ -10,9 +10,9 @@ const PostInput = ({ inputName, id, placeholder,registerValue,errors, dataTestId
       <label>{inputName}</label>
       <input
         type="text"
-        className={`w-halfScale pl-5 pr-3 py-3 border ${
+        className={`w-1/2 pl-5 pr-3 py-3 border ${
           !isEnabled && "pointer-events-none"
-        }  border-input-border rounded-full`}
+        }  border-zinc-100 rounded-full`}
         data-testid={dataTestId}
         {...registerValue(id)}
         placeholder={placeholder}

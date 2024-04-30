@@ -11,7 +11,7 @@ const ViewDraftsButton = () => {
       width={'139px'}
       size="extraLarge"
     >
-      <p className="font-medium text-sm text-custom-blue leading-4 text-center">View Drafts</p>
+      <p className="font-medium text-sm text-blue-800 leading-4 text-center">View Drafts</p>
     </Button>
   );
 };

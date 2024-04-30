@@ -17,12 +17,12 @@ export default function RootLayout({
         <Header />
         {/* blur container wrapper */}
         {isWalletListModalOpen && (
-          <div className="blur-container fixed w-fullScale h-fullScale z-50 flex items-center justify-center">
+          <div className="blur-container fixed w-full h-full z-50 flex items-center justify-center">
             <ChooseWalletModal />
           </div>
         )}
         {isNotDRepErrorModalOpen && (
-          <div className="blur-container fixed w-fullScale h-fullScale z-50 flex items-center justify-center">
+          <div className="blur-container fixed w-full h-full z-50 flex items-center justify-center">
             <NotDRepErrorModal/>
           </div>
         )}

@@ -12,7 +12,7 @@ const PostSubmitArea = () => {
           bgColor="transparent"
           sx={!isEnabled ? { pointerEvents: "none" } : {}}
         >
-          <p className="font-medium text-sm text-custom-blue leading-4 text-center">
+          <p className="font-medium text-sm text-blue-800 leading-4 text-center">
             Save Draft
           </p>
         </Button>
@@ -20,12 +20,12 @@ const PostSubmitArea = () => {
       <div className="flex flex-row gap-2 items-center">
         <Button variant="outlined" bgColor="transparent"
         sx={!isEnabled ? { pointerEvents: "none" } : {}}>
-          <p className="font-medium text-sm text-custom-blue leading-4 text-center">
+          <p className="font-medium text-sm text-blue-800 leading-4 text-center">
             Cancel
           </p>
         </Button>
         <Button type="submit" data-testid="post-submit-button" sx={!isEnabled ? { pointerEvents: "none" } : {}}>
-          <p className="font-medium text-sm text-pure-white leading-4 text-center">
+          <p className="font-medium text-sm text-white leading-4 text-center">
             Post in my notes
           </p>
         </Button>

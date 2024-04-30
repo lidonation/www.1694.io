@@ -58,7 +58,7 @@ export const WalletOptionButton: FC<WalletOption> = ({ ...props }) => {
         className={`max-h-6 max-w-6 ${isEnableLoading && "filter grayscale"}`}
       />
       <Typography
-      className={`text-blue-800 text-lg font-medium ${isEnableLoading && "text-wall-info-txt-color"}`}      >
+      className={`text-blue-800 text-lg font-medium ${isEnableLoading && "text-gray-300"}`}      >
         {name ?? label}
       </Typography>
       <div className="max-h-6 max-w-6"/>

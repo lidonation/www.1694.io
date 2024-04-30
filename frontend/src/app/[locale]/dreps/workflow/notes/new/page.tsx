@@ -20,8 +20,8 @@ const page = () => {
   }, []);
   return (
     <div className="flex items-center justify-center drep_radial_bg">
-      <div className="container h-fullScale ">
-        <div className="w-fullScale bg-pure-white p-10">
+      <div className="container h-full ">
+        <div className="w-full bg-white p-10">
           <div className="flex flex-row items-center justify-between">
             <h2 className="grow shrink basis-0 text-4xl font-bold leading-10 w-[85%]">
               New Note

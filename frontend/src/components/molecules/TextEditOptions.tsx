@@ -43,7 +43,7 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({ editor, active }) => 
   return (
     <div
       id="toolbar-container"
-      className="w-[80%] bg-text-opt-bg flex items-center justify-start gap-3 px-2 h-9"
+      className="w-[80%] bg-slate-50 flex items-center justify-start gap-3 px-2 h-9"
     >
       <div
         className={`${active?"cursor-pointer":"pointer-events-none"} ${

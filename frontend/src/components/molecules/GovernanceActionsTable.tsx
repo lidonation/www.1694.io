@@ -4,7 +4,7 @@ const GovernanceActionsTable = () => {
   return (
     <table>
       <thead>
-        <tr className="bg-pure-white text-left">
+        <tr className="bg-white text-left">
           <th className="p-4">Actions</th>
           <th>Description</th>
         </tr>

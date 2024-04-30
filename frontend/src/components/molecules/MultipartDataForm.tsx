@@ -119,7 +119,7 @@ const MultipartDataForm = () => {
         <div
           onClick={() => setSource("local")}
           className={`border-r-2 p-2 cursor-pointer  ${
-            source === "local" && "text-custom-blue"
+            source === "local" && "text-blue-800"
           }`}
         >
           Local
@@ -127,7 +127,7 @@ const MultipartDataForm = () => {
         <div
           onClick={() => setSource("external")}
           className={`p-2 cursor-pointer ${
-            source === "external" && "text-custom-blue"
+            source === "external" && "text-blue-800"
           }`}
         >
           External
@@ -136,7 +136,7 @@ const MultipartDataForm = () => {
       {source === "local" ? (
         <>
           <div
-            className="border-2 border-dashed border-custom-blue p-5 text-center cursor-pointer"
+            className="border-2 border-dashed border-blue-800 p-5 text-center cursor-pointer"
             onDragOver={preventDefault}
             onDragEnter={preventDefault}
             onDrop={handleDrop}
@@ -181,7 +181,7 @@ const MultipartDataForm = () => {
           <input
             type="text"
             id="urlInput"
-            className="px-3 py-2 rounded-full border border-input-border"
+            className="px-3 py-2 rounded-full border border-zinc-100"
             placeholder="Paste or type URL here"
             onChange={handleFileSelect}
           />

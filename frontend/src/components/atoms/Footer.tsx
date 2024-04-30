@@ -5,11 +5,11 @@ import React from "react";
 const Footer = () => {
   const currentYear = new Date().getFullYear();
   return (
-    <div className=" bg-dark-indigo flex-col items-center justify-center text-white py-2 w-fullScale">
+    <div className="bg-zinc-800 flex-col items-center justify-center text-white py-2 w-full">
       <div className="flex items-center justify-center p-5 mb-12">
         <img src="/sancho-white.svg" alt="Sancho logo" width={'300px'} height={'77px'}/>
       </div>
-      <div className="flex items-center justify-center gap-4 font-bold mb-16 text-bottom-nav-text">
+      <div className="flex items-center justify-center gap-4 font-bold mb-16 text-neutral-300">
         <Link href="#">Voltaire </Link>
         <Link href="#">Sancho Gov Tools</Link>
         <Link href="#">Lido Nation</Link>
@@ -17,17 +17,17 @@ const Footer = () => {
         <Link href="#">Cardano CIPs</Link>
       </div>
       <div className="flex items-center justify-center gap-3 font-bold mb-4">
-        <a className="bg-dark-blue w-socialButtons h-socialButtons rounded-full flex items-center justify-center" href="#"  >
+        <a className="bg-slate-900 w-10 h-10 rounded-full flex items-center justify-center" href="#"  >
           <img src="/fb.svg" alt="Facebook" />
         </a>
-        <a className="bg-dark-blue w-socialButtons h-socialButtons rounded-full flex items-center justify-center" href="#">
+        <a className="bg-slate-900 w-10 h-10 rounded-full flex items-center justify-center" href="#">
           <img src="/ig.svg" alt="Instagram" />
         </a>
-        <a className="bg-dark-blue w-socialButtons h-socialButtons rounded-full flex items-center justify-center" href="#">
+        <a className="bg-slate-900 w-10 h-10 rounded-full flex items-center justify-center" href="#">
           <img src="/github.svg" alt="Github" />
         </a>
       </div>
-      <div className="text-pure-white text-center text-sm">
+      <div className="text-white text-center text-sm">
         &copy; {currentYear} A LIDO Nation Project
       </div>
     </div>

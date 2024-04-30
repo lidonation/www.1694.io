@@ -36,9 +36,9 @@ const EditorArticle = ({ editor,isEnabled, description, onChange}:{editor:Editor
         <TextEditOptions editor={editor} active={isEnabled} />
         <div
           id="post-textarea"
-          className="w-[80%] min-h-40 border-b border-r border-l border-input-border rounded-bl-xl rounded-br-xl flex items-center justify-center"
+          className="w-[80%] min-h-40 border-b border-r border-l border-zinc-100 rounded-bl-xl rounded-br-xl flex items-center justify-center"
         >
-          <EditorContent editor={editor} content={description} className="w-fullScale min-h-40" data-testid="post-editor-input"/>
+          <EditorContent editor={editor} content={description} className="w-full min-h-40" data-testid="post-editor-input"/>
         </div>
       </div>
     )

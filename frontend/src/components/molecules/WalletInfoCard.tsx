@@ -22,7 +22,7 @@ export const WalletInfoCard = () => {
           width:'200px'
         }}
       >
-        <Typography className="text-wall-info-txt-color text-sm font-medium">
+        <Typography className="text-gray-200 text-sm font-medium">
           Connected Wallet
         </Typography>
         <Box sx={{ alignItems: "center", display: "flex", justifyContent:'space-between' }}>

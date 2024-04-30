@@ -6,22 +6,22 @@ const StatusChip = ({ status }: StatusProps) => {
   let statusClass = '';
   switch (status) {
     case "Verified":
-      statusClass = 'bg-[#0033AD] text-pure-white';
+      statusClass = 'bg-blue-800 text-white';
       break;
     case 'Unverified':
-      statusClass = 'bg-[#2E3438] text-pure-white';
+      statusClass = 'bg-gray-800 text-white';
       break;
     case 'Not registered':
-      statusClass = 'bg-[#FF640A] text-pure-white';
+      statusClass = 'bg-orange-500 text-white';
       break;
     case 'Active':
-      statusClass = 'bg-[#C2EFF2] text-[#242232]';
+      statusClass = 'bg-teal-100 text-zinc-800';
       break;
     case 'Inactive':
-      statusClass = 'bg-[#2E3438] text-pure-white';
+      statusClass = 'bg-gray-800 text-white';
       break;
     default:
-      statusClass = 'bg-[#2E3438] text-pure-white'; // Default to gray if status is not recognized
+      statusClass = 'bg-gray-800 text-white'; // Default to gray if status is not recognized
   }
 
   return (

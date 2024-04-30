@@ -5,7 +5,7 @@ import WalletConnectButton from "./WalletConnectButton";
 const BecomeADrepCard = () => {
     const {isEnabled} = useCardano();
     return (
-        <div className="grid grid-cols-2 text-pale-white mb-10">
+        <div className="grid grid-cols-2 text-zinc-100 mb-10">
             <div className="col-span-1 flex-col items-center justify-center">
                 <div className="font-black text-5xl mb-3">
                     <p>How can I</p>

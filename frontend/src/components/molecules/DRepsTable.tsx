@@ -30,7 +30,7 @@ const DRepsTable = ({searchQuery}) => {
     <div className="overflow-x-auto">
       <table className="min-w-full">
         <thead>
-          <tr className="bg-pure-white text-left text-2xl font-black text-nowrap overflow-x-auto">
+          <tr className="bg-white text-left text-2xl font-black text-nowrap overflow-x-auto">
             <th className="px-4 py-2">DRep Id</th>
             <th className="px-4 py-2">Epoch</th>
             <th colSpan={2} className="px-4 py-2">

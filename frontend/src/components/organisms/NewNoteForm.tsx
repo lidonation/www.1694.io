@@ -30,7 +30,6 @@ const NewNoteForm = () => {
   const router=useRouter()
   const mutation=usePostNewNoteMutation()
   const {setIsNotDRepErrorModalOpen}=useDRepContext()
-  const [redirecting, setRedirecting] = useState(false);
   const saveNote: SubmitHandler<InputType> =async(data) => {
     try {
       console.log('submitting...')
@@ -44,7 +43,6 @@ const NewNoteForm = () => {
       const {postTag, postText, postTitle, postVisibility}=data
       const newNote={note_title:postTitle,note_tag:postTag,note_content:postText, note_visibility:postVisibility,  stake_addr:stakeAddress, voter:dRepIDBech32}
       const {noteAdded}=await mutation.mutateAsync({note:newNote})
-      setRedirecting(true)
       router.push(`/dreps/workflow/notes/${noteAdded}/update`)
     } catch (error) {
       console.log(error)
@@ -55,7 +53,7 @@ const NewNoteForm = () => {
   }
   return (
     <form
-      className="bg-note-form-bg shadow-lg mt-4 p-5 rounded-3xl mb-48"
+      className="bg-slate-50 shadow-lg mt-4 p-5 rounded-3xl mb-48"
       onSubmit={handleSubmit(saveNote, onError)}
     >
       <NewNotePostForm
@@ -63,7 +61,6 @@ const NewNoteForm = () => {
         control={control}
         errors={errors}
       />
-      {redirecting && <div className="text-green-500">Redirecting....</div>}
     </form>
   );
 };

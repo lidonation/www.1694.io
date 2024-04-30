@@ -5,13 +5,13 @@ import BecomeADrepCard from "../molecules/BecomeADrepCard";
 const DRepInfo = () => {
     return (
         <div
-            className="w-fullScale rounded-t-3xl overflow-hidden bg-[url(/img/drepsBg.png)] bg-opacity-20 bg-cover bg-center mt-5 shadow-lg"
+            className="w-full rounded-t-3xl overflow-hidden bg-[url(/img/drepsBg.png)] bg-opacity-20 bg-cover bg-center mt-5 shadow-lg"
         >
             {/* Inner div for img background */}
-            <div className="drep_bg w-fullScale h-fullScale flex flex-col gap-10">
+            <div className="drep_bg w-full h-full flex flex-col gap-10">
                 <div className="container py-16">
                     <div className="flex flex-col gap-16">
-                        <div className="pt-14 font-bold text-pale-white text-7xl">
+                        <div className="pt-14 font-bold text-violet-50 text-7xl">
                             <p className="mb-2">
                                 Delegated Representatives
                             </p>
@@ -23,7 +23,7 @@ const DRepInfo = () => {
                         <DrepInfoCardRow />
 
                         <div className="flex items-center justify-center">
-                            <hr className="text-pale-white w-[900px] border"/>
+                            <hr className="text-violet-50 w-[900px] border"/>
                         </div>
 
                         <BecomeADrepCard/>

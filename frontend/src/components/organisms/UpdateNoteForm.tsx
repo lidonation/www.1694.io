@@ -65,7 +65,7 @@ const UpdateNoteForm = ({noteId,initialValues}) => {
   }
   return (
     <form
-      className="bg-note-form-bg shadow-lg mt-4 p-5 rounded-3xl mb-48"
+      className="bg-slate-50 shadow-lg mt-4 p-5 rounded-3xl mb-48"
       onSubmit={handleSubmit(updateNote, onError)}
     >
       <UpdateNotePostForm
