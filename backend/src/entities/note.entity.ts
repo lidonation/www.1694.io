@@ -8,11 +8,11 @@ import {
   UpdateDateColumn,
   ManyToMany,
   DeleteDateColumn,
-} from "typeorm";
-import { Drep } from "./drep.entity";
-import { Attachment } from "./attachment.entity";
-import { Comment } from "./comment.entity";
-import { Reaction } from "./reaction.entity";
+} from 'typeorm';
+import { Drep } from './drep.entity';
+import { Attachment } from './attachment.entity';
+import { Comment } from './comment.entity';
+import { Reaction } from './reaction.entity';
 
 @Entity()
 export class Note {
@@ -42,7 +42,7 @@ export class Note {
   attachments: Attachment[];
 
   @Column()
-  note_visibility:string
+  note_visibility: string;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -50,6 +50,6 @@ export class Note {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @DeleteDateColumn({nullable:true})
-  deletedAt: Date; 
+  @DeleteDateColumn({ nullable: true })
+  deletedAt: Date;
 }

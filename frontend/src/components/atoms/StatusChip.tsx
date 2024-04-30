@@ -1,11 +1,11 @@
 import React from 'react';
 interface StatusProps {
-    status: "Verified" | "Unverified" | "Not registered" | "Active" | "Inactive";
-  }
+  status: 'Verified' | 'Unverified' | 'Not registered' | 'Active' | 'Inactive';
+}
 const StatusChip = ({ status }: StatusProps) => {
   let statusClass = '';
   switch (status) {
-    case "Verified":
+    case 'Verified':
       statusClass = 'bg-blue-800 text-white';
       break;
     case 'Unverified':
@@ -25,7 +25,9 @@ const StatusChip = ({ status }: StatusProps) => {
   }
 
   return (
-    <div className={`text-center text-nowrap rounded-full px-2 py-1 font-semibold text-sm  ${statusClass}`}>
+    <div
+      className={`text-nowrap rounded-full px-2 py-1 text-center text-sm font-semibold  ${statusClass}`}
+    >
       {status}
     </div>
   );

@@ -1,5 +1,5 @@
-import React from "react";
-import Button from "../atoms/Button";
+import React from 'react';
+import Button from '../atoms/Button';
 
 const ViewDraftsButton = () => {
   return (
@@ -11,7 +11,9 @@ const ViewDraftsButton = () => {
       width={'139px'}
       size="extraLarge"
     >
-      <p className="font-medium text-sm text-blue-800 leading-4 text-center">View Drafts</p>
+      <p className="text-center text-sm font-medium leading-4 text-blue-800">
+        View Drafts
+      </p>
     </Button>
   );
 };

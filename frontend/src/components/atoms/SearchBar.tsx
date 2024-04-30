@@ -1,18 +1,18 @@
-import React from "react";
+import React from 'react';
 
-const SearchBar = ({searchText, setSearchText}) => {
+const SearchBar = ({ searchText, setSearchText }) => {
   return (
     <div className="flex flex-row gap-3">
-      <div className="flex flex-row  rounded-full border border-blue-800 relative items-center justify-start w-[232px]">
-        <div className="flex absolute items-center justify-center pl-6 pointer-events-none">
+      <div className="relative flex  w-[232px] flex-row items-center justify-start rounded-full border border-blue-800">
+        <div className="pointer-events-none absolute flex items-center justify-center pl-6">
           <img src="/search.svg" alt="Search Icon" />
         </div>
         <input
           type="text"
           value={searchText}
-          onChange={(e)=>setSearchText(e.target.value)}
+          onChange={(e) => setSearchText(e.target.value)}
           data-testid="drep-search-input"
-          className="bg-transparent placeholder:font-black h-full focus:border-none w-full pl-14 py-3 rounded-full"
+          className="h-full w-full rounded-full bg-transparent py-3 pl-14 placeholder:font-black focus:border-none"
           placeholder="Search..."
         />
       </div>

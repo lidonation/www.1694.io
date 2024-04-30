@@ -1,2 +1,2 @@
-export * from './axiosInstance'
-export * from './requests/index'
+export * from './axiosInstance';
+export * from './requests/index';

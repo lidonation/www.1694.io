@@ -6,8 +6,8 @@ import { Note } from 'src/entities/note.entity';
 import { ConnectionService } from 'src/connection/connection.service';
 
 @Module({
-  imports:[TypeOrmModule.forFeature([Note])],
+  imports: [TypeOrmModule.forFeature([Note])],
   controllers: [NoteController],
-  providers: [NoteService, ConnectionService]
+  providers: [NoteService, ConnectionService],
 })
 export class NoteModule {}

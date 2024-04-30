@@ -1,31 +1,38 @@
-import React from "react";
-import Button from "./Button";
-import { useCardano } from "@/context/walletContext";
+import React from 'react';
+import Button from './Button';
+import { useCardano } from '@/context/walletContext';
 
 const PostSubmitArea = () => {
   const { isEnabled } = useCardano();
   return (
-    <div className="flex flex-row items-center justify-between w-[80%]">
-      <div className="flex items-center justify-center ml-5">
+    <div className="flex w-[80%] flex-row items-center justify-between">
+      <div className="ml-5 flex items-center justify-center">
         <Button
           variant="text"
           bgColor="transparent"
-          sx={!isEnabled ? { pointerEvents: "none" } : {}}
+          sx={!isEnabled ? { pointerEvents: 'none' } : {}}
         >
-          <p className="font-medium text-sm text-blue-800 leading-4 text-center">
+          <p className="text-center text-sm font-medium leading-4 text-blue-800">
             Save Draft
           </p>
         </Button>
       </div>
-      <div className="flex flex-row gap-2 items-center">
-        <Button variant="outlined" bgColor="transparent"
-        sx={!isEnabled ? { pointerEvents: "none" } : {}}>
-          <p className="font-medium text-sm text-blue-800 leading-4 text-center">
+      <div className="flex flex-row items-center gap-2">
+        <Button
+          variant="outlined"
+          bgColor="transparent"
+          sx={!isEnabled ? { pointerEvents: 'none' } : {}}
+        >
+          <p className="text-center text-sm font-medium leading-4 text-blue-800">
             Cancel
           </p>
         </Button>
-        <Button type="submit" data-testid="post-submit-button" sx={!isEnabled ? { pointerEvents: "none" } : {}}>
-          <p className="font-medium text-sm text-white leading-4 text-center">
+        <Button
+          type="submit"
+          data-testid="post-submit-button"
+          sx={!isEnabled ? { pointerEvents: 'none' } : {}}
+        >
+          <p className="text-center text-sm font-medium leading-4 text-white">
             Post in my notes
           </p>
         </Button>

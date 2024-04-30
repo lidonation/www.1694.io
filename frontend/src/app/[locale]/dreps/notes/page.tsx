@@ -1,4 +1,4 @@
-import NoteHeader from "@/components/dreps/notes/NoteHeader";
+import NoteHeader from '@/components/dreps/notes/NoteHeader';
 
 function Notes() {
   return (

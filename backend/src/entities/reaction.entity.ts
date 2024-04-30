@@ -7,26 +7,26 @@ import {
   ManyToOne,
   Unique,
   ManyToMany,
-} from "typeorm";
-import { Delegator } from "./delegator.entity";
-import { Note } from "./note.entity";
+} from 'typeorm';
+import { Delegator } from './delegator.entity';
+import { Note } from './note.entity';
 
 enum ReactionTypeName {
-  Like = "like",
-  ThumbsUp = "thumbsup",
-  ThumbsDown = "thumbsdown",
-  Rocket = "rocket",
+  Like = 'like',
+  ThumbsUp = 'thumbsup',
+  ThumbsDown = 'thumbsdown',
+  Rocket = 'rocket',
 }
 
 @Entity()
-@Unique(["delegator", "type"]) // Ensures delegator cant like or thumbs up twice
+@Unique(['delegator', 'type']) // Ensures delegator cant like or thumbs up twice
 export class Reaction {
   //auto increment primary key decorator
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column({
-    type: "enum",
+    type: 'enum',
     enum: ReactionTypeName,
     default: ReactionTypeName.Like,
     nullable: false,

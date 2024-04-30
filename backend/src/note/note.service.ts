@@ -1,15 +1,15 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { createNoteDto } from "src/dto";
-import { DataSource, Repository } from "typeorm";
-import { ConnectionService } from "src/connection/connection.service";
-import { Note } from "src/entities/note.entity";
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { createNoteDto } from 'src/dto';
+import { DataSource, Repository } from 'typeorm';
+import { ConnectionService } from 'src/connection/connection.service';
+import { Note } from 'src/entities/note.entity';
 
 @Injectable()
 export class NoteService {
   constructor(
     @InjectRepository(Note) private noteRepo: Repository<Note>,
-    private connectionService: ConnectionService
+    private connectionService: ConnectionService,
   ) {}
 
   async initializeQueryRunner() {
@@ -25,24 +25,24 @@ export class NoteService {
       where: { id: numifiedNoteId },
     });
     if (!noteList) {
-      throw new NotFoundException("Note not found!");
+      throw new NotFoundException('Note not found!');
     }
     return noteList;
   }
   async registerNote(noteDto: createNoteDto) {
     const queryInstance = await this.initializeQueryRunner();
     const isPresent = await queryInstance
-      .getRepository("Drep")
+      .getRepository('Drep')
       .findOneBy({ voter_id: noteDto.voter });
     if (isPresent) {
       const modifiedNoteDto = { ...noteDto, voter: isPresent.id };
       const res = await queryInstance
-        .getRepository("Note")
+        .getRepository('Note')
         .insert(modifiedNoteDto);
       console.log(res.identifiers[0].id);
       return { noteAdded: res.identifiers[0].id };
     } else {
-      return new NotFoundException("DRep associated with note not found!");
+      return new NotFoundException('DRep associated with note not found!');
     }
   }
   async updateNoteInfo(noteId: string, note: createNoteDto) {
@@ -51,11 +51,11 @@ export class NoteService {
       where: { id: numifiedNoteId },
     });
     if (!foundNote) {
-      throw new NotFoundException("Note to be updated not found!");
+      throw new NotFoundException('Note to be updated not found!');
     }
     const queryInstance = await this.initializeQueryRunner();
     const isPresent = await queryInstance
-      .getRepository("Drep")
+      .getRepository('Drep')
       .findOneBy({ voter_id: note.voter });
     if (isPresent) {
       const modifiedNote = { ...note, voter: isPresent.id };
@@ -65,7 +65,7 @@ export class NoteService {
       });
       return await this.noteRepo.save(foundNote);
     } else {
-      return new NotFoundException("DRep associated with note not found!");
+      return new NotFoundException('DRep associated with note not found!');
     }
   }
 }

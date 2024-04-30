@@ -1,6 +1,14 @@
-import { Column, CreateDateColumn, Entity, ManyToMany, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-import { AttachmentType } from "./attachmenttype.entity";
-import { Note } from "./note.entity";
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  ManyToMany,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { AttachmentType } from './attachmenttype.entity';
+import { Note } from './note.entity';
 
 @Entity()
 export class Attachment {
@@ -11,10 +19,13 @@ export class Attachment {
   @Column({ unique: true, nullable: false })
   url: string;
 
-  @ManyToMany(() => Note, note => note.attachments)
+  @ManyToMany(() => Note, (note) => note.attachments)
   notes: Note[];
 
-  @ManyToOne(() => AttachmentType, attachmentType => attachmentType.attachments) 
+  @ManyToOne(
+    () => AttachmentType,
+    (attachmentType) => attachmentType.attachments,
+  )
   attachmentType: AttachmentType;
 
   @CreateDateColumn()

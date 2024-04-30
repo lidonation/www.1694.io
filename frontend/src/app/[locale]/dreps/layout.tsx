@@ -1,9 +1,9 @@
-"use client";
-import Footer from "@/components/atoms/Footer";
-import Header from "@/components/atoms/Header";
-import { ChooseWalletModal } from "@/components/organisms";
-import { NotDRepErrorModal } from "@/components/organisms/NotDRepErrorModal";
-import { useDRepContext } from "@/context/drepContext";
+'use client';
+import Footer from '@/components/atoms/Footer';
+import Header from '@/components/atoms/Header';
+import { ChooseWalletModal } from '@/components/organisms';
+import { NotDRepErrorModal } from '@/components/organisms/NotDRepErrorModal';
+import { useDRepContext } from '@/context/drepContext';
 
 export default function RootLayout({
   children,
@@ -17,13 +17,13 @@ export default function RootLayout({
         <Header />
         {/* blur container wrapper */}
         {isWalletListModalOpen && (
-          <div className="blur-container fixed w-full h-full z-50 flex items-center justify-center">
+          <div className="blur-container fixed z-50 flex h-full w-full items-center justify-center">
             <ChooseWalletModal />
           </div>
         )}
         {isNotDRepErrorModalOpen && (
-          <div className="blur-container fixed w-full h-full z-50 flex items-center justify-center">
-            <NotDRepErrorModal/>
+          <div className="blur-container fixed z-50 flex h-full w-full items-center justify-center">
+            <NotDRepErrorModal />
           </div>
         )}
         {children}

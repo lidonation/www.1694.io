@@ -1,9 +1,9 @@
-import NoteHeaderTitle from "./NoteHeaderTitle";
-import NoteHeaderInfo from "./NoteHeaderInfo";
+import NoteHeaderTitle from './NoteHeaderTitle';
+import NoteHeaderInfo from './NoteHeaderInfo';
 
 function NoteHeader() {
   return (
-    <div className="p-10 bg-white flex flex-col gap-y-12 min-h-screen">
+    <div className="flex min-h-screen flex-col gap-y-12 bg-white p-10">
       <NoteHeaderTitle />
 
       <NoteHeaderInfo />
