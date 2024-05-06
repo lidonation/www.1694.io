@@ -65,6 +65,27 @@ Before you begin setting up the application, you'll need to clone the repository
      ```
      This directory contains all the files you need to set up the application, including the Docker Compose files and the separate directories for the backend and frontend components.
 
+3. **Configuring prettier to auto format on every commit**
+   - After cloning, access the .git folder, naigate to the `hooks` directory and add a file by the name of `pre-commit` with the following script:
+   ```
+   #!/bin/bash
+
+   execute_script() {
+   if [ -f "$1" ]; then
+      echo "Executing script: $1"
+      bash "$1"
+   else
+      echo "Script not found: $1"
+   fi
+   }
+
+   execute_script format_all.sh
+
+   exit 0
+   ```
+   This allows git to run the format_all script which funs prettier formatting for both the backend and frontend files before every commit.
+
+
 By cloning the repository, you ensure that you have the latest version of the code and all the necessary files to get started with the application setup.
 
 ## Running locally

@@ -1,1 +1,1 @@
-export * from './getDreps'
+export * from './getDreps';

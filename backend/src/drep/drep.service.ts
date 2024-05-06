@@ -1,20 +1,20 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { createDrepDto } from "src/dto";
-import { DataSource, Repository } from "typeorm";
-import { faker } from "@faker-js/faker";
-import { Drep } from "src/entities/drep.entity";
-import { ConnectionService } from "src/connection/connection.service";
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { createDrepDto } from 'src/dto';
+import { DataSource, Repository } from 'typeorm';
+import { faker } from '@faker-js/faker';
+import { Drep } from 'src/entities/drep.entity';
+import { ConnectionService } from 'src/connection/connection.service';
 
 @Injectable()
 export class DrepService {
   constructor(
     @InjectRepository(Drep) private userRepo: Repository<Drep>,
-    private connectionService: ConnectionService
+    private connectionService: ConnectionService,
   ) {}
   //get from cexplorer db
   async getAllDrepsCexplorer() {
-    const queryInstance=await this.connectionService.addCexplorerConnection()
+    const queryInstance = await this.connectionService.addCexplorerConnection();
     const drepList = await queryInstance.manager.query(
       `WITH RankedRows AS (
           SELECT 
@@ -72,13 +72,13 @@ export class DrepService {
       FROM 
           RankedRows
       WHERE 
-          RowNum = 1`
+          RowNum = 1`,
     );
     const drepListInADA = drepList.map((entry) => {
       return {
         ...entry,
-        deposit: (entry.deposit / 1000000).toFixed(1), 
-        amount: (entry.amount / 1000000).toFixed(1), 
+        deposit: (entry.deposit / 1000000).toFixed(1),
+        amount: (entry.amount / 1000000).toFixed(1),
       };
     });
 
@@ -87,13 +87,13 @@ export class DrepService {
   async getSingleDrep(drepId: number) {
     const drepList = await this.userRepo.findOne({ where: { id: drepId } });
     if (!drepList) {
-      throw new NotFoundException("Drep not found!");
+      throw new NotFoundException('Drep not found!');
     }
     return drepList;
   }
   async getAllDRepsVoltaire() {
-    const queryInstance=await this.connectionService.addVoltaireConnection()
-    return await queryInstance.getRepository('Drep').find()
+    const queryInstance = await this.connectionService.addVoltaireConnection();
+    return await queryInstance.getRepository('Drep').find();
   }
   async populateFakeDRepData() {
     const dreps = await this.getAllDrepsCexplorer();
@@ -107,8 +107,8 @@ export class DrepService {
         voter_id: drep.view,
       };
     });
-    const queryInstance=await this.connectionService.addVoltaireConnection()
-    await queryInstance.getRepository('Drep').insert(modified)
+    const queryInstance = await this.connectionService.addVoltaireConnection();
+    await queryInstance.getRepository('Drep').insert(modified);
     return modified;
   }
   async registerDrep(drepDto: createDrepDto) {
@@ -118,7 +118,7 @@ export class DrepService {
   async updateDrepInfo(drepId: number, drep: createDrepDto) {
     const foundDrep = await this.userRepo.findOne({ where: { id: drepId } });
     if (!foundDrep) {
-      throw new NotFoundException("Drep to be updated not found!");
+      throw new NotFoundException('Drep to be updated not found!');
     }
     Object.keys(drep).forEach((key) => {
       foundDrep[key] = drep[key];

@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState, useEffect } from "react";
+import { createContext, useContext, useMemo, useState, useEffect } from 'react';
 
 interface DRepContext {
   isWalletListModalOpen: boolean;
@@ -15,7 +15,7 @@ interface Props {
 }
 
 const DRepContext = createContext<DRepContext>({} as DRepContext);
-DRepContext.displayName = "DRepContext";
+DRepContext.displayName = 'DRepContext';
 
 function DRepProvider(props: Props) {
   const [isWalletListModalOpen, setIsWalletListModalOpen] = useState(false);
@@ -36,7 +36,7 @@ function DRepProvider(props: Props) {
       setCurrentLocale,
       toggleModal,
     }),
-    [isWalletListModalOpen,isNotDRepErrorModalOpen, currentLocale]
+    [isWalletListModalOpen, isNotDRepErrorModalOpen, currentLocale],
   );
 
   return <DRepContext.Provider value={value} {...props} />;
@@ -46,7 +46,7 @@ function useDRepContext() {
   const context = useContext(DRepContext);
 
   if (!context) {
-    throw new Error("useDRepContext must be used within a DRepProvider");
+    throw new Error('useDRepContext must be used within a DRepProvider');
   }
 
   return context;

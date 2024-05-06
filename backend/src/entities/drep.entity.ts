@@ -1,5 +1,13 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-import { Note } from "./note.entity";
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { Note } from './note.entity';
 
 @Entity()
 export class Drep {
@@ -7,34 +15,34 @@ export class Drep {
   id: number;
   @Column({ unique: true, nullable: true })
   name: string;
-  
-  @Column({ nullable: true})
+
+  @Column({ nullable: true })
   bio: string;
 
   @Column({ nullable: true })
   platform_statement: string;
- 
-  @Column({ nullable: true})
+
+  @Column({ nullable: true })
   expertise: string;
- 
-  @Column({ nullable: true})
+
+  @Column({ nullable: true })
   perspective: string;
- 
+
   @Column({})
   stake_addr: string;
-  
-  @Column({ nullable: false , unique:true})
+
+  @Column({ nullable: false, unique: true })
   voter_id: string;
 
   @OneToMany(() => Note, (note) => note.voter)
   notes: Note[];
-  
+
   @CreateDateColumn()
   createdAt: Date;
 
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @DeleteDateColumn({nullable:true})
-  deletedAt: Date; 
+  @DeleteDateColumn({ nullable: true })
+  deletedAt: Date;
 }

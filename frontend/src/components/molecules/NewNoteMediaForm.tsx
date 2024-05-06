@@ -1,9 +1,7 @@
-import React from 'react'
+import React from 'react';
 
 const NewNoteMediaForm = () => {
-  return (
-    <div>NewNoteMediaForm</div>
-  )
-}
+  return <div>NewNoteMediaForm</div>;
+};
 
-export default NewNoteMediaForm
+export default NewNoteMediaForm;
