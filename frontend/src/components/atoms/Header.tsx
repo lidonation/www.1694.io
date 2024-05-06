@@ -5,6 +5,7 @@ import { WalletInfoCard } from '@/components/molecules';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useDRepContext } from '@/context/drepContext';
+import TranslationBlock from '../1694.io/TranslationBlock';
 
 const Header = () => {
   const { isEnabled } = useCardano();
@@ -18,10 +19,10 @@ const Header = () => {
   }, [pathname]);
 
   return (
-    <header className="bg-white">
+    <header className="bg-white bg-opacity-50">
       <div className="container flex flex-row items-center justify-between py-6">
         <div className="">
-          <img src="/sancho-black.svg" alt="Sancho logo" />
+          <img src="/sancho1694.svg" alt="Sancho logo" width={'40%'} />
         </div>
         <div className="flex items-center gap-6 text-nowrap text-sm font-bold">
           <Link
@@ -54,7 +55,7 @@ const Header = () => {
           </Link>
           <Link href="#">Ecosystem</Link>
           <div>
-            {!isEnabled ? (
+            {activeLink !== `/${currentLocale}` && !isEnabled ? (
               <WalletConnectButton test_name={'header'} />
             ) : (
               <WalletInfoCard />
@@ -65,6 +66,7 @@ const Header = () => {
           </div>
         </div>
       </div>
+      <TranslationBlock />
     </header>
   );
 };

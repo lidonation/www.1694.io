@@ -1,4 +1,5 @@
 'use client';
+import { Background } from '@/components/atoms/Background';
 import DRepInfo from '@/components/organisms/DRepInfo';
 import DRepIntro from '@/components/organisms/DRepIntro';
 import GovernanceActionsCard from '@/components/organisms/GovernanceActionsCard';
@@ -12,19 +13,16 @@ const page = ({ params: { locale } }) => {
     setCurrentLocale(locale);
   }, []);
   return (
-    <div>
+    <Background>
       <DRepIntro />
-
       <DRepInfo />
-
       <section>
         <PickADRep />
       </section>
-
       <section>
         <GovernanceActionsCard />
       </section>
-    </div>
+    </Background>
   );
 };
 

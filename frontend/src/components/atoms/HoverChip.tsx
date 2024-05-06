@@ -1,12 +1,25 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-
-const HoverChip = ({ icon, text, handleClick }) => {
+import { CopyToClipboard } from 'react-copy-to-clipboard';
+interface HoverChipProps {
+  icon?: string;
+  text?: string;
+  handleClick?: () => void;
+  position?: 'top' | 'bottom';
+  textToCopy?: string;
+}
+const HoverChip = ({
+  icon,
+  text,
+  handleClick,
+  position = 'top',
+  textToCopy,
+}: HoverChipProps) => {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
     <div
-      className="relative flex items-center justify-center"
+      className="relative flex items-center justify-center "
       onClick={handleClick}
     >
       {isHovered && (
@@ -15,11 +28,29 @@ const HoverChip = ({ icon, text, handleClick }) => {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.2 }}
-          className="absolute z-10 rounded-md bg-zinc-800 p-2 text-sm text-white shadow-md"
-          style={{ top: '-55px', transform: 'translateX(-50%)' }}
+          className="absolute z-10 flex max-w-44 flex-col text-wrap rounded-md bg-zinc-800 p-2 text-sm text-white shadow-md"
+          style={{
+            top: `${position === 'top' ? '-35px' : '35px'}`,
+            transform: 'translateX(-50%)',
+          }}
         >
           {text}
-          <div className="absolute left-[45%] h-3 w-3 -translate-x-1/2 rotate-45 transform bg-zinc-800"></div>
+          <br />
+          {textToCopy && (
+            <CopyToClipboard
+              text={textToCopy}
+              onCopy={() => {
+                console.log('copied!');
+              }}
+              className="clipboard-text cursor-pointer"
+            >
+              <span>{textToCopy}</span>
+            </CopyToClipboard>
+          )}
+
+          <div
+            className={`absolute left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 transform bg-zinc-800 ${position === 'bottom' && '-top-1'}`}
+          ></div>
         </motion.div>
       )}
 
@@ -27,8 +58,7 @@ const HoverChip = ({ icon, text, handleClick }) => {
         src={icon}
         alt="Icon"
         className="h-6 w-6 cursor-pointer"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        onClick={() => setIsHovered((prev) => !prev)}
       />
     </div>
   );

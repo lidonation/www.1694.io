@@ -12,23 +12,21 @@ export default function RootLayout({
 }) {
   const { isWalletListModalOpen, isNotDRepErrorModalOpen } = useDRepContext();
   return (
-    <html lang="en">
-      <body>
-        <Header />
-        {/* blur container wrapper */}
-        {isWalletListModalOpen && (
-          <div className="blur-container fixed z-50 flex h-full w-full items-center justify-center">
-            <ChooseWalletModal />
-          </div>
-        )}
-        {isNotDRepErrorModalOpen && (
-          <div className="blur-container fixed z-50 flex h-full w-full items-center justify-center">
-            <NotDRepErrorModal />
-          </div>
-        )}
-        {children}
-        <Footer />
-      </body>
-    </html>
+    <>
+      <Header />
+      {/* blur container wrapper */}
+      {isWalletListModalOpen && (
+        <div className="blur-container fixed z-50 flex h-full w-full items-center justify-center">
+          <ChooseWalletModal />
+        </div>
+      )}
+      {isNotDRepErrorModalOpen && (
+        <div className="blur-container fixed z-50 flex h-full w-full items-center justify-center">
+          <NotDRepErrorModal />
+        </div>
+      )}
+      {children}
+      <Footer />
+    </>
   );
 }
