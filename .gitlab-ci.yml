@@ -67,6 +67,7 @@ services:
 .deploy_postgres_web_script: &deploy_postgres_web_script
     - |
       DEPLOYMENT_NAME="www-1694-$CI_ENVIRONMENT_SLUG"
+      cp $ENV_FILE ./chart/app_env
       helm repo add bitnami https://charts.bitnami.com/bitnami
       helm repo update
 
