@@ -10,7 +10,7 @@ metadata:
   annotations:
     {{- range $key, $value := .Values.ingress.annotations }}
       {{ $key }}: {{ $value | quote }}
-      {{- end }}
+    {{- end }}
 spec:
   tls:
     - hosts:
