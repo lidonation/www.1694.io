@@ -21,9 +21,9 @@ const Header = () => {
   return (
     <header className="bg-white bg-opacity-50">
       <div className="container flex flex-row items-center justify-between py-6">
-        <div className="">
+        <Link href='/'>
           <img src="/sancho1694.svg" alt="Sancho logo" width={'40%'} />
-        </div>
+        </Link>
         <div className="flex items-center gap-6 text-nowrap text-sm font-bold">
           <Link
             href="/dreps"

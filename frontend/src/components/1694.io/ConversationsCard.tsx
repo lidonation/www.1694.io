@@ -1,54 +1,71 @@
 import React from 'react';
 import Button from '../atoms/Button';
+import Link from 'next/link';
+interface ConversationsCardProps {
+  conversations?: GithubComment[];
+}
+interface GithubComment {
+  url: string;
+  html_url: string;
+  issue_url: string;
+  id: number;
+  created_at: string;
+  updated_at: string;
+  body: string;
+  user: {
+    login: string;
+    id: number;
+    avatar_url: string;
+    gravatar_id: string;
+    url: string;
+    html_url: string;
+  };
+}
 
-const ConversationsCard = () => {
-  const conversations = [
-    {
-      avatar: '/avatar1.png',
-      name: 'Jmagan',
-      content: `Is there a documented business case for CIP-1694? If so, could someone please post the link? I would like to get up to speed as quickly as possible.
-            If information is still being gathered, such as competitive analysis or benchmark studies to compare the strengths and weaknesses of CPI-1694? with those of Cardano's competitors, then I would like to suggest reviewing the PivX DAO (see also Why and How the PIVX DAO Works, for example)`,
-      dateAdded: '2022-11-20T18:10:31Z',
-      link: 'http://example.com',
-    },
-    {
-      avatar: '/avatar2.png',
-      name: 'Paradoxicalsphere',
-      content: `Overall I'm very impressed with and happy with the contents, structure, ideas, and work put into the draft CIP-1694. Personally I was considering some similar ideas for governance, however because this isn't my field of expertise my ideas were not nearly as comprehensive.
-            One feature of this CIP that I really like is that there is no mandatory hierarchical structure for how payouts must be made. This leaves funding the future community structure of the (members based organization, professional society, Catalyst startup incubator, whatever outcome of the Cardano constitutional process) entirely flexible. This flexibility is wise and is absolutely necessary for financial (fund/defund) checks-and-balances of future Cardano (organizations/ societies/ companies/ developers/ contractors/ ect).`,
-      dateAdded: '2022-11-20T18:10:31Z',
-      link: 'http://example.com',
-    },
-    {
-      avatar: '/avatar3.png',
-      name: 'Kronoshus',
-      content: `One feature of this CIP that I really like is that there is no mandatory hierarchical structure for how payouts must be made. This leaves funding the future community structure of the (members based organization, professional society, Catalyst startup incubator, whatever outcome of the Cardano constitutional process) entirely flexible. This flexibility is wise and is absolutely necessary for financial (fund/defund) checks-and-balances of future Cardano (organizations/ societies/ companies/ developers/ contractors/ ect).`,
-      dateAdded: '2022-11-20T18:10:31Z',
-      link: 'http://example.com',
-    },
-  ];
+const ConversationsCard = ({ conversations }: ConversationsCardProps) => {
+  const parseTimestamp = (timestamp: string) => {
+    const date = new Date(timestamp);
+    return date.toLocaleString();
+  };
+
   return (
     <div className="container py-20">
       <p className="text-6xl font-bold text-zinc-800">Conversations</p>
-      <div className="flex flex-row gap-10 p-8">
-        {conversations.map((item) => (
-          <div key={item.name} className="flex flex-col gap-3">
-            <div className="flex flex-row items-center justify-start gap-5">
-              <img src={item.avatar} alt={item.name} />
-              <p className="text-2xl font-bold">{item.name}</p>
+      <div className="grid grid-cols-3 gap-4">
+        {/* Only the first six for now. */}
+        {conversations &&
+          conversations.slice(0, 6).map((item, index) => (
+            <div
+              key={item.id}
+              className={`grid-item-${index + 1} flex max-h-fit flex-col gap-3`}
+            >
+              <div className="flex flex-row items-center justify-start gap-5 rounded-full">
+                <img
+                  src={item.user.avatar_url}
+                  alt={item.user.login}
+                  width={'25%'}
+                  className="rounded-full"
+                />
+                <p className="text-2xl font-bold">{item.user.login}</p>
+              </div>
+              <p>{item.body}</p>
+              <div>
+                <p>{parseTimestamp(item.created_at)}</p>
+                <a href={item.html_url} className="font-semibold underline">
+                  View on Github
+                </a>
+              </div>
             </div>
-            <p>{item.content}</p>
-            <div>
-              <p>{item.dateAdded}</p>
-              <a href={item.link} className="font-semibold underline">
-                View on Github
-              </a>
-            </div>
-          </div>
-        ))}
+          ))}
       </div>
-      <div className="flex flex-row items-center justify-center">
-        <Button>Join The Conversation on Github</Button>
+      <div className="flex flex-row items-center justify-center mt-5">
+        <Button>
+          {conversations ? (
+            <Link href={conversations[0].html_url}>
+              Join The Conversation on Github
+            </Link>
+          ): ("Loading conversations...")}
+        </Button>
       </div>
     </div>
   );

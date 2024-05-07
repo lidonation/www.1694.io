@@ -7,110 +7,112 @@ const HotLinks = ({ seethrough }: HotLinksProps) => {
   const links = [
     {
       title: 'The Cardano Constitution',
-      link: 'http://example.com',
+      link: '#the-cardano-constitution',
     },
     {
       title: 'The constitutional committee',
-      link: 'http://example.com',
+      link: '#the-constitutional-committee',
     },
     {
       title: 'State of no-confidence',
-      link: 'http://example.com',
+      link: '#state-of-no-confidence',
     },
     {
       title: 'Replacing the constitutional committee',
-      link: 'http://example.com',
+      link: '#replacing-the-constitutional-committee',
     },
     {
       title: 'Size of the constitutional committee ',
-      link: 'http://example.com',
+      link: '#size-of-the-constitutional-committee',
     },
     {
       title: 'Term limits',
-      link: 'http://example.com',
+      link: '#term-limits',
     },
     {
       title: 'Delegated representatives (DReps)',
-      link: 'http://example.com',
+      link: '#delegated-representatives-dreps',
     },
     {
       title: 'Pre-defined DReps',
-      link: 'http://example.com',
+      link: '#pre-defined-dreps',
     },
     {
       title: 'Registered DReps',
-      link: 'http://example.com',
+      link: '#registered-dreps',
     },
     {
       title: 'New stake distribution for DReps',
-      link: 'http://example.com',
+      link: '#new-stake-distribution-for-dreps',
     },
     {
       title: 'DRep incentives',
-      link: 'http://example.com',
+      link: '#drep-incentives',
     },
     {
       title: 'Governance actions',
-      link: 'http://example.com',
+      link: '#governance-actions',
     },
     {
       title: 'Ratification',
-      link: 'http://example.com',
+      link: '#ratification',
     },
     {
       title: 'Requirements',
-      link: 'http://example.com',
+      link: '#requirements',
     },
     {
       title: 'Restrictions',
-      link: 'http://example.com',
+      link: '#restrictions',
     },
     {
       title: 'Enactment',
-      link: 'http://example.com',
+      link: '#enactment',
     },
     {
       title: 'Lifecycle',
-      link: 'http://example.com',
+      link: '#lifecycle',
     },
     {
       title: 'Content',
-      link: 'http://example.com',
+      link: '#content',
     },
     {
       title: 'Protocol parameter groups',
-      link: 'http://example.com',
+      link: '#protocol-parameter-groups',
     },
     {
       title: 'Votes',
-      link: 'http://example.com',
+      link: '#votes',
     },
     {
       title: 'Governance state',
-      link: 'http://example.com',
+      link: '#governance-state',
     },
     {
       title: 'Changes to the stake snapshot',
-      link: 'http://example.com',
+      link: '#changes-to-the-stake-snapshot',
     },
     {
       title: 'Definitions relating to voting stake',
-      link: 'http://example.com',
+      link: '#definitions-relating-to-voting-stake',
     },
   ];
   return (
-    <div className={`my-5 bg-white ${seethrough ? 'bg-opacity-50' : ''}`}>
+    <div className={`my-5 bg-white ${seethrough ? 'bg-opacity-50' : ''}  w-screen`}>
       <div
         className={`flex w-full flex-row flex-wrap items-center justify-center gap-3 p-8`}
       >
-        {links.map((item) => (
-          <div
-            key={item.title}
-            className="flex w-fit items-center justify-center rounded-2xl bg-blue-100 px-2 py-1"
-          >
-            <p className="text-nowrap text-sm text-black">{item.title}</p>
-          </div>
-        ))}
+        {links
+          .sort((a, b) => a.title.localeCompare(b.title))
+          .map((item) => (
+            <div
+              key={item.title}
+              className="flex w-fit items-center justify-center rounded-2xl bg-blue-100 px-2 py-1"
+            >
+              <a href={item.link} className="text-nowrap text-sm text-black">{item.title}</a>
+            </div>
+          ))}
       </div>
     </div>
   );

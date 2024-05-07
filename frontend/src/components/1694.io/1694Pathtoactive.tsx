@@ -6,11 +6,11 @@ const CIPPathtoactive = () => {
   return (
     <div className="bg-blue-800 py-16">
       <HotLinks seethrough />
-      <div className="container flex  w-full flex-col gap-3 text-white">
+      <div className="mx-auto flex max-w-3xl flex-col gap-5 text-white">
         <div className="text-start">
           <p className="text-5xl font-bold">Path to Active</p>
         </div>
-        <div className="mx-auto flex max-w-3xl flex-col items-center justify-center gap-3">
+        <div className="flex flex-col gap-3">
           <section className="flex flex-col gap-10">
             <div className="flex flex-col gap-4">
               <p className="text-2xl font-bold">Acceptance criteria</p>

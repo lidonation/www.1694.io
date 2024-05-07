@@ -5,17 +5,17 @@ import Separator from './Separator';
 const CIPDRepInfo = () => {
   return (
     <div className="bg-blue-800">
-      <div className="container py-10">
-        <div className="mb-5 text-6xl font-bold text-violet-50">
+      <div className="max-w-3xl mx-auto py-10">
+        <div id='delegated-representatives-dreps' className="mb-5 text-6xl font-bold text-violet-50">
           <p>Delegated</p>
           <p>Representatives (DReps)</p>
         </div>
-        <div className="mx-auto flex max-w-3xl flex-col items-center justify-center gap-8">
+        <div className="flex flex-col items-center justify-center gap-8">
           <ToastCard
             type="warning"
             text="CIP-1694 DReps should not be conflated with Project Catalyst DReps."
           />
-          <section className="flex flex-col gap-3 text-white">
+          <section id='pre-defined-dreps' className="flex flex-col gap-3 text-white">
             <div className="flex w-full items-center justify-center">
               <img src="/img/becomeDrepImg.png" alt="" width={'25%'} />
             </div>
@@ -49,7 +49,7 @@ const CIPDRepInfo = () => {
             />
           </section>
           <Separator />
-          <section className="flex flex-col gap-3 text-white">
+          <section id='registered-dreps' className="flex flex-col gap-3 text-white">
             <p className="text-3xl font-bold">Registered DReps </p>
             <p>
               In Voltaire, existing stake credentials will be able to delegate
@@ -87,7 +87,7 @@ const CIPDRepInfo = () => {
             />
           </section>
           <Separator />
-          <section className="flex flex-col gap-3 text-white">
+          <section id='new-stake-distribution-for-dreps' className="flex flex-col gap-3 text-white">
             <p className="text-3xl font-bold">New stake distribution</p>
             <p>
               In addition to the existing per-stake-credential distribution and
@@ -103,7 +103,7 @@ const CIPDRepInfo = () => {
             />
           </section>
           <Separator />
-          <section className="flex flex-col gap-3 text-white">
+          <section  className="flex flex-col gap-3 text-white">
             <p className="text-3xl font-bold">
               Incentives for Ada holders to delegate voting stake
             </p>
@@ -122,7 +122,7 @@ const CIPDRepInfo = () => {
             />
           </section>
           <Separator />
-          <section className="flex flex-col gap-3 text-white">
+          <section id='drep-incentives' className="flex flex-col gap-3 text-white">
             <p className="text-3xl font-bold">DRep incentives</p>
             <p>
               DReps arguably need to be compensated for their work. Research on

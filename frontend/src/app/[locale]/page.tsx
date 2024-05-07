@@ -14,8 +14,11 @@ import CIPChangelog from '@/components/1694.io/1694Changelog';
 import CIPPathtoactive from '@/components/1694.io/1694Pathtoactive';
 import CIPAcknowledgments from '@/components/1694.io/1694Acknowledgments';
 import Header from '@/components/atoms/Header';
+import Footer from '@/components/atoms/Footer';
+import CopyRight from '@/components/1694.io/CopyRight';
 const Page = () => {
   const [raw, setRaw] = useState(null);
+  const [comments, setComments] = useState(null);
 
   useEffect(() => {
     async function fetchMarkdown() {
@@ -31,6 +34,7 @@ const Page = () => {
           )
         ).json();
         setRaw(cip);
+        setComments(comments)
       } catch (error) {
         console.error('Error fetching Markdown:', error);
       }
@@ -46,7 +50,7 @@ const Page = () => {
         <CIPIntro />
         <CIPInfo />
         <CIPMotivationInfo />
-        <ConversationsCard />
+        <ConversationsCard conversations={comments}/>
         <CIPSpecifications />
         <CIPDRepInfo />
         <CIPGovernanceActions />
@@ -54,6 +58,8 @@ const Page = () => {
         <CIPChangelog />
         <CIPPathtoactive />
         <CIPAcknowledgments />
+        <CopyRight/>
+        <Footer/>
       </Background>
     </div>
   );
