@@ -65,8 +65,6 @@ services:
   cache: {}
 
 .deploy_postgres_web_script: &deploy_postgres_web_script
-  <<: *deploy_template
-  script:
     - |
       helm repo add bitnami https://charts.bitnami.com/bitnami
       helm repo update
@@ -86,7 +84,6 @@ services:
           --set primary.persistence.size="20Gi" \
           lidolovelace-web-db \
           bitnami/postgresql
-  rules: *infra_rules
 
 build_frontend:
   stage: build
