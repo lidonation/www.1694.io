@@ -14,7 +14,7 @@ WORKDIR /usr/src/app
 COPY backend/package.json backend/yarn.lock* backend/package-lock.json* backend/pnpm-lock.yaml* ./
 
 RUN \
-  if [ -f yarn.lock ]; then yarn --frozen-lockfile --production; \
+  if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
   elif [ -f package-lock.json ]; then npm ci; \
   elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --frozen-lockfile; \
   else echo "Lockfile not found." && exit 1; \
