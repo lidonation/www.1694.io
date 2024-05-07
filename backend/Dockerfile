@@ -31,7 +31,7 @@ COPY --chown=node:node ./backend/yarn.lock ./
 
 COPY --chown=node:node --from=dependencies /usr/src/app/node_modules ./node_modules
 
-COPY --chown=node:node . .
+COPY --chown=node:node ./backend .
 
 RUN yarn build
 
