@@ -7,6 +7,8 @@ FROM base As dependencies
 
 RUN apk add --no-cache libc6-compat
 
+ENV NODE_ENV build
+
 WORKDIR /usr/src/app
 
 COPY backend/package.json backend/yarn.lock* backend/package-lock.json* backend/pnpm-lock.yaml* ./
@@ -26,6 +28,8 @@ FROM base As build
 
 WORKDIR /usr/src/app
 
+ENV NODE_ENV build
+
 COPY --chown=node:node ./backend/package.json ./
 COPY --chown=node:node ./backend/yarn.lock ./
 
@@ -33,13 +37,11 @@ COPY --chown=node:node --from=dependencies /usr/src/app/node_modules ./node_modu
 
 COPY --chown=node:node ./backend .
 
+USER node
+
 RUN npx nest build
 
-ENV NODE_ENV production
-
 RUN yarn cache clean
-
-USER node
 
 
 ###################
@@ -47,11 +49,12 @@ USER node
 ###################
 FROM base As production
 
+ENV NODE_ENV production
+
 COPY --chown=node:node --from=build /usr/src/app/node_modules ./node_modules
 COPY --chown=node:node --from=build /usr/src/app/dist ./dist
 
 COPY --chown=node:node backend/package.json ./dist/
-COPY --chown=node:node backend/yarn.lock ./dist/
 
 EXPOSE 8000
 
