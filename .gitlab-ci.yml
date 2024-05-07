@@ -51,12 +51,12 @@ build_frontend:
     - |
       cp $ENV_FILE frontend/.env.production
       docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
-      echo "Building Dockerfile with tags $CI_APPLICATION_REPOSITORY/1694.io:frontend-$CI_APPLICATION_TAG and $CI_APPLICATION_REPOSITORY/www.1694.io:frontend-latest ..."
+      echo "Building Dockerfile with tags $CI_APPLICATION_REPOSITORY/1694.io-frontend:$CI_APPLICATION_TAG and $CI_APPLICATION_REPOSITORY/www.1694.io-frontend:latest ..."
       docker build --network host -f frontend/Dockerfile \
-        -t "$CI_APPLICATION_REPOSITORY/1694.io:frontend-$CI_APPLICATION_TAG" \
-        -t "$CI_APPLICATION_REPOSITORY/1694.io:frontend-latest" .
-      docker push "$CI_APPLICATION_REPOSITORY/1694.io:frontend-$CI_APPLICATION_TAG"
-      docker push "$CI_APPLICATION_REPOSITORY/1694.io:frontend-latest"
+        -t "$CI_APPLICATION_REPOSITORY/1694.io-frontend:$CI_APPLICATION_TAG" \
+        -t "$CI_APPLICATION_REPOSITORY/1694.io-frontend:latest" .
+      docker push "$CI_APPLICATION_REPOSITORY/1694.io-frontend:$CI_APPLICATION_TAG"
+      docker push "$CI_APPLICATION_REPOSITORY/1694.io-frontend:latest"
   only:
     - branches
 
@@ -69,12 +69,12 @@ build_backend:
     - |
       cp $ENV_FILE backend/.env.production
       docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
-      echo "Building Dockerfile with tags $CI_APPLICATION_REPOSITORY/1694.io:backend-$CI_APPLICATION_TAG and $CI_APPLICATION_REPOSITORY/www.1694.io:backend-latest ..."
+      echo "Building Dockerfile with tags $CI_APPLICATION_REPOSITORY/1694.io-backend:$CI_APPLICATION_TAG and $CI_APPLICATION_REPOSITORY/www.1694.io-backend:latest ..."
       docker build --network host -f backend/Dockerfile \
-        -t "$CI_APPLICATION_REPOSITORY/1694.io:backend-$CI_APPLICATION_TAG" \
-        -t "$CI_APPLICATION_REPOSITORY/1694.io:backend-latest" .
-      docker push "$CI_APPLICATION_REPOSITORY/1694.io:backend-$CI_APPLICATION_TAG"
-      docker push "$CI_APPLICATION_REPOSITORY/1694.io:backend-latest"
+        -t "$CI_APPLICATION_REPOSITORY/1694.io-backend:$CI_APPLICATION_TAG" \
+        -t "$CI_APPLICATION_REPOSITORY/1694.io-backend:latest" .
+      docker push "$CI_APPLICATION_REPOSITORY/1694.io-backend:$CI_APPLICATION_TAG"
+      docker push "$CI_APPLICATION_REPOSITORY/1694.io-backend:latest"
   only:
     - branches
 
@@ -115,7 +115,6 @@ staging:
         --timeout 300s \
         --wait \
         --atomic \
-        --set image.repository=$CI_APPLICATION_REPOSITORY/www.1694.io \
         --set image.tag=$CI_APPLICATION_TAG \
         --set secrets.NEXT_PUBLIC_GOOGLE_API="$NEXT_PUBLIC_GOOGLE_API" \
         --set services.ingress.hosts[0]="$AUTO_DEVOPS_WEB_DOMAIN" \
@@ -124,9 +123,9 @@ staging:
     - auto-deploy persist_environment_url
   artifacts:
     paths: [ environment_url.txt ]
-#  needs:
-#    - job: build_frontend
-#    - job: build_backend
+  needs:
+    - job: build_frontend
+    - job: build_backend
   environment:
     name: staging
   only:
