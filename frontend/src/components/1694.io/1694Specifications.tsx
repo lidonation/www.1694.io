@@ -11,12 +11,11 @@ const CIPSpecifications = () => {
             Specification
           </p>
         </div>
-
         <HotLinks />
         <div className="flex items-center justify-center">
           <img src="/building.png" alt="Building" />
         </div>
-        <div className="my-5 flex flex-col gap-5 font-extralight">
+        <div id='the-cardano-constitution' className="my-5 flex flex-col gap-5 font-extralight">
           <p className="text-2xl font-bold">The Cardano Constitution</p>
           <p>
             The Cardano Constitution is a text document that defines Cardano's
@@ -33,7 +32,7 @@ const CIPSpecifications = () => {
           </p>
         </div>
         <Separator />
-        <div className="my-5  flex flex-col gap-5 font-extralight">
+        <div id='the-constitutional-committee' className="my-5  flex flex-col gap-5 font-extralight">
           <p className="text-2xl font-bold">The constitutional committee</p>
           <p>
             We define a constitutional committee which represents a set of
@@ -64,7 +63,7 @@ const CIPSpecifications = () => {
           </p>
         </div>
         <Separator />
-        <div className="my-5  flex flex-col gap-5 font-extralight">
+        <div id='state-of-no-confidence' className="my-5  flex flex-col gap-5 font-extralight">
           <p className="text-2xl font-bold">State of no-confidence</p>
           <p>
             The constitutional committee is considered to be in one of the
@@ -89,7 +88,7 @@ const CIPSpecifications = () => {
           </p>
         </div>
         <Separator />
-        <div className="my-5  flex flex-col gap-5 font-extralight">
+        <div id='replacing-the-constitutional-committee' className="my-5  flex flex-col gap-5 font-extralight">
           <p className="text-2xl font-bold">
             Replacing the constitutional committee
           </p>
@@ -109,7 +108,7 @@ const CIPSpecifications = () => {
           </p>
         </div>
         <Separator />
-        <div className="my-5  flex flex-col gap-5 font-extralight">
+        <div id='size-of-the-constitutional-committee' className="my-5  flex flex-col gap-5 font-extralight">
           <p className="text-2xl font-bold">
             Size of the constitutional committee
           </p>
@@ -133,7 +132,7 @@ const CIPSpecifications = () => {
           </p>
         </div>
         <Separator />
-        <div className="my-5  flex flex-col gap-5 font-extralight">
+        <div id='term-limits' className="my-5  flex flex-col gap-5 font-extralight">
           <p className="text-2xl font-bold">Terms</p>
           <p>
             Each newly elected constitutional committee will have a term.

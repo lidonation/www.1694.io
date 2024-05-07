@@ -3,11 +3,11 @@ import React from 'react';
 const CIPRationale = () => {
   return (
     <div className="bg-blue-800">
-      <div className="container flex w-full flex-col gap-5 py-10">
+      <div className="max-w-3xl mx-auto flex w-full flex-col gap-5 py-10">
         <div>
           <p className="text-start text-5xl font-bold text-white">Rationale</p>
         </div>
-        <div className="mx-auto flex max-w-3xl flex-col items-center justify-center gap-8 text-white">
+        <div className="flex  flex-col items-center justify-center gap-8 text-white">
           <ul className="ml-5 flex list-disc flex-col gap-1">
             <li>Role of the constitutional committee</li>
             <li>Intentional omission of identity verification</li>
