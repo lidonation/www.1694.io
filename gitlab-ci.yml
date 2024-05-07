@@ -1,0 +1,151 @@
+variables:
+  AUTO_DEPLOY_IMAGE_VERSION: v2.50.0
+  CI_TEMPLATE_REGISTRY_HOST: registry.gitlab.com
+  DOCKER_TLS_CERTDIR: ""
+  DOCKER_HOST: tcp://docker:2375/
+  DOCKER_DRIVER: overlay2
+  HELM_VERSION: 3.10.2
+  KUBE_CONTEXT: voltaire/www.1694.io:1694
+  KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: gitlab-admin
+  KUBERNETES_VERSION: 1.24.9
+
+stages:
+  - .pre
+  - build
+  - test
+  - production
+  - .post
+
+before_script:
+  - |
+    export APP_VERSION=$(awk '/version/{gsub(/("|",)/,"",$2);print $2};' frontend/package.json)
+    export APP_VERSION_AND_BUILD="${APP_VERSION}-${CI_PIPELINE_ID}"
+    export CI_APPLICATION_REPOSITORY=$CI_REGISTRY_IMAGE
+    export CI_APPLICATION_TAG=$APP_VERSION_AND_BUILD
+
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - ./node_modules
+
+services:
+  - name: docker:dind
+    alias: docker
+    command: ["--tls=false"]
+
+.auto-deploy:
+  image: "${CI_TEMPLATE_REGISTRY_HOST}/gitlab-org/cluster-integration/auto-deploy-image:${AUTO_DEPLOY_IMAGE_VERSION}"
+  dependencies: []
+
+.setup: &setup
+  - apk add --no-cache ca-certificates curl bash openssl git
+  - curl -LO https://dl.k8s.io/release/v1.25.9/bin/linux/amd64/kubectl && chmod +x kubectl && mv kubectl /usr/local/bin/kubectl
+  - curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 && chmod 700 get_helm.sh && DESIRED_VERSION=v$HELM_VERSION ./get_helm.sh
+  - kubectl config get-contexts
+  - kubectl config use-context voltaire/www.1694.io:1694
+
+build_frontend:
+  stage: build
+  image: docker:24.0.2-git
+  artifacts:
+    paths:
+      - .env.production
+    untracked: true
+    when: on_success
+    expire_in: "3 days"
+  retry: 2
+  script:
+    - *setup
+    - |
+      cp $ENV_FILE .env.production      
+      docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+      echo "Building Dockerfile with tags $CI_APPLICATION_REPOSITORY/1694.io:frontend-$CI_APPLICATION_TAG and $CI_APPLICATION_REPOSITORY/www.1694.io:latest ..."
+      docker build --network host -f Dockerfile \
+        -t "$CI_APPLICATION_REPOSITORY/1694.io:frontend-$CI_APPLICATION_TAG" \
+        -t "$CI_APPLICATION_REPOSITORY/1694.io:frontend-latest" .
+      docker push "$CI_APPLICATION_REPOSITORY/1694.io:frontend-$CI_APPLICATION_TAG"
+      docker push "$CI_APPLICATION_REPOSITORY/1694.io:frontend-latest"
+  only:
+    - branches
+
+build_backend:
+  stage: build
+  image: docker:24.0.2-git
+  artifacts:
+    paths:
+      - .env.production
+    untracked: true
+    when: on_success
+    expire_in: "3 days"
+  retry: 2
+  script:
+    - *setup
+    - |
+      cp $ENV_FILE .env.production      
+      docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+      echo "Building Dockerfile with tags $CI_APPLICATION_REPOSITORY/1694.io:backend-$CI_APPLICATION_TAG and $CI_APPLICATION_REPOSITORY/www.1694.io:latest ..."
+      docker build --network host -f Dockerfile \
+        -t "$CI_APPLICATION_REPOSITORY/1694.io:backend-$CI_APPLICATION_TAG" \
+        -t "$CI_APPLICATION_REPOSITORY/1694.io:backend-latest" .
+      docker push "$CI_APPLICATION_REPOSITORY/1694.io:backend-$CI_APPLICATION_TAG"
+      docker push "$CI_APPLICATION_REPOSITORY/1694.io:backend-latest"
+  only:
+    - branches
+
+
+# Keys that start with a dot (.) will not be processed by GitLab CI.
+# Staging and canary jobs are disabled by default, to enable them
+# remove the dot (.) before the job name.
+# https://docs.gitlab.com/ee/ci/yaml/README.html#hidden-keys
+
+# Staging deploys are disabled by default since
+# continuous deployment to production is enabled by default
+# If you prefer to automatically deploy to staging and
+# only manually promote to production, enable this job by setting
+# STAGING_ENABLED.
+.production: &production_template
+  stage: production
+  image: "${CI_TEMPLATE_REGISTRY_HOST}/gitlab-org/cluster-integration/auto-deploy-image:${AUTO_DEPLOY_IMAGE_VERSION}"
+  retry: 1
+  script:
+    - auto-deploy check_kube_domain
+    # - auto-deploy ensure_namespace
+    - auto-deploy download_chart
+    # - auto-deploy create_secret
+    - |
+      DEPLOYMENT_NAME="www-1694.$CI_ENVIRONMENT_SLUG"
+      helm upgrade $DEPLOYMENT_NAME ./chart --install \
+        -f ./chart/values.yaml \
+        --timeout 300s \
+        --wait \
+        --atomic \
+        --set image.repository=$CI_APPLICATION_REPOSITORY/www.1694.io \
+        --set image.tag=$CI_APPLICATION_TAG \
+        --set secrets.NEXT_PUBLIC_GOOGLE_API="$NEXT_PUBLIC_GOOGLE_API" \
+        --namespace="$KUBE_NAMESPACE" \
+        --create-namespace
+    - auto-deploy persist_environment_url
+  artifacts:
+    paths: [environment_url.txt]
+
+staging:
+  <<: *production_template
+  environment:
+    name: staging
+  except:
+    variables:
+      - $STAGING_ENABLED
+      - $INCREMENTAL_ROLLOUT_ENABLED
+
+
+production:
+  <<: *production_template
+  environment:
+    name: production
+  only:
+    refs:
+      - main
+  except:
+    variables:
+      - $STAGING_ENABLED
+      - $INCREMENTAL_ROLLOUT_ENABLED
