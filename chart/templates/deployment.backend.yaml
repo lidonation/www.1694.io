@@ -5,6 +5,7 @@ metadata:
   namespace: {{ .Values.namespace }}
   labels:
     app: "nestjs"
+    service: "{{ .Values.backend.labels.service }}"
 spec:
   selector:
     matchLabels:
@@ -28,6 +29,9 @@ spec:
         - name: app
           image: "{{ .Values.backend.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          envFrom:
+            - secretRef:
+                name: "{{ $.Chart.Name }}-secrets"
           livenessProbe:
             httpGet:
               path: /live
@@ -47,9 +51,6 @@ spec:
             requests:
               cpu: 50m
               memory: 256Mi
-          envFrom:
-            - secretRef:
-                name: "{{ $.Chart.Name }}-secrets"
           ports:
             - name: backend
               containerPort: 8000

@@ -5,6 +5,7 @@ metadata:
   namespace: {{ .Values.namespace }}
   labels:
     app: "nextjs"
+    service: "{{ .Values.frontend.labels.service }}"
 spec:
   selector:
     matchLabels:
@@ -19,14 +20,14 @@ spec:
   template:
     metadata:
       labels:
-        app: "{{ $.Chart.Name }}"
+        app: "nextjs"
         service: "{{ .Values.frontend.labels.service }}"
     spec:
       imagePullSecrets:
         - name: {{ .Values.image.pullSecret }}
       containers:
         - name: app
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          image: "{{ .Values.frontend.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
             - name: NEXT_PUBLIC_GOOGLE_API
