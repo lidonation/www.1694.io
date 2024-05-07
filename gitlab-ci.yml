@@ -10,7 +10,6 @@ variables:
   KUBERNETES_VERSION: 1.24.9
 
 stages:
-  - .pre
   - build
   - staging
   - production
@@ -117,6 +116,9 @@ build_backend:
 
 staging:
   <<: *production_template
+  needs:
+    - job: build_frontend
+    - job: build_backend
   environment:
     name: staging
   except:
@@ -129,6 +131,8 @@ production:
   <<: *production_template
   environment:
     name: production
+  needs:
+    - job: staging
   only:
     refs:
       - main
