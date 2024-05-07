@@ -4,12 +4,12 @@ import Separator from './Separator';
 
 const CIPChangelog = () => {
   return (
-    <div className="bg-gradient-to-b from-[#E9EFFF] to-[#FFFFFF] text-black">
-      <div className="container w-full py-10">
-        <div className="text-start">
-          <p className="text-5xl font-bold">Changelog</p>
-        </div>
-        <HotLinks />
+    <div className="bg-gradient-to-b from-[#E9EFFF] to-[#FFFFFF] py-10 text-black">
+      <div className="container text-start">
+        <p className="text-5xl font-bold">Changelog</p>
+      </div>
+      <HotLinks />
+      <div className="container w-full ">
         <div className="flex max-w-3xl flex-col gap-8">
           <section className="flex flex-col gap-4">
             <p className="text-2xl font-bold">
