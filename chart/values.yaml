@@ -83,7 +83,7 @@ backend:
   labels:
     service: backend
   image:
-    repository: registry.lidonation.com/voltaire/api.1694.io-backend
+    repository: registry.lidonation.com/voltaire/www.1694.io-backend
   ingress:
     path: /api
     tls:
