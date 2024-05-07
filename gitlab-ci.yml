@@ -12,9 +12,8 @@ variables:
 stages:
   - .pre
   - build
-  - test
+  - staging
   - production
-  - .post
 
 before_script:
   - |
