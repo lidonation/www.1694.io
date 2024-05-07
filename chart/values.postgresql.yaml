@@ -25,7 +25,7 @@ global:
       postgresPassword: ""
       username: "sancho"
       password: ""
-      database: "cexplorer"
+      database: "1694"
       existingSecret: ""
     ## @param global.postgresql.service.ports.postgresql PostgreSQL service port (overrides `service.ports.postgresql`)
     ##

@@ -12,7 +12,7 @@ services:
       PORT: 8000
       DATABASE_HOST: web_db # Link to the database service by name
       DATABASE_NAME: 1694
-      DATABASE_USERNAME: postgres
+      DATABASE_USERNAME: voltaire
       DATABASE_PASSWORD: postgres
       NODE_ENV: development # Set node environment to development
     volumes: # Mount points for persistent data and source code
