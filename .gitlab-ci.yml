@@ -97,14 +97,10 @@ staging:
       auto-deploy check_kube_domain
       auto-deploy download_chart
       DEPLOYMENT_NAME="www-1694.$CI_ENVIRONMENT_SLUG"
-       helm template ./chart --debug \
-        -f ./chart/values.yaml \
-        --timeout 300s \
-        --wait \
-        --atomic \
+      helm template ./chart --debug \
+        -f ./chart/values.yaml \        
         --set image.repository=$CI_APPLICATION_REPOSITORY/www.1694.io \
         --set image.tag=$CI_APPLICATION_TAG \
-        --set secrets.NEXT_PUBLIC_GOOGLE_API="$NEXT_PUBLIC_GOOGLE_API" \
         --set services.ingress.hosts[0]="$AUTO_DEVOPS_WEB_DOMAIN" \
         --namespace="$KUBE_NAMESPACE" \
         --create-namespace
