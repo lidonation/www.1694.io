@@ -101,7 +101,7 @@ staging:
       
       kubectl create secret docker-registry 1694-registry-deploy-token \
         --namespace="$KUBE_NAMESPACE" \
-        --docker-server=https://registry.gitlab.com \
+        --docker-server=registry.lidonation.com \
         --docker-username=$CI_REGISTRY_USER \
         --docker-password=$CI_REGISTRY_PASSWORD \
         --docker-email=$REGISTRY_EMAIL      
