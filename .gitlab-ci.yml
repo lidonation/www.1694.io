@@ -8,6 +8,15 @@ variables:
   KUBE_CONTEXT: voltaire/www.1694.io:1694
   KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: gitlab-admin
   KUBERNETES_VERSION: 1.24.9
+  DEPLOY_CARDANO_DBSYNC:
+    value: "false"
+    description: "Install cardano dbsync services (ogmios, hasura, postgres, grapql)"
+  DEPLOY_INFRA:
+    value: "false"
+    description: "Install infrastructure services (redis, db-sync)"
+  DEPLOY_WEBSITE:
+    value: "true"
+    description: "Build and deploy www.lidonation.com"
 
 stages:
   - build
@@ -41,6 +50,43 @@ services:
   - curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 && chmod 700 get_helm.sh && DESIRED_VERSION=v$HELM_VERSION ./get_helm.sh
   - kubectl config get-contexts
   - kubectl config use-context voltaire/www.1694.io:1694
+
+.infra_rules: &infra_rules
+  - if: '$CI_COMMIT_BRANCH == "main" &&
+      ($DEPLOY_INFRA == "true")'
+    when: manual
+  - if: '$CI_COMMIT_BRANCH != "main" &&
+      ($DEPLOY_INFRA == "true")'
+    when: manual
+
+.deploy_template: &deploy_template
+  image: alpine:3.16.1
+  retry: 0
+  cache: {}
+
+.deploy_postgres_web_script: &deploy_postgres_web_script
+  <<: *deploy_template
+  script:
+    - |
+      helm repo add bitnami https://charts.bitnami.com/bitnami
+      helm repo update
+
+      echo "install postgres for web"
+      helm upgrade --install \
+          --timeout 300s \
+          --wait \
+          --atomic \
+          --namespace="$KUBE_NAMESPACE" \
+          --create-namespace \
+          -f ./chart/values.postgresql.yaml \
+          --set global.postgresql.auth.database="$POSTGRESQL_WEB_DB" \
+          --set global.postgresql.auth.username="$POSTGRESQL_WEB_USER" \
+          --set global.postgresql.auth.password="$POSTGRESQL_WEB_PASSWORD" \
+          --set global.postgresql.auth.postgresPassword="$POSTGRESQL_WEB_POSTGRES_PASSWORD" \
+          --set primary.persistence.size="20Gi" \
+          lidolovelace-web-db \
+          bitnami/postgresql
+  rules: *infra_rules
 
 build_frontend:
   stage: build
@@ -78,12 +124,19 @@ build_backend:
   only:
     - branches
 
+.deploy_postgres_web: &deploy_postgres_web
+  <<: *deploy_template
+  script:
+    - *setup
+    - deploy_postgres_web_script
+  rules: *infra_rules
 
-# Keys that start with a dot (.) will not be processed by GitLab CI.
-# Staging and canary jobs are disabled by default, to enable them
-# remove the dot (.) before the job name.
-# https://docs.gitlab.com/ee/ci/yaml/README.html#hidden-keys
-
+postgres-web-staging:
+  <<: *deploy_postgres_web
+  stage: staging
+  needs: []
+  environment:
+    name: staging
 
 staging:
   image: "${CI_TEMPLATE_REGISTRY_HOST}/gitlab-org/cluster-integration/auto-deploy-image:${AUTO_DEPLOY_IMAGE_VERSION}"
