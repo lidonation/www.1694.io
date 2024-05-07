@@ -37,8 +37,6 @@ COPY --chown=node:node --from=dependencies /usr/src/app/node_modules ./node_modu
 
 COPY --chown=node:node ./backend .
 
-USER node
-
 RUN yarn run build
 
 RUN yarn cache clean
@@ -59,5 +57,7 @@ COPY --chown=node:node backend/package.json ./dist/
 EXPOSE 8000
 
 ENV HOSTNAME "0.0.0.0"
+
+USER node
 
 CMD [ "node", "dist/main.js" ]
