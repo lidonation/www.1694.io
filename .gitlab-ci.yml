@@ -49,7 +49,7 @@ build_frontend:
   script:
     - *setup
     - |
-      cp $ENV_FILE .env.production      
+      cp $ENV_FILE frontend/.env.production      
       docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
       echo "Building Dockerfile with tags $CI_APPLICATION_REPOSITORY/1694.io:frontend-$CI_APPLICATION_TAG and $CI_APPLICATION_REPOSITORY/www.1694.io:latest ..."
       docker build --network host -f Dockerfile \
@@ -67,7 +67,7 @@ build_backend:
   script:
     - *setup
     - |
-      cp $ENV_FILE .env.production      
+      cp $ENV_FILE backend/.env.production      
       docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
       echo "Building Dockerfile with tags $CI_APPLICATION_REPOSITORY/1694.io:backend-$CI_APPLICATION_TAG and $CI_APPLICATION_REPOSITORY/www.1694.io:latest ..."
       docker build --network host -f Dockerfile \
@@ -118,6 +118,7 @@ build_backend:
 
 staging:
   <<: *production_template
+  stage: staging
   needs:
     - job: build_frontend
     - job: build_backend
