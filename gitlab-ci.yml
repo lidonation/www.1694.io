@@ -46,12 +46,6 @@ services:
 build_frontend:
   stage: build
   image: docker:24.0.2-git
-  artifacts:
-    paths:
-      - .env.production
-    untracked: true
-    when: on_success
-    expire_in: "3 days"
   retry: 2
   script:
     - *setup
@@ -70,12 +64,6 @@ build_frontend:
 build_backend:
   stage: build
   image: docker:24.0.2-git
-  artifacts:
-    paths:
-      - .env.production
-    untracked: true
-    when: on_success
-    expire_in: "3 days"
   retry: 2
   script:
     - *setup
