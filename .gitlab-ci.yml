@@ -99,6 +99,8 @@ staging:
       
       DEPLOYMENT_NAME="www-1694.$CI_ENVIRONMENT_SLUG"
       
+      kubectl delete secret 1694-registry-deploy-token --ignore-not-found --namespace="$KUBE_NAMESPACE"
+      
       kubectl create secret docker-registry 1694-registry-deploy-token \
         --namespace="$KUBE_NAMESPACE" \
         --docker-server=registry.lidonation.com \
