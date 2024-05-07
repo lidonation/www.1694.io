@@ -33,7 +33,7 @@ COPY --chown=node:node --from=dependencies /usr/src/app/node_modules ./node_modu
 
 COPY --chown=node:node ./backend .
 
-RUN yarn build
+RUN npx nest build
 
 ENV NODE_ENV production
 
