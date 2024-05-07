@@ -123,10 +123,8 @@ staging:
     - job: build_backend
   environment:
     name: staging
-  except:
-    variables:
-      - $STAGING_ENABLED
-      - $INCREMENTAL_ROLLOUT_ENABLED
+  only:
+    - branches
 
 
 production:
