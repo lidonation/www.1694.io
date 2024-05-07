@@ -46,9 +46,11 @@ ingress:
     traefik.ingress.kubernetes.io/router.middlewares: "traefik-redirect-http-to-https@kubernetescrd,traefik-default-headers@kubernetescrd"
   }
   hosts:
-    - '*.1694.io'
+    - 'www.1694.io'
   tls:
     secretName: wildcard-1694-tls
+    hosts:
+      - '*.1694.io'
 
 labels:
   domain: 1694.io
