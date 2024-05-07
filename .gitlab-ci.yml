@@ -128,7 +128,7 @@ build_backend:
   <<: *deploy_template
   script:
     - *setup
-    - deploy_postgres_web_script
+    - *deploy_postgres_web_script
   rules: *infra_rules
 
 postgres-web-staging:
