@@ -32,4 +32,4 @@ spec:
                 name: "{{ $.Chart.Name }}-backend-service"
                 port:
                   number: 80
-    {{- end }}
+  {{- end }}
