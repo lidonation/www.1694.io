@@ -48,9 +48,9 @@ ingress:
   hosts:
     - www.1694.io
   tls:
-    secretName: wildcard-1694-tls
-    hosts:
-      - '*.1694.io'
+    - secretName: wildcard-1694-tls
+      hosts:
+        - '*.1694.io'
 
 labels:
   domain: 1694.io

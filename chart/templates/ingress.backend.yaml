@@ -13,11 +13,16 @@ metadata:
     {{- end }}
 spec:
   tls:
+  {{- range .Values.ingress.tls }}
     - hosts:
-        - {{ .Values.ingress.host }}
-      secretName: {{ .Values.ingress.tls.secretName }}
+    {{- range .hosts }}
+      - {{ . }}
+    {{- end }}
+      secretName: {{ .secretName }}
+  {{- end }}
   rules:
-    - host: {{ .Values.ingress.host }}
+  {{- range .Values.ingress.hosts }}
+    - host: {{ . }}
       http:
         paths:
           - path: /api
@@ -27,3 +32,4 @@ spec:
                 name: "{{ $.Chart.Name }}-backend-service"
                 port:
                   number: 80
+    {{- end }}

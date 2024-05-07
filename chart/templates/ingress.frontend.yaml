@@ -13,17 +13,23 @@ metadata:
     {{- end }}
 spec:
   tls:
-    - hosts:
-        - {{ .Values.ingress.host }}
-      secretName: {{ .Values.ingress.tls.secretName }}
+  {{- range .Values.ingress.tls }}
+  - hosts:
+  {{- range .hosts }}
+  - {{ . }}
+  {{- end }}
+  secretName: {{ .secretName }}
+  {{- end }}
   rules:
-    - host: {{ .Values.ingress.host }}
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: "{{ $.Chart.Name }}-frontend-service"
-                port:
-                  number: 80
+  {{- range .Values.ingress.hosts }}
+  - host: {{ . }}
+    http:
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: "{{ $.Chart.Name }}-frontend-service"
+              port:
+                number: 80
+  {{- end }}
