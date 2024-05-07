@@ -50,8 +50,8 @@ FROM base As production
 COPY --chown=node:node --from=build /usr/src/app/node_modules ./node_modules
 COPY --chown=node:node --from=build /usr/src/app/dist ./dist
 
-COPY --chown=node:node package.json ./dist/
-COPY --chown=node:node yarn.lock ./dist/
+COPY --chown=node:node backend/package.json ./dist/
+COPY --chown=node:node backend/yarn.lock ./dist/
 
 EXPOSE 8000
 
