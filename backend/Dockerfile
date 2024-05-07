@@ -21,9 +21,9 @@ RUN \
   fi
 
 
-###################
+#######################
 # BUILD FOR PRODUCTION
-###################
+#######################
 FROM base As build
 
 WORKDIR /usr/src/app
@@ -52,9 +52,9 @@ ENV NODE_ENV production
 WORKDIR /usr/src/app
 
 COPY --chown=node:node --from=build /usr/src/app/node_modules ./node_modules
-COPY --chown=node:node --from=build /usr/src/app/dist ./dist
+COPY --chown=node:node --from=build /usr/src/app/dist ./
 
-COPY --chown=node:node backend/package.json ./dist/
+COPY --chown=node:node backend/package.json ./
 
 EXPOSE 8000
 
@@ -62,4 +62,4 @@ ENV HOSTNAME "0.0.0.0"
 
 USER node
 
-CMD [ "node", "dist/main.js" ]
+CMD [ "node", "main.js" ]
