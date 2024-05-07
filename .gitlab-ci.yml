@@ -77,12 +77,10 @@ services:
           --namespace="$KUBE_NAMESPACE" \
           --create-namespace \
           -f ./chart/values.postgresql.yaml \
-          --set global.postgresql.auth.database="$POSTGRESQL_WEB_DB" \
-          --set global.postgresql.auth.username="$POSTGRESQL_WEB_USER" \
           --set global.postgresql.auth.password="$POSTGRESQL_WEB_PASSWORD" \
           --set global.postgresql.auth.postgresPassword="$POSTGRESQL_WEB_POSTGRES_PASSWORD" \
           --set primary.persistence.size="20Gi" \
-          lidolovelace-web-db \
+          $DEPLOYMENT_NAME-web-db \
           bitnami/postgresql
 
 build_frontend:
