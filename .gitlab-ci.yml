@@ -89,10 +89,7 @@ staging:
   image: "${CI_TEMPLATE_REGISTRY_HOST}/gitlab-org/cluster-integration/auto-deploy-image:${AUTO_DEPLOY_IMAGE_VERSION}"
   stage: staging
   script:
-    # - auto-deploy check_kube_domain
     # - auto-deploy ensure_namespace
-    # - auto-deploy download_chart
-    # - auto-deploy create_secret
     - |
       set -xev
       
@@ -109,6 +106,7 @@ staging:
       
       auto-deploy check_kube_domain
       auto-deploy download_chart
+      auto-deploy create_secret
       
       helm upgrade $DEPLOYMENT_NAME ./chart --install \
         -f ./chart/values.yaml \
@@ -138,10 +136,7 @@ production:
   environment:
     name: production
   script:
-    # - auto-deploy check_kube_domain
     # - auto-deploy ensure_namespace
-    # - auto-deploy download_chart
-    # - auto-deploy create_secret
     - |
       auto-deploy check_kube_domain
       auto-deploy download_chart
@@ -164,10 +159,7 @@ production:
     paths: [ environment_url.txt ]
   needs:
     - job: staging
-  only:
-    refs:
-      - main
-  except:
-    variables:
-      - $STAGING_ENABLED
-      - $INCREMENTAL_ROLLOUT_ENABLED
+  rules:
+    - if: $CI_COMMIT_BRANCH == 'main'
+      when: manual
+
