@@ -101,8 +101,8 @@ staging:
       
       kubectl create secret docker-registry 1694-registry-deploy-token \
         --docker-server=https://registry.gitlab.com \
-        --docker-username=$REGISTRY_USERNAME \
-        --docker-password=$REGISTRY_PASSWORD \
+        --docker-username=$CI_REGISTRY_USER \
+        --docker-password=$CI_REGISTRY_PASSWORD \
         --docker-email=$REGISTRY_EMAIL      
       
       # helm template ./chart --debug \
