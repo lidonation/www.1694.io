@@ -10,9 +10,6 @@ import {
   DeleteDateColumn,
 } from 'typeorm';
 import { Drep } from './drep.entity';
-import { Attachment } from './attachment.entity';
-import { Comment } from './comment.entity';
-import { Reaction } from './reaction.entity';
 
 @Entity()
 export class Note {
@@ -31,15 +28,6 @@ export class Note {
 
   @ManyToOne(() => Drep, (drep) => drep.voter_id)
   voter: Drep;
-
-  @OneToMany(() => Comment, (comment) => comment.note)
-  comments: Comment[];
-
-  @ManyToMany(() => Reaction, (reaction) => reaction.note)
-  reactions: string;
-
-  @ManyToMany(() => Attachment, (attachment) => attachment.notes)
-  attachments: Attachment[];
 
   @Column()
   note_visibility: string;

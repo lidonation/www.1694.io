@@ -1,5 +1,4 @@
 import { Attachment } from "src/entities/attachment.entity";
-import { AttachmentType } from "src/entities/attachmenttype.entity";
 import { Comment } from "src/entities/comment.entity";
 import { Delegator } from "src/entities/delegator.entity";
 import { Drep  } from "src/entities/drep.entity";
@@ -15,7 +14,7 @@ const configVoltaire: PostgresConnectionOptions = {
   port: 5432,
   username: "postgres",
   password: "postgres",
-  entities: [Drep, Note,Attachment, AttachmentType, Delegator, Comment, Reaction],
+  entities: [Drep, Note,Attachment, Delegator, Comment, Reaction],
   //Setting to true will update in real time for dev envt only. In prod, risks loss of data
   synchronize: true,
 };

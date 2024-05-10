@@ -10,7 +10,7 @@ const CIPGovernanceActions = () => {
   return (
     <div className="bg-gradient-to-b from-[#E9EFFF] to-[#FFFFFF]">
       <div className="container flex w-full flex-col items-center justify-center py-10">
-        <div id='governance-actions' className="w-full">
+        <div id="governance-actions" className="w-full">
           <p className="text-start text-5xl font-bold text-zinc-800">
             Governance actions
           </p>
@@ -68,7 +68,7 @@ const CIPGovernanceActions = () => {
             />
           </section>
           <Separator />
-          <section id='ratification' className="my-5 flex flex-col gap-6">
+          <section id="ratification" className="my-5 flex flex-col gap-6">
             <p className="text-xl font-bold">Ratification</p>
             <p>
               Governance actions are ratified through on-chain voting actions.
@@ -112,7 +112,9 @@ const CIPGovernanceActions = () => {
               enacting a hard-fork do not have unintended consequences in
               combination with other actions.
             </p>
-            <p id='requirements' className="text-lg font-extrabold">Requirements</p>
+            <p id="requirements" className="text-lg font-extrabold">
+              Requirements
+            </p>
             <p>
               The following table details the ratification requirements for each
               governance action scenario. The columns represent:
@@ -180,7 +182,9 @@ const CIPGovernanceActions = () => {
               type="info"
               text="To achieve legitimacy, the minimum acceptable threshold should be no less than 50% of the delegated stake."
             />
-            <p id='restrictions' className="text-2xl font-bold text-zinc-800">Restrictions</p>
+            <p id="restrictions" className="text-2xl font-bold text-zinc-800">
+              Restrictions
+            </p>
             <p>
               Apart from Treasury withdrawals and Infos, we include a mechanism
               for ensuring that governance actions of the same type do not
@@ -192,7 +196,9 @@ const CIPGovernanceActions = () => {
               that two actions of the same type can be enacted at the same time,
               but they must be deliberately designed to do so.
             </p>
-            <p id='enactment' className="text-2xl font-bold text-zinc-800">Enactment</p>
+            <p id="enactment" className="text-2xl font-bold text-zinc-800">
+              Enactment
+            </p>
             <p>
               Actions that have been ratified in the current epoch are
               prioritised as follows for enactment:
@@ -235,7 +241,9 @@ const CIPGovernanceActions = () => {
               All governance actions are enacted on the epoch boundary after
               their ratification.
             </p>
-            <p id='lifecycle' className="text-2xl font-bold text-zinc-800">Lifecycle</p>
+            <p id="lifecycle" className="text-2xl font-bold text-zinc-800">
+              Lifecycle
+            </p>
             <p>Every governance action will include the following:</p>
             <ul className="ml-8 flex list-decimal flex-col gap-2">
               <li>
@@ -270,7 +278,9 @@ const CIPGovernanceActions = () => {
               consisting of the transaction hash that created it and the index
               within the transaction body that points to it.
             </p>
-            <p id='protocol-parameter-groups' className="text-2xl font-bold">Protocol Parameter Groups</p>
+            <p id="protocol-parameter-groups" className="text-2xl font-bold">
+              Protocol Parameter Groups
+            </p>
             <p>
               We have grouped the protocol parameter changes by type, allowing
               different thresholds to be set for each group.
@@ -361,7 +371,9 @@ const CIPGovernanceActions = () => {
                 members (ccMaxTermLength)
               </li>
             </ul>
-            <p id='votes' className="text-2xl font-bold">Votes</p>
+            <p id="votes" className="text-2xl font-bold">
+              Votes
+            </p>
             <p>Each vote transaction consists of the following:</p>
             <ul className="ml-5 flex list-disc flex-col gap-2">
               <li>a governance action ID</li>
@@ -398,7 +410,9 @@ const CIPGovernanceActions = () => {
               governance action is ratified, voting ends and transactions
               containing further votes are invalid.
             </p>
-            <p id='governance-state' className="text-2xl font-bold">Governance State</p>
+            <p id="governance-state" className="text-2xl font-bold">
+              Governance State
+            </p>
             <p>
               When a governance action is successfully submitted to the chain,
               its progress will be tracked by the ledger state. In particular,
@@ -424,7 +438,12 @@ const CIPGovernanceActions = () => {
                 the total 'Yes'/'No'/'Abstain' votes of the SPOs for this action
               </li>
             </ul>
-            <p id='changes-to-the-stake-snapshot' className="text-2xl font-bold">Changes to the stake snapshot</p>
+            <p
+              id="changes-to-the-stake-snapshot"
+              className="text-2xl font-bold"
+            >
+              Changes to the stake snapshot
+            </p>
             <p>
               Since the stake snapshot changes at each epoch boundary, a new
               tally must be calculated when each unratified governance action is
@@ -432,7 +451,10 @@ const CIPGovernanceActions = () => {
               enacted even though the DRep or SPO votes have not changed (since
               the vote delegation could have changed).
             </p>
-            <p id='definitions-relating-to-voting-stake' className="text-2xl font-bold">
+            <p
+              id="definitions-relating-to-voting-stake"
+              className="text-2xl font-bold"
+            >
               Definitions related to voting stake
             </p>
             <p>We define a number of new terms related to voting stake:</p>

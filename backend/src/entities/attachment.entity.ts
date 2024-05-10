@@ -7,8 +7,17 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { AttachmentType } from './attachmenttype.entity';
 import { Note } from './note.entity';
+enum AttachmentTypeName {
+  Link = 'link',
+  PDF = 'pdf',
+  JPG = 'jpg',
+  PNG = 'png',
+  WEBP = 'webp',
+  GIF = 'gif',
+  SVG = 'svg',
+}
+
 
 @Entity()
 export class Attachment {
@@ -19,14 +28,15 @@ export class Attachment {
   @Column({ unique: true, nullable: false })
   url: string;
 
-  @ManyToMany(() => Note, (note) => note.attachments)
-  notes: Note[];
+  @ManyToOne(() => Note, (note) => note.id)
+  noteId: Note[];
 
-  @ManyToOne(
-    () => AttachmentType,
-    (attachmentType) => attachmentType.attachments,
-  )
-  attachmentType: AttachmentType;
+  @Column({
+    type: 'enum',
+    enum: AttachmentTypeName,
+    default: AttachmentTypeName.Link, // Set default value if needed
+  })
+  attachmentType: AttachmentTypeName;
 
   @CreateDateColumn()
   createdAt: Date;

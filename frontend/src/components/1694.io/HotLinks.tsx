@@ -99,7 +99,9 @@ const HotLinks = ({ seethrough }: HotLinksProps) => {
     },
   ];
   return (
-    <div className={`my-5 bg-white ${seethrough ? 'bg-opacity-50' : ''}  w-screen`}>
+    <div
+      className={`my-5 bg-white ${seethrough ? 'bg-opacity-50' : ''}  w-screen`}
+    >
       <div
         className={`flex w-full flex-row flex-wrap items-center justify-center gap-3 p-8`}
       >
@@ -110,7 +112,9 @@ const HotLinks = ({ seethrough }: HotLinksProps) => {
               key={item.title}
               className="flex w-fit items-center justify-center rounded-2xl bg-blue-100 px-2 py-1"
             >
-              <a href={item.link} className="text-nowrap text-sm text-black">{item.title}</a>
+              <a href={item.link} className="text-nowrap text-sm text-black">
+                {item.title}
+              </a>
             </div>
           ))}
       </div>

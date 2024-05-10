@@ -34,7 +34,7 @@ const Page = () => {
           )
         ).json();
         setRaw(cip);
-        setComments(comments)
+        setComments(comments);
       } catch (error) {
         console.error('Error fetching Markdown:', error);
       }
@@ -50,7 +50,7 @@ const Page = () => {
         <CIPIntro />
         <CIPInfo />
         <CIPMotivationInfo />
-        <ConversationsCard conversations={comments}/>
+        <ConversationsCard conversations={comments} />
         <CIPSpecifications />
         <CIPDRepInfo />
         <CIPGovernanceActions />
@@ -58,8 +58,8 @@ const Page = () => {
         <CIPChangelog />
         <CIPPathtoactive />
         <CIPAcknowledgments />
-        <CopyRight/>
-        <Footer/>
+        <CopyRight />
+        <Footer />
       </Background>
     </div>
   );

@@ -10,7 +10,10 @@ import {
 } from 'typeorm';
 import { Note } from './note.entity';
 import { Delegator } from './delegator.entity';
-
+enum ParentEntityType {
+  Note = 'note',
+  Comment = 'comment',
+}
 @Entity()
 export class Comment {
   @PrimaryGeneratedColumn()
@@ -19,14 +22,24 @@ export class Comment {
   @Column()
   content: string;
 
-  @ManyToOne(() => Note, (note) => note.comments)
+  @Column({
+    type: 'enum',
+    enum: ParentEntityType,
+    default: ParentEntityType.Note, // Set default value if needed
+  })
+  parentEntity: ParentEntityType;
+
+  @Column({ type: 'int', nullable: false })
+  parentId: number;
+
+  @ManyToOne(() => Note, (note) => note.id) // Many-to-One relationship with Note
   note: Note;
 
-  @ManyToOne(() => Delegator, (delegator) => delegator.comments) // Many-to-One relationship with Delegator
-  delegator: Delegator;
+  @ManyToOne(() => Comment, (comment) => comment.id) // Many-to-One relationship with Comment
+  comment: Comment;
 
-  @ManyToMany(() => Delegator)
-  reactions: Delegator[];
+  @ManyToOne(() => Delegator, (delegator) => delegator.id) // Many-to-One relationship with Delegator
+  delegator: Delegator;
 
   @CreateDateColumn()
   createdAt: Date;

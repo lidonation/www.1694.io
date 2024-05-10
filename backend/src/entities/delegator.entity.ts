@@ -4,33 +4,19 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToMany,
-  ManyToMany,
 } from 'typeorm';
-import { Comment } from './comment.entity';
-import { Reaction } from './reaction.entity';
-import { Note } from './note.entity';
 
 @Entity()
 export class Delegator {
-  //delegator
-  //auto increment primary key decorator
   @PrimaryGeneratedColumn()
   id: number;
-  //Human readable name for the entity
+
   @Column({ unique: true, nullable: false })
   name: string;
 
-  @Column({ nullable: false })
-  wallet_addr: string;
-  //a delegator can have many comments
-  @OneToMany(() => Comment, (comment) => comment.delegator)
-  comments: Comment[];
-  //a delegator can have many rxns but of different types
-  @OneToMany(() => Reaction, (reaction) => reaction.delegator)
-  reactions: Reaction[];
+  @Column({ nullable: true })
+  voter_id: string;
 
-  //timestamps
   @CreateDateColumn()
   createdAt: Date;
 
