@@ -10,12 +10,17 @@ import {
 } from 'typeorm';
 import { Delegator } from './delegator.entity';
 import { Note } from './note.entity';
+import { Comment } from './comment.entity';
 
 enum ReactionTypeName {
   Like = 'like',
   ThumbsUp = 'thumbsup',
   ThumbsDown = 'thumbsdown',
   Rocket = 'rocket',
+}
+enum ParentEntityType {
+  Note = 'note',
+  Comment = 'comment',
 }
 
 @Entity()
@@ -33,10 +38,23 @@ export class Reaction {
   })
   type: ReactionTypeName;
 
-  @ManyToMany(() => Note, (note) => note.reactions)
+  @Column({
+    type: 'enum',
+    enum: ParentEntityType,
+    default: ParentEntityType.Note, // Set default value if needed
+  })
+  parentEntity: ParentEntityType;
+
+  @Column({ type: 'int', nullable: false })
+  parentId: number;
+
+  @ManyToOne(() => Comment, (comment) => comment.id) // Many-to-One relationship with Comment
+  comment: Comment;
+
+  @ManyToMany(() => Note, (note) => note.id)
   note: Note[];
 
-  @ManyToOne(() => Delegator, (delegator) => delegator.reactions) // Many-to-One relationship with Delegator
+  @ManyToOne(() => Delegator, (delegator) => delegator.id) // Many-to-One relationship with Delegator
   delegator: Delegator;
   //timestamps
   @CreateDateColumn()

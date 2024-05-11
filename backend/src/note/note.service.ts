@@ -4,11 +4,13 @@ import { createNoteDto } from 'src/dto';
 import { DataSource, Repository } from 'typeorm';
 import { ConnectionService } from 'src/connection/connection.service';
 import { Note } from 'src/entities/note.entity';
+import { Attachment } from 'src/entities/attachment.entity';
 
 @Injectable()
 export class NoteService {
   constructor(
     @InjectRepository(Note) private noteRepo: Repository<Note>,
+    @InjectRepository(Note) private attachmentRepo: Repository<Attachment>,
     private connectionService: ConnectionService,
   ) {}
 
@@ -39,7 +41,6 @@ export class NoteService {
       const res = await queryInstance
         .getRepository('Note')
         .insert(modifiedNoteDto);
-      console.log(res.identifiers[0].id);
       return { noteAdded: res.identifiers[0].id };
     } else {
       return new NotFoundException('DRep associated with note not found!');

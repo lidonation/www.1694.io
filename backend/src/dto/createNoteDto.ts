@@ -1,4 +1,4 @@
-import { IsNotEmpty } from 'class-validator';
+import { IsNotEmpty, IsOptional } from 'class-validator';
 
 export class createNoteDto {
   @IsNotEmpty()
@@ -13,4 +13,6 @@ export class createNoteDto {
   voter: string;
   @IsNotEmpty()
   note_visibility: string;
+  @IsOptional()
+  attachments: string[];
 }

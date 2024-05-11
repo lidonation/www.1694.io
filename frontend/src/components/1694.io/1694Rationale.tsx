@@ -3,7 +3,7 @@ import React from 'react';
 const CIPRationale = () => {
   return (
     <div className="bg-blue-800">
-      <div className="max-w-3xl mx-auto flex w-full flex-col gap-5 py-10">
+      <div className="mx-auto flex w-full max-w-3xl flex-col gap-5 py-10">
         <div>
           <p className="text-start text-5xl font-bold text-white">Rationale</p>
         </div>

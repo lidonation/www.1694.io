@@ -58,13 +58,15 @@ const ConversationsCard = ({ conversations }: ConversationsCardProps) => {
             </div>
           ))}
       </div>
-      <div className="flex flex-row items-center justify-center mt-5">
+      <div className="mt-5 flex flex-row items-center justify-center">
         <Button>
           {conversations ? (
             <Link href={conversations[0].html_url}>
               Join The Conversation on Github
             </Link>
-          ): ("Loading conversations...")}
+          ) : (
+            'Loading conversations...'
+          )}
         </Button>
       </div>
     </div>

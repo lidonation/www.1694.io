@@ -34,9 +34,6 @@ export class Drep {
   @Column({ nullable: false, unique: true })
   voter_id: string;
 
-  @OneToMany(() => Note, (note) => note.voter)
-  notes: Note[];
-
   @CreateDateColumn()
   createdAt: Date;
 

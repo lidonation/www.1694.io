@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import PostInput from '../atoms/PostInput';
 import PostSubmitArea from '../atoms/PostSubmitArea';
 import PostTextareaInput from '../atoms/PostTextareaInput';
 import PostVisiblityInput from '../atoms/PostVisiblityInput';
-import PostTagInput from '../atoms/PostInput';
 
 const NewNotePostForm = ({ register, control, errors }) => {
   return (

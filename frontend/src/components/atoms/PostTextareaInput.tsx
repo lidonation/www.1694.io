@@ -96,7 +96,13 @@ const PostTextareaInput = ({ control, errors }) => {
             class: 'border',
           },
         }),
-        Image,
+        Image.configure({
+          allowBase64: true,
+          inline: true,
+          HTMLAttributes: {
+            width: '20%',
+          },
+        }),
         BulletList,
         OrderedList,
         ListItem,

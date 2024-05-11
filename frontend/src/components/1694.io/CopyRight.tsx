@@ -7,8 +7,8 @@ const CopyRight = () => {
       <div className="container">
         <p className="text-5xl font-bold text-zinc-800">Copyright</p>
       </div>
-        <HotLinks />
-      <div className="max-w-3xl mx-auto">
+      <HotLinks />
+      <div className="mx-auto max-w-3xl">
         <p>
           This CIP is licensed under{' '}
           <a

@@ -1,17 +1,24 @@
-import React, { Dispatch, SetStateAction, useState } from 'react';
+import React, { useState } from 'react';
 import Button from '../atoms/Button';
-//Will be edited in ticket "Add multidata support"
-interface Source {
-  source: 'local' | 'external';
-  setSource: Dispatch<SetStateAction<Source | null>>;
+import HoverLinkChip from '../atoms/HoverLinkChip';
+interface MultipartDataFormProps {
+  activeForm: string;
+  nullify: () => void;
+  setImagePayload?: (payload: any) => void;
+  setLinkPayload?: (payload: any) => void;
 }
-const MultipartDataForm = () => {
+const MultipartDataForm = ({
+  activeForm,
+  nullify,
+  setImagePayload,
+  setLinkPayload,
+}: MultipartDataFormProps) => {
   const [files, setFiles] = useState(null);
-  const [preview, setPreview] = useState('');
-  const [source, setSource] = useState('local');
-  const [fileType, setFileType] = useState('');
-  const [fileName, setFileName] = useState('');
+  const [preview, setPreview] = useState(null);
   const [fileSize, setFileSize] = useState('');
+  const [links, setLinks] = useState(null);
+  const [currentLinkTitle, setCurrentLinkTitle] = useState('');
+  const [currentLinkURL, setCurrentLinkURL] = useState('');
 
   const formatFileSize = (sizeInBytes) => {
     const kiloBytes = sizeInBytes / 1024;
@@ -35,64 +42,68 @@ const MultipartDataForm = () => {
 
   const handleDrop = (e) => {
     preventDefault(e);
-    const file = e.dataTransfer.files[0];
-    if (file) {
-      setFiles(file);
-      previewFile(file);
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      setFiles(files);
+      previewFile(files);
     }
   };
 
   const handleFileSelect = async (e) => {
-    if (source === 'local') {
-      const file = e.target.files[0];
-      const allowedTypes = [
-        'image/png',
-        'application/pdf',
-        'image/webp',
-        'image/jpeg',
-        'image/svg',
-        'image/jpg',
-      ];
-
-      if (file && allowedTypes.includes(file.type)) {
-        setFiles(file);
-        previewFile(file);
-      } else {
-        console.log('File rejected:', file.type);
-      }
+    const files = e.target.files;
+    const allowedTypes = [
+      'image/png',
+      'application/pdf',
+      'image/webp',
+      'image/jpeg',
+      'image/svg',
+      'image/jpg',
+    ];
+    console.log(files.length);
+    if (files && files.length > 0) {
+      const validFiles = Array.from(files as FileList).filter((file) =>
+        allowedTypes.includes(file.type),
+      );
+      setFiles(validFiles);
+      previewFile(validFiles);
     } else {
-      // Check if the input is a URL
-      const url = e.target.value;
-      if (url) {
-        try {
-          const response = await fetch(url);
-          console.log(response);
-          if (response.ok) {
-            console.log(response.body.getReader());
-            // setFiles(url);
-            // previewFile(url);
-          } else {
-            console.log('Failed to fetch image from URL:', response.status);
-          }
-        } catch (error) {
-          console.error('Error fetching image from URL:', error);
-        }
-      }
+      console.log('No files selected');
     }
   };
-
-  const previewFile = (file) => {
-    const reader = new FileReader();
-    reader.addEventListener('load', () => {
-      setPreview(reader.result as any);
+  const handleAddLink = () => {
+    const title = currentLinkTitle;
+    const url = currentLinkURL;
+    if (title && url) {
+      setLinks((prev) => {
+        if (prev && prev.length > 0) {
+          return [...prev, { title, url }];
+        } else {
+          return [{ title, url }];
+        }
+      });
+      setCurrentLinkTitle('');
+      setCurrentLinkURL('');
+    }
+  };
+  const previewFile = (files) => {
+    const previews = Array.from(files as FileList).map((file) => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
     });
 
-    if (file) {
-      reader.readAsDataURL(file);
-      setFileName(file.name);
-      setFileType(file.type);
-      setFileSize(formatFileSize(file.size));
-    }
+    Promise.all(previews).then((results) => {
+      setPreview((prev) => {
+        if (prev && prev.length > 0) {
+          return [...prev, ...results];
+        } else {
+          return results;
+        }
+      });
+    });
   };
   const toBase64 = (file: File) => {
     return new Promise((resolve, reject) => {
@@ -110,86 +121,178 @@ const MultipartDataForm = () => {
     });
   };
   const sendFile = async () => {
-    const base64str = (await toBase64(files)) as string;
-    console.log(base64str);
+    const base64strArray = await Promise.all(
+      Array.from(files as FileList).map(async (file) => {
+        const base64str = (await toBase64(file)) as string;
+        return base64str;
+      }),
+    );
+    setFiles(null);
+    setPreview(null);
+    setImagePayload(base64strArray);
+    nullify();
   };
+  const sendLink = () => {
+    if (!links || links.length === 0) {
+      setLinkPayload([{ title: currentLinkTitle, url: currentLinkURL }]);
+      setCurrentLinkTitle('');
+      setCurrentLinkURL('');
+      nullify();
+      return;
+    }
+    if (links && links.length > 0) {
+      setLinkPayload(links);
+      setLinks(null);
+      nullify();
+    }
+  };
+
   return (
-    <div id="overlay" className="min-h-[140px]">
-      <div className="mb-4 flex flex-row gap-3">
-        <div
-          onClick={() => setSource('local')}
-          className={`cursor-pointer border-r-2 p-2  ${
-            source === 'local' && 'text-blue-800'
-          }`}
-        >
-          Local
-        </div>
-        <div
-          onClick={() => setSource('external')}
-          className={`cursor-pointer p-2 ${
-            source === 'external' && 'text-blue-800'
-          }`}
-        >
-          External
-        </div>
-      </div>
-      {source === 'local' ? (
+    <div className="absolute top-9 z-50 flex min-h-[140px] min-w-96 flex-col rounded-lg bg-white p-5 shadow-lg">
+      {activeForm === 'image' ? (
         <>
+          <div className="h-11 text-[22px] font-bold text-zinc-800">
+            Add File
+          </div>
           <div
-            className="cursor-pointer border-2 border-dashed border-blue-800 p-5 text-center"
+            className="flex h-36 items-center justify-center rounded-lg border-2 border-zinc-100 bg-violet-50 px-6 py-4 text-center"
             onDragOver={preventDefault}
             onDragEnter={preventDefault}
             onDrop={handleDrop}
+          >
+            <p className="text-[11px] font-medium text-slate-500">
+              Drag and drop file
+            </p>
+          </div>
+          <div
+            className="flex cursor-pointer flex-col items-center justify-center  bg-white p-4"
             onClick={() => document.getElementById('fileInput').click()}
           >
-            <p>Click or Drag & Drop your files here</p>
+            <p className="text-center text-lg font-normal text-blue-800">
+              Load from computer
+            </p>
           </div>
-          {preview && (
-            <img
-              src={preview}
-              alt="Preview Unavailable"
-              className="mb-3 mt-3 block w-[40%] rounded-lg"
-            />
-          )}
+          <p className="text-start text-sm font-medium text-black">
+            Supported file formats: PNG, JPEG, PDF.
+            <br />
+            Max file size 10mb.
+          </p>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            {preview &&
+              preview
+                .slice(0, 4)
+                .map((image, index) => (
+                  <img
+                    key={index}
+                    src={image}
+                    alt="Preview Unavailable"
+                    className={`block max-w-20 rounded-lg grid-item-${index + 1}`}
+                  />
+                ))}
+            {preview && preview.length > 4 && (
+              <div className="flex items-center justify-center rounded-lg bg-gray-200">
+                <p className="font-medium text-gray-600">
+                  +{preview.length - 4}
+                </p>
+              </div>
+            )}
+          </div>
           <input
             type="file"
             name="files"
             id="fileInput"
             accept=".png, .pdf, .webp, .jpg, .jpeg, .gif"
+            multiple={true}
             onChange={handleFileSelect}
             style={{ display: 'none' }}
           />
           <br />
-          {fileName && <p>File Name: {fileName}</p>}
           {fileSize && <p>File Size: {fileSize}</p>}
-          {fileType && <p>File Type: {fileType}</p>}
           {files && (
-            <Button sx={{ marginTop: '10px' }} handleClick={sendFile}>
-              <p>Add</p>
-            </Button>
+            <div className="mt-2 flex flex-col gap-2">
+              <Button handleClick={sendFile}>
+                <p>Add File</p>
+              </Button>
+              <Button
+                handleClick={() => {
+                  nullify();
+                  setPreview(null);
+                  setFiles(null);
+                }}
+                variant="outlined"
+                bgColor="transparent"
+              >
+                <p>Cancel</p>
+              </Button>
+            </div>
           )}
         </>
       ) : (
         <>
-          {preview && (
-            <img
-              src={preview}
-              alt="Preview Unavailable"
-              className="mb-3 mt-3 block w-[40%] rounded-lg"
+          <div className="h-11 text-[22px] font-bold text-zinc-800">
+            Add a Link
+          </div>
+          <div className="flex flex-col gap-1">
+            <label>Title</label>
+            <input
+              type="text"
+              className={`w-full rounded-full border border-zinc-100 py-3 pl-5 pr-3`}
+              data-testid="URL-title-input"
+              placeholder="Paste or type URL title here"
+              value={currentLinkTitle}
+              onChange={(e) => setCurrentLinkTitle(e.target.value)}
             />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label>URL</label>
+            <input
+              type="text"
+              className={`w-full rounded-full border border-zinc-100 py-3 pl-5 pr-3`}
+              data-testid="URL-input"
+              placeholder="Paste or type URL here"
+              value={currentLinkURL}
+              onChange={(e) => setCurrentLinkURL(e.target.value)}
+            />
+          </div>
+          <div
+            className="flex items-center justify-end p-3"
+            onClick={handleAddLink}
+          >
+            <p className="cursor-pointer text-blue-800"> + Add other link</p>
+          </div>
+          {links && (
+            <div className="flex flex-col gap-2">
+              {links.map((link, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-center rounded-xl"
+                >
+                  <HoverLinkChip
+                    children={<p className="text-blue-400">{link.title}</p>}
+                    link={link.url}
+                    position="top"
+                  />
+                </div>
+              ))}
+            </div>
           )}
-          <input
-            type="text"
-            id="urlInput"
-            className="rounded-full border border-zinc-100 px-3 py-2"
-            placeholder="Paste or type URL here"
-            onChange={handleFileSelect}
-          />
+          <div className="mt-2 flex flex-col gap-2">
+            <Button handleClick={sendLink}>
+              <p>{links && links.length > 1 ? 'Add Links' : 'Add Link'}</p>
+            </Button>
+            <Button
+              handleClick={() => {
+                nullify();
+                setPreview(null);
+                setFiles(null);
+              }}
+              variant="outlined"
+              bgColor="transparent"
+            >
+              <p>Cancel</p>
+            </Button>
+          </div>
           <br />
-          {preview && <p>Preview:</p>}
-          {preview && (
-            <img src={preview} alt="Preview" className="h-auto w-40" />
-          )}
         </>
       )}
     </div>
@@ -197,15 +300,3 @@ const MultipartDataForm = () => {
 };
 
 export default MultipartDataForm;
-//   {showOverlay && uploadProgress > 0 && (
-//     <div id="overlay">
-//       <div className="progress-bar-container">
-//         <label htmlFor="file">Sit tight as your post is uploaded:</label>
-//         <br />
-//         <progress id="file" value={uploadProgress} max="100">
-//           {uploadProgress}%
-//         </progress>
-//         {uploadProgress}%
-//       </div>
-//     </div>
-//   )}
