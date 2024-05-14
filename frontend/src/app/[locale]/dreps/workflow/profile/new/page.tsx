@@ -1,0 +1,17 @@
+'use client'
+import SetupProgressBar from '@/components/atoms/SetupProgressBar'
+import NewProfile from '@/components/organisms/NewProfile'
+import React from 'react'
+
+const page = () => {
+  return (
+    <div className='container bg-white py-10 px-5'>
+        <div className='w-full flex flex-col gap-2 items-center justify-center'>
+        <SetupProgressBar/>
+        <NewProfile/>
+        </div>
+    </div>
+  )
+}
+
+export default page

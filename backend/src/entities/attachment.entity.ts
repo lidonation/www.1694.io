@@ -8,7 +8,9 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Note } from './note.entity';
-enum AttachmentTypeName {
+import { Drep } from './drep.entity';
+import { Comment } from './comment.entity';
+export enum AttachmentTypeName {
   Link = 'link',
   PDF = 'pdf',
   JPG = 'jpg',
@@ -18,23 +20,42 @@ enum AttachmentTypeName {
   SVG = 'svg',
 }
 
-
+export enum AttachmentParentEntityType {
+  DRep = 'drep',
+  Note = 'note',
+  Comment = 'comment',
+}
 @Entity()
 export class Attachment {
-  //auto increment primary key decorator
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ unique: true, nullable: false })
-  url: string;
+  @Column({type:"bytea"})
+  url: Uint8Array;
+
+  @Column({
+    type: 'enum',
+    enum: AttachmentParentEntityType,
+    default: AttachmentParentEntityType.DRep,
+  })
+  parententity: AttachmentParentEntityType;
+
+  @Column({ type: 'int', nullable: false })
+  parentid: number;
 
   @ManyToOne(() => Note, (note) => note.id)
-  noteId: Note[];
+  note: Note;
+
+  @ManyToOne(() => Drep, (drep) => drep.id)
+  drep: Drep;
+
+  @ManyToOne(() => Comment, (comment) => comment.id)
+  comment: Comment;
 
   @Column({
     type: 'enum',
     enum: AttachmentTypeName,
-    default: AttachmentTypeName.Link, // Set default value if needed
+    default: AttachmentTypeName.Link,
   })
   attachmentType: AttachmentTypeName;
 

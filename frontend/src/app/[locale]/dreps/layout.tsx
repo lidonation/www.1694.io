@@ -1,4 +1,5 @@
 'use client';
+import { Background } from '@/components/atoms/Background';
 import Footer from '@/components/atoms/Footer';
 import Header from '@/components/atoms/Header';
 import { ChooseWalletModal } from '@/components/organisms';
@@ -12,7 +13,7 @@ export default function RootLayout({
 }) {
   const { isWalletListModalOpen, isNotDRepErrorModalOpen } = useDRepContext();
   return (
-    <>
+    <Background>
       <Header />
       {/* blur container wrapper */}
       {isWalletListModalOpen && (
@@ -27,6 +28,6 @@ export default function RootLayout({
       )}
       {children}
       <Footer />
-    </>
+    </Background>
   );
 }

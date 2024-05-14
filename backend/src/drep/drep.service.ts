@@ -1,17 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
 import { createDrepDto } from 'src/dto';
-import { DataSource, Repository } from 'typeorm';
 import { faker } from '@faker-js/faker';
-import { Drep } from 'src/entities/drep.entity';
 import { ConnectionService } from 'src/connection/connection.service';
+import { AttachmentService } from 'src/attachment/attachment.service';
 
 @Injectable()
 export class DrepService {
-  constructor(
-    @InjectRepository(Drep) private userRepo: Repository<Drep>,
-    private connectionService: ConnectionService,
-  ) {}
+  constructor(private connectionService: ConnectionService, private attachmentService:AttachmentService) {}
   //get from cexplorer db
   async getAllDrepsCexplorer() {
     const queryInstance = await this.connectionService.addCexplorerConnection();
@@ -85,11 +80,22 @@ export class DrepService {
     return drepListInADA;
   }
   async getSingleDrep(drepId: number) {
-    const drepList = await this.userRepo.findOne({ where: { id: drepId } });
-    if (!drepList) {
+    const queryInstance = await this.connectionService.addVoltaireConnection();
+    const drep = await queryInstance.getRepository('Drep').query(`
+    SELECT drep.*, attachment.*
+    FROM drep
+    LEFT JOIN attachment ON attachment.parentEntity = 'drep' AND attachment.parentId = drep.id
+    WHERE drep.id = ${drepId};
+    `);
+
+    if (!drep) {
       throw new NotFoundException('Drep not found!');
     }
-    return drepList;
+    const parsedDrep = {
+      ...drep[0],
+      url: await this.attachmentService.parseBufferToBase64(drep[0].url, drep[0].attachmentType),
+    };
+    return parsedDrep;
   }
   async getAllDRepsVoltaire() {
     const queryInstance = await this.connectionService.addVoltaireConnection();
@@ -111,18 +117,33 @@ export class DrepService {
     await queryInstance.getRepository('Drep').insert(modified);
     return modified;
   }
-  async registerDrep(drepDto: createDrepDto) {
-    const drep = await this.userRepo.create(drepDto);
-    return await this.userRepo.save(drep);
+  async registerDrep(drepDto: createDrepDto, profileUrl: Express.Multer.File) {
+    const queryInstance = await this.connectionService.addVoltaireConnection();
+    const insertedDrep = await queryInstance.getRepository('Drep').insert(drepDto);
+    if (profileUrl) {
+     await this.attachmentService.insertAttachment(profileUrl.buffer, profileUrl.mimetype, insertedDrep.identifiers[0].id);
+    }
+    return insertedDrep;
   }
-  async updateDrepInfo(drepId: number, drep: createDrepDto) {
-    const foundDrep = await this.userRepo.findOne({ where: { id: drepId } });
+  async updateDrepInfo(
+    drepId: number,
+    drep: createDrepDto,
+    profileUrl: Express.Multer.File,
+  ) {
+    const queryInstance = await this.connectionService.addVoltaireConnection();
+    const foundDrep = await queryInstance.getRepository('Drep').query(`
+    SELECT drep.*, attachment.*
+    FROM drep
+    LEFT JOIN attachment ON attachment.parentEntity = 'drep' AND attachment.parentId = drep.id
+    WHERE drep.id = ${drepId};
+    `);
     if (!foundDrep) {
       throw new NotFoundException('Drep to be updated not found!');
     }
-    Object.keys(drep).forEach((key) => {
-      foundDrep[key] = drep[key];
-    });
-    return await this.userRepo.save(foundDrep);
+    if (profileUrl) {
+      await this.attachmentService.updateAttachment(profileUrl.buffer, foundDrep[0].id, profileUrl.mimetype, drepId);
+    }
+    //other fields will be added here
+    return await queryInstance.getRepository('Drep').update(drepId, {name: drep.name});
   }
 }

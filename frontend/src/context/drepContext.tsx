@@ -4,9 +4,11 @@ interface DRepContext {
   isWalletListModalOpen: boolean;
   isNotDRepErrorModalOpen: boolean;
   currentLocale: string;
+  drepId: number;
   setIsNotDRepErrorModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsWalletListModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setCurrentLocale: React.Dispatch<React.SetStateAction<string>>;
+  setNewDrepId: React.Dispatch<React.SetStateAction<number>>;
   toggleModal: () => void;
 }
 
@@ -20,6 +22,7 @@ DRepContext.displayName = 'DRepContext';
 function DRepProvider(props: Props) {
   const [isWalletListModalOpen, setIsWalletListModalOpen] = useState(false);
   const [isNotDRepErrorModalOpen, setIsNotDRepErrorModalOpen] = useState(false);
+  const [drepId, setNewDrepId] = useState<number | null>(null);
   //will fix later
   const [currentLocale, setCurrentLocale] = useState<string | null>('en');
   const toggleModal = () => {
@@ -31,12 +34,14 @@ function DRepProvider(props: Props) {
       isWalletListModalOpen,
       isNotDRepErrorModalOpen,
       currentLocale,
+      drepId,
       setIsWalletListModalOpen,
       setIsNotDRepErrorModalOpen,
       setCurrentLocale,
       toggleModal,
+      setNewDrepId,
     }),
-    [isWalletListModalOpen, isNotDRepErrorModalOpen, currentLocale],
+    [isWalletListModalOpen, isNotDRepErrorModalOpen, currentLocale, drepId],
   );
 
   return <DRepContext.Provider value={value} {...props} />;
