@@ -6,7 +6,10 @@ import { AttachmentService } from 'src/attachment/attachment.service';
 
 @Injectable()
 export class DrepService {
-  constructor(private connectionService: ConnectionService, private attachmentService:AttachmentService) {}
+  constructor(
+    private connectionService: ConnectionService,
+    private attachmentService: AttachmentService,
+  ) {}
   //get from cexplorer db
   async getAllDrepsCexplorer() {
     const queryInstance = await this.connectionService.addCexplorerConnection();
@@ -93,7 +96,10 @@ export class DrepService {
     }
     const parsedDrep = {
       ...drep[0],
-      url: await this.attachmentService.parseBufferToBase64(drep[0].url, drep[0].attachmentType),
+      url: await this.attachmentService.parseBufferToBase64(
+        drep[0].url,
+        drep[0].attachmentType,
+      ),
     };
     return parsedDrep;
   }
@@ -119,9 +125,19 @@ export class DrepService {
   }
   async registerDrep(drepDto: createDrepDto, profileUrl: Express.Multer.File) {
     const queryInstance = await this.connectionService.addVoltaireConnection();
-    const insertedDrep = await queryInstance.getRepository('Drep').insert(drepDto);
+    const insertedDrep = await queryInstance
+      .getRepository('Drep')
+      .insert(drepDto);
     if (profileUrl) {
-     await this.attachmentService.insertAttachment(profileUrl.buffer, profileUrl.mimetype, insertedDrep.identifiers[0].id);
+      const optimizedProfileImageUrl = await this.attachmentService.parseImageSize(
+        profileUrl.buffer, 
+        profileUrl.mimetype,
+      );
+      await this.attachmentService.insertAttachment(
+        optimizedProfileImageUrl,
+        profileUrl.mimetype,
+        insertedDrep.identifiers[0].id,
+      );
     }
     return insertedDrep;
   }
@@ -141,9 +157,20 @@ export class DrepService {
       throw new NotFoundException('Drep to be updated not found!');
     }
     if (profileUrl) {
-      await this.attachmentService.updateAttachment(profileUrl.buffer, foundDrep[0].id, profileUrl.mimetype, drepId);
+      const optimizedProfileImageBuffer = await this.attachmentService.parseImageSize(
+        profileUrl.buffer,
+        profileUrl.mimetype,
+      );
+      await this.attachmentService.updateAttachment(
+        optimizedProfileImageBuffer,
+        foundDrep[0].id,
+        profileUrl.mimetype,
+        drepId,
+      );
     }
     //other fields will be added here
-    return await queryInstance.getRepository('Drep').update(drepId, {name: drep.name});
+    return await queryInstance
+      .getRepository('Drep')
+      .update(drepId, { name: drep.name });
   }
 }

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConnectionService } from 'src/connection/connection.service';
+import Jimp from 'jimp';
 import {
   AttachmentParentEntityType,
   AttachmentTypeName,
@@ -34,6 +35,39 @@ export class AttachmentService {
     const raw = Buffer.from(buffer).toString('base64');
     const url = `data:image/${mimeType};base64,${raw}`;
     return url;
+  }
+  parseJimpMimeType(mimeType: string) {
+    switch (mimeType) {
+      case 'image/png':
+        return Jimp.MIME_PNG;
+      case 'image/jpg':
+        return Jimp.MIME_JPEG;
+      case 'image/jpeg':
+        return Jimp.MIME_JPEG;
+      case 'image/gif':
+        return Jimp.MIME_GIF;
+      default:
+        return Jimp.MIME_PNG;
+    }
+  }
+  async parseImageSize(buffer: Buffer, mimeType: string) {
+    try {
+      const optimizedImageBuffer = await Jimp.read(buffer)
+        .then((image) => {
+          return image
+            .resize(480, 480)
+            .quality(60)
+            .getBufferAsync(this.parseJimpMimeType(mimeType))
+        })
+        .then((buffer) => {
+          return buffer;
+        });
+        console.log("Original Image Size", buffer.length)
+        console.log("Optimized Image Size", optimizedImageBuffer.length)
+      return optimizedImageBuffer;
+    } catch (error) {
+      console.log(error);
+    }
   }
   async insertAttachment(attachment: any, mimeType: string, parentId: number) {
     try {

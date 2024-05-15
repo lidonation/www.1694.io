@@ -45,7 +45,7 @@ const NewProfile = () => {
   const { isEnabled, dRepIDBech32, stakeKey } = useCardano();
   const router = useRouter();
   const newDRepMutation = usePostNewDrepMutation();
-  const { setIsNotDRepErrorModalOpen, setNewDrepId } = useDRepContext();
+  const { setIsNotDRepErrorModalOpen, setNewDrepId, setStep1Status } = useDRepContext();
   const saveProfile: SubmitHandler<InputType> = async (data) => {
     try {
       console.log('submitting...');
@@ -70,6 +70,7 @@ const NewProfile = () => {
       });
       console.log(res);
       setNewDrepId(res.raw[0].id);
+      setStep1Status('success');
       router.push(`/dreps/workflow/profile/update/step1`);
     } catch (error) {
       console.log(error);

@@ -1,26 +1,51 @@
+import { stepStatus, useDRepContext } from '@/context/drepContext';
 import React from 'react';
 
-const SetupProgressBar = () => {
-return (
-    <div className='flex flex-row gap-1 w-full items-center justify-around'>
-        <div className='flex flex-col gap-1 items-center justify-center border-b-2 border-b-blue-800 px-16 py-3'>
-            <p className='text-center p-1 bg-blue-800 text-white rounded-full h-8 w-8'>1</p>
-            <p>Profile set up</p>
+const stepStatusChip = (
+  stepNumber: number,
+  stepText: string,
+  stepStatus: stepStatus['status'],
+) => {
+  if (stepStatus === 'active') {
+    return (
+      <div className="flex flex-col items-center justify-center gap-1 border-b-2 border-b-blue-800 px-16 py-3">
+        <p className="h-8 w-8 rounded-full bg-blue-800 p-1 text-center text-white">
+          {stepNumber}
+        </p>
+        <p>{stepText}</p>
+      </div>
+    );
+  } else if (stepStatus === 'success') {
+    return (
+      <div className="flex flex-col items-center justify-center gap-1 border-b-2 border-b-gray-300 px-16 py-3">
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-lime-300 p-1 text-white">
+          <img src="/check.svg" alt="check" className="h-8 w-8" />
         </div>
-        <div className='flex flex-col gap-1 items-center justify-center border-b-2 border-b-gray-300 px-16 py-3'>
-            <p className='text-center p-1 bg-gray-300 text-white rounded-full h-8 w-8'>2</p>
-            <p>Platform statement</p>
-        </div>
-        <div className='flex flex-col gap-1 items-center justify-center border-b-2 border-b-gray-300 px-16 py-3'>
-            <p className='text-center p-1 bg-gray-300 text-white rounded-full h-8 w-8'>3</p>
-            <p>Metadata set up</p>
-        </div>
-        <div className='flex flex-col gap-1 items-center justify-center border-b-2 border-b-gray-300 px-16 py-3'>
-            <p className='text-center p-1 bg-gray-300 text-white rounded-full h-8 w-8'>4</p>
-            <p>Social media</p>
-        </div>
+        <p>{stepText}</p>
+      </div>
+    );
+  } else {
+    return (
+    <div className="flex flex-col items-center justify-center gap-1 border-b-2 border-b-gray-300 px-16 py-3">
+      <p className="h-8 w-8 rounded-full bg-gray-300 p-1 text-center text-white">
+        {stepNumber}
+      </p>
+      <p>{stepText}</p>
     </div>
-);
+    )
+  }
+};
+const SetupProgressBar = () => {
+  const { step1Status, step2Status, step3Status, step4Status } =
+    useDRepContext();
+  return (
+    <div className="flex w-full flex-row items-center justify-around gap-1">
+      {stepStatusChip(1, 'Profile set up', step1Status)}
+      {stepStatusChip(2, 'Platform statement', step2Status)}
+      {stepStatusChip(3, 'Metadata set up', step3Status)}
+      {stepStatusChip(4, 'Social media', step4Status)}
+    </div>
+  );
 };
 
 export default SetupProgressBar;

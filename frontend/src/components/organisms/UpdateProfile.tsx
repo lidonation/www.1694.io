@@ -68,8 +68,6 @@ const UpdateProfile = () => {
         drepId: drepId,
         drep: formData as drepInput,
       });
-      console.log(res);
-      console.log(formData);
     } catch (error) {
       console.log(error);
     }

@@ -33,7 +33,6 @@ const ProfileUploadCard = ({
     e.stopPropagation();
   };
   const handleFileSelect = async (e) => {
-    console.log(e.target.files);
     const file = e.target.files[0];
     if (file) {
       setFiles(file);
@@ -65,7 +64,7 @@ const ProfileUploadCard = ({
     setIsOverlay(false);
   };
   return (
-    <div className="relative flex h-36 w-1/2 flex-col items-center justify-center gap-1 rounded-lg border-2 border-zinc-100 bg-violet-50 px-6 py-4 text-center">
+    <div className="relative flex h-48 w-1/2 flex-col items-center justify-center gap-1 rounded-lg border-2 border-zinc-100 bg-violet-50 px-6 py-4 text-center">
       <div
         className="transparent absolute left-0 top-0 h-full w-full"
         onDragOver={preventDefault}
@@ -79,13 +78,13 @@ const ProfileUploadCard = ({
         <img src="/user-circle-filled.svg" alt="upload" />
       ) : (
         <div
-          className="relative flex h-14 w-14 items-center justify-center rounded-full"
+          className="relative flex h-32 w-32 items-center justify-center "
           onMouseEnter={() => setIsOverlay(true)}
           onMouseLeave={() => setIsOverlay(false)}
         >
-          <img src={preview} alt="Profile" className="rounded-full" />
+          <img src={preview} alt="Profile"/>
           <div
-            className={`absolute left-0 top-0 flex h-full w-full flex-col items-center justify-center rounded-full bg-slate-500 ${isOverlay ? 'opacity-90' : 'hidden'} cursor-pointer text-sm `}
+            className={`absolute left-0 top-0 flex h-full w-full flex-col items-center justify-center  bg-slate-500 ${isOverlay ? 'opacity-90' : 'hidden'} cursor-pointer text-sm `}
             onClick={handleRemove}
           >
             Remove
