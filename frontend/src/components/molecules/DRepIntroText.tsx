@@ -15,7 +15,7 @@ const DRepIntroText = () => {
           and campaigning between DReps and the Cardano community.
           DReps amplify your voice and drive impactful decisions.
         </p>
-        <p>
+        <p className="font-bold">
           If you hold Ada, jump in, pick a DRep, stay informed and keep the conversation going!
         </p>
       </div>

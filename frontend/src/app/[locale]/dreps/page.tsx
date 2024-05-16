@@ -15,10 +15,13 @@ const page = ({params: {locale}}) => {
     return (
         <Background>
             <DRepIntro/>
+
             <DRepInfo/>
+
             <section>
                 <PickADRep/>
             </section>
+
             <section>
                 <GovernanceActionsCard/>
             </section>
