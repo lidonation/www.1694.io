@@ -1,6 +1,8 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
-import { DrepService } from './drep.service';
+import { Body, Controller, Get, Param, Post, Request, UploadedFile, UseInterceptors } from '@nestjs/common';
+
 import { createDrepDto } from 'src/dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { DrepService } from './drep.service';
 
 @Controller('dreps')
 export class DrepController {
@@ -19,11 +21,13 @@ export class DrepController {
     return this.drepService.getSingleDrep(drepId);
   }
   @Post('new')
-  create(@Body() drepDto: createDrepDto) {
-    return this.drepService.registerDrep(drepDto);
+  @UseInterceptors(FileInterceptor('profileUrl'))
+  create(@UploadedFile() file: Express.Multer.File, @Body() drepDto: createDrepDto){
+    return this.drepService.registerDrep(drepDto, file);
   }
   @Post(':id/update')
-  updateDetails(@Param('id') drepId: number, @Body() drep: createDrepDto) {
-    return this.drepService.updateDrepInfo(drepId, drep);
+  @UseInterceptors(FileInterceptor('profileUrl'))
+  updateDetails(@UploadedFile() profileUrl: Express.Multer.File, @Param('id') drepId: number, @Body() drep: createDrepDto) {
+    return this.drepService.updateDrepInfo(drepId, drep, profileUrl);
   }
 }

@@ -1,13 +1,15 @@
 import { Module } from '@nestjs/common';
 import { DrepController } from './drep.controller';
-import { DrepService } from './drep.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Drep } from 'src/entities/drep.entity';
 import { ConnectionService } from 'src/connection/connection.service';
+import { Attachment } from 'src/entities/attachment.entity';
+import { DrepService } from './drep.service';
+import { AttachmentService } from 'src/attachment/attachment.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Drep])],
+  imports: [TypeOrmModule.forFeature([Drep, Attachment])],
   controllers: [DrepController],
-  providers: [DrepService, ConnectionService],
+  providers: [DrepService, ConnectionService, AttachmentService],
 })
 export class DrepModule {}

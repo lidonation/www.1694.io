@@ -18,7 +18,7 @@ export interface ButtonProps {
   borderRadius?: string;
   sx?: object;
   children?: React.ReactNode;
-  handleClick?: () => void;
+  handleClick?: (any) => any;
   type?: 'submit' | 'button';
 }
 

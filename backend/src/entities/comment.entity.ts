@@ -10,7 +10,7 @@ import {
 } from 'typeorm';
 import { Note } from './note.entity';
 import { Delegator } from './delegator.entity';
-enum ParentEntityType {
+export enum CommentParentEntityType {
   Note = 'note',
   Comment = 'comment',
 }
@@ -24,10 +24,10 @@ export class Comment {
 
   @Column({
     type: 'enum',
-    enum: ParentEntityType,
-    default: ParentEntityType.Note, // Set default value if needed
+    enum: CommentParentEntityType,
+    default: CommentParentEntityType.Note, // Set default value if needed
   })
-  parentEntity: ParentEntityType;
+  parentEntity: CommentParentEntityType;
 
   @Column({ type: 'int', nullable: false })
   parentId: number;

@@ -18,7 +18,7 @@ enum ReactionTypeName {
   ThumbsDown = 'thumbsdown',
   Rocket = 'rocket',
 }
-enum ParentEntityType {
+export enum ReactionParentEntityType {
   Note = 'note',
   Comment = 'comment',
 }
@@ -40,10 +40,10 @@ export class Reaction {
 
   @Column({
     type: 'enum',
-    enum: ParentEntityType,
-    default: ParentEntityType.Note, // Set default value if needed
+    enum: ReactionParentEntityType,
+    default: ReactionParentEntityType.Note, // Set default value if needed
   })
-  parentEntity: ParentEntityType;
+  parentEntity: ReactionParentEntityType;
 
   @Column({ type: 'int', nullable: false })
   parentId: number;
