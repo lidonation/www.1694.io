@@ -24,7 +24,7 @@ services:
     depends_on:
       - web_db # Depends on the database service
   dbsync_db:
-    image: postgres:16.2-alpine
+    image: postgres:16.3-alpine3.19
     environment:
       - POSTGRES_LOGGING=true
       - POSTGRES_DB_FILE=/run/secrets/postgres_db
@@ -57,7 +57,7 @@ services:
   web_db:
     container_name: voltaire_db # Name of the database container
     platform: linux/amd64 # Specify the platform (important for ARM64 architectures)
-    image: postgres:16.2-alpine # Use PostgreSQL 12 on Alpine for smaller size
+    image: postgres:16.3-alpine3.19 # Use PostgreSQL 12 on Alpine for smaller size
     restart: unless-stopped
     ports:
       - "5434:5432" # Expose port 5432 to the host

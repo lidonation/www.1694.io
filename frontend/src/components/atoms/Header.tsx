@@ -26,34 +26,42 @@ const Header = () => {
         </Link>
         <div className="flex items-center gap-6 text-nowrap text-sm font-bold">
           <Link
+            href="/"
+            className={
+              activeLink === `/${currentLocale}` ? 'text-orange-500' : ''
+            }
+          >
+            CIP
+          </Link>
+          <Link
             href="/dreps"
             className={
               activeLink === `/${currentLocale}/dreps` ? 'text-orange-500' : ''
             }
           >
-            What are DReps
+            DReps
           </Link>
-          <Link
-            href="/dreps/list"
-            className={
-              activeLink === `/${currentLocale}/dreps/list`
-                ? 'text-orange-500'
-                : ''
-            }
-          >
-            DRep List
-          </Link>
-          <Link
-            href="/dreps/notes"
-            className={
-              activeLink === `/${currentLocale}/dreps/notes`
-                ? 'text-orange-500'
-                : ''
-            }
-          >
-            Notes
-          </Link>
-          <Link href="#">Ecosystem</Link>
+          {/*<Link*/}
+          {/*  href="/dreps/list"*/}
+          {/*  className={*/}
+          {/*    activeLink === `/${currentLocale}/dreps/list`*/}
+          {/*      ? 'text-orange-500'*/}
+          {/*      : ''*/}
+          {/*  }*/}
+          {/*>*/}
+          {/*  DRep List*/}
+          {/*</Link>*/}
+          {/*<Link*/}
+          {/*  href="/dreps/notes"*/}
+          {/*  className={*/}
+          {/*    activeLink === `/${currentLocale}/dreps/notes`*/}
+          {/*      ? 'text-orange-500'*/}
+          {/*      : ''*/}
+          {/*  }*/}
+          {/*>*/}
+          {/*  Notes*/}
+          {/*</Link>*/}
+          {/*<Link href="#">Ecosystem</Link>*/}
           <div>
             {activeLink !== `/${currentLocale}` && !isEnabled ? (
               <WalletConnectButton test_name={'header'} />
