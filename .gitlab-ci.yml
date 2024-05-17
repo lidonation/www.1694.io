@@ -78,9 +78,11 @@ services:
           --namespace="$KUBE_NAMESPACE" \
           --create-namespace \
           -f ./chart/values.postgresql.yaml \
+          --set global.postgresql.auth.username="$POSTGRESQL_WEB_USERNAME" \
+          --set global.postgresql.auth.database="$POSTGRESQL_WEB_DATABASE" \
           --set global.postgresql.auth.password="$POSTGRESQL_WEB_PASSWORD" \
           --set global.postgresql.auth.postgresPassword="$POSTGRESQL_WEB_POSTGRES_PASSWORD" \
-          --set primary.persistence.size="20Gi" \
+          --set primary.persistence.size="$POSTGRESQL_WEB_SIZE" \
           $DEPLOYMENT_NAME-web-db \
           bitnami/postgresql
 
