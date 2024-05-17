@@ -200,7 +200,7 @@ staging:
       cat $ENV_FILE_FRONTEND > frontend/.env.production
       cp frontend/.env.production ./chart/frontend_env
       
-      cp $ENV_FILE ./chart/frontend_env
+      cp $ENV_FILE_FRONTEND ./chart/frontend_env
       
       kubectl delete secret 1694-registry-deploy-token --ignore-not-found --namespace="$KUBE_NAMESPACE"
       
