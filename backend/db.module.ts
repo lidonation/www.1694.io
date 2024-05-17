@@ -17,7 +17,7 @@ import { Reaction } from './src/entities/reaction.entity';
         type: 'postgres',
         host: configService.get('DATABASE_HOST', 'web_db'),
         port: configService.get('DATABASE_PORT', 5432),
-        username: configService.get('DATABASE_USERNAME', 'postgres'),
+        username: configService.get('DATABASE_USERNAME', 'voltaire'),
         password: configService.get('DATABASE_PASSWORD', 'postgres'),
         database: configService.get('DATABASE_NAME', '1694'),
         entities: [Drep, Note, Attachment, Delegator, Comment, Reaction],

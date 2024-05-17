@@ -5,8 +5,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Attachment } from 'src/entities/attachment.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ Attachment])],
+  imports: [TypeOrmModule.forFeature([Attachment])],
   controllers: [],
-  providers: [AttachmentService, ConnectionService]
+  providers: [AttachmentService, ConnectionService],
 })
 export class AttachmentModule {}

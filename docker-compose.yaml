@@ -14,8 +14,11 @@ services:
       DATABASE_NAME: 1694
       DATABASE_USERNAME: voltaire
       DATABASE_PASSWORD: postgres
+      DATABASE_HOST_DBSYNC: dbsync_db
+      DATABASE_NAME_DBSYNC: cexplorer
+      DATABASE_USERNAME_DBSYNC: postgres
+      DATABASE_PASSWORD_DBSYNC: v8hlDV0yMAHHlIurYupj
       NODE_ENV: development # Set node environment to development
-      DATABASE_HOST_DBSYNC
     volumes: # Mount points for persistent data and source code
       - "./backend:/app"
     ports:
@@ -63,7 +66,7 @@ services:
     ports:
       - "5434:5432" # Expose port 5432 to the host
     environment: # PostgreSQL user, password, and database name
-      POSTGRES_USER: postgres
+      POSTGRES_USER: voltaire
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: 1694
     volumes:

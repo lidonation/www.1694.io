@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Request, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 
 import { createDrepDto } from 'src/dto';
 import { FileInterceptor } from '@nestjs/platform-express';
