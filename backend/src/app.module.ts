@@ -1,15 +1,19 @@
 import { Module } from '@nestjs/common';
 import { DrepModule } from './drep/drep.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { configCexplorer, configVoltaire } from '../ormconfig';
 import { ConnectionService } from './connection/connection.service';
 import { NoteModule } from './note/note.module';
 import { AttachmentModule } from './attachment/attachment.module';
+import { ConfigModule } from '@nestjs/config';
+import { DbModule } from '../db.module';
+
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: ['.env', '.env.development', '.env.production'],
+    }),
     DrepModule,
-    TypeOrmModule.forRoot(configCexplorer),
-    TypeOrmModule.forRoot(configVoltaire),
+    DbModule,
     NoteModule,
     AttachmentModule,
   ],

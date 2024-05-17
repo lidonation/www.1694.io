@@ -1,0 +1,44 @@
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { Drep } from './src/entities/drep.entity';
+import { Note } from './src/entities/note.entity';
+import { Attachment } from './src/entities/attachment.entity';
+import { Delegator } from './src/entities/delegator.entity';
+import { Comment } from './src/entities/comment.entity';
+import { Reaction } from './src/entities/reaction.entity';
+
+@Module({
+  imports: [
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        type: 'postgres',
+        host: configService.get('DATABASE_HOST', 'web_db'),
+        port: configService.get('DATABASE_PORT', 5432),
+        username: configService.get('DATABASE_USERNAME', 'postgres'),
+        password: configService.get('DATABASE_PASSWORD', 'postgres'),
+        database: configService.get('DATABASE_NAME', '1694'),
+        entities: [Drep, Note, Attachment, Delegator, Comment, Reaction],
+        synchronize: true,
+      }),
+    }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        type: 'postgres',
+        host: configService.get('DATABASE_HOST_DBSYNC', 'dbsync_db'),
+        port: configService.get('DATABASE_PORT', 5432),
+        username: configService.get('DATABASE_USERNAME_DBSYNC', 'postgres'),
+        password: configService.get(
+          'DATABASE_PASSWORD_DBSYNC',
+          'v8hlDV0yMAHHlIurYupj',
+        ),
+        database: configService.get('DATABASE_NAME_DBSYNC', 'cexplorer'),
+      }),
+    }),
+  ],
+})
+export class DbModule {}
