@@ -6,7 +6,7 @@ import ProfileUploadCard from '../atoms/ProfileUploadCard';
 
 const NewProfileForm = ({ register, control, errors, setProfileUrl }) => {
   return (
-    <div className="mt-3 flex flex-col gap-3">
+    <div className="mt-3 flex flex-col gap-4">
       <PostInput
         inputName={'Name'}
         id={'profileName'}

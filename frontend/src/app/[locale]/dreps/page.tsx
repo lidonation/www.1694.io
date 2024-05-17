@@ -14,7 +14,7 @@ const page = ({params: {locale}}) => {
     }, []);
     return (
         <Background>
-            <DRepIntro/>
+            <DRepIntro />
 
             <DRepInfo/>
 

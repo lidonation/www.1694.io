@@ -64,13 +64,13 @@ const ProfileUploadCard = ({
     setIsOverlay(false);
   };
   return (
-    <div className="relative flex h-48 w-1/2 flex-col items-center justify-center gap-1 rounded-lg border-2 border-zinc-100 bg-violet-50 px-6 py-4 text-center">
+    <div className="relative flex h-48 flex-col items-center justify-center gap-1 rounded-lg border-2 border-zinc-100 bg-violet-50 px-6 py-4 text-center">
       <div
         className="transparent absolute left-0 top-0 h-full w-full"
         onDragOver={preventDefault}
         onDragEnter={preventDefault}
         onDrop={(e) => {
-          handleDrop(e);
+          handleDrop(e).then();
         }}
       ></div>
 
@@ -91,7 +91,7 @@ const ProfileUploadCard = ({
           </div>
         </div>
       )}
-      <p className="text-[11px] font-medium text-slate-500">
+      <p className="text-[11px] font-medium text-slate-500 mb-4">
         Drag and drop your photo or
       </p>
       <Button handleClick={() => document.getElementById('fileInput').click()}>
@@ -108,7 +108,7 @@ const ProfileUploadCard = ({
           hiddenInputRef.current = e;
         }}
         onChange={(e) => {
-          handleFileSelect(e);
+          handleFileSelect(e).then();
           onChange(e);
         }}
         style={{ display: 'none' }}

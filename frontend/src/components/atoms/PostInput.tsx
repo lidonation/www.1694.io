@@ -16,7 +16,7 @@ const PostInput = ({
       <label>{inputName}</label>
       <input
         type="text"
-        className={`w-1/2 border py-3 pl-5 pr-3 ${
+        className={`border py-3 pl-5 pr-3 ${
           !isEnabled && 'pointer-events-none'
         }  rounded-full border-zinc-100`}
         data-testid={dataTestId}

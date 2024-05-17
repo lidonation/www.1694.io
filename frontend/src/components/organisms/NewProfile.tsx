@@ -76,13 +76,15 @@ const NewProfile = () => {
       console.log(error);
     }
   };
-  const onError = (err) => {
+  const onError = (err: any) => {
     console.log(err);
   };
   return (
-    <div className="flex w-full flex-col gap-5 px-10 py-5">
+    <div className="flex w-full flex-col gap-5 p-10">
       <div className="flex flex-col gap-5">
-        <h1 className="text-4xl font-bold text-zinc-800">New Profile</h1>
+        <h1 className="text-4xl font-bold text-zinc-800">
+          Create Your DRep Campaign
+        </h1>
         {dRepIDBech32 && (
           <div className="flex flex-row gap-1">
             <span className="text-slate-500">{dRepIDBech32}</span>

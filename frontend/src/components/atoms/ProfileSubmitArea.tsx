@@ -7,7 +7,7 @@ interface ProfileSubmitAreaProps {
 const ProfileSubmitArea = ({isUpdate}:ProfileSubmitAreaProps) => {
   const { isEnabled } = useCardano();
   return (
-    <div className="flex w-[80%] flex-row items-center justify-center">
+    <div className="flex mt-4 flex-row items-center justify-end">
       <div className="flex flex-row items-center gap-2">
         <Button
           type="submit"
