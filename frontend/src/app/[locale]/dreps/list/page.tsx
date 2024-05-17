@@ -6,7 +6,7 @@ import React, { useState } from 'react';
 const page = () => {
   const [searchText, setSearchText] = useState('');
   return (
-    <div className="container py-10">
+    <div className="base_container py-10">
       <section className="mb-12">
         <h2 className="text-7xl font-black">Available DReps</h2>
       </section>

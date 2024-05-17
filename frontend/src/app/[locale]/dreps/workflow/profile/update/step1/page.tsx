@@ -5,7 +5,7 @@ import React from 'react'
 
 const page = () => {
   return (
-    <div className='container bg-white py-10 px-5'>
+    <div className='form_container bg-white py-10 px-5'>
         <div className='w-full flex flex-col gap-2 items-center justify-center'>
         <SetupProgressBar/>
         <UpdateProfile/>

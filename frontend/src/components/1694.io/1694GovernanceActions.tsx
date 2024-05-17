@@ -9,15 +9,15 @@ import GovernanceActionsDescTable from './GovernanceActionsDescTable';
 const CIPGovernanceActions = () => {
   return (
     <div className="bg-gradient-to-b from-[#E9EFFF] to-[#FFFFFF]">
-      <div className="container flex w-full flex-col items-center justify-center py-10">
+      <div className="base_container flex w-full flex-col items-center justify-center py-10">
         <div id="governance-actions" className="w-full">
           <p className="text-start text-5xl font-bold text-zinc-800">
             Governance actions
           </p>
         </div>
         <HotLinks />
-        <div className="mx-auto flex max-w-3xl flex-col items-center justify-center">
-          <section className="my-5 flex flex-col gap-6">
+        <div className="inner_container flex flex-col items-center justify-center">
+          <section className="my-5 flex flex-col gap-6 w-full">
             <p>
               We define seven different types of{' '}
               <span className="font-bold">governance actions</span>. A
@@ -68,8 +68,8 @@ const CIPGovernanceActions = () => {
             />
           </section>
           <Separator />
-          <section id="ratification" className="my-5 flex flex-col gap-6">
-            <p className="text-xl font-bold">Ratification</p>
+          <section id="ratification" className="my-5 w-full flex flex-col gap-6">
+            <p className="lg:text-xl font-bold">Ratification</p>
             <p>
               Governance actions are ratified through on-chain voting actions.
               Different kinds of governance actions have different ratification

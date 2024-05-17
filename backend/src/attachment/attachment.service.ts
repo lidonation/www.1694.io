@@ -57,13 +57,13 @@ export class AttachmentService {
           return image
             .resize(480, 480)
             .quality(60)
-            .getBufferAsync(this.parseJimpMimeType(mimeType))
+            .getBufferAsync(this.parseJimpMimeType(mimeType));
         })
         .then((buffer) => {
           return buffer;
         });
-        console.log("Original Image Size", buffer.length)
-        console.log("Optimized Image Size", optimizedImageBuffer.length)
+      console.log('Original Image Size', buffer.length);
+      console.log('Optimized Image Size', optimizedImageBuffer.length);
       return optimizedImageBuffer;
     } catch (error) {
       console.log(error);

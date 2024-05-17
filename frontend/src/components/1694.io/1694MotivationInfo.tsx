@@ -3,17 +3,17 @@ import React from 'react';
 const CIPMotivationInfo = () => {
   return (
     <div className="rounded-t-3xl bg-blue-800">
-      <div className="container text-white">
-        <div className="py-20 text-6xl font-bold text-violet-50">
+      <div className="base_container text-white">
+        <div className="py-20 text-5xl lg:text-6xl font-bold text-violet-50">
           <p>Motivation:</p>
           <p>why is this CIP necessary?</p>
         </div>
         <div className="py-10">
-          <div className="mb-7 flex flex-row gap-10">
-            <div className="flex w-[30%] items-center justify-center">
+          <div className="mb-7 flex flex-col items-center justify-center lg:flex-row gap-10">
+            <div className="flex lg:w-[30%] items-center justify-center">
               <img src="/whiteboard.png" alt="Whiteboard" />
             </div>
-            <section className="w-[70%]">
+            <section className="lg:w-[70%]">
               <p className="mb-4 text-4xl font-bold">Goal</p>
               <div className="flex flex-col gap-9">
                 <p>
@@ -44,11 +44,11 @@ const CIPMotivationInfo = () => {
           </div>
         </div>
         <div className="py-10">
-          <div className="mb-7 flex flex-row gap-10">
-            <div className="flex w-[30%] items-center justify-center">
+          <div className="mb-7 flex flex-col items-center justify-center lg:flex-row gap-10">
+            <div className="flex lg:w-[30%] items-center justify-center">
               <img src="/windmills.png" alt="Windmills" />
             </div>
-            <section className="w-[70%]">
+            <section className="lg:w-[70%]">
               <p className="mb-4 text-4xl font-bold">
                 Current governance mechanism design
               </p>
@@ -100,11 +100,11 @@ const CIPMotivationInfo = () => {
           </div>
         </div>
         <div className="py-10">
-          <div className="mb-7 flex flex-row gap-10">
-            <div className="flex w-[30%] items-center justify-center">
+          <div className="mb-7 flex flex-col items-center justify-center lg:flex-row gap-10">
+            <div className="flex lg:w-[30%] items-center justify-center">
               <img src="/interface.png" alt="Interface" />
             </div>
-            <section className="w-[70%]">
+            <section className="lg:w-[70%]">
               <p className="mb-4 text-4xl font-bold">Hard Forks</p>
               <p>
                 One of the protocol parameters is sufficiently significant to
@@ -121,11 +121,11 @@ const CIPMotivationInfo = () => {
           </div>
         </div>
         <div className="py-10">
-          <div className="mb-7 flex flex-row gap-10">
-            <div className="flex w-[30%] items-center justify-center">
+          <div className="mb-7 flex flex-col items-center justify-center lg:flex-row gap-10">
+            <div className="flex lg:w-[30%] items-center justify-center">
               <img src="/user-selecting.png" alt="User-selecting" />
             </div>
-            <section className="w-[70%]">
+            <section className="lg:w-[70%]">
               <p className="mb-4 text-4xl font-bold">
                 Shortcomings of the Shelley governance design
               </p>
@@ -173,7 +173,7 @@ const CIPMotivationInfo = () => {
         </div>
         <div className="py-10">
           <p className="mb-4 text-4xl font-bold">Out of Scope</p>
-          <div className="grid grid-cols-3 gap-20 py-5">
+          <div className="flex flex-col gap-5 lg:grid grid-cols-3 lg:gap-20 py-5">
             <div className="col-span-1 flex flex-col gap-2">
               <p className="mb-3 text-xl font-bold">
                 The contents of the constitution
@@ -209,7 +209,7 @@ const CIPMotivationInfo = () => {
               </div>
             </div>
             <div className="col-span-1 flex flex-col justify-around">
-              <div>
+              <div className='flex flex-col gap-1'>
                 <p className="mb-3 text-xl font-bold">
                   The membership of the constitutional committee
                 </p>

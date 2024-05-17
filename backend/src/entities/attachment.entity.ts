@@ -30,7 +30,7 @@ export class Attachment {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({type:"bytea"})
+  @Column({ type: 'bytea' })
   url: Uint8Array;
 
   @Column({

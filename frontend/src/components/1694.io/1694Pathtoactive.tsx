@@ -6,13 +6,13 @@ const CIPPathtoactive = () => {
   return (
     <div className="bg-blue-800 py-16">
       <HotLinks seethrough />
-      <div className="mx-auto flex max-w-3xl flex-col gap-5 text-white">
+      <div className="base_container flex flex-col gap-5 text-white">
         <div className="text-start">
           <p className="text-5xl font-bold">Path to Active</p>
         </div>
         <div className="flex flex-col gap-3">
           <section className="flex flex-col gap-10">
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 text-sm md:text-md lg:text-lg">
               <p className="text-2xl font-bold">Acceptance criteria</p>
               <ul>
                 <li>
@@ -21,7 +21,7 @@ const CIPPathtoactive = () => {
                 </li>
               </ul>
             </div>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 text-sm md:text-md lg:text-lg">
               <p className="text-2xl font-bold">Implementation Plan</p>
               <p>The features in this CIP require a hard fork.</p>
               <p>
@@ -38,7 +38,7 @@ const CIPPathtoactive = () => {
                 discussions.
               </p>
             </div>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 text-sm md:text-md lg:text-lg">
               <p className="text-2xl font-bold">
                 Ratification of this proposal
               </p>
@@ -74,7 +74,7 @@ const CIPPathtoactive = () => {
                 </li>
               </ul>
             </div>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 text-sm md:text-md lg:text-lg">
               <p className="text-2xl font-bold">
                 Changes to the transaction body
               </p>
@@ -109,7 +109,7 @@ const CIPPathtoactive = () => {
                 text="As usual, we will provide a CDDL specification for each of those changes."
               />
             </div>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 text-sm md:text-md lg:text-lg">
               <p className="text-2xl font-bold">
                 Changes to the existing ledger rules
               </p>
@@ -138,7 +138,7 @@ const CIPPathtoactive = () => {
                 </li>
               </ul>
             </div>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 text-sm md:text-md lg:text-lg">
               <p className="text-2xl font-bold">
                 Changes to the local state-query protocol
               </p>
@@ -172,7 +172,7 @@ const CIPPathtoactive = () => {
                 </li>
               </ul>
             </div>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 text-sm md:text-md lg:text-lg">
               <p className="text-2xl font-bold">Bootstrapping Phase</p>
               <p>
                 We will need to be careful how we bootstrap this fledgling
@@ -207,7 +207,7 @@ const CIPPathtoactive = () => {
           </section>
           <section className="flex flex-col gap-10">
             <p className="text-2xl font-bold">Other Ideas / Open Questions</p>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 text-sm md:text-md lg:text-lg">
               <p className="text-xl font-bold">Pledge-weighted SPO voting</p>
               <p>
                 The SPO vote could additionally be weighted by each SPO's
@@ -216,7 +216,7 @@ const CIPPathtoactive = () => {
                 should be carefully chosen.
               </p>
             </div>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 text-sm md:text-md lg:text-lg">
               <p className="text-xl font-bold">
                 Automatic re-delegation of DReps
               </p>
@@ -228,7 +228,7 @@ const CIPPathtoactive = () => {
                 would be transfer to the 'Abstain' DRep.
               </p>
             </div>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 text-sm md:text-md lg:text-lg">
               <p className="text-xl font-bold">No DRep registration</p>
               <p>
                 Since the DRep registration does not perform any necessary
@@ -239,7 +239,7 @@ const CIPPathtoactive = () => {
                 registration certificate into the transaction metadata.
               </p>
             </div>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 text-sm md:text-md lg:text-lg">
               <p className="text-xl font-bold">
                 Reduced deposits for some government actions
               </p>
@@ -254,7 +254,7 @@ const CIPPathtoactive = () => {
                 constitutional committee.
               </p>
             </div>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 text-sm md:text-md lg:text-lg">
               <p className="text-xl font-bold">
                 Different deposit amounts for different governance actions
               </p>
@@ -265,7 +265,7 @@ const CIPPathtoactive = () => {
                 this may be considered if it becomes clear that it is necessary.
               </p>
             </div>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 text-sm md:text-md lg:text-lg">
               <p className="text-xl font-bold">Minimum active voting stake</p>
               <p>
                 As a further guarantee to ensure governance actions cannot be
@@ -285,7 +285,7 @@ const CIPPathtoactive = () => {
                 considered a legitimate action.
               </p>
             </div>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 text-sm md:text-md lg:text-lg">
               <p className="text-xl font-bold">
                 Include hash of (future) genesis configuration within hard-fork
                 proposal
@@ -301,7 +301,7 @@ const CIPPathtoactive = () => {
                 within a hard-fork governance action.
               </p>
             </div>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 text-sm md:text-md lg:text-lg">
               <p className="text-xl font-bold">Adaptive thresholds</p>
               <p>
                 As discussed above, it may make sense for some or all thresholds
@@ -314,7 +314,7 @@ const CIPPathtoactive = () => {
                 to DReps.
               </p>
             </div>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 text-sm md:text-md lg:text-lg">
               <p className="text-xl font-bold">
                 Renaming DReps / state of no-confidence?
               </p>
@@ -328,7 +328,7 @@ const CIPPathtoactive = () => {
                 We could imagine finding better terms for these concepts.
               </p>
             </div>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 text-sm md:text-md lg:text-lg">
               <p className="text-xl font-bold">
                 Rate-limiting treasury movements
               </p>
@@ -341,7 +341,7 @@ const CIPPathtoactive = () => {
                 over any period of time.
               </p>
             </div>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 text-sm md:text-md lg:text-lg">
               <p className="text-xl font-bold">
                 Final safety measure, post bootstrapping
               </p>

@@ -5,10 +5,10 @@ import Separator from './Separator';
 const CIPDRepInfo = () => {
   return (
     <div className="bg-blue-800">
-      <div className="mx-auto max-w-3xl py-10">
+      <div className="base_container py-10">
         <div
           id="delegated-representatives-dreps"
-          className="mb-5 text-6xl font-bold text-violet-50"
+          className="mb-5 text-3xl lg:text-6xl font-bold text-violet-50"
         >
           <p>Delegated</p>
           <p>Representatives (DReps)</p>
@@ -25,7 +25,7 @@ const CIPDRepInfo = () => {
             <div className="flex w-full items-center justify-center">
               <img src="/img/becomeDrepImg.png" alt="" width={'25%'} />
             </div>
-            <p className="text-3xl font-bold">Pre-defined DReps </p>
+            <p className="text-2xl lg:text-3xl font-bold">Pre-defined DReps </p>
             <ul className="ml-5 flex list-disc flex-col gap-2">
               <li>
                 Abstain If an Ada holder delegates to Abstain, then their stake
@@ -59,7 +59,7 @@ const CIPDRepInfo = () => {
             id="registered-dreps"
             className="flex flex-col gap-3 text-white"
           >
-            <p className="text-3xl font-bold">Registered DReps </p>
+            <p className="text-2xl lg:text-3xl font-bold">Registered DReps </p>
             <p>
               In Voltaire, existing stake credentials will be able to delegate
               their stake to DReps for voting purposes, in addition to the
@@ -100,7 +100,7 @@ const CIPDRepInfo = () => {
             id="new-stake-distribution-for-dreps"
             className="flex flex-col gap-3 text-white"
           >
-            <p className="text-3xl font-bold">New stake distribution</p>
+            <p className="text-2xl lg:text-3xl font-bold">New stake distribution</p>
             <p>
               In addition to the existing per-stake-credential distribution and
               the per-stake-pool distribution, the ledger will now also
@@ -116,7 +116,7 @@ const CIPDRepInfo = () => {
           </section>
           <Separator />
           <section className="flex flex-col gap-3 text-white">
-            <p className="text-3xl font-bold">
+            <p className="text-2xl lg:text-3xl font-bold">
               Incentives for Ada holders to delegate voting stake
             </p>
             <p>
@@ -138,7 +138,7 @@ const CIPDRepInfo = () => {
             id="drep-incentives"
             className="flex flex-col gap-3 text-white"
           >
-            <p className="text-3xl font-bold">DRep incentives</p>
+            <p className="text-2xl lg:text-3xl font-bold">DRep incentives</p>
             <p>
               DReps arguably need to be compensated for their work. Research on
               incentive models is still ongoing, and we do not wish to hold up

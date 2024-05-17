@@ -14,7 +14,7 @@ const Footer = () => {
           height={'77px'}
         />
       </div>
-      <div className="mb-16 flex items-center justify-center gap-4 font-bold text-neutral-300">
+      <div className="mb-16 flex flex-wrap lg:flex-nowrap items-center justify-center gap-4 font-bold text-neutral-300 px-4">
         <Link href="#">Voltaire </Link>
         <Link href="#">Sancho Gov Tools</Link>
         <Link href="#">Lido Nation</Link>

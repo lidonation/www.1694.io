@@ -3,7 +3,7 @@ import React from 'react';
 const DRepIntroText = () => {
   return (
     <div className="mt-28">
-      <div className="text-7xl font-black text-zinc-800">
+      <div className="text-5xl lg:text-7xl font-black text-zinc-800">
         <p>Cardano DRep</p>
         <p>Campaign</p>
         <p>Platform:</p>

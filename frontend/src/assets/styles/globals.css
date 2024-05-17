@@ -10,11 +10,28 @@ body {
   @apply bg-gradient-to-b from-[#E9EFFF] to-[#FFFFFF];
 }
 
-.container {
-  /*@apply px-5 mx-auto 2xl:px-10 3xl:max-w-screen-3xl;*/
-  @apply mx-auto max-w-[1200px];
+.base_container {
+  @apply mx-auto max-w-xs sm:max-w-md md:max-w-xl lg:max-w-3xl xl:max-w-5xl 2xl:max-w-6xl;
+}
+.form_container {
+  @apply mx-auto w-full sm:max-w-md md:max-w-xl lg:max-w-3xl xl:max-w-5xl 2xl:max-w-6xl;
+}
+.inner_container {
+  @apply w-full text-sm;
+}
+.inner_container table {
+  @apply w-full table-fixed;
 }
 
+.inner_container table tr {
+  height: 1em;
+}
+.inner_container table td {
+  overflow: hidden;
+}
+.img_container img {
+  object-fit: contain;
+}
 .table_container tbody tr {
   @apply border-b-2 border-b-gray-300 border-opacity-40;
 }
@@ -156,8 +173,15 @@ body {
     }
   }
 }
+.dual-bg {
+  background-image: url('/doublecoin-top.png'), url('/doublecoin-bottom.png');
+  background-position: top right, bottom right;
+  background-repeat: no-repeat, no-repeat;
+  background-size: auto, auto; 
+}
+
 #acknowledgements details {
-  @apply border-b-2 border-b-gray-300 border-opacity-40 bg-white p-5;
+  @apply border-b-2 border-b-gray-300 border-opacity-40 bg-white bg-opacity-95 p-5 lg:opacity-100;
 }
 
 #acknowledgements details summary {
@@ -167,3 +191,7 @@ body {
 #acknowledgements details ul {
   @apply ml-5 flex list-disc flex-col gap-1;
 }
+#acknowledgements details span {
+  @apply shrink-0;
+}
+

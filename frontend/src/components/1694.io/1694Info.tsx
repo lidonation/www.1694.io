@@ -5,12 +5,12 @@ import BecomeADRepButton from './BecomeADRepButton';
 
 const CIPInfo = () => {
   return (
-    <div className="mt-5 grid w-full grid-cols-2 overflow-hidden rounded-t-3xl bg-white py-20 shadow-lg">
-      <div className="flex items-center justify-center">
-        <img src="/1694-asset-2.png" alt="Asset 2" width={'100%'} />
+    <div className="mt-5  w-full block lg:grid lg:grid-cols-2 overflow-hidden rounded-t-3xl bg-white py-20 shadow-lg">
+      <div className="flex items-center justify-center shrink-0">
+        <img src="/1694-asset-2.png" alt="Asset 2" width={'80%'} />
       </div>
-      <div className="mx-auto flex max-w-xl flex-col gap-10">
-        <p className="text-[80px] font-bold leading-[68px] text-zinc-800">
+      <div className="base_container flex flex-col gap-10 text-sm">
+        <p className="text-3xl lg:text-7xl font-bold leading-[68px] text-zinc-800">
           Abstract
         </p>
         <p>

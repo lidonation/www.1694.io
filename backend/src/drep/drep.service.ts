@@ -94,14 +94,14 @@ export class DrepService {
     if (!drep) {
       throw new NotFoundException('Drep not found!');
     }
-    const parsedDrep = {
-      ...drep[0],
-      url: await this.attachmentService.parseBufferToBase64(
+    if (drep[0].url) {
+      drep[0].url = await this.attachmentService.parseBufferToBase64(
         drep[0].url,
         drep[0].attachmentType,
-      ),
-    };
-    return parsedDrep;
+      );
+    }
+
+    return drep[0];
   }
   async getAllDRepsVoltaire() {
     const queryInstance = await this.connectionService.addVoltaireConnection();
@@ -129,10 +129,12 @@ export class DrepService {
       .getRepository('Drep')
       .insert(drepDto);
     if (profileUrl) {
-      const optimizedProfileImageUrl = await this.attachmentService.parseImageSize(
-        profileUrl.buffer, 
-        profileUrl.mimetype,
-      );
+      console.log('profileUrl', profileUrl);
+      const optimizedProfileImageUrl =
+        await this.attachmentService.parseImageSize(
+          profileUrl.buffer,
+          profileUrl.mimetype,
+        );
       await this.attachmentService.insertAttachment(
         optimizedProfileImageUrl,
         profileUrl.mimetype,
@@ -157,10 +159,11 @@ export class DrepService {
       throw new NotFoundException('Drep to be updated not found!');
     }
     if (profileUrl) {
-      const optimizedProfileImageBuffer = await this.attachmentService.parseImageSize(
-        profileUrl.buffer,
-        profileUrl.mimetype,
-      );
+      const optimizedProfileImageBuffer =
+        await this.attachmentService.parseImageSize(
+          profileUrl.buffer,
+          profileUrl.mimetype,
+        );
       await this.attachmentService.updateAttachment(
         optimizedProfileImageBuffer,
         foundDrep[0].id,

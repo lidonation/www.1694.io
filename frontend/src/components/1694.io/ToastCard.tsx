@@ -9,7 +9,7 @@ const ToastCard = ({ type, text }: ToastCardProps) => {
       className={`w-inherit flex flex-row items-center gap-10 border-l-8 py-3 ${type === 'warning' ? 'border-l-orange-300' : 'border-l-green-300'}  bg-white`}
     >
       <img
-        className="mx-7"
+        className="mx-3 lg:mx-7"
         src={`/toastsvgs/${type === 'warning' ? 'alert-triangle.svg' : 'notes.svg'}`}
         alt="Alert icon"
       />
