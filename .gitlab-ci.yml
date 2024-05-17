@@ -113,6 +113,7 @@ build_frontend:
   script:
     - *setup
     - |
+      set -xev
       cp $ENV_FILE frontend/.env.production
       cat $ENV_FILE_FRONTEND >> frontend/.env.production
       docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
@@ -132,6 +133,7 @@ build_backend:
   script:
     - *setup
     - |
+      set -xev
       cp $ENV_FILE backend/.env.production
       cat $ENV_BACKEND_FILE >> backend/.env.production
       cp backend/.env.production ./chart/backend_env
