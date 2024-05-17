@@ -38,13 +38,13 @@ spec:
                 name: "{{ $.Chart.Name }}-backend-secrets"
           livenessProbe:
             httpGet:
-              path: /
+              path: /api/healthz/live
               port: 8000
             initialDelaySeconds: 5
             periodSeconds: 10
           readinessProbe:
             httpGet:
-              path: /
+              path: /api/healthz/ready
               port: 8000
             initialDelaySeconds: 1
             periodSeconds: 10
