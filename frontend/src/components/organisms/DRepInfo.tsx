@@ -16,9 +16,9 @@ const DRepInfo = () => {
 
             <DrepInfoCardRow />
 
-            <div className="flex items-center justify-center">
-              <hr className="w-[900px] border text-violet-50" />
-            </div>
+            {/*<div className="flex items-center justify-center">*/}
+            {/*  <hr className="w-[900px] border text-violet-50" />*/}
+            {/*</div>*/}
 
             <BecomeADrepCard />
           </div>
