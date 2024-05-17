@@ -2,7 +2,7 @@ import NoteHeader from '@/components/dreps/notes/NoteHeader';
 
 function Notes() {
   return (
-    <div className="container">
+    <div className="base_container">
       <NoteHeader />
     </div>
   );

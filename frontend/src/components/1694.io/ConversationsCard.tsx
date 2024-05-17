@@ -29,9 +29,9 @@ const ConversationsCard = ({ conversations }: ConversationsCardProps) => {
   };
 
   return (
-    <div className="container py-20">
-      <p className="text-6xl font-bold text-zinc-800">Conversations</p>
-      <div className="grid grid-cols-3 gap-4">
+    <div className="base_container py-20">
+      <p className="text-4xl lg:text-6xl font-bold text-zinc-800">Conversations</p>
+      <div className="flex flex-col lg:grid grid-cols-3 lg:gap-4 gap-6">
         {/* Only the first six for now. */}
         {conversations &&
           conversations.slice(0, 6).map((item, index) => (

@@ -4,5 +4,5 @@ export class createDrepDto extends FormData {
   bio: string;
   expertise: string;
   perspective: string;
-  profileUrl?:string
+  profileUrl?: string;
 }

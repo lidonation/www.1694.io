@@ -1,12 +1,12 @@
 import React from 'react';
 import CIPIntroText from './1694IntroText';
-import CIPIntroImgs from './1694IntroImgs';
+import DRepIntroImgs from '../molecules/DRepIntroImgs';
 
 const CIPIntro = () => {
   return (
-    <div className="relative flex w-full flex-row py-20">
+    <div className="base_container flex w-full flex-row items-center py-16">
       <CIPIntroText />
-      <CIPIntroImgs />
+      {/* <DRepIntroImgs/> */}
     </div>
   );
 };

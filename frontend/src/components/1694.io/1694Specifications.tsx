@@ -5,9 +5,9 @@ import Separator from './Separator';
 const CIPSpecifications = () => {
   return (
     <div className="flex flex-col items-center justify-center bg-gradient-to-b from-[#E9EFFF] to-[#FFFFFF]">
-      <div className="flex max-w-4xl flex-col items-center justify-center py-10">
+      <div className="flex max-w-xs sm:max-w-lg text-sm lg:max-w-4xl mx-auto flex-col items-center justify-center py-10">
         <div className="w-full">
-          <p className="text-start text-6xl font-bold text-zinc-800">
+          <p className="text-start text-4xl lg:text-6xl font-bold text-zinc-800">
             Specification
           </p>
         </div>
@@ -17,7 +17,7 @@ const CIPSpecifications = () => {
         </div>
         <div
           id="the-cardano-constitution"
-          className="my-5 flex flex-col gap-5 font-extralight"
+          className="w-full my-5 flex flex-col justify-center items-start gap-5 font-extralight"
         >
           <p className="text-2xl font-bold">The Cardano Constitution</p>
           <p>
@@ -37,7 +37,7 @@ const CIPSpecifications = () => {
         <Separator />
         <div
           id="the-constitutional-committee"
-          className="my-5  flex flex-col gap-5 font-extralight"
+          className="w-full my-5 flex flex-col justify-center items-start gap-5 font-extralight"
         >
           <p className="text-2xl font-bold">The constitutional committee</p>
           <p>
@@ -71,7 +71,7 @@ const CIPSpecifications = () => {
         <Separator />
         <div
           id="state-of-no-confidence"
-          className="my-5  flex flex-col gap-5 font-extralight"
+          className="w-full my-5  flex flex-col justify-center items-start gap-5 font-extralight"
         >
           <p className="text-2xl font-bold">State of no-confidence</p>
           <p>
@@ -89,7 +89,7 @@ const CIPSpecifications = () => {
           </p>
         </div>
         <Separator />
-        <div className="my-5  flex flex-col gap-5 font-extralight">
+        <div className="my-5 w-full flex flex-col gap-5 font-extralight justify-center items-start">
           <p className="text-2xl font-bold">Constitutional committee keys</p>
           <p>
             The constitutional committee will use a hot and cold key setup,
@@ -99,7 +99,7 @@ const CIPSpecifications = () => {
         <Separator />
         <div
           id="replacing-the-constitutional-committee"
-          className="my-5  flex flex-col gap-5 font-extralight"
+          className="w-full my-5 flex flex-col justify-center items-start gap-5 font-extralight"
         >
           <p className="text-2xl font-bold">
             Replacing the constitutional committee
@@ -122,7 +122,7 @@ const CIPSpecifications = () => {
         <Separator />
         <div
           id="size-of-the-constitutional-committee"
-          className="my-5  flex flex-col gap-5 font-extralight"
+          className="w-full my-5 flex flex-col justify-center items-start gap-5 font-extralight"
         >
           <p className="text-2xl font-bold">
             Size of the constitutional committee
@@ -149,7 +149,7 @@ const CIPSpecifications = () => {
         <Separator />
         <div
           id="term-limits"
-          className="my-5  flex flex-col gap-5 font-extralight"
+          className="w-full my-5 flex flex-col justify-center items-start gap-5 font-extralight"
         >
           <p className="text-2xl font-bold">Terms</p>
           <p>
@@ -181,7 +181,7 @@ const CIPSpecifications = () => {
           </p>
         </div>
         <Separator />
-        <div className="my-5  flex flex-col gap-5">
+        <div className="my-5 w-full flex flex-col items-start justify-center gap-5">
           <p className="text-2xl font-bold">Proposal policy</p>
           <p>
             While the constitution is an informal, off-chain document, there

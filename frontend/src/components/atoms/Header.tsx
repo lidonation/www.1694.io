@@ -10,71 +10,100 @@ import TranslationBlock from '../1694.io/TranslationBlock';
 const Header = () => {
   const { isEnabled } = useCardano();
   const { currentLocale } = useDRepContext();
+  const [isMobile, setIsMobile] = useState(false);
   const pathname = usePathname();
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [activeLink, setActiveLink] = useState(null);
 
   useEffect(() => {
     // Setting the active link based on the current pathname
     setActiveLink(pathname);
+    setIsMobile(window.innerWidth < 768);
   }, [pathname]);
-
+  //add event listener to the window to check if the screen is mobile
+  useEffect(() => {
+    window.addEventListener('resize', () => {
+      setIsMobile(window.innerWidth < 768);
+    });
+  }, []);
+  const options = [
+    {
+      name: 'DReps',
+      path: '/dreps',
+    },
+    {
+      name: 'DRep List',
+      path: '/dreps/list',
+    },
+    {
+      name: 'Notes',
+      path: '/dreps/notes',
+    },
+    {
+      name: 'Ecosystem',
+      path: '/ecosystem',
+    },
+  ];
   return (
     <header className="bg-white bg-opacity-50">
-      <div className="container flex flex-row items-center justify-between py-6">
-        <Link href="/">
-          <img src="/sancho1694.svg" alt="Sancho logo" width={'40%'} />
+      <div className="base_container flex shrink-0 flex-row items-center justify-between py-6 ">
+        <Link href="/" className=" sm:w-1/2">
+          <img
+            src="/sancho1694.svg"
+            alt="Sancho logo"
+            width={ '40%'}
+          />
         </Link>
-        <div className="flex items-center gap-6 text-nowrap text-sm font-bold">
-          <Link
-            href="/"
-            className={
-              activeLink === `/${currentLocale}` ? 'text-orange-500' : ''
-            }
-          >
-            CIP
-          </Link>
-          <Link
-            href="/dreps"
-            className={
-              activeLink === `/${currentLocale}/dreps` ? 'text-orange-500' : ''
-            }
-          >
-            DReps
-          </Link>
-          {/*<Link*/}
-          {/*  href="/dreps/list"*/}
-          {/*  className={*/}
-          {/*    activeLink === `/${currentLocale}/dreps/list`*/}
-          {/*      ? 'text-orange-500'*/}
-          {/*      : ''*/}
-          {/*  }*/}
-          {/*>*/}
-          {/*  DRep List*/}
-          {/*</Link>*/}
-          {/*<Link*/}
-          {/*  href="/dreps/notes"*/}
-          {/*  className={*/}
-          {/*    activeLink === `/${currentLocale}/dreps/notes`*/}
-          {/*      ? 'text-orange-500'*/}
-          {/*      : ''*/}
-          {/*  }*/}
-          {/*>*/}
-          {/*  Notes*/}
-          {/*</Link>*/}
-          {/*<Link href="#">Ecosystem</Link>*/}
+        <div className="flex shrink-0 items-center gap-3 text-nowrap text-sm font-bold">
+          {!isMobile && (
+            <div className='flex flex-row gap-6'>
+              <Link
+                href={'/'}
+                className={`${
+                  activeLink === `/${currentLocale}`
+                    ? 'text-orange-500'
+                    : 'text-gray-800'
+                }`}
+              >
+                CIP
+              </Link>
+              {options.slice(0, 1).map((option, index) => (
+                <Link
+                  key={index + option.name + option.path + option}
+                  href={option.path}
+                  className={`${
+                    activeLink === `/${currentLocale}${option.path}`
+                      ? 'text-orange-500'
+                      : 'text-gray-800'
+                  }`}
+                >
+                  {option.name}
+                </Link>
+              ))}
+            </div>
+          )}
           <div>
-            {activeLink !== `/${currentLocale}` && !isEnabled ? (
+            {!isEnabled ? (
               <WalletConnectButton test_name={'header'} />
             ) : (
               <WalletInfoCard />
             )}
           </div>
-          <div className="cursor-pointer">
-            <img src="/bell.svg" alt="Notifs" />
-          </div>
+          {!isMobile && (
+            <div className="cursor-pointer">
+              <img src="/bell.svg" alt="Notifs" />
+            </div>
+          )}
+          {isMobile && (
+            <div
+              className="cursor-pointer"
+              onClick={() => setIsDrawerOpen(true)}
+            >
+              <img src="/drawer-icon.svg" alt="Darwer" />
+            </div>
+          )}
         </div>
       </div>
-      {activeLink === `/${currentLocale}` && <TranslationBlock />}
     </header>
   );
 };

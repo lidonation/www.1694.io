@@ -68,7 +68,6 @@ const NewProfile = () => {
       const res=await newDRepMutation.mutateAsync({
         drep: formData as drepInput,
       });
-      console.log(res);
       setNewDrepId(res.raw[0].id);
       setStep1Status('success');
       router.push(`/dreps/workflow/profile/update/step1`);

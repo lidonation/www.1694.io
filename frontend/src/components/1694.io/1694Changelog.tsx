@@ -5,12 +5,12 @@ import Separator from './Separator';
 const CIPChangelog = () => {
   return (
     <div className="bg-gradient-to-b from-[#E9EFFF] to-[#FFFFFF] py-10 text-black">
-      <div className="container text-start">
+      <div className="base_container text-start">
         <p className="text-5xl font-bold">Changelog</p>
       </div>
       <HotLinks />
-      <div className="container w-full ">
-        <div className="flex max-w-3xl flex-col gap-8">
+      <div className="base_container w-full ">
+        <div className="max-w-3xl flex flex-col gap-8">
           <section className="flex flex-col gap-4">
             <p className="text-2xl font-bold">
               Changes post Longmont workshop (March 2023){' '}

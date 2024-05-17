@@ -4,11 +4,11 @@ import HotLinks from './HotLinks';
 const CopyRight = () => {
   return (
     <div className="bg-gradient-to-b from-[#E9EFFF] to-[#FFFFFF] py-10">
-      <div className="container">
+      <div className="base_container">
         <p className="text-5xl font-bold text-zinc-800">Copyright</p>
       </div>
       <HotLinks />
-      <div className="mx-auto max-w-3xl">
+      <div className="base_container">
         <p>
           This CIP is licensed under{' '}
           <a

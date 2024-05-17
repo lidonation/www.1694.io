@@ -1,15 +1,14 @@
 import React from 'react';
-import Separator from './Separator';
 
 const CIPIntroText = () => {
   return (
-    <div className="mx-auto flex max-w-4xl flex-col items-start justify-start gap-20 py-10 pl-20">
-      <div className="text-start text-6xl font-black text-zinc-800">
+    <div className="mx-auto flex max-w-4xl flex-col items-start justify-start gap-20">
+      <div className="text-start text-4xl lg:text-6xl font-black text-zinc-800">
         <p>CIP 1694 - An On-Chain</p>
         <p>Decentralized Governance</p>
         <p>Mechanism for Voltaire</p>
       </div>
-      <div className="pr-40 text-lg font-light text-gray-800 ">
+      <div className="lg:pr-40 text-lg font-light text-gray-800 ">
         <hr className="border border-black opacity-50" />
         <p>
           We propose a revision of Cardano's on-chain governance system to
