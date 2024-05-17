@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { createNoteDto } from 'src/dto';
-import { DataSource, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { ConnectionService } from 'src/connection/connection.service';
 import { Note } from 'src/entities/note.entity';
 import { Attachment } from 'src/entities/attachment.entity';

@@ -8,7 +8,7 @@ import { DrepService } from './drep.service';
 import { AttachmentService } from 'src/attachment/attachment.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Drep, Attachment], 'web')],
+  imports: [TypeOrmModule.forFeature([Drep, Attachment])],
   controllers: [DrepController],
   providers: [DrepService, ConnectionService, AttachmentService],
 })

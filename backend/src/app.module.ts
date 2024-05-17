@@ -4,7 +4,7 @@ import { ConnectionService } from './connection/connection.service';
 import { NoteModule } from './note/note.module';
 import { AttachmentModule } from './attachment/attachment.module';
 import { ConfigModule } from '@nestjs/config';
-import { DbModule } from '../db.module';
+import { DbModule } from './db.module';
 import { HealthzModule } from './healthz/healthz.module';
 
 @Module({

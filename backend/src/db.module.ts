@@ -1,19 +1,19 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { Drep } from './src/entities/drep.entity';
-import { Note } from './src/entities/note.entity';
-import { Attachment } from './src/entities/attachment.entity';
-import { Delegator } from './src/entities/delegator.entity';
-import { Comment } from './src/entities/comment.entity';
-import { Reaction } from './src/entities/reaction.entity';
+import { Drep } from './entities/drep.entity';
+import { Attachment } from './entities/attachment.entity';
+import { Reaction } from './entities/reaction.entity';
+import { Delegator } from './entities/delegator.entity';
+import { Note } from './entities/note.entity';
+import {Comment} from "./entities/comment.entity";
 
 @Module({
   imports: [
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      name: 'web',
+      name: 'default',
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
         host: configService.get('DATABASE_HOST', 'web_db'),
