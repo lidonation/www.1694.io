@@ -4,7 +4,7 @@ import Button from '../atoms/Button';
 const ViewDRepTableBtn = ({ handleClick }) => {
   return (
     <Button handleClick={handleClick}>
-      <p>View DRep Table</p>
+      <p>Explore DReps</p>
     </Button>
   );
 };
