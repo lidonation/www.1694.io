@@ -31,7 +31,9 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           envFrom:
             - secretRef:
-                name: "{{ $.Chart.Name }}-secrets"
+                name: "{{ $.Chart.Name }}-global-secrets"
+            - secretRef:
+                name: "{{ $.Chart.Name }}-backend-secrets"
           livenessProbe:
             httpGet:
               path: /live

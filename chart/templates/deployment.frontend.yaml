@@ -34,7 +34,9 @@ spec:
               value: {{ .Values.secrets.NEXT_PUBLIC_GOOGLE_API }}
           envFrom:
             - secretRef:
-                name: "{{ $.Chart.Name }}-secrets"
+                name: "{{ $.Chart.Name }}-global-secrets"
+            - secretRef:
+                name: "{{ $.Chart.Name }}-backend-secrets"
           livenessProbe:
             httpGet:
               path: /

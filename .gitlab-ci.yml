@@ -67,7 +67,6 @@ services:
 .deploy_postgres_web_script: &deploy_postgres_web_script
     - |
       DEPLOYMENT_NAME="www-1694-$CI_ENVIRONMENT_SLUG"
-      cp $ENV_FILE ./chart/app_env
       helm repo add bitnami https://charts.bitnami.com/bitnami
       helm repo update
 
@@ -88,7 +87,6 @@ services:
 .deploy_postgres_dbsync_script: &deploy_postgres_dbsync_script
     - |
       DEPLOYMENT_NAME="www-1694-$CI_ENVIRONMENT_SLUG"
-      cp $ENV_FILE ./chart/app_env
       helm repo add bitnami https://charts.bitnami.com/bitnami
       helm repo update
 
@@ -100,9 +98,11 @@ services:
           --namespace="$KUBE_NAMESPACE" \
           --create-namespace \
           -f ./chart/values.postgresql.yaml \
-          --set global.postgresql.auth.password="$POSTGRESQL_WEB_PASSWORD" \
-          --set global.postgresql.auth.postgresPassword="$POSTGRESQL_WEB_POSTGRES_PASSWORD" \
-          --set primary.persistence.size="20Gi" \
+          --set global.postgresql.auth.username="cI63L9a3rBY" \
+          --set global.postgresql.auth.database="BaAMau7q5Hj" \
+          --set global.postgresql.auth.password="$POSTGRESQL_DBSYNC_PASSWORD" \
+          --set global.postgresql.auth.postgresPassword="$POSTGRESQL_DBSYNC_POSTGRES_PASSWORD" \
+          --set primary.persistence.size="$POSTGRESQL_DBSYNC_SIZE" \
           $DEPLOYMENT_NAME-dbsync-db \
           bitnami/postgresql
 
@@ -114,6 +114,7 @@ build_frontend:
     - *setup
     - |
       cp $ENV_FILE frontend/.env.production
+      cat $ENV_FILE_FRONTEND >> frontend/.env.production
       docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
       echo "Building Dockerfile with tags $CI_APPLICATION_REPOSITORY/1694.io-frontend:$CI_APPLICATION_TAG and $CI_APPLICATION_REPOSITORY/www.1694.io-frontend:latest ..."
       docker build --network host -f frontend/Dockerfile \
@@ -132,6 +133,7 @@ build_backend:
     - *setup
     - |
       cp $ENV_FILE backend/.env.production
+      cat $ENV_BACKEND_FILE >> backend/.env.production
       docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
       echo "Building Dockerfile with tags $CI_APPLICATION_REPOSITORY/1694.io-backend:$CI_APPLICATION_TAG and $CI_APPLICATION_REPOSITORY/www.1694.io-backend:latest ..."
       docker build --network host -f backend/Dockerfile \
@@ -223,7 +225,6 @@ staging:
     name: staging
   only:
     - branches
-
 
 
 postgres-web-production:
