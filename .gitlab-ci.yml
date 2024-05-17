@@ -149,8 +149,23 @@ build_backend:
     - *deploy_postgres_web_script
   rules: *infra_rules
 
+.deploy_postgres_dbsync: &deploy_postgres_dbsync
+  <<: *deploy_template
+  script:
+    - *setup
+    - *deploy_postgres_dbsync_script
+  rules: *infra_rules
+
 postgres-web-staging:
   <<: *deploy_postgres_web
+  stage: staging
+  needs: []
+  environment:
+    name: staging
+
+
+postgres-dbsync-staging:
+  <<: *deploy_postgres_dbsync
   stage: staging
   needs: []
   environment:
@@ -209,6 +224,30 @@ staging:
   only:
     - branches
 
+
+
+postgres-web-production:
+  <<: *deploy_postgres_web
+  stage: production
+  needs:
+    - job: staging
+  rules:
+    - if: $CI_COMMIT_BRANCH == 'main'
+      when: manual
+  environment:
+    name: production
+
+
+postgres-dbsync-production:
+  <<: *deploy_postgres_dbsync
+  stage: production
+  environment:
+    name: production
+  needs:
+    - job: staging
+  rules:
+    - if: $CI_COMMIT_BRANCH == 'main'
+      when: manual
 
 production:
   stage: production
