@@ -8,7 +8,7 @@ const DrepInfoCardRow = () => {
             img={'/img/regImg.png'}
             title={'Registration'}
             description={
-                'Like stake pools, DRep registers their intention on chain.'
+                'Like stake pools, DRep registers their intention on chain via DRep Certificates.'
             }
         />
 
@@ -16,15 +16,15 @@ const DrepInfoCardRow = () => {
             img={'/img/delegImg.png'}
             title={'Delegation'}
             description={
-                'DRep delegation will mimic the existing stake delegation mechanisms (via on-chain certificates). '
+                'Just like staking a pool, Ada holders can delegate their stake to a DRep with Transaction.'
             }
         />
 
       <DrepInfoCard
         img={'/img/credImg.png'}
-        title={'Credentials'}
+        title={'Voting Power'}
         description={
-          'Existing stake credentials will be able to delegate their stake to DReps.'
+          'DRep voting power will be the total value of staked Ada delegated to the DRep.'
         }
       />
 
@@ -32,7 +32,7 @@ const DrepInfoCardRow = () => {
         img={'/img/statusImg.png'}
         title={'Status'}
         description={
-          'Additionally, registered DReps will need to vote regularly to still be considered active.'
+          'Registered DReps will need to vote regularly to still be considered active.'
         }
       />
     </div>
