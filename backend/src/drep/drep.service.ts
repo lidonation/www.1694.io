@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { createDrepDto } from 'src/dto';
 import { faker } from '@faker-js/faker';
 import { ConnectionService } from 'src/connection/connection.service';
