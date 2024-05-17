@@ -15,6 +15,7 @@ services:
       DATABASE_USERNAME: voltaire
       DATABASE_PASSWORD: postgres
       NODE_ENV: development # Set node environment to development
+      DATABASE_HOST_DBSYNC
     volumes: # Mount points for persistent data and source code
       - "./backend:/app"
     ports:

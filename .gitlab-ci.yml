@@ -98,8 +98,8 @@ services:
           --namespace="$KUBE_NAMESPACE" \
           --create-namespace \
           -f ./chart/values.postgresql.yaml \
-          --set global.postgresql.auth.username="cI63L9a3rBY" \
-          --set global.postgresql.auth.database="BaAMau7q5Hj" \
+          --set global.postgresql.auth.username="$POSTGRESQL_DBSYNC_USERNAME" \
+          --set global.postgresql.auth.database="$POSTGRESQL_DBSYNC_DATABASE" \
           --set global.postgresql.auth.password="$POSTGRESQL_DBSYNC_PASSWORD" \
           --set global.postgresql.auth.postgresPassword="$POSTGRESQL_DBSYNC_POSTGRES_PASSWORD" \
           --set primary.persistence.size="$POSTGRESQL_DBSYNC_SIZE" \
@@ -190,6 +190,15 @@ staging:
       set -xev
       
       DEPLOYMENT_NAME="www-1694.$CI_ENVIRONMENT_SLUG"
+      
+      cp $ENV_FILE backend/.env.production
+      cat $ENV_FILE_BACKEND >> backend/.env.production
+      cat $ENV_FILE_FRONTEND >> frontend/.env.production
+      cp backend/.env.production ./chart/backend_env
+      
+      cp $ENV_FILE frontend/.env.production
+      cat $ENV_FILE_FRONTEND >> frontend/.env.production
+      cp frontend/.env.production ./chart/frontend_env
       
       kubectl delete secret 1694-registry-deploy-token --ignore-not-found --namespace="$KUBE_NAMESPACE"
       
