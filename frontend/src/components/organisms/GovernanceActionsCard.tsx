@@ -4,7 +4,7 @@ import GovernanceActionsTable from '../molecules/GovernanceActionsTable';
 
 const GovernanceActionsCard = () => {
   return (
-    <div className="drep_white_gradient">
+    <div className="drep_white_gradient py-8">
       <div className="base_container flex flex-col lg:grid grid-cols-2 gap-8 lg:gap-16 py-8">
         <div className="col-span-1 flex flex-col items-start justify-center gap-3 py-20">
           <div className="text-5xl lg:text-6xl font-bold">
