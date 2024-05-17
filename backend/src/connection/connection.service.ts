@@ -6,8 +6,9 @@ import { DataSource } from 'typeorm';
 export class ConnectionService {
   constructor() {}
   async addVoltaireConnection() {
-    const voltaireDS = new DataSource(configVoltaire);
-    return await voltaireDS.initialize();
+    const volatireDS = new DataSource(configVoltaire);
+    const initVoltaire = await volatireDS.initialize();
+    return initVoltaire;
   }
   async addCexplorerConnection() {
     const cexplorerDS = new DataSource(configCexplorer);

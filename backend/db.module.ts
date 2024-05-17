@@ -13,6 +13,7 @@ import { Reaction } from './src/entities/reaction.entity';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
+      name: 'web',
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
         host: configService.get('DATABASE_HOST', 'web_db'),
@@ -27,6 +28,7 @@ import { Reaction } from './src/entities/reaction.entity';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
+      name: 'dbsync',
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
         host: configService.get('DATABASE_HOST_DBSYNC', 'dbsync_db'),
