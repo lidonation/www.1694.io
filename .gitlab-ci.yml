@@ -116,7 +116,7 @@ build_frontend:
       set -xev
       cp $ENV_FILE frontend/.env.production
       cat $ENV_FILE_FRONTEND >> frontend/.env.production
-      cat frontend/.env.production
+      cp backend/.env.production ./chart/frontend_env
       docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
       echo "Building Dockerfile with tags $CI_APPLICATION_REPOSITORY/1694.io-frontend:$CI_APPLICATION_TAG and $CI_APPLICATION_REPOSITORY/www.1694.io-frontend:latest ..."
       docker build --network host -f frontend/Dockerfile \
@@ -138,7 +138,6 @@ build_backend:
       cp $ENV_FILE backend/.env.production
       cat $ENV_BACKEND_FILE >> backend/.env.production
       cp backend/.env.production ./chart/backend_env
-      cat $ENV_FILE
       cat backend/.env.production
       docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
       echo "Building Dockerfile with tags $CI_APPLICATION_REPOSITORY/1694.io-backend:$CI_APPLICATION_TAG and $CI_APPLICATION_REPOSITORY/www.1694.io-backend:latest ..."
