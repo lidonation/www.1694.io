@@ -115,7 +115,7 @@ build_frontend:
     - |
       set -xev
       cp $ENV_FILE frontend/.env.production
-      cat $ENV_FILE_FRONTEND >> frontend/.env.production
+      cat $ENV_FILE_FRONTEND > frontend/.env.production
       docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
       echo "Building Dockerfile with tags $CI_APPLICATION_REPOSITORY/1694.io-frontend:$CI_APPLICATION_TAG and $CI_APPLICATION_REPOSITORY/www.1694.io-frontend:latest ..."
       docker build --network host -f frontend/Dockerfile \
@@ -135,8 +135,8 @@ build_backend:
     - |
       set -xev
       cp $ENV_FILE backend/.env.production
-      cat $ENV_FILE_BACKEND >> backend/.env.production
-      cat $ENV_FILE_FRONTEND >> frontend/.env.production
+      cat $ENV_FILE_BACKEND > backend/.env.production
+      cat $ENV_FILE_FRONTEND > frontend/.env.production
       cp backend/.env.production ./chart/backend_env
       docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
       echo "Building Dockerfile with tags $CI_APPLICATION_REPOSITORY/1694.io-backend:$CI_APPLICATION_TAG and $CI_APPLICATION_REPOSITORY/www.1694.io-backend:latest ..."
@@ -192,12 +192,12 @@ staging:
       DEPLOYMENT_NAME="www-1694.$CI_ENVIRONMENT_SLUG"
       
       cp $ENV_FILE backend/.env.production
-      cat $ENV_FILE_BACKEND >> backend/.env.production
-      cat $ENV_FILE_FRONTEND >> frontend/.env.production
+      cat $ENV_FILE_BACKEND > backend/.env.production
+      cat $ENV_FILE_FRONTEND > frontend/.env.production
       cp backend/.env.production ./chart/backend_env
       
       cp $ENV_FILE frontend/.env.production
-      cat $ENV_FILE_FRONTEND >> frontend/.env.production
+      cat $ENV_FILE_FRONTEND > frontend/.env.production
       cp frontend/.env.production ./chart/frontend_env
       
       kubectl delete secret 1694-registry-deploy-token --ignore-not-found --namespace="$KUBE_NAMESPACE"
