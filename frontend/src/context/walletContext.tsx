@@ -136,7 +136,6 @@ function CardanoProvider(props: Props) {
         .to_str();
       console.log(balance);
       setWalletState((prev) => ({ ...prev, balance }));
-      return balance;
     } catch (err) {
       console.log(err);
     }
@@ -267,7 +266,7 @@ function CardanoProvider(props: Props) {
           console.log('net', network);
           setIsMainnet(network == 1);
           //Check and set wallet balance
-          const balance=await getBalance(enabledApi);
+          await getBalance(enabledApi);
           // Check and set wallet address
           const usedAddresses = await enabledApi.getUsedAddresses();
           const unusedAddresses = await enabledApi.getUnusedAddresses();
@@ -386,24 +385,6 @@ function CardanoProvider(props: Props) {
     setAddress(undefined);
     setStakeKey(undefined);
     setIsEnabled(false);
-    updateSharedState({
-      address: undefined,
-      balance: undefined,
-      voter: undefined,
-      isEnabled: false,
-      pubDRepKey: '',
-      dRepID: '',
-      walletState: {
-        usedAddress: undefined,
-        changeAddress: undefined,
-      },
-      dRepIDBech32: '',
-      isMainnet: false,
-      stakeKey: undefined,
-      stakeKeys: [],
-      walletApi: undefined,
-      delegatedDRepID: undefined,
-    });
   }, []);
 
   const getTxUnspentOutputs = useCallback(async (utxos: Utxos) => {
