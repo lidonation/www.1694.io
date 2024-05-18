@@ -1920,11 +1920,6 @@
   dependencies:
     "@sinonjs/commons" "^3.0.0"
 
-"@sprig-technologies/sprig-browser@^2.29.0":
-  version "2.29.0"
-  resolved "https://registry.yarnpkg.com/@sprig-technologies/sprig-browser/-/sprig-browser-2.29.0.tgz#0a3561e5efef23ce6b8126a19c963c04744e8856"
-  integrity sha512-SPp7engx9SCw9zugKUvEUSiLEttc6w90wvpgBNxA9n0mG2vHIcbvSEJ5yRK/WWcBoJuzZzEhOiVsvOYFD8mG9w==
-
 "@swc/helpers@0.5.2":
   version "0.5.2"
   resolved "https://registry.npmjs.org/@swc/helpers/-/helpers-0.5.2.tgz"
