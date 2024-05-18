@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { ConnectionService } from 'src/connection/connection.service';
 import Jimp from 'jimp';
 import {
   AttachmentParentEntityType,
