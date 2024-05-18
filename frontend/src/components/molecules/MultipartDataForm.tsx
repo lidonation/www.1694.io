@@ -59,7 +59,6 @@ const MultipartDataForm = ({
       'image/svg',
       'image/jpg',
     ];
-    console.log(files.length);
     if (files && files.length > 0) {
       const validFiles = Array.from(files as FileList).filter((file) =>
         allowedTypes.includes(file.type),

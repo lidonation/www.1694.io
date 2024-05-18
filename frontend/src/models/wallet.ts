@@ -3,6 +3,8 @@ declare global {
     cardano: {
       [key: string]: CardanoBrowserWallet;
     };
+    Sprig: any;
+    UserLeap:any;
   }
 }
 

@@ -5,10 +5,14 @@ import {
   AttachmentParentEntityType,
   AttachmentTypeName,
 } from 'src/entities/attachment.entity';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class AttachmentService {
-  constructor(private connectionService: ConnectionService) {}
+  constructor(
+    @InjectDataSource('default')
+    private voltaireService: DataSource) {}
   async parseMimeType(mimeType: string) {
     switch (mimeType) {
       case 'image/png':
@@ -69,15 +73,13 @@ export class AttachmentService {
   }
   async insertAttachment(attachment: any, mimeType: string, parentId: number) {
     try {
-      const queryInstance =
-        await this.connectionService.addVoltaireConnection();
       const newAttachment = {
         url: attachment,
         parententity: AttachmentParentEntityType.DRep,
         parentid: parentId,
         attachmentType: await this.parseMimeType(mimeType),
       };
-      await queryInstance.getRepository('Attachment').insert(newAttachment);
+      await this.voltaireService.getRepository('Attachment').insert(newAttachment);
       return true;
     } catch (error) {
       console.log(error);
@@ -90,15 +92,13 @@ export class AttachmentService {
     parentId: number,
   ) {
     try {
-      const queryInstance =
-        await this.connectionService.addVoltaireConnection();
       const newAttachment = {
         url: attachment,
         parententity: AttachmentParentEntityType.DRep,
         parentid: parentId,
         attachmentType: await this.parseMimeType(mimeType),
       };
-      await queryInstance
+      await this.voltaireService
         .getRepository('Attachment')
         .update(attachmentId, newAttachment);
       return true;

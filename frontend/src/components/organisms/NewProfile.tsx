@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation';
 import NewProfileForm from '../molecules/NewProfileForm';
 import { usePostNewDrepMutation } from '@/hooks/usePostNewDRepMutation';
 import { drepInput } from '@/models/drep';
+import { useGlobalNotifications } from '@/context/globalNotificationContext';
 const toBase64 = (file: File) => {
   return new Promise((resolve, reject) => {
     const fileReader = new FileReader();
@@ -43,13 +44,12 @@ const NewProfile = () => {
     resolver: zodResolver(FormSchema),
   });
   const { isEnabled, dRepIDBech32, stakeKey } = useCardano();
+  const { addSuccessAlert, addErrorAlert}=useGlobalNotifications()
   const router = useRouter();
   const newDRepMutation = usePostNewDrepMutation();
   const { setIsNotDRepErrorModalOpen, setNewDrepId, setStep1Status } = useDRepContext();
   const saveProfile: SubmitHandler<InputType> = async (data) => {
     try {
-      console.log('submitting...');
-
       if (!dRepIDBech32 || dRepIDBech32 == '') {
         setIsNotDRepErrorModalOpen(true);
         return;
@@ -62,7 +62,6 @@ const NewProfile = () => {
       formData.append('stake_addr', stakeAddress);
       formData.append('voter_id', dRepIDBech32);
       if (data.profileUrl) {
-        console.log(data.profileUrl[0]);
         formData.append('profileUrl', data?.profileUrl[0] as string);
       }
       const res=await newDRepMutation.mutateAsync({
@@ -70,8 +69,10 @@ const NewProfile = () => {
       });
       setNewDrepId(res.raw[0].id);
       setStep1Status('success');
+      addSuccessAlert('DRep Profile Created Successfully!')
       router.push(`/dreps/workflow/profile/update/step1`);
     } catch (error) {
+      addErrorAlert('Error Creating DRep Profile!')
       console.log(error);
     }
   };

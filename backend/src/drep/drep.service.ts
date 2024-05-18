@@ -1,19 +1,22 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { createDrepDto } from 'src/dto';
 import { faker } from '@faker-js/faker';
-import { ConnectionService } from 'src/connection/connection.service';
 import { AttachmentService } from 'src/attachment/attachment.service';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class DrepService {
   constructor(
-    private connectionService: ConnectionService,
+    @InjectDataSource('default')
+    private voltaireService:DataSource,
+    @InjectDataSource('dbsync')
+    private cexplorerService:DataSource,
     private attachmentService: AttachmentService,
   ) {}
   //get from cexplorer db
   async getAllDrepsCexplorer() {
-    const queryInstance = await this.connectionService.addCexplorerConnection();
-    const drepList = await queryInstance.manager.query(
+    const drepList = await this.cexplorerService.manager.query(
       `WITH RankedRows AS (
           SELECT 
               dh.id AS drep_hash_id, 
@@ -83,8 +86,7 @@ export class DrepService {
     return drepListInADA;
   }
   async getSingleDrep(drepId: number) {
-    const queryInstance = await this.connectionService.addVoltaireConnection();
-    const drep = await queryInstance.getRepository('Drep').query(`
+    const drep = await this.voltaireService.getRepository('Drep').query(`
     SELECT drep.*, attachment.*
     FROM drep
     LEFT JOIN attachment ON attachment.parentEntity = 'drep' AND attachment.parentId = drep.id
@@ -104,8 +106,7 @@ export class DrepService {
     return drep[0];
   }
   async getAllDRepsVoltaire() {
-    const queryInstance = await this.connectionService.addVoltaireConnection();
-    return await queryInstance.getRepository('Drep').find();
+    return await this.voltaireService.getRepository('Drep').find();
   }
   async populateFakeDRepData() {
     const dreps = await this.getAllDrepsCexplorer();
@@ -119,13 +120,11 @@ export class DrepService {
         voter_id: drep.view,
       };
     });
-    const queryInstance = await this.connectionService.addVoltaireConnection();
-    await queryInstance.getRepository('Drep').insert(modified);
+    const queryInstance = await this.voltaireService.getRepository('Drep').insert(modified);
     return modified;
   }
   async registerDrep(drepDto: createDrepDto, profileUrl: Express.Multer.File) {
-    const queryInstance = await this.connectionService.addVoltaireConnection();
-    const insertedDrep = await queryInstance
+    const insertedDrep = await this.voltaireService
       .getRepository('Drep')
       .insert(drepDto);
     if (profileUrl) {
@@ -147,8 +146,7 @@ export class DrepService {
     drep: createDrepDto,
     profileUrl: Express.Multer.File,
   ) {
-    const queryInstance = await this.connectionService.addVoltaireConnection();
-    const foundDrep = await queryInstance.getRepository('Drep').query(`
+    const foundDrep = await this.voltaireService.getRepository('Drep').query(`
     SELECT drep.*, attachment.*
     FROM drep
     LEFT JOIN attachment ON attachment.parentEntity = 'drep' AND attachment.parentId = drep.id
@@ -171,7 +169,7 @@ export class DrepService {
       );
     }
     //other fields will be added here
-    return await queryInstance
+    return await this.voltaireService
       .getRepository('Drep')
       .update(drepId, { name: drep.name });
   }

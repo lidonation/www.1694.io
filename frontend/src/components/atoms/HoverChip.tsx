@@ -19,7 +19,7 @@ const HoverChip = ({
 
   return (
     <div
-      className="relative flex items-center justify-center "
+      className="relative z-50 flex items-center justify-center"
       onClick={handleClick}
     >
       {isHovered && (
@@ -34,18 +34,20 @@ const HoverChip = ({
             transform: 'translateX(-50%)',
           }}
         >
-          {text}
-          <br />
+          <div className='text-wrap'>{text}</div>
           {textToCopy && (
-            <CopyToClipboard
-              text={textToCopy}
-              onCopy={() => {
-                console.log('copied!');
-              }}
-              className="clipboard-text cursor-pointer"
-            >
-              <span>{textToCopy}</span>
-            </CopyToClipboard>
+            <div className="w-full cursor-pointer break-words">
+              {textToCopy}
+              <CopyToClipboard
+                text={textToCopy}
+                onCopy={() => {
+                  console.log('copied!');
+                }}
+                className="clipboard-text cursor-pointer"
+              >
+                <img src="/copy.svg" alt="copy" />
+              </CopyToClipboard>
+            </div>
           )}
 
           <div

@@ -38,7 +38,6 @@ const NewNoteForm = () => {
   const { setIsNotDRepErrorModalOpen } = useDRepContext();
   const saveNote: SubmitHandler<InputType> = async (data) => {
     try {
-      console.log('submitting...');
       if (!dRepIDBech32 || dRepIDBech32 == '') {
         setIsNotDRepErrorModalOpen(true);
         return;

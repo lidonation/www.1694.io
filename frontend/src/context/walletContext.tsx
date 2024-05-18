@@ -134,7 +134,6 @@ function CardanoProvider(props: Props) {
       const balance = Value.from_bytes(Buffer.from(balanceCBORHex, 'hex'))
         .coin()
         .to_str();
-      console.log(balance);
       setWalletState((prev) => ({ ...prev, balance }));
     } catch (err) {
       console.log(err);

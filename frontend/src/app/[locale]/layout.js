@@ -6,6 +6,7 @@ import { Poppins } from 'next/font/google';
 import { notFound } from 'next/navigation';
 import '@/assets/styles/globals.css';
 import Script from "next/script";
+import dynamic from 'next/dynamic';
 
 const poppins = Poppins({
   weight: '400',
@@ -24,6 +25,8 @@ export const metadata = {
   description:
     'Town Halls and Campaigns for Voltaire DReps and their communities.',
 };
+// Dynamically imported ClientScriptLoader with no SSR
+const ClientScriptLoader = dynamic(() => import('@/components/Sprig/ClientScriptLoader'), { ssr: false });
 
 async function RootLayout({ children, params: { locale } }) {
   // Root layout component, sets up locale, loads messages, and wraps the app with providers.
@@ -44,25 +47,12 @@ async function RootLayout({ children, params: { locale } }) {
       <head>
         <title>{metadata.title}</title>
         <link rel="icon" href="/favicon.ico" sizes="any" />
-        <Script
-            id='sprig'
-            strategy="lazyOnload"
-        >{
-          (function(l,e,a,p) {
-            if (window.Sprig) return;
-            window.Sprig = function(){S._queue.push(arguments)}
-            var S = window.Sprig;S.appId = a;S._queue = [];window.UserLeap=S;
-            a=l.createElement('script');
-            a.async=1;a.src=e+'?id='+S.appId;
-            p=l.getElementsByTagName('script')[0];
-            p.parentNode.insertBefore(a, p);
-          })(document, 'https://cdn.sprig.com/shim.js',  process.env.NEXT_PUBLIC_SPROUT_ENVIRONMENT_ID)
-        }</Script>
       </head>
       {/* Apply font class and suppress hydration warning. */}
       <body className={poppins.className} suppressHydrationWarning={true}>
         <NextIntlClientProvider locale={locale} messages={messages}>
           <AppContextProvider>{children}</AppContextProvider>
+          <ClientScriptLoader/>
         </NextIntlClientProvider>
       </body>
     </html>

@@ -1,5 +1,5 @@
 export const urls = {
   baseProdUrl: '',
-  baseServerUrl: 'http://localhost:8000',
+  baseServerUrl: process.env.NEXT_PUBLIC_BASE_SERVER_URL,
   govToolUrl: 'https://sanchogov.tools/',
 };

@@ -47,7 +47,6 @@ const UpdateNoteForm = ({ noteId, initialValues }) => {
   }, [initialValues]);
   const updateNote: SubmitHandler<InputType> = async (data) => {
     try {
-      console.log('submitting...');
       if (!dRepIDBech32 || dRepIDBech32 == '') {
         setIsNotDRepErrorModalOpen(true);
         return;
@@ -65,7 +64,6 @@ const UpdateNoteForm = ({ noteId, initialValues }) => {
         voter: dRepIDBech32,
       };
       const res = mutation.mutateAsync({ noteId: noteId, note: updatedNote });
-      console.log(res);
     } catch (error) {
       console.log(error);
     }
