@@ -7,12 +7,29 @@ import { usePathname } from 'next/navigation';
 import { useDRepContext } from '@/context/drepContext';
 import TranslationBlock from '../1694.io/TranslationBlock';
 
+const navOptions = [
+  {
+    name: 'DReps',
+    path: '/dreps',
+  },
+  {
+    name: 'DRep List',
+    path: '/dreps/list',
+  },
+  {
+    name: 'Notes',
+    path: '/dreps/notes',
+  },
+  {
+    name: 'Ecosystem',
+    path: '/ecosystem',
+  },
+];
 const Header = () => {
   const { isEnabled } = useCardano();
-  const { currentLocale } = useDRepContext();
+  const { currentLocale, setIsMobileDrawerOpen } = useDRepContext();
   const [isMobile, setIsMobile] = useState(false);
   const pathname = usePathname();
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [activeLink, setActiveLink] = useState(null);
 
   useEffect(() => {
@@ -26,26 +43,8 @@ const Header = () => {
       setIsMobile(window.innerWidth < 768);
     });
   }, []);
-  const options = [
-    {
-      name: 'DReps',
-      path: '/dreps',
-    },
-    {
-      name: 'DRep List',
-      path: '/dreps/list',
-    },
-    {
-      name: 'Notes',
-      path: '/dreps/notes',
-    },
-    {
-      name: 'Ecosystem',
-      path: '/ecosystem',
-    },
-  ];
   return (
-    <header className="bg-white bg-opacity-50">
+    <header className="bg-white bg-opacity-50 w-full">
       <div className="base_container flex shrink-0 flex-row items-center justify-between py-6 ">
         <Link href="/" className=" sm:w-1/2">
           <img
@@ -67,7 +66,7 @@ const Header = () => {
               >
                 CIP
               </Link>
-              {options.slice(0, 1).map((option, index) => (
+              {navOptions.slice(0, 1).map((option, index) => (
                 <Link
                   key={index + option.name + option.path + option}
                   href={option.path}
@@ -97,9 +96,9 @@ const Header = () => {
           {isMobile && (
             <div
               className="cursor-pointer"
-              onClick={() => setIsDrawerOpen(true)}
+              onClick={() => setIsMobileDrawerOpen(true)}
             >
-              <img src="/drawer-icon.svg" alt="Darwer" />
+              <img src="/drawer-icon.svg" alt="Drawer" />
             </div>
           )}
         </div>
@@ -108,4 +107,4 @@ const Header = () => {
   );
 };
 
-export default Header;
+export { Header, navOptions}

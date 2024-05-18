@@ -12,7 +12,7 @@ import CIPRationale from '@/components/1694.io/1694Rationale';
 import CIPChangelog from '@/components/1694.io/1694Changelog';
 import CIPPathtoactive from '@/components/1694.io/1694Pathtoactive';
 import CIPAcknowledgments from '@/components/1694.io/1694Acknowledgments';
-import Header from '@/components/atoms/Header';
+import {Header} from '@/components/atoms/Header';
 import Footer from '@/components/atoms/Footer';
 import CopyRight from '@/components/1694.io/CopyRight';
 

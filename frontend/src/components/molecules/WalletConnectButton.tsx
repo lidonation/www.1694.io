@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Button from '../atoms/Button';
 import { useDRepContext } from '@/context/drepContext';
 
@@ -8,6 +8,7 @@ const WalletConnectButton = ({ test_name }) => {
     <Button
       handleClick={() => setIsWalletListModalOpen(true)}
       data-testid={`${test_name}-connect-wallet-button`}
+      size='small'
     >
       <p>Connect Wallet</p>
     </Button>

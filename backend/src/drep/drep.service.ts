@@ -129,7 +129,6 @@ export class DrepService {
       .getRepository('Drep')
       .insert(drepDto);
     if (profileUrl) {
-      console.log('profileUrl', profileUrl);
       const optimizedProfileImageUrl =
         await this.attachmentService.parseImageSize(
           profileUrl.buffer,
