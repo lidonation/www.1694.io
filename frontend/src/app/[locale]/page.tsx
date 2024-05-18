@@ -15,11 +15,10 @@ import CIPAcknowledgments from '@/components/1694.io/1694Acknowledgments';
 import Header from '@/components/atoms/Header';
 import Footer from '@/components/atoms/Footer';
 import CopyRight from '@/components/1694.io/CopyRight';
-import { sprig } from '@sprig-technologies/sprig-browser';
 
-export const Sprig = sprig.configure({
-  environmentId: process.env.NEXT_PUBLIC_SPROUT_ENVIRONMENT_ID,
-})
+// export const Sprig = sprig.configure({
+//   environmentId: process.env.NEXT_PUBLIC_SPROUT_ENVIRONMENT_ID,
+// })
 
 const Page = () => {
   const [raw, setRaw] = useState(null);
