@@ -52,8 +52,6 @@ sh-cardano:
 sh-frontend:
 	docker-compose exec frontend sh
 
-
-
 .PHONY: test-backend
 test-backend:
 	docker-compose exec backend yarn run test

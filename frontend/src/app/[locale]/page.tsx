@@ -2,7 +2,6 @@
 import { Background } from '@/components/atoms/Background';
 import CIPInfo from '@/components/1694.io/1694Info';
 import React, { useEffect, useState } from 'react';
-import ReactHtmlParser from 'react-html-parser';
 import CIPIntro from '@/components/1694.io/1694Intro';
 import CIPMotivationInfo from '@/components/1694.io/1694MotivationInfo';
 import ConversationsCard from '@/components/1694.io/ConversationsCard';
@@ -16,7 +15,12 @@ import CIPAcknowledgments from '@/components/1694.io/1694Acknowledgments';
 import Header from '@/components/atoms/Header';
 import Footer from '@/components/atoms/Footer';
 import CopyRight from '@/components/1694.io/CopyRight';
-import TranslationBlock from '@/components/1694.io/TranslationBlock';
+import { sprig } from '@sprig-technologies/sprig-browser';
+
+export const Sprig = sprig.configure({
+  environmentId: process.env.NEXT_PUBLIC_SPROUT_ENVIRONMENT_ID,
+})
+
 const Page = () => {
   const [raw, setRaw] = useState(null);
   const [comments, setComments] = useState(null);
