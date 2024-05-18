@@ -47,7 +47,7 @@ async function RootLayout({ children, params: { locale } }) {
         <Script
             id='sprig'
             strategy="lazyOnload"
-        >{`
+        >{
           (function(l,e,a,p) {
             if (window.Sprig) return;
             window.Sprig = function(){S._queue.push(arguments)}
@@ -56,8 +56,8 @@ async function RootLayout({ children, params: { locale } }) {
             a.async=1;a.src=e+'?id='+S.appId;
             p=l.getElementsByTagName('script')[0];
             p.parentNode.insertBefore(a, p);
-          })(document, 'https://cdn.sprig.com/shim.js',  process.env.NEXT_PUBLIC_SPROUT_ENVIRONMENT_ID);
-        `}</Script>
+          })(document, 'https://cdn.sprig.com/shim.js',  process.env.NEXT_PUBLIC_SPROUT_ENVIRONMENT_ID)
+        }</Script>
       </head>
       {/* Apply font class and suppress hydration warning. */}
       <body className={poppins.className} suppressHydrationWarning={true}>
