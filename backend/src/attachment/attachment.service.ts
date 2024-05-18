@@ -62,8 +62,6 @@ export class AttachmentService {
         .then((buffer) => {
           return buffer;
         });
-      console.log('Original Image Size', buffer.length);
-      console.log('Optimized Image Size', optimizedImageBuffer.length);
       return optimizedImageBuffer;
     } catch (error) {
       console.log(error);

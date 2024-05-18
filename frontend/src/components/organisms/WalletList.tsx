@@ -3,7 +3,6 @@ import { useMemo } from 'react';
 import { ModalContents, ModalHeader, ModalWrapper } from '../atoms';
 import type { WalletOption } from '../molecules';
 import { WalletOptionButton } from '../molecules';
-import styles from './OrgStyles.module.scss';
 import { useDRepContext } from '@/context/drepContext';
 export function ChooseWalletModal() {
   const { setIsWalletListModalOpen } = useDRepContext();

@@ -7,11 +7,11 @@ html {
 }
 
 body {
-  @apply bg-gradient-to-b from-[#E9EFFF] to-[#FFFFFF];
+  @apply relative bg-gradient-to-b from-[#E9EFFF] to-[#FFFFFF] ;
 }
 
 .base_container {
-  @apply mx-auto max-w-xs sm:max-w-md md:max-w-xl lg:max-w-3xl xl:max-w-5xl 2xl:max-w-6xl;
+  @apply mx-auto max-w-sm px-3 sm:max-w-md md:max-w-xl lg:max-w-3xl xl:max-w-5xl 2xl:max-w-6xl;
 }
 .form_container {
   @apply mx-auto w-full sm:max-w-md md:max-w-xl lg:max-w-3xl xl:max-w-5xl 2xl:max-w-6xl;
@@ -29,8 +29,19 @@ body {
 .inner_container table td {
   overflow: hidden;
 }
-.img_container img {
-  object-fit: contain;
+.img_container {
+  #main{
+    @apply max-w-[450px] max-h-[450px] ;
+  }
+  #inverse{
+    @apply max-w-[150px] max-h-[150px] ;
+  }
+  #dull{
+    @apply max-w-[200px] max-h-[200px] ;
+  }
+  #rainbow{
+    @apply max-w-[300px] max-h-[300px] ;
+  }
 }
 .table_container tbody tr {
   @apply border-b-2 border-b-gray-300 border-opacity-40;
