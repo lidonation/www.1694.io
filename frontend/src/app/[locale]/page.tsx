@@ -16,10 +16,6 @@ import {Header} from '@/components/atoms/Header';
 import Footer from '@/components/atoms/Footer';
 import CopyRight from '@/components/1694.io/CopyRight';
 
-// export const Sprig = sprig.configure({
-//   environmentId: process.env.NEXT_PUBLIC_SPROUT_ENVIRONMENT_ID,
-// })
-
 const Page = () => {
   const [raw, setRaw] = useState(null);
   const [comments, setComments] = useState(null);
