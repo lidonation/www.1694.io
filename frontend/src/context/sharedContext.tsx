@@ -6,12 +6,6 @@ export function SharedProvider({ children }) {
   const [sharedState, setSharedState] = useState({
     isWalletListModalOpen: false,
     isNotDRepErrorModalOpen: false,
-    currentLocale: 'en',
-    drepId: null,
-    step1Status: 'pending',
-    step2Status: 'pending',
-    step3Status: 'pending',
-    step4Status: 'pending',
     isMobileDrawerOpen: false,
   });
 
