@@ -9,7 +9,7 @@ const DRepIntroImgs = () => {
     });
   }, []);
   return (
-    <div className="img_container relative flex shrink-0 items-center justify-center">
+    <div className="img_container relative flex shrink-0 items-center justify-center my-5">
       <div
         id="rainbow"
         className="responsive-img absolute -left-20 top-20 z-20"

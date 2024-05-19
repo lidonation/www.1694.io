@@ -15,11 +15,12 @@ import CIPAcknowledgments from '@/components/1694.io/1694Acknowledgments';
 import {Header} from '@/components/atoms/Header';
 import Footer from '@/components/atoms/Footer';
 import CopyRight from '@/components/1694.io/CopyRight';
+import ScrollToTop from '@/components/atoms/ScrollToTop';
+import TranslationBlock from '@/components/1694.io/TranslationBlock';
 
 const Page = () => {
   const [raw, setRaw] = useState(null);
   const [comments, setComments] = useState(null);
-
   useEffect(() => {
     async function fetchMarkdown() {
       try {
@@ -47,7 +48,8 @@ const Page = () => {
     <div className="bg-[url(/1694-asset-1.png)] bg-auto bg-right-top bg-no-repeat">
       <Background>
         <Header />
-        {/* <TranslationBlock/> */}
+        <TranslationBlock/>
+        <ScrollToTop/>
         <CIPIntro />
         <CIPInfo />
         <CIPMotivationInfo />

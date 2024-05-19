@@ -75,7 +75,7 @@ export const SliderMenu = ({ options, handleClose }: SliderMenuProps) => {
                 </Link>
               </Grid>
               {options.slice(0, 1).map((option, index) => (
-                <Grid item>
+                <Grid item key={index + option.name + option.path + option}>
                   <Link
                     key={index + option.name + option.path + option}
                     href={option.path}

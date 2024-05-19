@@ -1,29 +1,20 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { createNoteDto } from 'src/dto';
-import { Repository } from 'typeorm';
-import { ConnectionService } from 'src/connection/connection.service';
-import { Note } from 'src/entities/note.entity';
-import { Attachment } from 'src/entities/attachment.entity';
-
+import { DataSource } from 'typeorm';
 @Injectable()
 export class NoteService {
   constructor(
-    @InjectRepository(Note) private noteRepo: Repository<Note>,
-    @InjectRepository(Note) private attachmentRepo: Repository<Attachment>,
-    private connectionService: ConnectionService,
+   @InjectDataSource('default')
+    private voltaireService:DataSource,
   ) {}
-
-  async initializeQueryRunner() {
-    const queryInstance = await this.connectionService.addVoltaireConnection();
-    return queryInstance;
-  }
   async getAllNotes() {
-    return await this.noteRepo.find();
+    return await this.voltaireService.getRepository('Note').find();
   }
   async getSingleNote(noteId: string) {
     const numifiedNoteId = Number(noteId);
-    const noteList = await this.noteRepo.findOne({
+    const noteList = await this.voltaireService.getRepository('Note')
+    .findOne({
       where: { id: numifiedNoteId },
     });
     if (!noteList) {
@@ -32,13 +23,12 @@ export class NoteService {
     return noteList;
   }
   async registerNote(noteDto: createNoteDto) {
-    const queryInstance = await this.initializeQueryRunner();
-    const isPresent = await queryInstance
+    const isPresent = await this.voltaireService
       .getRepository('Drep')
       .findOneBy({ voter_id: noteDto.voter });
     if (isPresent) {
       const modifiedNoteDto = { ...noteDto, voter: isPresent.id };
-      const res = await queryInstance
+      const res = await this.voltaireService
         .getRepository('Note')
         .insert(modifiedNoteDto);
       return { noteAdded: res.identifiers[0].id };
@@ -48,14 +38,14 @@ export class NoteService {
   }
   async updateNoteInfo(noteId: string, note: createNoteDto) {
     const numifiedNoteId = Number(noteId);
-    const foundNote = await this.noteRepo.findOne({
+    const foundNote = await this.voltaireService.getRepository('Note')
+    .findOne({
       where: { id: numifiedNoteId },
     });
     if (!foundNote) {
       throw new NotFoundException('Note to be updated not found!');
     }
-    const queryInstance = await this.initializeQueryRunner();
-    const isPresent = await queryInstance
+    const isPresent = await this.voltaireService
       .getRepository('Drep')
       .findOneBy({ voter_id: note.voter });
     if (isPresent) {
@@ -64,7 +54,7 @@ export class NoteService {
       Object.keys(modifiedNote).forEach((key) => {
         foundNote[key] = modifiedNote[key];
       });
-      return await this.noteRepo.save(foundNote);
+      return await foundNote.save(foundNote);
     } else {
       return new NotFoundException('DRep associated with note not found!');
     }

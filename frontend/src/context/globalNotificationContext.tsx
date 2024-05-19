@@ -42,7 +42,7 @@ const defaultState: State = {
   messageInfo: undefined,
 };
 const defaultPosition = {
-  vertical: 'top',
+  vertical: 'bottom',
   horizontal: 'center',
 } as SnackbarOrigin;
 
@@ -151,7 +151,7 @@ function GlobalNotificationsProvider({ children }: ProviderProps) {
           onClose={handleClose}
           TransitionProps={{ onExited: handleExited }}
           anchorOrigin={defaultPosition}
-          sx={{ top: 48 }}
+          sx={{bottom:8}}
         >
           <Alert
             data-testid={`alert-${messageInfo.severity}`}

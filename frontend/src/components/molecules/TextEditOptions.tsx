@@ -23,7 +23,6 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({
     if (imagePayload) {
       if (imagePayload.length > 1) {
         imagePayload.forEach((image) => {
-          console.log(image);
           editor.chain().focus().setImage({ src: image }).run();
         });
         setImagePayload(null);

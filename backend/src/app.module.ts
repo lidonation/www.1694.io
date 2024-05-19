@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { DrepModule } from './drep/drep.module';
-import { ConnectionService } from './connection/connection.service';
 import { NoteModule } from './note/note.module';
 import { AttachmentModule } from './attachment/attachment.module';
 import { ConfigModule } from '@nestjs/config';
@@ -20,6 +19,6 @@ import { HealthzModule } from './healthz/healthz.module';
     HealthzModule,
   ],
   controllers: [],
-  providers: [ConnectionService],
+  providers: [],
 })
 export class AppModule {}

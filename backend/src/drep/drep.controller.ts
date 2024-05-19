@@ -25,7 +25,6 @@ export class DrepController {
   }
   @Get(':id/drep')
   getSingle(@Param('id') drepId: number) {
-    console.log(drepId);
     return this.drepService.getSingleDrep(drepId);
   }
   @Post('new')
