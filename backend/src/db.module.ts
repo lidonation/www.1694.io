@@ -6,7 +6,7 @@ import { Attachment } from './entities/attachment.entity';
 import { Reaction } from './entities/reaction.entity';
 import { Delegator } from './entities/delegator.entity';
 import { Note } from './entities/note.entity';
-import {Comment} from "./entities/comment.entity";
+import { Comment } from './entities/comment.entity';
 
 @Module({
   imports: [
