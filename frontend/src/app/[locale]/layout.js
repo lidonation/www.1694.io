@@ -5,7 +5,6 @@ import { unstable_setRequestLocale } from 'next-intl/server';
 import { Poppins } from 'next/font/google';
 import { notFound } from 'next/navigation';
 import '@/assets/styles/globals.css';
-import Script from "next/script";
 import dynamic from 'next/dynamic';
 
 const poppins = Poppins({
