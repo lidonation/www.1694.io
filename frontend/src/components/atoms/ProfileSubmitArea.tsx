@@ -17,33 +17,41 @@ const ProfileSubmitArea = ({ isUpdate }: ProfileSubmitAreaProps) => {
     setStep3Status,
     setStep4Status,
   } = useDRepContext();
-  
-  
+
   const handleNavigate = (step: number) => {
+    if (!isUpdate) return;
     const submitButton = document.getElementById(
       'profile-submit-button',
     ) as HTMLButtonElement;
     submitButton.click();
-    switch (currentRegistrationStep) {
-      case 1:
-        setStep1Status('success');
-        setCurrentRegistrationStep(2);
-        router.push(`$/dreps/workflow/profile/update/step${currentRegistrationStep}`);
-      case 2:
-        setStep2Status('success');
-        setCurrentRegistrationStep(3);
-        router.push(`$/dreps/workflow/profile/update/step${currentRegistrationStep}`);
-      case 3:
-        setStep3Status('success');
-        setCurrentRegistrationStep(4);
-        router.push(`$/dreps/workflow/profile/update/step${currentRegistrationStep}`);
-      case 4:
-        setStep4Status('update')
-      default:
-        console.log('default');
-        break;
+    console.log(currentRegistrationStep);
+    if (currentRegistrationStep === 1) {
+      setStep1Status('success');
+      setStep2Status('active');
+      setCurrentRegistrationStep(2);
+      router.push(
+        `/dreps/workflow/profile/update/step${currentRegistrationStep + 1}`,
+      );
+    } else if (currentRegistrationStep === 2) {
+      setStep2Status('success');
+      setStep3Status('active');
+      setCurrentRegistrationStep(3);
+      router.push(
+        `/dreps/workflow/profile/update/step${currentRegistrationStep + 1}`,
+      );
+    } else if (currentRegistrationStep === 3) {
+      setStep3Status('success');
+      setStep4Status('active');
+      setCurrentRegistrationStep(4);
+      router.push(
+        `/dreps/workflow/profile/update/step${currentRegistrationStep + 1}`,
+      );
+    } else if (currentRegistrationStep === 4) {
+      setStep4Status('update');
+      // reroute to the profile page
+    } else {
+      console.log('default');
     }
-   
   };
   return (
     <div className="mt-4 flex flex-row items-center justify-center md:justify-end">

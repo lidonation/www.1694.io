@@ -1,10 +1,9 @@
 'use client';
-import SetupProgressBar from '@/components/atoms/SetupProgressBar';
-import UpdateProfile from '@/components/organisms/UpdateProfile';
+import UpdateProfileStep2 from '@/components/organisms/UpdateProfileStep2';
 import React from 'react';
 
 const page = () => {
-  return <UpdateProfile />;
+  return <UpdateProfileStep2 />;
 };
 
 export default page;
