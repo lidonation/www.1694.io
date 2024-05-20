@@ -12,7 +12,7 @@ const stepStatusChip = (
         <p className="h-8 w-8 rounded-full bg-blue-800 p-1 text-center text-white">
           {stepNumber}
         </p>
-        <p>{stepText}</p>
+        <p className='text-center'>{stepText}</p>
       </div>
     );
   } else if (stepStatus === 'success') {
@@ -21,7 +21,16 @@ const stepStatusChip = (
         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-lime-300 p-1 text-white">
           <img src="/check.svg" alt="check" className="h-8 w-8" />
         </div>
-        <p>{stepText}</p>
+        <p className='text-center'>{stepText}</p>
+      </div>
+    );
+  } else if (stepStatus === 'update') {
+    return (
+      <div className="flex flex-col items-center justify-center gap-1 border-b-2 border-b-blue-800 px-16 py-3">
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-lime-300 p-1 text-white">
+          <img src="/check.svg" alt="check" className="h-8 w-8" />
+        </div>
+        <p className='text-center'>{stepText}</p>
       </div>
     );
   } else {
@@ -30,7 +39,7 @@ const stepStatusChip = (
       <p className="h-8 w-8 rounded-full bg-gray-300 p-1 text-center text-white">
         {stepNumber}
       </p>
-      <p>{stepText}</p>
+      <p className='text-center'>{stepText}</p>
     </div>
     )
   }

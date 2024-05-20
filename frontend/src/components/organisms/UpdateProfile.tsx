@@ -11,6 +11,7 @@ import UpdateProfileForm from '../molecules/UpdateProfileForm';
 import { getSingleDRep } from '@/services/requests/getSingleDrep';
 import { usePostUpdateDrepMutation } from '@/hooks/usePostUpdateDRepMutation';
 import { drepInput } from '@/models/drep';
+import { useGlobalNotifications } from '@/context/globalNotificationContext';
 const FormSchema = z.object({
   profileName: z.string(),
   profileUrl: z.any(),
@@ -34,6 +35,7 @@ const UpdateProfile = () => {
   );
   const router = useRouter();
   const { setIsNotDRepErrorModalOpen, drepId } = useDRepContext();
+  const {addChangesSavedAlert}=useGlobalNotifications()
   const updateDrepMutation = usePostUpdateDrepMutation();
   useEffect(() => {
     const getDRep = async (drepId) => {
@@ -67,6 +69,7 @@ const UpdateProfile = () => {
         drepId: drepId,
         drep: formData as drepInput,
       });
+      addChangesSavedAlert()
     } catch (error) {
       console.log(error);
     }
@@ -97,7 +100,7 @@ const UpdateProfile = () => {
           DRep.
         </p>
       </div>
-      <form onSubmit={handleSubmit(saveProfile, onError)}>
+      <form id='profile_form' onSubmit={handleSubmit(saveProfile, onError)}>
         <UpdateProfileForm
           register={register}
           control={control}

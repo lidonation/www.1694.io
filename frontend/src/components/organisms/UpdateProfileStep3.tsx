@@ -7,32 +7,18 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
-import NewProfileForm from '../molecules/NewProfileForm';
-import { usePostNewDrepMutation } from '@/hooks/usePostNewDRepMutation';
+import UpdateProfileForm from '../molecules/UpdateProfileForm';
+import { getSingleDRep } from '@/services/requests/getSingleDrep';
+import { usePostUpdateDrepMutation } from '@/hooks/usePostUpdateDRepMutation';
 import { drepInput } from '@/models/drep';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
-const toBase64 = (file: File) => {
-  return new Promise((resolve, reject) => {
-    const fileReader = new FileReader();
-
-    fileReader.readAsDataURL(file);
-
-    fileReader.onload = () => {
-      resolve(fileReader.result);
-    };
-
-    fileReader.onerror = (error) => {
-      reject(error);
-    };
-  });
-};
 const FormSchema = z.object({
   profileName: z.string(),
   profileUrl: z.any(),
 });
 type InputType = z.infer<typeof FormSchema>;
 
-const NewProfile = () => {
+const UpdateProfileStep3 = () => {
   const {
     register,
     handleSubmit,
@@ -44,10 +30,25 @@ const NewProfile = () => {
     resolver: zodResolver(FormSchema),
   });
   const { isEnabled, dRepIDBech32, stakeKey } = useCardano();
-  const { addSuccessAlert, addErrorAlert}=useGlobalNotifications()
+  const [currentProfileUrl, setCurrentProfileUrl] = useState<string | null>(
+    null,
+  );
   const router = useRouter();
-  const newDRepMutation = usePostNewDrepMutation();
-  const { setIsNotDRepErrorModalOpen, setNewDrepId, setStep1Status, setCurrentRegistrationStep } = useDRepContext();
+  const { setIsNotDRepErrorModalOpen, drepId } = useDRepContext();
+  const {addChangesSavedAlert}=useGlobalNotifications()
+  const updateDrepMutation = usePostUpdateDrepMutation();
+  useEffect(() => {
+    const getDRep = async (drepId) => {
+      try {
+        const drep = await getSingleDRep(drepId);
+        setValue('profileName', drep.name);
+        setCurrentProfileUrl(drep.url);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    if (drepId) getDRep(drepId);
+  }, []);
   const saveProfile: SubmitHandler<InputType> = async (data) => {
     try {
       if (!dRepIDBech32 || dRepIDBech32 == '') {
@@ -64,28 +65,22 @@ const NewProfile = () => {
       if (data.profileUrl) {
         formData.append('profileUrl', data?.profileUrl[0] as string);
       }
-      const res=await newDRepMutation.mutateAsync({
+      const res = await updateDrepMutation.mutateAsync({
+        drepId: drepId,
         drep: formData as drepInput,
       });
-      setNewDrepId(res.raw[0].id);
-      setStep1Status('update');
-      setCurrentRegistrationStep(1);
-      addSuccessAlert('DRep Profile Created Successfully!')
-      router.push(`/dreps/workflow/profile/update/step1`);
+      addChangesSavedAlert()
     } catch (error) {
-      addErrorAlert('Error Creating DRep Profile!')
       console.log(error);
     }
   };
-  const onError = (err: any) => {
+  const onError = (err) => {
     console.log(err);
   };
   return (
-    <div className="flex w-full flex-col gap-5 p-10">
+    <div className="flex w-full flex-col gap-5 px-10 py-5">
       <div className="flex flex-col gap-5">
-        <h1 className="text-4xl font-bold text-zinc-800">
-          Create Your DRep Campaign
-        </h1>
+        <h1 className="text-4xl font-bold text-zinc-800">Update your Profile</h1>
         {dRepIDBech32 && (
           <div className="flex flex-row gap-1">
             <span className="text-slate-500">{dRepIDBech32}</span>
@@ -101,23 +96,21 @@ const NewProfile = () => {
           </div>
         )}
         <p className="text-base font-normal text-gray-800">
-          Completing your profile is not mandatory, unless you want to become a
+          Updating your profile is not mandatory, unless you want to become a
           DRep.
         </p>
       </div>
-      <form
-        onSubmit={handleSubmit(saveProfile, onError)}
-        encType="multipart/form-data"
-      >
-        <NewProfileForm
+      <form id='profile_form' onSubmit={handleSubmit(saveProfile, onError)}>
+        <UpdateProfileForm
           register={register}
           control={control}
           errors={errors}
           setProfileUrl={setValue}
+          currentProfileUrl={currentProfileUrl}
         />
       </form>
     </div>
   );
 };
 
-export default NewProfile;
+export default UpdateProfileStep3;
