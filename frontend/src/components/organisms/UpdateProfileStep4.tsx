@@ -85,12 +85,12 @@ const UpdateProfileStep4 = () => {
   return (
     <div className="flex w-full flex-col gap-5 px-10 py-5">
       <div className="flex flex-col gap-5">
-        <h1 className="text-4xl font-bold text-zinc-800">
-          Social Media
-        </h1>
+        <h1 className="text-4xl font-bold text-zinc-800">Social Media</h1>
         {dRepIDBech32 && (
-          <div className="flex flex-row gap-1 flex-wrap">
-            <span className="text-slate-500 w-full break-words">{dRepIDBech32}</span>
+          <div className="flex flex-row flex-wrap gap-1 lg:flex-nowrap">
+            <span className="w-full break-words text-slate-500 lg:w-fit">
+              {dRepIDBech32}
+            </span>
             <CopyToClipboard
               text={dRepIDBech32}
               onCopy={() => {
@@ -103,14 +103,15 @@ const UpdateProfileStep4 = () => {
           </div>
         )}
         <p className="text-base font-normal text-gray-800">
-        Share your social media links, this will increase the credibility of your profile.
+          Share your social media links, this will increase the credibility of
+          your profile.
         </p>
       </div>
       <form id="profile_form" onSubmit={handleSubmit(saveProfile, onError)}>
         <div className="flex flex-col gap-1">
           <label>Github</label>
           <input
-          type='text'
+            type="text"
             className={`rounded-full border border-zinc-100 py-3 pl-5 pr-3`}
             {...register('github')}
             placeholder="Paste your github url here"
@@ -122,7 +123,7 @@ const UpdateProfileStep4 = () => {
         <div className="flex flex-col gap-1">
           <label>X</label>
           <input
-          type='text'
+            type="text"
             className={`rounded-full border border-zinc-100 py-3 pl-5 pr-3`}
             {...register('x')}
             placeholder="Paste your x url here"
@@ -134,7 +135,7 @@ const UpdateProfileStep4 = () => {
         <div className="flex flex-col gap-1">
           <label>Facebook</label>
           <input
-          type='text'
+            type="text"
             className={`rounded-full border border-zinc-100 py-3 pl-5 pr-3`}
             {...register('facebook')}
             placeholder="Paste your facebook url here"
@@ -143,7 +144,7 @@ const UpdateProfileStep4 = () => {
             {errors?.facebook && errors?.facebook?.message}
           </div>
         </div>
-        <ProfileSubmitArea isUpdate/>
+        <ProfileSubmitArea isUpdate />
       </form>
     </div>
   );

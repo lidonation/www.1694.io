@@ -35,7 +35,7 @@ const UpdateProfile = () => {
   );
   const router = useRouter();
   const { setIsNotDRepErrorModalOpen, drepId } = useDRepContext();
-  const {addChangesSavedAlert}=useGlobalNotifications()
+  const { addChangesSavedAlert } = useGlobalNotifications();
   const updateDrepMutation = usePostUpdateDrepMutation();
   useEffect(() => {
     const getDRep = async (drepId) => {
@@ -69,7 +69,7 @@ const UpdateProfile = () => {
         drepId: drepId,
         drep: formData as drepInput,
       });
-      addChangesSavedAlert()
+      addChangesSavedAlert();
     } catch (error) {
       console.log(error);
     }
@@ -80,10 +80,14 @@ const UpdateProfile = () => {
   return (
     <div className="flex w-full flex-col gap-5 px-10 py-5">
       <div className="flex flex-col gap-5">
-        <h1 className="text-4xl font-bold text-zinc-800">Update your Profile</h1>
+        <h1 className="text-4xl font-bold text-zinc-800">
+          Update your Profile
+        </h1>
         {dRepIDBech32 && (
-          <div className="flex flex-row gap-1">
-            <span className="text-slate-500">{dRepIDBech32}</span>
+          <div className="flex flex-row flex-wrap gap-1 lg:flex-nowrap">
+            <span className="w-full break-words text-slate-500 lg:w-fit">
+              {dRepIDBech32}
+            </span>
             <CopyToClipboard
               text={dRepIDBech32}
               onCopy={() => {
@@ -100,7 +104,7 @@ const UpdateProfile = () => {
           DRep.
         </p>
       </div>
-      <form id='profile_form' onSubmit={handleSubmit(saveProfile, onError)}>
+      <form id="profile_form" onSubmit={handleSubmit(saveProfile, onError)}>
         <UpdateProfileForm
           register={register}
           control={control}

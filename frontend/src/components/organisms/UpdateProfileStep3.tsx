@@ -66,8 +66,10 @@ const UpdateProfileStep3 = () => {
       <div className="flex flex-col gap-5">
         <h1 className="text-4xl font-bold text-zinc-800">Your metadata</h1>
         {dRepIDBech32 && (
-          <div className="flex flex-row gap-1 flex-wrap">
-            <span className="text-slate-500 w-full break-words">{dRepIDBech32}</span>
+          <div className="flex flex-row flex-wrap gap-1 lg:flex-nowrap">
+            <span className="w-full break-words text-slate-500 lg:w-fit">
+              {dRepIDBech32}
+            </span>
             <CopyToClipboard
               text={dRepIDBech32}
               onCopy={() => {
@@ -93,7 +95,7 @@ const UpdateProfileStep3 = () => {
             placeholder="Hash Link"
           />
         </div>
-        <ProfileSubmitArea isUpdate/>
+        <ProfileSubmitArea isUpdate />
       </form>
     </div>
   );

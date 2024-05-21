@@ -62,8 +62,8 @@ const UpdateProfileStep2 = () => {
       <div className="flex flex-col gap-5">
         <h1 className="text-4xl font-bold text-zinc-800">Your Statement</h1>
         {dRepIDBech32 && (
-          <div className="flex flex-row gap-1 flex-wrap">
-            <span className="w-full break-words text-slate-500">
+          <div className="flex flex-row flex-wrap gap-1 lg:flex-nowrap">
+            <span className="w-full break-words text-slate-500 lg:w-fit">
               {dRepIDBech32}
             </span>
             <CopyToClipboard
@@ -85,12 +85,12 @@ const UpdateProfileStep2 = () => {
         <div className="flex flex-col gap-1">
           <label>Statement</label>
           <textarea
-            className={`border py-3 pl-5 pr-3 rounded-lg border-zinc-100 min-h-20`}
+            className={`min-h-20 rounded-lg border border-zinc-100 py-3 pl-5 pr-3`}
             {...register('statement')}
             placeholder="Your statement"
           />
         </div>
-        <ProfileSubmitArea isUpdate/>
+        <ProfileSubmitArea isUpdate />
       </form>
     </div>
   );

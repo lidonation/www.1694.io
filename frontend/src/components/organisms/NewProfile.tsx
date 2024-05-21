@@ -44,10 +44,15 @@ const NewProfile = () => {
     resolver: zodResolver(FormSchema),
   });
   const { isEnabled, dRepIDBech32, stakeKey } = useCardano();
-  const { addSuccessAlert, addErrorAlert}=useGlobalNotifications()
+  const { addSuccessAlert, addErrorAlert } = useGlobalNotifications();
   const router = useRouter();
   const newDRepMutation = usePostNewDrepMutation();
-  const { setIsNotDRepErrorModalOpen, setNewDrepId, setStep1Status, setCurrentRegistrationStep } = useDRepContext();
+  const {
+    setIsNotDRepErrorModalOpen,
+    setNewDrepId,
+    setStep1Status,
+    setCurrentRegistrationStep,
+  } = useDRepContext();
   const saveProfile: SubmitHandler<InputType> = async (data) => {
     try {
       if (!dRepIDBech32 || dRepIDBech32 == '') {
@@ -64,16 +69,16 @@ const NewProfile = () => {
       if (data.profileUrl) {
         formData.append('profileUrl', data?.profileUrl[0] as string);
       }
-      const res=await newDRepMutation.mutateAsync({
+      const res = await newDRepMutation.mutateAsync({
         drep: formData as drepInput,
       });
       setNewDrepId(res.raw[0].id);
       setStep1Status('update');
       setCurrentRegistrationStep(1);
-      addSuccessAlert('DRep Profile Created Successfully!')
+      addSuccessAlert('DRep Profile Created Successfully!');
       router.push(`/dreps/workflow/profile/update/step1`);
     } catch (error) {
-      addErrorAlert('Error Creating DRep Profile!')
+      addErrorAlert('Error Creating DRep Profile!');
       console.log(error);
     }
   };
@@ -87,8 +92,10 @@ const NewProfile = () => {
           Create Your DRep Campaign
         </h1>
         {dRepIDBech32 && (
-          <div className="flex flex-row gap-1">
-            <span className="text-slate-500">{dRepIDBech32}</span>
+          <div className="flex flex-row flex-wrap gap-1 lg:flex-nowrap">
+            <span className="w-full break-words text-slate-500 lg:w-fit">
+              {dRepIDBech32}
+            </span>
             <CopyToClipboard
               text={dRepIDBech32}
               onCopy={() => {
