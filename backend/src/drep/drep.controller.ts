@@ -25,7 +25,11 @@ export class DrepController {
   }
   @Get(':id/drep')
   getSingle(@Param('id') drepId: number) {
-    return this.drepService.getSingleDrep(drepId);
+    return this.drepService.getSingleDrepViaID(drepId);
+  }
+  @Get(':voterId/voter')
+  getSingleViaVoterId(@Param('voterId') voterId: string) {
+    return this.drepService.getSingleDrepViaVoterID(voterId);
   }
   @Post('new')
   @UseInterceptors(FileInterceptor('profileUrl'))

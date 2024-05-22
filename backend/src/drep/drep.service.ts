@@ -85,12 +85,32 @@ export class DrepService {
 
     return drepListInADA;
   }
-  async getSingleDrep(drepId: number) {
+  async getSingleDrepViaID(drepId: number) {
     const drep = await this.voltaireService.getRepository('Drep').query(`
     SELECT drep.*, attachment.*
     FROM drep
     LEFT JOIN attachment ON attachment.parentEntity = 'drep' AND attachment.parentId = drep.id
     WHERE drep.id = ${drepId};
+    `);
+
+    if (!drep || drep.length === 0) {
+      throw new NotFoundException('Drep not found!');
+    }
+    if (drep[0].url) {
+      drep[0].url = await this.attachmentService.parseBufferToBase64(
+        drep[0].url,
+        drep[0].attachmentType,
+      );
+    }
+
+    return drep[0];
+  }
+  async getSingleDrepViaVoterID(drepVoterId: string) {
+    const drep = await this.voltaireService.getRepository('Drep').query(`
+    SELECT drep.*, attachment.*
+    FROM drep
+    LEFT JOIN attachment ON attachment.parentEntity = 'drep' AND attachment.parentId = drep.id
+    WHERE drep.voter_id = '${drepVoterId}';
     `);
 
     if (!drep || drep.length === 0) {
