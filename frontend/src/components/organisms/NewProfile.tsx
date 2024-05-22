@@ -73,10 +73,9 @@ const NewProfile = () => {
         drep: formData as drepInput,
       });
       setNewDrepId(res.raw[0].id);
-      setStep1Status('update');
       setCurrentRegistrationStep(1);
       addSuccessAlert('DRep Profile Created Successfully!');
-      router.push(`/dreps/workflow/profile/update/step1`);
+      router.push(`/dreps/workflow/profile/new/success`);
     } catch (error) {
       addErrorAlert('Error Creating DRep Profile!');
       console.log(error);
