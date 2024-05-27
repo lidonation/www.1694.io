@@ -22,6 +22,7 @@ stages:
   - build
   - staging
   - production
+  - test
 
 before_script:
   - |
@@ -299,3 +300,39 @@ production:
     - if: $CI_COMMIT_BRANCH == 'main'
       when: manual
 
+test:
+  stage: test
+  ## Set environment variables for folders in "cache" job settings
+  ## for npm modules and Cypress binary
+  variables:
+    yarn_config_cache: '$CI_PROJECT_DIR/.yarn'
+    CYPRESS_CACHE_FOLDER: '$CI_PROJECT_DIR/frontend/cache/Cypress'
+
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - .cache/*
+      - cache/Cypress
+      - node_modules
+      - build
+
+  ## Install npm dependencies and Cypress
+  install:
+    image: cypress/browsers:node-20.9.0-chrome-118.0.5993.88-1-ff-118.0.2-edge-118.0.2088.46-1
+    stage: build
+    script:
+      - cd frontend
+      - yarn install --frozen-lockfile
+
+  ui-chrome-tests:
+    image: cypress/browsers:node-20.9.0-chrome-118.0.5993.88-1-ff-118.0.2-edge-118.0.2088.46-1
+    stage: test
+    parallel: 5
+    script:
+      - cd frontend
+      # install dependencies
+      - yarn install --frozen-lockfile
+      # start the server in the background
+      - yarn run start &
+      # run Cypress tests in parallel
+      - npx cypress run --record --parallel --browser chrome --group UI-Chrome
