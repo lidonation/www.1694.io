@@ -300,16 +300,32 @@ production:
   rules:
     - if: $CI_COMMIT_BRANCH == 'main'
       when: manual
-      
-test:
-  stage: test
-  image: docker:24.0.2-git
-  services:
-    - docker:dind
+
+install:
+  stage: build
+  image: cypress/browsers:node-20.9.0-chrome-118.0.5993.88-1-ff-118.0.2-edge-118.0.2088.46-1
   script:
-    - apk add --no-cache docker-compose
-    - docker-compose up -d frontend
-    - docker-compose run cypress
-    - docker-compose down
-  only:
-    - branches
+    - cd frontend
+    - yarn install --frozen-lockfile
+    - yarn run build
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - .cache/*
+      - cache/Cypress
+      - node_modules
+      - build
+
+ui-chrome-tests:
+  image: cypress/browsers:node-20.9.0-chrome-118.0.5993.88-1-ff-118.0.2-edge-118.0.2088.46-1
+  stage: test
+  script:
+    - cd frontend
+    - yarn install --frozen-lockfile
+    # start the server in the background
+    - yarn run build
+    - yarn run start &
+    # run Cypress tests in parallel
+    - npx cypress run --browser chrome --group UI-Chrome
+  needs:
+    - install
