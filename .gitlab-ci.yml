@@ -17,6 +17,8 @@ variables:
   DEPLOY_WEBSITE:
     value: "true"
     description: "Build and deploy www.lidonation.com"
+  yarn_config_cache: '$CI_PROJECT_DIR/.yarn'
+  CYPRESS_CACHE_FOLDER: '$CI_PROJECT_DIR/frontend/cache/Cypress'
 
 stages:
   - build
@@ -192,8 +194,7 @@ staging:
     - |
       set -xev
       
-      DEPLOYMENT_NAME="www-1694.$CI_ENVIRONMENT_SLUG"
-      
+      DEPLOYMENT_NAME="www-1694.$CI_ENVIRONMENT_SLUG"    
       cp $ENV_FILE backend/.env.production
       cat $ENV_FILE_BACKEND > backend/.env.production
       cat $ENV_FILE_FRONTEND > frontend/.env.production
@@ -301,12 +302,19 @@ production:
       when: manual
 
 test:
-  stage: test
-  ## Set environment variables for folders in "cache" job settings
-  ## for npm modules and Cypress binary
-  variables:
-    yarn_config_cache: '$CI_PROJECT_DIR/.yarn'
-    CYPRESS_CACHE_FOLDER: '$CI_PROJECT_DIR/frontend/cache/Cypress'
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - cache/Cypress
+      - node_modules
+      - build
+
+  ## Install npm dependencies and Cypress
+  install:
+    image: cypress/browsers:node-20.9.0-chrome-118.0.5993.88-1-ff-118.0.2-edge-118.0.2088.46-1
+    stage: build
+    script:
+      - yarn install --frozen-lockfile
 
   cache:
     key: ${CI_COMMIT_REF_SLUG}
