@@ -17,7 +17,6 @@ variables:
   DEPLOY_WEBSITE:
     value: "true"
     description: "Build and deploy www.lidonation.com"
-  yarn_config_cache: '$CI_PROJECT_DIR/.yarn'
   CYPRESS_CACHE_FOLDER: '$CI_PROJECT_DIR/frontend/cache/Cypress'
 
 stages:
@@ -130,6 +129,13 @@ build_frontend:
       docker push "$CI_APPLICATION_REPOSITORY/1694.io-frontend:latest"
   only:
     - branches
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - frontend/.cache/*
+      - frontend/cache/Cypress
+      - /frontend/*node_modules
+      - /frontend/build
 
 build_backend:
   stage: build
@@ -301,24 +307,16 @@ production:
     - if: $CI_COMMIT_BRANCH == 'main'
       when: manual
 
-install:
-  stage: build
-  image: cypress/browsers:node-20.9.0-chrome-118.0.5993.88-1-ff-118.0.2-edge-118.0.2088.46-1
-  script:
-    - cd frontend
-    - yarn install --frozen-lockfile
-    - yarn run build
-  cache:
-    key: ${CI_COMMIT_REF_SLUG}
-    paths:
-      - .cache/*
-      - cache/Cypress
-      - node_modules
-      - build
-
 ui-chrome-tests:
   image: cypress/browsers:node-20.9.0-chrome-118.0.5993.88-1-ff-118.0.2-edge-118.0.2088.46-1
   stage: test
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - frontend/.cache/*
+      - frontend/cache/Cypress
+      - frontend/*node_modules
+      - frontend/build
   script:
     - cd frontend
     - yarn install --frozen-lockfile
@@ -326,6 +324,6 @@ ui-chrome-tests:
     - yarn run build
     - yarn run start &
     # run Cypress tests in parallel
-    - npx cypress run --browser chrome --group UI-Chrome
+    - npx cypress run --browser chrome --config video=false
   needs:
     - install
