@@ -318,5 +318,3 @@ ui-chrome-tests:
     - yarn run start &
     # run Cypress tests in parallel
     - npx cypress run --browser chrome --config video=false
-  needs:
-    - install
