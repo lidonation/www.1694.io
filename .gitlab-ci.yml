@@ -300,22 +300,13 @@ production:
   rules:
     - if: $CI_COMMIT_BRANCH == 'main'
       when: manual
-
-test:
-  cache:
-    key: ${CI_COMMIT_REF_SLUG}
-    paths:
-      - cache/Cypress
-      - node_modules
-      - build
-
-  ## Install npm dependencies and Cypress
-  install:
-    image: cypress/browsers:node-20.9.0-chrome-118.0.5993.88-1-ff-118.0.2-edge-118.0.2088.46-1
-    stage: build
-    script:
-      - yarn install --frozen-lockfile
-
+      
+install:
+  stage: build
+  image: cypress/browsers:node-20.9.0-chrome-118.0.5993.88-1-ff-118.0.2-edge-118.0.2088.46-1
+  script:
+    - cd frontend
+    - yarn install --frozen-lockfile
   cache:
     key: ${CI_COMMIT_REF_SLUG}
     paths:
@@ -324,23 +315,17 @@ test:
       - node_modules
       - build
 
-  ## Install npm dependencies and Cypress
-  install:
-    image: cypress/browsers:node-20.9.0-chrome-118.0.5993.88-1-ff-118.0.2-edge-118.0.2088.46-1
-    stage: build
-    script:
-      - cd frontend
-      - yarn install --frozen-lockfile
-
-  ui-chrome-tests:
-    image: cypress/browsers:node-20.9.0-chrome-118.0.5993.88-1-ff-118.0.2-edge-118.0.2088.46-1
-    stage: test
-    parallel: 5
-    script:
-      - cd frontend
-      # install dependencies
-      - yarn install --frozen-lockfile
-      # start the server in the background
-      - yarn run start &
-      # run Cypress tests in parallel
-      - npx cypress run --record --parallel --browser chrome --group UI-Chrome
+ui-chrome-tests:
+  image: cypress/browsers:node-20.9.0-chrome-118.0.5993.88-1-ff-118.0.2-edge-118.0.2088.46-1
+  stage: test
+  parallel: 5
+  script:
+    - cd frontend
+    # install dependencies
+    - yarn install --frozen-lockfile
+    # start the server in the background
+    - yarn run start &
+    # run Cypress tests in parallel
+    - npx cypress run --record --parallel --browser chrome --group UI-Chrome
+  needs:
+    - install
