@@ -129,13 +129,6 @@ build_frontend:
       docker push "$CI_APPLICATION_REPOSITORY/1694.io-frontend:latest"
   only:
     - branches
-  cache:
-    key: ${CI_COMMIT_REF_SLUG}
-    paths:
-      - frontend/.cache/*
-      - frontend/cache/Cypress
-      - /frontend/*node_modules
-      - /frontend/build
 
 build_backend:
   stage: build
