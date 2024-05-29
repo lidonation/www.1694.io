@@ -2,7 +2,7 @@ describe('Create new note if wallet is connected', () => {
   let noteId;
   it('should create a new note', () => {
     //check if backend is running
-    cy.request(Cypress.env('backendUrl') + '/api/notes/all' ).should((response) => {
+    cy.request(Cypress.env('backendUrl') + '/notes/all' ).should((response) => {
       expect(response.status).to.eq(200);
     } );
 
@@ -35,7 +35,7 @@ describe('Create new note if wallet is connected', () => {
     );
     cy.get('input[value="everyone"]').click();
     cy.get('input[value="everyone"]').should('be.checked');
-    cy.intercept('POST', Cypress.env('backendUrl') +  '/api/notes/new').as('add-note');
+    cy.intercept('POST', Cypress.env('backendUrl') +  '/notes/new').as('add-note');
     cy.get('[data-testid=post-submit-button]').click();
     cy.wait('@add-note').then(({ response }) => {
       expect(response.body).to.have.property('noteAdded');
@@ -79,7 +79,7 @@ describe('Create new note if wallet is connected', () => {
     );
     cy.get('input[value="myself"]').click();
     cy.get('input[value="myself"]').should('be.checked');
-    cy.intercept('POST', Cypress.env('backendUrl') + `api/notes/${noteId}/update`).as(
+    cy.intercept('POST', Cypress.env('backendUrl') + `/notes/${noteId}/update`).as(
       'update-note',
     );
     cy.get('[data-testid=post-submit-button]').click();
