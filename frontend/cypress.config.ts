@@ -5,9 +5,9 @@ export default defineConfig({
     setupNodeEvents(on, config) {
       // implement node event listeners here
     },
-    baseUrl: 'http://frontend:3000',
+    baseUrl: 'http://localhost:3000',
     env: {
-      backendUrl: 'http://backend:8000/api',
+      backendUrl: 'https://sancho.1694.io/api',
     }
   },
   
