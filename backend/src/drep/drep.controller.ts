@@ -15,13 +15,9 @@ import { DrepService } from './drep.service';
 @Controller('dreps')
 export class DrepController {
   constructor(private drepService: DrepService) {}
-  @Get('/cexplorer')
+  @Get('')
   getAll() {
-    return this.drepService.getAllDrepsCexplorer();
-  }
-  @Get('/voltaire')
-  getAllVol() {
-    return this.drepService.getAllDRepsVoltaire();
+    return this.drepService.getAllDreps();
   }
   @Get(':id/drep')
   getSingle(@Param('id') drepId: number) {

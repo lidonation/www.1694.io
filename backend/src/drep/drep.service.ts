@@ -85,6 +85,26 @@ export class DrepService {
 
     return drepListInADA;
   }
+  async getAllDRepsVoltaire() {
+    return await this.voltaireService.getRepository('Drep').find();
+  }
+  async getAllDreps() {
+    // get both dreps from voltaire and cexplorer matching drep.view from cexplorer with drep.voter_id from voltaire
+    const drepList = await this.getAllDrepsCexplorer();
+    const voltaireDreps = await this.getAllDRepsVoltaire();
+    //add all fields from voltaire to cexplorer, if no matching, the field can be null
+    const mergedDreps = drepList.map((drep) => {
+      const voltaireDrep = voltaireDreps.find(
+        (voltaireDrep) => voltaireDrep.voter_id === drep.view,
+      );
+      return {
+        ...drep,
+        ...voltaireDrep,
+      };
+    });
+    return mergedDreps;
+
+  }
   async getSingleDrepViaID(drepId: number) {
     const drep = await this.voltaireService.getRepository('Drep').query(`
     SELECT drep.*, attachment.*
@@ -124,9 +144,6 @@ export class DrepService {
     }
 
     return drep[0];
-  }
-  async getAllDRepsVoltaire() {
-    return await this.voltaireService.getRepository('Drep').find();
   }
   async populateFakeDRepData() {
     const dreps = await this.getAllDrepsCexplorer();
