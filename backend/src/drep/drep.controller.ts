@@ -19,6 +19,10 @@ export class DrepController {
   getAll() {
     return this.drepService.getAllDreps();
   }
+  @Get('epochs/latest/parameters')
+  getEpochParams() {
+    return this.drepService.getEpochParams();
+  }
   @Get(':id/drep')
   getSingle(@Param('id') drepId: number) {
     return this.drepService.getSingleDrepViaID(drepId);

@@ -4,23 +4,13 @@ import { useGetDRepsQuery } from '@/hooks/useGetDRepsQuery';
 import HoverChip from '../atoms/HoverChip';
 import { useRouter } from 'next/navigation';
 import { convertString } from '@/lib';
+import { useScreenDimension } from '@/hooks';
 
 const DRepsTable = ({ searchQuery }) => {
   const router = useRouter();
-  const [isMobile, setIsMobile] = useState(false);
+  const {isMobile} = useScreenDimension();
   const { DReps, isDRepsLoading } = useGetDRepsQuery();
-  useEffect(() => {
-    if (window.innerWidth <= 768) {
-      setIsMobile(true);
-    }
-    window.addEventListener('resize', () => {
-      if (window.innerWidth <= 768) {
-        setIsMobile(true);
-      } else {
-        setIsMobile(false);
-      }
-    });
-  }, []);
+  
   //will be later changed to filter by drep name
   const filteredDreps =
     DReps &&

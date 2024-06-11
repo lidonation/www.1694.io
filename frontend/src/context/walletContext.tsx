@@ -10,10 +10,18 @@ import {
   Address,
   PublicKey,
   RewardAddress,
+  Transaction,
   TransactionUnspentOutput,
   TransactionUnspentOutputs,
   StakeCredential,
   Value,
+  TransactionBuilder,
+  TransactionBuilderConfigBuilder,
+  LinearFee,
+  BigNum,
+  TransactionOutput,
+  TransactionWitnessSet,
+  TransactionWitnessSetJSON,
 } from '@emurgo/cardano-serialization-lib-asmjs';
 import { Buffer } from 'buffer';
 import * as Sentry from '@sentry/react';
@@ -26,8 +34,9 @@ import {
   setItemToLocalStorage,
   removeItemFromLocalStorage,
 } from '@/lib';
-import { CardanoApiWallet, VoterInfo } from '@/models/wallet';
+import { CardanoApiWallet, Protocol, VoterInfo } from '@/models/wallet';
 import { useSharedContext } from './sharedContext';
+import getEpochParams from '@/services/requests/getEpochParams';
 
 interface Props {
   children: React.ReactNode;
@@ -62,12 +71,18 @@ interface CardanoContext {
     usedAddress: string | undefined;
     changeAddress: undefined | string;
   };
+  loginCredentials: {
+    signature: string | undefined;
+    vkey: string | undefined;
+  };
   dRepIDBech32: string;
+  isGettingSignatures: boolean;
   isMainnet: boolean;
   stakeKey?: string;
   setVoter: (key: undefined | VoterInfo) => void;
   setStakeKey: (key: string) => void;
   loginSignTransaction: () => Promise<any>;
+  loginHardwareWalletTransaction: () => Promise<any>;
   stakeKeys: string[];
   walletApi?: CardanoApiWallet;
   delegatedDRepID?: string;
@@ -102,6 +117,12 @@ function CardanoProvider(props: Props) {
   const [stakeKey, setStakeKey] = useState<string | undefined>(undefined);
   const [stakeKeys, setStakeKeys] = useState<string[]>([]);
   const [isMainnet, setIsMainnet] = useState<boolean>(false);
+  const [isGettingSignatures, setIsGettingSignatures] = useState(false);
+  const [loginCredentials, setLoginCredentials] = useState<{
+    signature: string;
+    vkey: string;
+  } | null>(null);
+
   const [registeredStakeKeysListState, setRegisteredPubStakeKeysState] =
     useState<string[]>([]);
   const [error, setError] = useState<string | undefined>(undefined);
@@ -128,6 +149,14 @@ function CardanoProvider(props: Props) {
     };
     enableCurrentWallet();
   }, []);
+  useEffect(() => {
+    if (sharedState?.loginCredentials?.signature) {
+      setLoginCredentials({
+        signature: sharedState?.loginCredentials?.signature,
+        vkey: sharedState?.loginCredentials?.key,
+      });
+    }
+  }, [sharedState?.loginCredentials?.signature]);
 
   const getChangeAddress = async (enabledApi: CardanoApiWallet) => {
     try {
@@ -357,6 +386,8 @@ function CardanoProvider(props: Props) {
           setPubDRepKey(dRepIDs?.dRepKey || '');
           setDRepID(dRepIDs?.dRepID || '');
           setDRepIDBech32(dRepIDs?.dRepIDBech32 || '');
+          const protocol = await getEpochParams();
+          setItemToLocalStorage('protocolParams', protocol);
           setItemToLocalStorage(`${WALLET_LS_KEY}_name`, walletName);
           setItemToLocalStorage(`${WALLET_LS_KEY}_api`, enabledApi);
           setIsEnabling(false);
@@ -387,19 +418,119 @@ function CardanoProvider(props: Props) {
   );
   //implement sign transaction to determine whether the public key owner is the same owner of the secret key
   const loginSignTransaction = async () => {
+    if (!walletApi) return;
+    setIsGettingSignatures(true);
     try {
       //get the public key of the wallet
       const drepPubKey = dRepID;
-      const payloadBuffer=Buffer.from(`Verify DRep ${dRepIDBech32}`).toString('hex');
-      const sign = await walletApi.signData(drepPubKey,payloadBuffer );
-      return sign;
+      const payloadBuffer = Buffer.from(`Verify DRep ${dRepIDBech32}`).toString(
+        'hex',
+      );
+      const sign = await walletApi.signData(drepPubKey, payloadBuffer);
+      const { signature, key } = sign;
+      setLoginCredentials({ signature, vkey: key });
+      setIsGettingSignatures(false);
+      return { signature, key };
     } catch (e) {
       Sentry.captureException(e);
       console.error(e);
+      setIsGettingSignatures(false);
       throw e;
     }
   };
+  const initTransactionBuilder = async () => {
+    const protocolParams = getItemFromLocalStorage(
+      'protocolParams',
+    ) as Protocol;
+    const txBuilder = TransactionBuilder.new(
+      TransactionBuilderConfigBuilder.new()
+        .fee_algo(
+          LinearFee.new(
+            BigNum.from_str(String(protocolParams.min_fee_a)),
+            BigNum.from_str(String(protocolParams.min_fee_b)),
+          ),
+        )
+        .pool_deposit(BigNum.from_str(protocolParams.pool_deposit))
+        .key_deposit(BigNum.from_str(protocolParams.key_deposit))
+        .coins_per_utxo_word(
+          BigNum.from_str(protocolParams.coins_per_utxo_size.toString()),
+        )
+        .max_value_size(protocolParams.max_val_size)
+        .max_tx_size(protocolParams.max_tx_size)
+        .prefer_pure_change(true)
+        .build(),
+    );
 
+    return txBuilder;
+  };
+
+  const getTxUnspentOutputs = useCallback(async (utxos: Utxos) => {
+    let txOutputs = TransactionUnspentOutputs.new();
+    for (const utxo of utxos) {
+      txOutputs.add(utxo.TransactionUnspentOutput);
+    }
+    return txOutputs;
+  }, []);
+  //creates an expired txn for signing
+  const loginHardwareWalletTransaction = async () => {
+    if (!walletApi) throw new Error('Wallet not connected');
+    setIsGettingSignatures(true);
+    try {
+      const txBuilder = await initTransactionBuilder();
+      //sample recipient address
+      const shelleyOutputAddress = Address.from_bech32(
+        'addr_test1qrt7j04dtk4hfjq036r2nfewt59q8zpa69ax88utyr6es2ar72l7vd6evxct69wcje5cs25ze4qeshejy828h30zkydsu4yrmm',
+      );
+      const shelleyChangeAddress = Address.from_bech32(
+        walletState.changeAddress,
+      );
+      // 1 million lovelace
+      txBuilder.add_output(
+        TransactionOutput.new(
+          shelleyOutputAddress,
+          Value.new(BigNum.from_str('1000000')),
+        ),
+      );
+
+      // Find the available UTXOs in the wallet and
+      // us them as Inputs
+      const utxos = await getUtxos(walletApi);
+      const txUnspentOutputs = await getTxUnspentOutputs(utxos);
+      txBuilder.add_inputs_from(txUnspentOutputs, 1);
+      // calculate the min fee required and send any change to an address
+      txBuilder.add_change_if_needed(shelleyChangeAddress);
+      //expiry of 1 minute
+      txBuilder.set_ttl_bignum(BigNum.from_str((1.5 * 60).toString()));
+      // once the transaction is ready, we build it to get the tx body without witnesses
+      const txBody = txBuilder.build();
+      // Tx witness
+      const transactionWitnessSet = TransactionWitnessSet.new();
+      const tx = Transaction.new(
+        txBody,
+        TransactionWitnessSet.from_bytes(transactionWitnessSet.to_bytes()),
+      );
+
+      let txVkeyWitnesses = await walletApi.signTx(
+        Buffer.from(tx.to_bytes(), 'utf8').toString('hex'),
+        true,
+      );
+      txVkeyWitnesses = TransactionWitnessSet.from_bytes(
+        Buffer.from(txVkeyWitnesses, 'hex'),
+      );
+      transactionWitnessSet.set_vkeys(txVkeyWitnesses.vkeys());
+      const signedTx = Transaction.new(tx.body(), transactionWitnessSet);
+      const { signature, vkey } = JSON.parse(
+        signedTx.witness_set().vkeys().get(0).to_json(),
+      );
+      setLoginCredentials({ signature, vkey });
+      setIsGettingSignatures(false);
+      return { signature, vkey };
+    } catch (error) {
+      setIsGettingSignatures(false);
+      throw new Error(error);
+    }
+  };
+  //for hardware wallets, an expired txn is signed to get signature
   const disconnectWallet = useCallback(async () => {
     removeItemFromLocalStorage(`${WALLET_LS_KEY}_name`);
     removeItemFromLocalStorage(`${WALLET_LS_KEY}_stake_key`);
@@ -410,13 +541,6 @@ function CardanoProvider(props: Props) {
     setIsEnabled(false);
   }, []);
 
-  const getTxUnspentOutputs = useCallback(async (utxos: Utxos) => {
-    let txOutputs = TransactionUnspentOutputs.new();
-    for (const utxo of utxos) {
-      txOutputs.add(utxo.TransactionUnspentOutput);
-    }
-    return txOutputs;
-  }, []);
   const value = useMemo(
     () => ({
       address,
@@ -427,10 +551,13 @@ function CardanoProvider(props: Props) {
       isMainnet,
       disconnectWallet,
       loginSignTransaction,
+      loginHardwareWalletTransaction,
+      loginCredentials,
       dRepID,
       dRepIDBech32,
       pubDRepKey,
       stakeKey,
+      isGettingSignatures,
       setVoter,
       setStakeKey,
       stakeKeys,
@@ -454,6 +581,7 @@ function CardanoProvider(props: Props) {
       dRepID,
       dRepIDBech32,
       pubDRepKey,
+      isGettingSignatures,
       stakeKey,
       setVoter,
       setStakeKey,

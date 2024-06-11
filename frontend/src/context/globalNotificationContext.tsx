@@ -9,6 +9,8 @@ import {
 } from 'react';
 import { Snackbar, Alert } from '@mui/material';
 import { SnackbarSeverity } from '@/models/snackbar';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useScreenDimension } from '@/hooks';
 
 interface ProviderProps {
   children: React.ReactNode;
@@ -33,7 +35,9 @@ interface State {
   messageInfo?: GlobalMessage;
 }
 
-const GlobalNotificationContext = createContext<GlobalNotificationContext>({} as GlobalNotificationContext);
+const GlobalNotificationContext = createContext<GlobalNotificationContext>(
+  {} as GlobalNotificationContext,
+);
 GlobalNotificationContext.displayName = 'GlobalNotificationContext';
 
 const DEFAULT_AUTO_HIDE_DURATION = 2000;
@@ -49,15 +53,29 @@ const defaultPosition = {
 function GlobalNotificationsProvider({ children }: ProviderProps) {
   const [notifsPack, setNotifsPack] = useState<readonly GlobalMessage[]>([]);
   const [{ messageInfo, open }, setState] = useState(defaultState);
-  const [isMobile, setIsMobile] = useState(false);
+  const { isMobile } = useScreenDimension();
+  const router = useRouter();
+  const params = useSearchParams();
   useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 600);
-    };
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+    const message = params.get('message');
+    const severity = params.get('severity');
+    console.log(message, severity);
+    if (message && severity) {
+      if (severity == 'success') {
+        addSuccessAlert(message);
+      } else if (severity == 'error') {
+        addErrorAlert(message);
+      } else if (severity == 'warning') {
+        addWarningAlert(message);
+      }
+      const url = new URL(window.location.href);
+      url.searchParams.delete('message');
+      url.searchParams.delete('severity');
+      const cleanedUrl = url.pathname + url.search;
+
+      router.replace(cleanedUrl, { scroll: false });
+    }
+  }, [params]);
   const addWarningAlert = useCallback(
     (message: string, autoHideDuration = DEFAULT_AUTO_HIDE_DURATION) =>
       setNotifsPack((prev) => [
@@ -151,7 +169,7 @@ function GlobalNotificationsProvider({ children }: ProviderProps) {
           onClose={handleClose}
           TransitionProps={{ onExited: handleExited }}
           anchorOrigin={defaultPosition}
-          sx={{bottom:8}}
+          sx={{ bottom: 8 }}
         >
           <Alert
             data-testid={`alert-${messageInfo.severity}`}
@@ -179,7 +197,9 @@ function GlobalNotificationsProvider({ children }: ProviderProps) {
 function useGlobalNotifications() {
   const context = useContext(GlobalNotificationContext);
   if (context === undefined) {
-    throw new Error('useGlobalNotifications must be used within a GlobalNotificationsProvider');
+    throw new Error(
+      'useGlobalNotifications must be used within a GlobalNotificationsProvider',
+    );
   }
   return context;
 }

@@ -1,4 +1,5 @@
 'use client';
+import { useScreenDimension } from '@/hooks';
 import { ReactNode, useEffect, useState } from 'react';
 
 export const Background = ({
@@ -10,10 +11,7 @@ export const Background = ({
   isReverted?: boolean;
   opacity?: number;
 }) => {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    setIsMobile(window.innerWidth < 768);
-  }, []);
+  const {isMobile} = useScreenDimension();
   return (
     <>
       <img
