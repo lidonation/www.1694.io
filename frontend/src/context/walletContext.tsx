@@ -511,7 +511,7 @@ function CardanoProvider(props: Props) {
       );
 
       let txVkeyWitnesses = await walletApi.signTx(
-        Buffer.from(tx.to_bytes(), 'utf8').toString('hex'),
+        Buffer.from(tx.to_bytes() as any, 'utf8').toString('hex'),
         true,
       );
       txVkeyWitnesses = TransactionWitnessSet.from_bytes(
