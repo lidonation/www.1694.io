@@ -44,18 +44,23 @@ function protectRoutes(request, locale) {
   if (token) {
     const { isExpired } = decodeToken(token.value);
     if (isExpired) {
-      message = 'Your session has expired. Please log in again.';
-      severity = 'error';
+       const response=NextResponse.redirect(new URL(redirectUrl, request.url),{status: 307, statusText: 'Temporary Redirect'});
+       response.headers.set(
+         'x-status-reason', 'Token Expired',
+       )
+       return response
     } else {
-      return null; // No redirection needed
+      return NextResponse.next();
     }
   } else {
-    message = 'You must be logged in to access this page.';
-    severity = 'warning';
+    const response=NextResponse.redirect(new URL(redirectUrl, request.url),{status: 307, statusText: 'Temporary Redirect'});
+    response.headers.set(
+      'x-status-reason', 'Token Missing',
+    )
+    return response
   }
 
-  redirectUrl += `?message=${encodeURIComponent(message)}&severity=${severity}`;
-  return NextResponse.redirect(new URL(redirectUrl, request.url));
+  
 }
 export function middleware(request) {
   const protectedRoutesRegex = /^\/dreps\/workflow\/profile\/update(\/.*)?$/;

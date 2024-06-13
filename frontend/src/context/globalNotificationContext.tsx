@@ -9,7 +9,6 @@ import {
 } from 'react';
 import { Snackbar, Alert } from '@mui/material';
 import { SnackbarSeverity } from '@/models/snackbar';
-import { useRouter, useSearchParams } from 'next/navigation';
 import { useScreenDimension } from '@/hooks';
 
 interface ProviderProps {
@@ -54,28 +53,6 @@ function GlobalNotificationsProvider({ children }: ProviderProps) {
   const [notifsPack, setNotifsPack] = useState<readonly GlobalMessage[]>([]);
   const [{ messageInfo, open }, setState] = useState(defaultState);
   const { isMobile } = useScreenDimension();
-  const router = useRouter();
-  const params = useSearchParams();
-  useEffect(() => {
-    const message = params.get('message');
-    const severity = params.get('severity');
-    console.log(message, severity);
-    if (message && severity) {
-      if (severity == 'success') {
-        addSuccessAlert(message);
-      } else if (severity == 'error') {
-        addErrorAlert(message);
-      } else if (severity == 'warning') {
-        addWarningAlert(message);
-      }
-      const url = new URL(window.location.href);
-      url.searchParams.delete('message');
-      url.searchParams.delete('severity');
-      const cleanedUrl = url.pathname + url.search;
-
-      router.replace(cleanedUrl, { scroll: false });
-    }
-  }, [params]);
   const addWarningAlert = useCallback(
     (message: string, autoHideDuration = DEFAULT_AUTO_HIDE_DURATION) =>
       setNotifsPack((prev) => [
