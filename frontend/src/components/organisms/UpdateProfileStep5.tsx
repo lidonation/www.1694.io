@@ -74,7 +74,7 @@ const UpdateProfileStep5 = () => {
           setValue('github', drep.drep_social?.github||'');
           setValue('x', drep.drep_social?.x || '');
           setValue('facebook', drep.drep_social?.facebook || '');
-          setNewDrepId(drep.id)
+          setNewDrepId(drep.drep_id)
           if (drep.drep_social?.github || drep.drep_social?.x || drep.drep_social?.facebook) {
             setStep5Status('update');
           } else setStep5Status('active');
@@ -95,9 +95,6 @@ const UpdateProfileStep5 = () => {
         setIsNotDRepErrorModalOpen(true);
         return;
       }
-      const stakeAddress = Address.from_bytes(
-        Buffer.from(stakeKey, 'hex'),
-      ).to_bech32();
       const formData = new FormData();
       formData.append('social', JSON.stringify({ ...data }));
       const res = await updateDrepMutation.mutateAsync({

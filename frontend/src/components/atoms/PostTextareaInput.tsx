@@ -52,12 +52,12 @@ const EditorArticle = ({
         <TextEditOptions editor={editor} active={isEnabled} />
         <div
           id="post-textarea"
-          className="flex min-h-40 w-[80%] items-center justify-center rounded-bl-xl rounded-br-xl border-b border-l border-r border-zinc-100"
+          className="flex min-h-40 w-full lg:w-[80%] items-center justify-center rounded-bl-xl rounded-br-xl border-b border-l border-r border-zinc-100"
         >
           <EditorContent
             editor={editor}
             content={description}
-            className="min-h-40 w-full"
+            className="h-full w-full"
             data-testid="post-editor-input"
           />
         </div>

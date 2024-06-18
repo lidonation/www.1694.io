@@ -78,8 +78,18 @@ export class AttachmentService {
         parentid: parentId,
         attachmentType: await this.parseMimeType(mimeType),
       };
-      await this.voltaireService.getRepository('Attachment').insert(newAttachment);
-      return true;
+      const res=await this.voltaireService.getRepository('Attachment').insert(newAttachment);
+      return res.identifiers[0].id
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  async getSingleAttachment(attachmentId: number) {
+    try {
+      const attachment = await this.voltaireService
+        .getRepository('Attachment')
+        .findOneBy({ id: attachmentId });
+      return attachment;
     } catch (error) {
       console.log(error);
     }
@@ -100,6 +110,16 @@ export class AttachmentService {
       await this.voltaireService
         .getRepository('Attachment')
         .update(attachmentId, newAttachment);
+      return true;
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  async deleteAttachment (attachmentId: number) {
+    try {
+      await this.voltaireService
+        .getRepository('Attachment')
+        .delete(attachmentId);
       return true;
     } catch (error) {
       console.log(error);

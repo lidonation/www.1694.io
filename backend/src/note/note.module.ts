@@ -3,10 +3,12 @@ import { NoteController } from './note.controller';
 import { NoteService } from './note.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Note } from 'src/entities/note.entity';
+import { AttachmentService } from 'src/attachment/attachment.service';
+import { DrepService } from 'src/drep/drep.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Note])],
   controllers: [NoteController],
-  providers: [NoteService],
+  providers: [NoteService, AttachmentService, DrepService],
 })
 export class NoteModule {}
