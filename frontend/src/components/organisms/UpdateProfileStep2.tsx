@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { ChangeEvent, useEffect, useState } from 'react';
 import { useCardano } from '@/context/walletContext';
 import { useDRepContext } from '@/context/drepContext';
 import { Address } from '@emurgo/cardano-serialization-lib-asmjs';
@@ -16,26 +16,31 @@ import Button from '../atoms/Button';
 import { Typography } from '@mui/material';
 import { convertString } from '@/lib';
 import WalletConnectButton from '../molecules/WalletConnectButton';
+import LoginButton from '../molecules/LoginButton';
+import { getSwitchWithTextTrack } from './UserLoginModal';
+import { useScreenDimension } from '@/hooks';
 const FormSchema = z.object({
   signature: z.string(),
-  key:z.string()
+  key: z.string(),
 });
 type InputType = z.infer<typeof FormSchema>;
 
 const UpdateProfileStep2 = () => {
-  const {
-    handleSubmit,
-    getValues,
-    setValue,
-  } = useForm<InputType>({
+  const { handleSubmit, getValues, setValue } = useForm<InputType>({
     resolver: zodResolver(FormSchema),
   });
-  const { address, isEnabled, dRepIDBech32, stakeKey, loginSignTransaction } =
-    useCardano();
+  const { isMobile } = useScreenDimension();
 
+  const [isHardware, setIsHardware] = useState(!false);
+  const { address, isEnabled, dRepIDBech32, stakeKey, loginCredentials } =
+    useCardano();
+  const SwitchWithTextTrack = getSwitchWithTextTrack(
+    isMobile,
+    isMobile ? '150px' : '220px',
+  );
   const { setIsNotDRepErrorModalOpen, drepId, setStep2Status, setNewDrepId } =
     useDRepContext();
-  const [signature, setSignature] = useState({signature:null, key:null});
+  const [signature, setSignature] = useState({ signature: null, key: null });
   const { addChangesSavedAlert, addErrorAlert } = useGlobalNotifications();
   const updateDrepMutation = usePostUpdateDrepMutation();
   useEffect(() => {
@@ -48,8 +53,11 @@ const UpdateProfileStep2 = () => {
           drep = await getSingleDRepViaVoterId(dRepIDBech32);
         }
         setNewDrepId(drep.drep_id);
-        setValue('signature', drep.signature_drepSignature)
-        setSignature({signature:drep.signature_drepSignature, key:drep.signature_drepSignatureKey})
+        setValue('signature', drep.signature_drepSignature);
+        setSignature({
+          signature: drep.signature_drepSignature,
+          key: drep.signature_drepSignatureKey,
+        });
         if (drep.drep_platform_statement) {
           setStep2Status('update');
         } else setStep2Status('active');
@@ -64,17 +72,22 @@ const UpdateProfileStep2 = () => {
       } else setStep2Status('pending');
     };
   }, [dRepIDBech32]);
-  const handleLogin = async () => {
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setIsHardware(!event.target.checked);
+  };
+  useEffect(() => {
     try {
-      const { signature, key } = await loginSignTransaction();
-      setSignature({ signature, key});
-      setValue('signature', signature)
-      setValue('key', key)
+      if (loginCredentials.signature || loginCredentials.vkey) {
+        const { signature, vkey } = loginCredentials;
+        setSignature({ signature, key: vkey });
+        setValue('signature', signature);
+        setValue('key', vkey);
+      }
     } catch (error) {
       console.log(error);
-      addErrorAlert(error?.info)
+      addErrorAlert(error?.info);
     }
-  };
+  }, [loginCredentials]);
   const saveProfile: SubmitHandler<InputType> = async (data) => {
     try {
       if (!dRepIDBech32 || dRepIDBech32 == '') {
@@ -138,16 +151,24 @@ const UpdateProfileStep2 = () => {
                 Connected Wallet: {address && convertString(address, false)}
               </Typography>
               {!signature.signature ? (
-                <Button handleClick={handleLogin}>Login</Button>
+                <div className='flex flex-col items-center justify-center'>
+                  <SwitchWithTextTrack
+                    checked={!isHardware}
+                    onChange={handleChange}
+                  />
+                  <LoginButton isHardware={isHardware}/>
+                </div>
               ) : (
                 <Typography className="" variant="body2" color="textSecondary">
-                  Signature: {signature.signature && convertString(signature.signature, false)}
+                  Signature:{' '}
+                  {signature.signature &&
+                    convertString(signature.signature, false)}
                 </Typography>
               )}
             </>
           )}
         </div>
-        <ProfileSubmitArea isUpdate/>
+        <ProfileSubmitArea isUpdate />
       </form>
     </div>
   );

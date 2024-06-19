@@ -1,13 +1,8 @@
+import { useScreenDimension } from '@/hooks';
 import React, { useEffect, useState } from 'react';
 
 const DRepIntroImgs = () => {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', () => {
-      setIsMobile(window.innerWidth < 768);
-    });
-  }, []);
+  const {isMobile} = useScreenDimension();
   return (
     <div className="img_container relative flex shrink-0 items-center justify-center my-5">
       <div

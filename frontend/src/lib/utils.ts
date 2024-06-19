@@ -4,6 +4,8 @@
 // Additionally, this file may contain functions for testing purposes, providing a toolkit for verifying the correctness and efficiency of larger functions.
 // By centralizing these utilities, we promote a modular and maintainable codebase, facilitating ease of development and testing.
 
+import { JwtPayload, jwtDecode } from 'jwt-decode';
+import ms from 'ms';
 export const sumTestExample = (a, b) => {
   return a + b;
 };
@@ -17,4 +19,12 @@ export function convertString(inputString: string, isMobile: boolean) {
   }
 
   return inputString.slice(0, 10) + '.......' + inputString.slice(-10);
+}
+export function decodeToken(token: string) {
+  const decoded = jwtDecode<JwtPayload>(token);
+  let isExpired = false;
+  const { exp } = decoded;
+  //check if expired
+  if (exp < Date.now() / 1000) isExpired = true;
+  return { decoded, isExpired };
 }

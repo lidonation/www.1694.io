@@ -5,6 +5,7 @@ import { AttachmentModule } from './attachment/attachment.module';
 import { ConfigModule } from '@nestjs/config';
 import { DbModule } from './db.module';
 import { HealthzModule } from './healthz/healthz.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { HealthzModule } from './healthz/healthz.module';
     NoteModule,
     AttachmentModule,
     HealthzModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [],

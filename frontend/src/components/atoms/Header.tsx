@@ -6,6 +6,10 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useDRepContext } from '@/context/drepContext';
 import TranslationBlock from '../1694.io/TranslationBlock';
+import { useScreenDimension } from '@/hooks';
+import LoginButton from '../molecules/LoginButton';
+import { LoginInfoCard } from '../molecules/LoginInfoCard';
+import Button from './Button';
 
 const navOptions = [
   {
@@ -27,24 +31,22 @@ const navOptions = [
 ];
 const Header = () => {
   const { isEnabled } = useCardano();
-  const { currentLocale, setIsMobileDrawerOpen } = useDRepContext();
-  const [isMobile, setIsMobile] = useState(false);
+  const {
+    currentLocale,
+    setIsMobileDrawerOpen,
+    isLoggedIn,
+    setLoginModalOpen,
+  } = useDRepContext();
+  const { isMobile } = useScreenDimension();
   const pathname = usePathname();
   const [activeLink, setActiveLink] = useState(null);
-
   useEffect(() => {
     // Setting the active link based on the current pathname
     setActiveLink(pathname);
-    setIsMobile(window.innerWidth < 768);
   }, [pathname]);
   //add event listener to the window to check if the screen is mobile
-  useEffect(() => {
-    window.addEventListener('resize', () => {
-      setIsMobile(window.innerWidth < 768);
-    });
-  }, []);
   return (
-    <header className="bg-white bg-opacity-50 w-full">
+    <header className="w-full bg-white bg-opacity-50">
       <div className="base_container flex shrink-0 flex-row items-center justify-between py-6 ">
         <Link href="/">
           <img
@@ -55,7 +57,7 @@ const Header = () => {
         </Link>
         <div className="flex shrink-0 items-center gap-3 text-nowrap text-sm font-bold">
           {!isMobile && (
-            <div className='flex flex-row gap-6'>
+            <div className="flex flex-row gap-6">
               <Link
                 href={'/'}
                 className={`${
@@ -85,7 +87,17 @@ const Header = () => {
             {!isEnabled ? (
               <WalletConnectButton test_name={'header'} />
             ) : (
-              <WalletInfoCard />
+              <div className="flex items-center justify-center gap-2">
+                <WalletInfoCard />
+                {!isMobile &&
+                  (isLoggedIn ? (
+                    <LoginInfoCard />
+                  ) : (
+                    <Button handleClick={() => setLoginModalOpen(true)}>
+                      Login
+                    </Button>
+                  ))}
+              </div>
             )}
           </div>
           {!isMobile && (
@@ -107,4 +119,4 @@ const Header = () => {
   );
 };
 
-export { Header, navOptions}
+export { Header, navOptions };

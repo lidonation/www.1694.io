@@ -4,7 +4,7 @@ import { faker } from '@faker-js/faker';
 import { AttachmentService } from 'src/attachment/attachment.service';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
-
+import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class DrepService {
   constructor(
@@ -13,6 +13,7 @@ export class DrepService {
     @InjectDataSource('dbsync')
     private cexplorerService: DataSource,
     private attachmentService: AttachmentService,
+    private configService: ConfigService,
   ) {}
   //get from cexplorer db
   async getAllDrepsCexplorer() {
@@ -106,17 +107,17 @@ export class DrepService {
   }
   async getSingleDrepViaID(drepId: number) {
     const drep = await this.voltaireService
-    .getRepository('Drep')
-    .createQueryBuilder('drep')
-    .leftJoinAndSelect(
-      'attachment',
-      'attachment',
-      'attachment.parentEntity = :parentEntity AND attachment.parentId = drep.id',
-      { parentEntity: 'drep' },
-    )
-    .leftJoinAndSelect('signature', 'signature', 'signature.drepId = drep.id')
-    .where('drep.id = :drepId', { drepId })
-    .getRawMany();
+      .getRepository('Drep')
+      .createQueryBuilder('drep')
+      .leftJoinAndSelect(
+        'attachment',
+        'attachment',
+        'attachment.parentEntity = :parentEntity AND attachment.parentId = drep.id',
+        { parentEntity: 'drep' },
+      )
+      .leftJoinAndSelect('signature', 'signature', 'signature.drepId = drep.id')
+      .where('drep.id = :drepId', { drepId })
+      .getRawMany();
 
     if (!drep || drep.length === 0) {
       throw new NotFoundException('Drep not found!');
@@ -195,6 +196,19 @@ export class DrepService {
       .insert(signatureDto);
     return { insertedDrep, insertedSig };
   }
+  async getEpochParams() {
+    const APIURL =
+      'https://cardano-sanchonet.blockfrost.io/api/v0/epochs/latest/parameters';
+    const response = await fetch(APIURL, {
+      headers: {
+        project_id: this.configService.get<string>(
+          'BLOCKFROST_SANCHONET_PROJECT_ID',
+        ),
+      },
+      method: 'GET',
+    });
+    return response.json();
+  }
   async updateDrepInfo(
     drepId: number,
     drep: createDrepDto,
@@ -228,27 +242,30 @@ export class DrepService {
         drepId,
       );
     }
-   if(drep.signature){
-    await this.voltaireService.getRepository('Signature')
-    .update({drep:foundDrep[0].id}, {drepSignatureKey:drep.key, drepSignature:drep.signature})
-    delete drep.signature
-    delete drep.key
-    delete drep.stake_addr
-    delete drep.voter_id
-   }
+    if (drep.signature) {
+      await this.voltaireService
+        .getRepository('Signature')
+        .update(
+          { drep: foundDrep[0].id },
+          { drepSignatureKey: drep.key, drepSignature: drep.signature },
+        );
+      delete drep.signature;
+      delete drep.key;
+      delete drep.stake_addr;
+      delete drep.voter_id;
+    }
     const updatedDrep = Object.keys(drep).reduce((acc, key) => {
       let value = drep[key];
       try {
         value = JSON.parse(value);
       } catch (e) {
-        // ignore 
+        // ignore
       }
       return { ...acc, [key]: value };
     }, {});
-    delete updatedDrep['profileUrl']
+    delete updatedDrep['profileUrl'];
     return await this.voltaireService
       .getRepository('Drep')
       .update(drepId, updatedDrep);
-    
   }
 }

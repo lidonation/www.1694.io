@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import DRepIntroText from '../molecules/DRepIntroText';
 import DRepIntroImgs from '../molecules/DRepIntroImgs';
 import Button from '@/components/atoms/Button';
 import Link from 'next/link';
+import { useDRepContext } from '@/context/drepContext';
 
 const DRepIntro = () => {
   return (

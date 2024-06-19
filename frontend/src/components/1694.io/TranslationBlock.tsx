@@ -9,23 +9,14 @@ import {
   AccordionSummary,
   Typography,
 } from '@mui/material';
+import { useScreenDimension } from '@/hooks/useScreenDimension';
 
 const TranslationBlock = () => {
-  const [isMobile, setIsMobile] = useState(false);
+  
+  const {isMobile} = useScreenDimension();
   const [isTooltipActive, setIsTooltipActive] = useState(false);
   const [isAccordionExpanded, setIsAccordionExpanded] = useState(false);
-  useEffect(() => {
-    if (window.innerWidth < 768) {
-      setIsMobile(true);
-    }
-    window.addEventListener('resize', () => {
-      if (window.innerWidth < 768) {
-        setIsMobile(true);
-      } else {
-        setIsMobile(false);
-      }
-    });
-  }, []);
+  
   const toggleTooltip = () => {
     setIsTooltipActive(!isTooltipActive);
   };
