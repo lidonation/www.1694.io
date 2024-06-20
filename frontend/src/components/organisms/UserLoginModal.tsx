@@ -122,18 +122,21 @@ export function UserLoginModal() {
       onClose={() => setLoginModalOpen(false)}
     >
       <ModalHeader
-        sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginBottom: '4rem' }}
       >
-        <img src="/info-circle.png" width={'60px'} />
-      </ModalHeader>
-      <ModalContents>
-        <Typography variant="h5" className="py-1 text-center ">
-          Login to unlock more features
+        <img src="/info-circle.png" width={'40px'}  alt='login icon' />
+
+        <Typography variant="h4" className="py-1 text-center ">
+          Login
         </Typography>
+      </ModalHeader>
+
+      <ModalContents>
         <Box
           sx={{
             display: 'flex',
             flexDirection: 'column',
+            gap: '1rem',
             alignItems: 'center',
             maxHeight: '500px',
             overflow: 'auto',
@@ -141,13 +144,18 @@ export function UserLoginModal() {
             padding: '4px',
           }}
         >
-          <SwitchWithTextTrack checked={!isHardware} onChange={handleChange} />
+
           {isEnabled ? (
-            <LoginButton isHardware={isHardware} loginMode loginPeriod={loginPeriod}/>
+              <LoginButton isHardware={isHardware} loginMode loginPeriod={loginPeriod}/>
           ) : (
-            <WalletConnectButton test_name={'login'} />
+              <WalletConnectButton test_name={'login'} />
           )}
+
+          <SwitchWithTextTrack checked={!isHardware} onChange={handleChange} />
+
+
         </Box>
+
         <Typography variant="subtitle2" color={'dimgray'}>
           <Checkbox checked={isChecked} onChange={handleCheck} /> Keep me logged
           in for two weeks.

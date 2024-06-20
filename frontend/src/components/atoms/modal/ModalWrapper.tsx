@@ -29,7 +29,7 @@ export function ModalWrapper({
   }, [variant]);
   return (
     <BaseWrapper
-      className={`fixed left-1/2 top-1/2 flex max-h-[90vh] -translate-x-1/2 -translate-y-1/2 flex-col rounded-md bg-stone-50 shadow-lg  ${variant}-variant z-50`}
+      className={`fixed left-1/2 top-1/2 flex max-h-[90vh] -translate-x-1/2 -translate-y-1/2 flex-col rounded-md bg-stone-50 shadow-lg ${variant}-variant z-50`}
       data-testid={dataTestId}
       sx={sx}
     >
@@ -39,7 +39,7 @@ export function ModalWrapper({
             data-testid={'close-modal-button'}
             src="/close.svg"
             onClick={onClose}
-          />
+           alt='modal close icon' />
         </div>
       )}
       {children}

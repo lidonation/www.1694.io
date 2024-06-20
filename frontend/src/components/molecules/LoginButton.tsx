@@ -43,10 +43,10 @@ const LoginButton = ({
         setIsLoggedIn(true);
         const loginCredentials = { signature, key, expiry: loginPeriod };
         const {token} = await userLogin(loginCredentials);
-        Cookies.set('token', token, { 
-          secure: false, 
+        Cookies.set('token', token, {
+          secure: false,
           sameSite: 'strict',
-          path: '/' 
+          path: '/'
         });
         setItemToLocalStorage('token', token);
         setIsLoggedIn(true);
@@ -62,7 +62,7 @@ const LoginButton = ({
     }
   };
   return (
-    <Button handleClick={handleLogin} sx={{ width: 'fit-content' }}>
+    <Button handleClick={handleLogin} sx={{ width: '100%' }}>
       {isGettingSignatures ? (
         <CircularProgress size={20} color="info" />
       ) : (
