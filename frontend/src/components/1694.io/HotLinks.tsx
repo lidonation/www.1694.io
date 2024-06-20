@@ -34,8 +34,8 @@ const HotLinks = ({ seethrough }: HotLinksProps) => {
       link: '#delegated-representatives-dreps',
     },
     {
-      title: 'Pre-defined DReps',
-      link: '#pre-defined-dreps',
+      title: 'Pre-defined Voting Options',
+      link: '#pre-defined-voting-options',
     },
     {
       title: 'Registered DReps',
