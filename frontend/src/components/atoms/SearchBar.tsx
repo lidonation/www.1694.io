@@ -18,7 +18,7 @@ const SearchBar = ({ searchText, setSearchText }) => {
       </div>
       <div className="flex flex-row gap-3">
         <img src="/filter.svg" alt="Filter Icon" />
-        <img src="/filter.svg" alt="Filter Icon" />
+        <img src="/arrows-sort.svg" alt="Arrows Sort" />
       </div>
     </div>
   );
