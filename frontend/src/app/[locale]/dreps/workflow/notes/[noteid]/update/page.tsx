@@ -1,10 +1,8 @@
 'use client';
-import ViewDraftsButton from '@/components/molecules/ViewDraftsButton';
-import NewNoteForm from '@/components/organisms/NewNoteForm';
 import UpdateNoteForm from '@/components/organisms/UpdateNoteForm';
 import { useDRepContext } from '@/context/drepContext';
 import { useCardano } from '@/context/walletContext';
-import { getSingleDRep } from '@/services/requests/getSingleDrep';
+import { getSingleNote } from '@/services/requests/getSingleNote';
 import React, { useEffect, useState } from 'react';
 
 const page = (params: { params: { noteid: number } }) => {
@@ -16,7 +14,7 @@ const page = (params: { params: { noteid: number } }) => {
     const fetchNoteandCheckLogin = async () => {
       try {
         if (!isEnabled) setIsWalletListModalOpen(true);
-        const note = await getSingleDRep(params.params.noteid);
+        const note = await getSingleNote(params.params.noteid);
         setInitialValues(note);
       } catch (error) {
         console.log(error);

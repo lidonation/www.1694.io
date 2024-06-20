@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Button from '../atoms/Button';
 import HoverLinkChip from '../atoms/HoverLinkChip';
+import { useScreenDimension } from '@/hooks';
 interface MultipartDataFormProps {
   activeForm: string;
   nullify: () => void;
@@ -19,7 +20,8 @@ const MultipartDataForm = ({
   const [links, setLinks] = useState(null);
   const [currentLinkTitle, setCurrentLinkTitle] = useState('');
   const [currentLinkURL, setCurrentLinkURL] = useState('');
-
+  const formRef = useRef<HTMLDivElement>(null);
+  const {isMobile, screenWidth}=useScreenDimension()
   const formatFileSize = (sizeInBytes) => {
     const kiloBytes = sizeInBytes / 1024;
     const megaBytes = kiloBytes / 1024;
@@ -123,7 +125,8 @@ const MultipartDataForm = ({
     const base64strArray = await Promise.all(
       Array.from(files as FileList).map(async (file) => {
         const base64str = (await toBase64(file)) as string;
-        return base64str;
+        const mimeType = file.type;
+        return { src: base64str, type: mimeType };
       }),
     );
     setFiles(null);
@@ -145,9 +148,27 @@ const MultipartDataForm = ({
       nullify();
     }
   };
+  // Handle clicks/taps outside the form
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      if (formRef.current &&
+        !formRef.current.contains(event.target as Node) &&
+        !event.target['closest']('.image-add-button') &&
+        !event.target['closest']('.link-add-button')) {
+        nullify();
+      }
+    };
 
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [nullify]);
   return (
-    <div className="absolute top-9 z-50 flex min-h-[140px] min-w-96 flex-col rounded-lg bg-white p-5 shadow-lg">
+    <div ref={formRef} className={`${isMobile || screenWidth < 1024 ? "fixed top-1/2 left-1/2 translate-x-[-50%] translate-y-[-50%]": "absolute top-9"} z-50 flex min-h-[140px] min-w-96 flex-col rounded-lg bg-white p-5 shadow-lg`}>
       {activeForm === 'image' ? (
         <>
           <div className="h-11 text-[22px] font-bold text-zinc-800">
