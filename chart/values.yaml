@@ -1,8 +1,8 @@
 affinity: {}
 
 app: {
-  ADMIN_EMAIL: "webmaster@raddcreative.io",
-  APP_NAME: "CIP 1694",
+  ADMIN_EMAIL: "webmaster@lidonation.io",
+  APP_NAME: "1694.io",
   APP_ENV: "production",
   APP_DEBUG: "false",
   APP_SETUP: "false",
@@ -11,7 +11,7 @@ app: {
 
 certmanager:
   issuer: letsencrypt-prod-issuer
-  email: webmaster@1694.io
+  email: webmaster@lidonation.io
   server: https://acme-staging-v02.api.letsencrypt.org/directory
 
 certificate:
@@ -45,29 +45,18 @@ ingress:
     traefik.ingress.kubernetes.io/router.entrypoints: "websecure,web",
     traefik.ingress.kubernetes.io/router.middlewares: "traefik-redirect-http-to-https@kubernetescrd,traefik-default-headers@kubernetescrd"
   }
-  path: "/"
   hosts:
-    - www.1694.io
+    - sancho.1694.io
   tls:
-    - secretName: www-1694-tls
-      hosts:
-        - www.1694.io
-        - 1694.io
-
+    - hosts:
+        - "'*.1694.io'"
+      secretName: wildcard-1694-tls
 labels:
   domain: 1694.io
-  service: web
 
-namespace: voltaire
+namespace: voltaire-sancho
 
 nodeSelector: {}
-
-persistence:
-  size: 10Gi
-  storageClass: longhorn
-  accessMode: ReadWriteMany
-  subPath: "uploads"
-  mountPath: "/app/uploads"
 
 redis:
   image: redis:7.2-rc2-alpine
@@ -89,3 +78,22 @@ service:
   type: ClusterIP
   port: 80
 
+backend:
+  replicaCount: 2
+  labels:
+    service: backend
+  image:
+    repository: registry.lidonation.com/voltaire/www.1694.io/1694.io-backend
+  ingress:
+    path: /api
+    tls:
+
+frontend:
+  replicaCount: 2
+  labels:
+    service: frontend
+  image:
+      repository: registry.lidonation.com/voltaire/www.1694.io/1694.io-frontend
+  ingress:
+    path: /
+    tls:

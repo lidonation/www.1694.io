@@ -1,78 +1,75 @@
-include src/.env
-sail := src/vendor/bin/sail
-
-$(eval export $(shell sed -ne 's/ *#.*$$//; /./ s/=.*$$// p' src/.env))
-
-.PHONY: init
-init:
-	docker run --rm --interactive --tty \
-          --volume ${PWD}/src:/app \
-          composer install --ignore-platform-reqs
-	make up
-	sleep 20
-	make -j2 backend-install frontend-install
-	$(sail) artisan key:generate
-
 .PHONY: backend-install
 backend-install:
-	$(sail) composer i
+	docker-compose run --rm backend yarn install
 
 .PHONY: frontend-install
 frontend-install:
-	make frontend-clean
-	$(sail) yarn install
+	docker-compose run --rm frontend yarn install
 
+.PHONY: restart
+restart:
+	make down
+	make up
+
+.PHONY: restart-new
+restart-new:
+	make down
+	docker-compose up --build
 
 .PHONY: up
 up:
-	$(sail) up -d
-
-.PHONY: seed
-seed:
-	$(sail) artisan db:seed
-
-.PHONY: migrate
-migrate:
-	$(sail) artisan migrate
-
-.PHONY: watch
-watch:
-	$(sail) up -d && $(sail) npx vite
-
-.PHONY: build
-build:
-	$(sail) npx vite build
-
-.PHONY: sh
-sh:
-	$(sail) shell $(filter-out $@,$(MAKECMDGOALS))
-
-.PHONY: artisan
-artisan:
-	$(sail) artisan $(filter-out $@,$(MAKECMDGOALS))
-
-.PHONY: test-backend
-test-backend:
-	$(sail) php ./vendor/bin/pest
-
+	docker-compose up -d
 
 .PHONY: down
 down:
-	$(sail) down
+	docker-compose down
 
+.PHONY: status
+status:
+	docker-compose ps
+
+.PHONY: migrate
+migrate:
+	docker-compose exec backend yarn run migrate
+
+.PHONY: watch
+watch:
+	docker-compose up -d && docker-compose exec frontend yarn run dev
+
+.PHONY: build
+build:
+	docker-compose exec frontend yarn run build
+
+.PHONY: sh-backend
+sh-backend:
+	docker-compose exec backend sh
+
+.PHONY: sh-cardano
+sh-cardano:
+	docker-compose exec cardano-node sh
+
+.PHONY: sh-frontend
+sh-frontend:
+	docker-compose exec frontend sh
+
+.PHONY: test-backend
+test-backend:
+	docker-compose exec backend yarn run test
 
 .PHONY: frontend-clean
 frontend-clean:
-	rm -rf src/node_modules 2>/dev/null || true
-	rm package-lock.json 2>/dev/null || true
-	rm yarn.lock 2>/dev/null || true
-	$(sail) yarn cache clean
+	rm -rf frontend/node_modules 2>/dev/null || true
+	docker-compose exec frontend yarn cache clean
 
 .PHONY: rm
 rm:
-	$(sail) down -v
-
+	docker-compose down -v
 
 .PHONY: logs
 logs:
-	docker logs --follow 1694.test
+	docker-compose logs -f
+
+
+.PHONY: logs-frontend
+logs-frontend:
+	docker-compose logs -f frontend

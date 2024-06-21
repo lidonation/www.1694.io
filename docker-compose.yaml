@@ -1,0 +1,194 @@
+version: "3.9"
+services:
+  backend:
+    container_name: backend # Name of the backend container
+    build: # Build configuration for the backend
+      context: ./backend # Directory containing Dockerfile
+      dockerfile: Dockerfile.dev
+    image: io-1694:latest # Use the latest io-1694 image
+    restart: unless-stopped # Always restart unless explicitly stopped
+    environment: # Environment variables for configuration
+      HOST: 0.0.0.0
+      PORT: 8000
+      DATABASE_HOST: web_db # Link to the database service by name
+      DATABASE_NAME: 1694
+      DATABASE_USERNAME: voltaire
+      DATABASE_PASSWORD: postgres
+      DATABASE_HOST_DBSYNC: dbsync_db
+      DATABASE_NAME_DBSYNC: cexplorer
+      DATABASE_USERNAME_DBSYNC: postgres
+      DATABASE_PASSWORD_DBSYNC: v8hlDV0yMAHHlIurYupj
+      NODE_ENV: development # Set node environment to development
+    volumes: # Mount points for persistent data and source code
+      - "./backend:/app"
+    ports:
+      - "8000:8000" # Expose port 8080 to the host
+    networks:
+      - io-1694 # Connect to the 'io-1694' network
+    depends_on:
+      - web_db # Depends on the database service
+  dbsync_db:
+    image: postgres:16.3-alpine3.19
+    environment:
+      - POSTGRES_LOGGING=true
+      - POSTGRES_DB_FILE=/run/secrets/postgres_db
+      - POSTGRES_PASSWORD_FILE=/run/secrets/postgres_password
+      - POSTGRES_USER_FILE=/run/secrets/postgres_user
+    secrets:
+      - postgres_password
+      - postgres_user
+      - postgres_db
+    ports:
+      - ${POSTGRES_PORT:-5432}:5432
+    volumes:
+      - dbsync-db-data:/var/lib/postgresql/data
+    restart: on-failure
+    networks:
+      - io-1694 # Connect to the 'io-1694' network
+    healthcheck:
+      # Use pg_isready to check postgres is running. Substitute different
+      # user `postgres` if you've setup differently to config/pgpass-mainnet
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: ${POSTGRES_ARGS:--c maintenance_work_mem=1GB -c max_parallel_maintenance_workers=4}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
+  web_db:
+    container_name: voltaire_db # Name of the database container
+    platform: linux/amd64 # Specify the platform (important for ARM64 architectures)
+    image: postgres:16.3-alpine3.19 # Use PostgreSQL 12 on Alpine for smaller size
+    restart: unless-stopped
+    ports:
+      - "5434:5432" # Expose port 5432 to the host
+    environment: # PostgreSQL user, password, and database name
+      POSTGRES_USER: voltaire
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: 1694
+    volumes:
+      - db-data:/var/lib/postgresql/data/ # Persistent storage for the database
+    networks:
+      - io-1694 # Connect to the 'io-1694' network
+  frontend:
+    container_name: frontend # Name of the frontend container
+    build: # Build configuration for the frontend
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_BASE_SERVER_URL: http://localhost:8000 # Environment variable for the API URL
+    ports:
+      - 3000:3000 # Expose port 3000 to the host
+    networks:
+      - io-1694
+    volumes:
+      - ./frontend:/app
+    depends_on:
+      - backend # Depends on the backend service
+
+  cardano-node:
+    image: ghcr.io/intersectmbo/cardano-node:8.10.0-pre
+    command: [
+      "run",
+      "--config", "/config/config.json",
+      "--database-path", "/data/db",
+      "--socket-path", "/ipc/node.socket",
+      "--topology", "/config/topology.json"
+    ]
+    volumes:
+      - ./cardanonode/config/network/${CARDANO_NETWORK:-sanchonet}/cardano-node:/config
+      - ./cardanonode/config/network/${CARDANO_NETWORK:-sanchonet}/genesis:/genesis
+      - node-db:/data
+      - node-ipc:/ipc
+    restart: on-failure
+    environment:
+      CARDANO_NODE_SOCKET_PATH: /ipc/node.socket
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "400k"
+        max-file: "20"
+    healthcheck:
+      test: [ "CMD", "stat", "/ipc/node.socket" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - io-1694 # Connect to the 'io-1694' network
+  cardano-db-sync:
+    image: ghcr.io/intersectmbo/cardano-db-sync:sancho-4.1.0
+    environment:
+      - DISABLE_LEDGER=${DISABLE_LEDGER}
+      - NETWORK=${CARDANO_NETWORK:-sanchonet}
+      - POSTGRES_HOST=dbsync_db
+      - POSTGRES_PORT=5432
+      - RESTORE_SNAPSHOT=${RESTORE_SNAPSHOT:-}
+      - RESTORE_RECREATE_DB=N
+      - EXTRA_DB_SYNC_ARGS=${EXTRA_DB_SYNC_ARGS:-}
+    depends_on:
+      # Depend on both services to be healthy before starting.
+      cardano-node:
+        condition: service_healthy
+      dbsync_db:
+        condition: service_healthy
+    secrets:
+      - postgres_password
+      - postgres_user
+      - postgres_db
+    volumes:
+      - db-sync-data:/var/lib/cexplorer
+      - node-ipc:/node-ipc
+    restart: on-failure
+    networks:
+      - io-1694 # Connect to the 'io-1694' network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
+  adminer: 
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+    networks:
+      - io-1694 # Connect to the 'io-1694' network
+  cypress:
+    image: cypress/included:12.3.0
+    # the Docker image to use from https://github.com/cypress-io/cypress-docker-images
+    #  It is however recommended to use a specific image tag to avoid breaking changes when new images are released, especially when they include new major versions of Node.js or Cypress.
+    depends_on:
+      - frontend
+    environment:
+      # pass base url to test pointing at the web application
+      - CYPRESS_baseUrl=http://frontend:3000
+    working_dir: /e2e
+    networks:
+      - io-1694
+    command: ["npx", "cypress", "open",  "--browser", "chrome", "--config","video=false"]
+    restart: unless-stopped
+    # share the current folder as volume to avoid copying
+    volumes:
+      - ./frontend:/e2e
+volumes:
+  db-data:
+  db-sync-data:
+  dbsync-db-data:
+  node-db:
+  node-ipc:
+
+secrets:
+  postgres_db:
+    file: ./config/secrets/postgres_db
+  postgres_password:
+    file: ./config/secrets/postgres_password
+  postgres_user:
+    file: ./config/secrets/postgres_user
+
+networks:
+  io-1694:
+    driver: bridge
