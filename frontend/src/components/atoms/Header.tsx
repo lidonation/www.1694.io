@@ -55,6 +55,65 @@ const Header = () => {
             width={isMobile ? 100 : 150}
           />
         </Link>
+        <div className="flex shrink-0 items-center gap-3 text-nowrap text-sm font-bold">
+          {!isMobile && (
+            <div className="flex flex-row gap-6">
+              <Link
+                href={'/'}
+                className={`${
+                  activeLink === `/${currentLocale}`
+                    ? 'text-orange-500'
+                    : 'text-gray-800'
+                }`}
+              >
+                CIP
+              </Link>
+              {navOptions.slice(0, 1).map((option, index) => (
+                <Link
+                  key={index + option.name + option.path + option}
+                  href={option.path}
+                  className={`${
+                    activeLink === `/${currentLocale}${option.path}`
+                      ? 'text-orange-500'
+                      : 'text-gray-800'
+                  }`}
+                >
+                  {option.name}
+                </Link>
+              ))}
+            </div>
+          )}
+          <div>
+            {!isEnabled ? (
+              <WalletConnectButton test_name={'header'} />
+            ) : (
+              <div className="flex items-center justify-center gap-2">
+                <WalletInfoCard />
+                {!isMobile &&
+                  (isLoggedIn ? (
+                    <LoginInfoCard />
+                  ) : (
+                    <Button handleClick={() => setLoginModalOpen(true)}>
+                      Login
+                    </Button>
+                  ))}
+              </div>
+            )}
+          </div>
+          {!isMobile && (
+            <div className="cursor-pointer">
+              <img src="/bell.svg" alt="Notifs" />
+            </div>
+          )}
+          {isMobile && (
+            <div
+              className="cursor-pointer"
+              onClick={() => setIsMobileDrawerOpen(true)}
+            >
+              <img src="/drawer-icon.svg" alt="Drawer" />
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );

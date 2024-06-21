@@ -49,8 +49,8 @@ const Page = () => {
       <Background>
         <Header />
 
-        {/*<TranslationBlock/>*/}
-        
+        <TranslationBlock/>
+
         <ScrollToTop/>
         <CIPIntro />
         <CIPInfo />
