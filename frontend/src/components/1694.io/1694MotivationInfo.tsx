@@ -80,12 +80,12 @@ const CIPMotivationInfo = () => {
                 </p>
                 <ul className="ml-5 flex list-disc flex-col gap-2">
                   <li>
-                    Protocol parameter updates use transaction field nº6 of the
+                    Protocol parameter updates use <a href='https://github.com/input-output-hk/cardano-ledger/blob/8884d921c8c3c6e216a659fca46caf729282058b/eras/babbage/test-suite/cddl-files/babbage.cddl#L56' target='_blank' className='underline'>transaction field nº6</a> of the
                     transaction body.
                   </li>
                   <li>
-                    Movements of the treasury and the reserves use Move
-                    Instantaneous Rewards (abbrev. MIR) certificates.
+                    Movements of the treasury and the reserves use <a href='https://github.com/input-output-hk/cardano-ledger/blob/8884d921c8c3c6e216a659fca46caf729282058b/eras/babbage/test-suite/cddl-files/babbage.cddl#L180' target='_blank' className='underline'>Move
+                    Instantaneous Rewards (abbrev. MIR) certificates.</a>
                   </li>
                 </ul>
                 <p>
