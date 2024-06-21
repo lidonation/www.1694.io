@@ -129,7 +129,7 @@ const CIPChangelog = () => {
           </section>
           <section className="flex flex-col gap-4">
             <p className="text-2xl font-bold">
-              Security-relevant changes and other fixes
+              Security-relevant changes and other fixes (January 2024)
             </p>
             <ul className="ml-5 flex list-disc flex-col gap-2">
               <li>Guard security-relevant changes behind SPO votes.</li>
@@ -139,6 +139,18 @@ const CIPChangelog = () => {
                 act.
               </li>
               <li>Clarify that CC members can use any kind of credential.</li>
+            </ul>
+          </section>
+          <section className="flex flex-col gap-4">
+            <p className="text-2xl font-bold">
+             May 2024
+            </p>
+            <ul className="ml-5 flex list-disc flex-col gap-2">
+              <li>Update the section on the bootstrap period.</li>
+              <li>
+              Mention missing `Q_5` parameter.
+              </li>
+              <li>Various small fixes/consistency changes.</li>
             </ul>
           </section>
           <Separator />

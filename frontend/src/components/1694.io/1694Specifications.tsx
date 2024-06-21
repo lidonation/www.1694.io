@@ -143,7 +143,7 @@ const CIPSpecifications = () => {
           </p>
           <p>
             There will be a new protocol parameter for the minimal size of the
-            committee, itself a nonnegative number.
+            committee, itself a nonnegative number called <strong className='font-bold'>ccMinSize</strong>.
           </p>
         </div>
         <Separator />
@@ -167,9 +167,9 @@ const CIPSpecifications = () => {
             can still be ratified.
           </p>
           <p>
-            For example, a committee of size five with a threshold of 3/5 a
+            For example, a committee of size five with a threshold of 60% a
             minimum size of three and two expired members can still pass
-            governance actions if two non-expired members vote Yes. However, if
+            governance actions if two non-expired members vote <strong className='font-bold'>Yes</strong>. However, if
             one more member expires then the constitutional committee becomes
             unable to ratify any more governance actions.
           </p>

@@ -214,7 +214,7 @@ const CIPGovernanceActions = () => {
             </ul>
             <ToastCard
               type="info"
-              text="Enactment for Info actions is a null action, since they do not have any effect on the protocol."
+              text="Info actions cannot be ratified or enacted, since they do not have any effect on the protocol."
             />
             <p className="text-2xl font-bold text-zinc-800">
               Order of enactment
@@ -356,7 +356,7 @@ const CIPGovernanceActions = () => {
             <ul className="ml-5 flex list-disc flex-col gap-2">
               <li>
                 {
-                  'governance voting thresholds ($P_1$, $P_{2a}$, $P_{2b}$, $P_3$, $P_4$, $P_{5a}$, $P_{5b}$, $P_{5c}$, $P_{5d}$, $P_6$, $Q_1$, $Q_{2a}$, $Q_{2b}$, $Q_4$)'
+                  'governance voting thresholds ($P_1$, $P_{2a}$, $P_{2b}$, $P_3$, $P_4$, $P_{5a}$, $P_{5b}$, $P_{5c}$, $P_{5d}$, $P_6$, $Q_1$, $Q_{2a}$, $Q_{2b}$, $Q_4$), $Q_5$)'
                 }
               </li>
               <li>
