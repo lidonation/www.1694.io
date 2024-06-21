@@ -16,6 +16,7 @@ export interface ButtonProps {
   width?: number | string;
   bgColor?: string;
   id?:string;
+  disabled?: boolean;
   borderRadius?: string;
   sx?: object;
   children?: React.ReactNode;
@@ -30,6 +31,7 @@ const Button: React.FC<ButtonProps> = ({
   id, 
   width,
   bgColor,
+  disabled,
   borderRadius,
   sx,
   children,
@@ -55,6 +57,7 @@ const Button: React.FC<ButtonProps> = ({
         ...sx,
       }}
       id={id}
+      disabled={disabled}
       variant={variant}
       color={color}
       onClick={handleClick}
