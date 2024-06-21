@@ -14,7 +14,7 @@ const DRAWER_PADDING = 2;
 const CALCULATED_DRAWER_PADDING = DRAWER_PADDING * 8 * 2;
 const DRepProfileBar = () => {
   const { isMobile, screenWidth } = useScreenDimension();
-  const [active, setIsActive] = useState(null);
+  const [active, setIsActive] = useState(0);
   const getCurrentYear = () => {
     return new Date().getFullYear();
   };
@@ -46,7 +46,7 @@ const DRepProfileBar = () => {
     },
   ];
   return (
-    <div className="h-screen max-w-80 bg-white">
+    <div className="h-screen max-w-60 bg-white">
       {isMobile ? (
         <>
           <SwipeableDrawer

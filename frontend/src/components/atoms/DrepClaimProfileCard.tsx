@@ -6,7 +6,7 @@ import StatusChip from './StatusChip';
 
 const DrepClaimProfileCard = () => {
   return (
-    <div className='flex flex-col max-w-64 gap-5'>
+    <div className='bg-white bg-opacity-50 px-5 py-10 flex flex-col gap-5 '>
       <div className="flex items-center justify-center rounded-md">
         <img className="w-full" src="/sample.png" alt="" />
       </div>
@@ -55,8 +55,8 @@ const DrepClaimProfileCard = () => {
         </p>
       </div>
       <div className="flex flex-col gap-2">
-        <Button>Set up Metadata</Button>
-        <Button variant="outlined" bgColor="transparent">
+        <Button disabled>Set up Metadata</Button>
+        <Button disabled variant="outlined" bgColor="transparent">
           Update Metadata
         </Button>
       </div>

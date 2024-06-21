@@ -1,33 +1,27 @@
 import React, { useState } from 'react';
 
-const DrepTabGroup = () => {
-  const [active, setActive] = useState(null);
+const DrepTabGroup = ({setActiveTab}:{setActiveTab:Function}) => {
+  const [active, setActive] = useState('profile');
   const activeClasses =
-    'bg-white border-b-2 border-b-blue-800 rounded-t-xl text-blue-800 ';
+    'bg-white border-b-2 border-b-blue-800 rounded-t-lg text-blue-800 ';
   const inactiveClasses = 'text-gray-400 hover:text-gray-800 cursor-pointer';
 
   const handleClick = (id) => {
     setActive(id);
+    setActiveTab(id);
   };
   return (
-    <div className="flex items-center gap-5 px-8 py-4">
+    <div className="flex items-center gap-5">
       <div
         id="timeline"
-        className={`px-8 py-4 ${active === 'timeline' ? activeClasses : inactiveClasses}`}
-        onClick={() => handleClick('timeline')}
+        className={`px-16 py-4 ${active === 'profile' ? activeClasses : inactiveClasses}`}
+        onClick={() => handleClick('profile')}
       >
-        <p>Timeline</p>
-      </div>
-      <div
-        id="delegators"
-        className={`px-8 py-4 ${active === 'delegators' ? activeClasses : inactiveClasses}`}
-        onClick={() => handleClick('delegators')}
-      >
-        <p>Delegators</p>
+        <p>Profile</p>
       </div>
       <div
         id="metrics"
-        className={`px-8 py-4 ${active === 'metrics' ? activeClasses : inactiveClasses}`}
+        className={`px-16 py-4 ${active === 'metrics' ? activeClasses : inactiveClasses}`}
         onClick={() => handleClick('metrics')}
       >
         <p>Metrics</p>

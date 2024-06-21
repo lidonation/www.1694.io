@@ -3,6 +3,7 @@ import Button from './Button';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { Typography } from '@mui/material';
 import Link from 'next/link';
+import DrepTimeline from '../molecules/DrepTimeline';
 
 interface StatusProps {
   status:
@@ -49,7 +50,7 @@ const StatusChip = ({ status }: StatusProps) => {
 
 const DrepProfileCard = () => {
   return (
-    <div className='flex flex-col gap-5 max-w-64'>
+    <div className='bg-white bg-opacity-50 px-5 py-10 flex flex-col gap-5 '>
       <div className="flex  items-center justify-center rounded-md">
         <img className="w-full" src="/sample.png" alt="" />
       </div>
