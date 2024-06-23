@@ -144,6 +144,100 @@ export class DrepService {
       .leftJoinAndSelect('signature', 'signature', 'signature.drepId = drep.id')
       .where('signature.drepVoterId = :drepVoterId', { drepVoterId })
       .getRawMany();
+      //also get his details from cexplorer
+      const viewParam = drepVoterId; // Replace 'your_view_value' with the actual view value you want to filter by
+
+      const drepCexplorer = await this.cexplorerService.manager.query(
+          `WITH RankedRows AS (
+              SELECT 
+                  dh.id AS drep_hash_id, 
+                  dh.raw, 
+                  dh.view, 
+                  dh.has_script,
+                  dd.id AS drep_distr_id, 
+                  dd.hash_id, 
+                  dd.amount, 
+                  dd.epoch_no, 
+                  dd.active_until,
+                  dr.id AS drep_registration_id, 
+                  dr.tx_id, 
+                  dr.cert_index, 
+                  dr.deposit, 
+                  dr.drep_hash_id AS reg_drep_hash_id, 
+                  dr.voting_anchor_id AS reg_voting_anchor_id,  
+                  va.id AS voting_anchor_id, 
+                  va.tx_id AS va_tx_id, 
+                  va.url, 
+                  va.data_hash, 
+                  va.type,
+                  sa.view AS stake_address,
+                  (
+                      SELECT COUNT(*)
+                      FROM delegation_vote
+                      WHERE drep_hash_id = dh.id
+                  ) AS delegation_vote_count,
+                  ROW_NUMBER() OVER (PARTITION BY dh.id ORDER BY dd.epoch_no DESC) AS RowNum
+              FROM 
+                  drep_hash AS dh
+              JOIN 
+                  drep_distr AS dd ON dh.id = dd.hash_id
+              LEFT JOIN 
+                  drep_registration AS dr ON dh.id = dr.drep_hash_id
+              LEFT JOIN 
+                  voting_anchor AS va ON dr.voting_anchor_id = va.id
+              LEFT JOIN 
+                  delegation_vote AS dv ON dh.id = dv.drep_hash_id 
+              LEFT JOIN
+                  stake_address AS sa ON dv.addr_id = sa.id 
+              WHERE 
+                  dh.view = $1
+          )
+          SELECT 
+              drep_hash_id,
+              view,
+              delegation_vote_count,
+              stake_address,
+              amount,
+              epoch_no,
+              active_until,
+              deposit,
+              url,
+              type
+          FROM 
+              RankedRows
+          WHERE 
+              RowNum = 1`,
+          [viewParam]
+      );
+      const combinedResult = {
+        ...drep[0],
+        cexplorerDetails: drepCexplorer[0],
+    };
+    if ((!drep || drep.length === 0) && (!drepCexplorer || drepCexplorer.length === 0)) {
+      throw new NotFoundException('Drep not found!');
+    }
+    if (combinedResult.attachment_url) {
+      combinedResult.attachment_url = await this.attachmentService.parseBufferToBase64(
+        combinedResult.attachment_url,
+        combinedResult.attachemnt_attachmentType,
+      );
+    }
+
+    return combinedResult;
+  }
+  async getSingleDrepDetailsViaVoterID(drepVoterId: string) {
+    const drep = await this.voltaireService
+      .getRepository('Drep')
+      .createQueryBuilder('drep')
+      .leftJoinAndSelect(
+        'attachment',
+        'attachment',
+        'attachment.parentEntity = :parentEntity AND attachment.parentId = drep.id',
+        { parentEntity: 'drep' },
+      )
+      .leftJoinAndSelect('signature', 'signature', 'signature.drepId = drep.id')
+      .where('signature.drepVoterId = :drepVoterId', { drepVoterId })
+      .getRawMany();
 
     if (!drep || drep.length === 0) {
       throw new NotFoundException('Drep not found!');
