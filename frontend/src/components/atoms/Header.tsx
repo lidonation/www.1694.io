@@ -7,9 +7,6 @@ import { usePathname } from 'next/navigation';
 import { useDRepContext } from '@/context/drepContext';
 import TranslationBlock from '../1694.io/TranslationBlock';
 import { useScreenDimension } from '@/hooks';
-import LoginButton from '../molecules/LoginButton';
-import { LoginInfoCard } from '../molecules/LoginInfoCard';
-import Button from './Button';
 
 const navOptions = [
   {
@@ -31,12 +28,7 @@ const navOptions = [
 ];
 const Header = () => {
   const { isEnabled } = useCardano();
-  const {
-    currentLocale,
-    setIsMobileDrawerOpen,
-    isLoggedIn,
-    setLoginModalOpen,
-  } = useDRepContext();
+  const { currentLocale, setIsMobileDrawerOpen } = useDRepContext();
   const { isMobile } = useScreenDimension();
   const pathname = usePathname();
   const [activeLink, setActiveLink] = useState(null);
@@ -87,17 +79,7 @@ const Header = () => {
             {!isEnabled ? (
               <WalletConnectButton test_name={'header'} />
             ) : (
-              <div className="flex items-center justify-center gap-2">
-                <WalletInfoCard />
-                {!isMobile &&
-                  (isLoggedIn ? (
-                    <LoginInfoCard />
-                  ) : (
-                    <Button handleClick={() => setLoginModalOpen(true)}>
-                      Login
-                    </Button>
-                  ))}
-              </div>
+              <WalletInfoCard />
             )}
           </div>
           {!isMobile && (

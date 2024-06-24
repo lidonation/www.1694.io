@@ -3,7 +3,7 @@ import { Button as MUIButton } from '@mui/material';
 import './Atoms.css'; // Import the CSS file
 
 export interface ButtonProps {
-  size?: 'extraLarge' | 'large' | 'medium' | 'small';
+  size?: 'extraLarge' | 'large' | 'medium' | 'small' | 'extraSmall';
   variant?: 'text' | 'outlined' | 'contained';
   color?:
     | 'inherit'
@@ -15,7 +15,7 @@ export interface ButtonProps {
     | 'warning';
   width?: number | string;
   bgColor?: string;
-  id?:string;
+  id?: string;
   borderRadius?: string;
   sx?: object;
   children?: React.ReactNode;
@@ -27,7 +27,7 @@ const Button: React.FC<ButtonProps> = ({
   size = 'large',
   variant = 'contained',
   color = 'primary',
-  id, 
+  id,
   width,
   bgColor,
   borderRadius,
@@ -42,6 +42,7 @@ const Button: React.FC<ButtonProps> = ({
     large: 40,
     medium: 36,
     small: 32,
+    extraSmall: 26,
   }[size];
 
   return (

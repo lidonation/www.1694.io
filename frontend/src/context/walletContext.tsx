@@ -70,6 +70,7 @@ interface CardanoContext {
   walletState: {
     usedAddress: string | undefined;
     changeAddress: undefined | string;
+    balance: number | undefined;
   };
   loginCredentials: {
     signature: string | undefined;
@@ -312,17 +313,9 @@ function CardanoProvider(props: Props) {
             throw new Error('errors.noAddressesFound');
           }
           if (!usedAddresses.length) {
-            const rawFirst = unusedAddresses[0];
-            const unusedAddress = Address.from_bytes(
-              Buffer.from(rawFirst, 'hex'),
-            ).to_bech32();
-            setAddress(unusedAddress);
+            setAddress(unusedAddresses[0]);
           } else {
-            const rawFirst = usedAddresses[0];
-            const usedAddress = Address.from_bytes(
-              Buffer.from(rawFirst, 'hex'),
-            ).to_bech32();
-            setAddress(usedAddress);
+            setAddress(usedAddresses[0]);
           }
 
           const registeredStakeKeysList =
