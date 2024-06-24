@@ -28,3 +28,27 @@ export function decodeToken(token: string) {
   if (exp < Date.now() / 1000) isExpired = true;
   return { decoded, isExpired };
 }
+
+export function formatWalletAddress(address: string) {
+  // get five characters from the start and end of the address
+  return address.slice(0, 5) + '...' + address.slice(-5);
+}
+
+export function shortNumber(value: number, digits = 0) {
+  // nine Zeroes for Billions
+  return Math.abs(Number(value)) >= 1.0e9
+    ? (Math.abs(Number(value)) / 1.0e9).toFixed(digits) + 'B'
+    : // six Zeroes for Millions
+      Math.abs(Number(value)) >= 1.0e6
+      ? (Math.abs(Number(value)) / 1.0e6).toFixed(digits) + 'M'
+      : // three Zeroes for Thousands
+        Math.abs(Number(value)) >= 1.0e3
+        ? (Math.abs(Number(value)) / 1.0e3).toFixed(digits) + 'K'
+        : Math.abs(Number(value));
+}
+
+export function lovelaceToAda(lovelace: number) {
+  // convert lovelace to ada, assuming 1 lovelace = 1000000 ada
+  const divisibility = 1000000;
+  return Number(lovelace) / divisibility;
+}
