@@ -133,9 +133,11 @@ function CardanoProvider(props: Props) {
   const [walletState, setWalletState] = useState<{
     changeAddress: undefined | string;
     usedAddress: undefined | string;
+    balance: number | undefined;
   }>({
     changeAddress: undefined,
     usedAddress: undefined,
+    balance: undefined,
   });
   useEffect(() => {
     const existingWalletAPI = getItemFromLocalStorage(`${WALLET_LS_KEY}_api`);
@@ -175,9 +177,7 @@ function CardanoProvider(props: Props) {
     try {
       const balanceCBORHex = await enabledApi.getBalance();
 
-      const balance = Value.from_bytes(Buffer.from(balanceCBORHex, 'hex'))
-        .coin()
-        .to_str();
+      const balance = Number(Value.from_bytes(Buffer.from(balanceCBORHex, 'hex')).coin().to_str());
       setWalletState((prev) => ({ ...prev, balance }));
     } catch (err) {
       console.log(err);
