@@ -10,7 +10,6 @@ const DRepsTable = ({ searchQuery }) => {
   const router = useRouter();
   const {isMobile} = useScreenDimension();
   const { DReps, isDRepsLoading } = useGetDRepsQuery();
-  
   //will be later changed to filter by drep name
   const filteredDreps =
     DReps &&
@@ -82,12 +81,11 @@ const DRepsTable = ({ searchQuery }) => {
                 </td>
                 <td className="px-4 py-2">
                   <div className="flex space-x-2">
-                    {/* Will be populated with links when comps are ready.Currently logs */}
                     <HoverChip
                       icon="/link.svg"
                       text="View Profile"
                       handleClick={() =>
-                        console.log('going to drep', drep.view)
+                        router.push(`/dreps/${drep.view}`)
                       }
                     />
                     <HoverChip
@@ -102,7 +100,7 @@ const DRepsTable = ({ searchQuery }) => {
                       icon="/medal.svg"
                       text="Claim DRep Profile"
                       handleClick={() =>
-                        console.log('claiming drep', drep.view)
+                        router.push(`/dreps/${drep.view}`)
                       }
                     />
                   </div>
