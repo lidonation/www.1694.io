@@ -53,15 +53,16 @@ const UpdateProfileStep5 = () => {
     handleSubmit,
     getValues,
     formState: { errors },
-    setValue
+    setValue,
   } = useForm<InputType>({
     resolver: zodResolver(FormSchema),
   });
   const { isEnabled, dRepIDBech32, stakeKey } = useCardano();
-  const { setIsNotDRepErrorModalOpen, drepId, setStep5Status, setNewDrepId } = useDRepContext();
+  const { setIsNotDRepErrorModalOpen, drepId, setStep5Status, setNewDrepId } =
+    useDRepContext();
   const { addChangesSavedAlert } = useGlobalNotifications();
   const updateDrepMutation = usePostUpdateDrepMutation();
-  
+
   useEffect(() => {
       const getDRep = async () => {
         try {

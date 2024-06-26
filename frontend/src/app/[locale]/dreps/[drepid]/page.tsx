@@ -8,21 +8,31 @@ import DrepTimeline from '@/components/molecules/DrepTimeline';
 import DrepProfileMetrics from '@/components/molecules/DrepProfileMetrics';
 import { useParams } from 'next/navigation';
 import { getSingleDRep } from '@/services/requests/getSingleDrep';
-import { getSingleDRepViaVoterIdDetails } from '@/services/requests/getSingleDrepViaVoterIdDetails';
+import { getSingleDRepViaVoterId } from '@/services/requests/getSingleDrepViaVoterId';
+import DrepClaimProfileCard from '@/components/atoms/DrepClaimProfileCard';
+import { useScreenDimension } from '@/hooks';
+import { useCardano } from '@/context/walletContext';
 
 const page = () => {
   const [currentTab, setCurrentTab] = useState('profile');
+  const [isLoading, setIsLoading] = useState(true);
+  const {latestEpoch} = useCardano();
+  const { isMobile, screenWidth } = useScreenDimension();
+  const [drep, setDrep] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
   const { drepid } = useParams();
   useEffect(() => {
     if (drepid) {
       const getDrepData = async (drepid: any) => {
+        setIsLoading(true);
         let res;
         if (drepid.includes('drep')) {
-          res = await getSingleDRepViaVoterIdDetails(drepid);
+          res = await getSingleDRepViaVoterId(drepid);
         } else {
           res = await getSingleDRep(drepid);
         }
+        setDrep(res);
+        setIsLoading(false);
       };
       getDrepData(drepid);
     }
@@ -31,39 +41,44 @@ const page = () => {
     <div className="flex">
       <DRepProfileBar isOpen={isOpen} setIsOpen={setIsOpen} />
       <div className="base_container w-full">
-        <Grid container style={{ height: '100%' }}>
-          {currentTab === 'profile' && (
-            <Grid item xs={3} className="flex items-center">
+        <div className="flex h-full w-full flex-col">
+          <div className="flex items-center justify-start">
+            <div className="w-[30%]">
               <IconButton
                 data-testid="close-drawer-button"
                 onClick={() => {
                   setIsOpen(!isOpen);
                 }}
-                sx={{ padding: 0, width: '15%' }}
               >
-                <img src={'/menu.svg'} />
+                <img width={'50%'} className="shrink-0" src={'/menu.svg'} />
               </IconButton>
-            </Grid>
-          )}
-          <Grid item xs={9}>
-            <DrepTabGroup setActiveTab={setCurrentTab} />
-          </Grid>
+            </div>
+            <div className="w-[70%]">
+              <DrepTabGroup setActiveTab={setCurrentTab} />
+            </div>
+          </div>
           {currentTab === 'profile' ? (
-            <>
-              <Grid item xs={3}>
-                <DrepProfileCard />
-                {/* <DrepClaimProfileCard/> */}
-              </Grid>
-              <Grid item xs={9}>
-                <DrepTimeline />
-              </Grid>
-            </>
+            <div className="flex flex-col lg:flex-row">
+              <div className="lg:w-[30%]">
+                {drep?.drep_id ? (
+                  <DrepProfileCard drep={drep} state={isLoading} />
+                ) : (
+                  <DrepClaimProfileCard drep={drep} state={isLoading} />
+                )}
+              </div>
+              <div className="lg:w-[70%]">
+                <DrepTimeline
+                  drepId={drep?.drep_id}
+                  latestEpoch={latestEpoch}
+                  cexplorerDetails={drep?.cexplorerDetails}
+                  activity={drep?.activity}
+                />
+              </div>
+            </div>
           ) : (
-            <Grid item xs={12} className="bg-white bg-opacity-50 px-5">
-              <DrepProfileMetrics />
-            </Grid>
+            <DrepProfileMetrics drepMetrics={drep} />
           )}
-        </Grid>
+        </div>
       </div>
     </div>
   );

@@ -1,31 +1,47 @@
+import { urls } from '@/constants';
+import { convertString } from '@/lib';
 import Link from 'next/link';
 import React from 'react';
-
-const VoteStatusChip = () => {
+import { CopyToClipboard } from 'react-copy-to-clipboard';
+const VoteStatusChip = ({ date }: { date: string }) => {
   return (
     <div className="flex flex-row items-center justify-between">
-        <div className="flex w-fit flex-row items-center gap-2 rounded-full bg-purple-500 px-3 py-1 text-sm">
-          <img src="/file-check.svg" alt="" />
-          <p>Voted</p>
-        </div>
-        <p>{new Date().toDateString()}</p>
+      <div className="flex w-fit flex-row items-center gap-2 rounded-full bg-purple-500 px-3 py-1 text-sm">
+        <img src="/file-check.svg" alt="" />
+        <p>Voted</p>
       </div>
-      
-  )
+      <p>{new Date(date).toLocaleDateString('en-GB')}</p>
+    </div>
+  );
 };
-const DrepTimelineCard = () => {
+const DrepTimelineCard = ({ item }: { item: any }) => {
   return (
-    <div className="flex flex-col gap-3 rounded-xl bg-white p-5 shadow-lg max-w-md">
-      <VoteStatusChip/>
+    <div className="flex max-w-md flex-col gap-3 rounded-xl bg-white p-5 shadow-lg">
+      <VoteStatusChip date={item.time_voted} />
       <hr />
-      <div className='flex flex-col gap-1 max-w-52'>
-        <p className="text-lg font-bold">For project X</p>
+      <div className="flex max-w-52 flex-col gap-1">
+        <p className="text-lg font-bold">
+          For {item?.description?.tag || null}
+        </p>
         <p className="text-sm">Governance Action ID:</p>
-        <div className="flex items-center overflow-x-scroll text-nowrap rounded-full border px-3 py-1 text-sm">
-          <p>0xasdasdasd123123123asdasdasd123123123asdasdasd123123123</p>
+        <div className="flex gap-1 w-fit items-center rounded-full border px-3 py-1 text-sm">
+          <p>{convertString(item?.gov_action_proposal_id, true) || null}</p>
+          <CopyToClipboard
+            text={item?.gov_action_proposal_id}
+            onCopy={() => {
+              console.log('copied!');
+            }}
+            className="clipboard-text cursor-pointer"
+          >
+            <img src="/copy.svg" alt="copy" />
+          </CopyToClipboard>
         </div>
       </div>
-      <Link href={'#'} className="text-blue-800">
+      <Link
+        href={`${urls.govToolUrl}/governance_actions/${item?.gov_action_proposal_id}`}
+        target="_blank"
+        className="text-blue-800"
+      >
         View Governance Action
       </Link>
     </div>

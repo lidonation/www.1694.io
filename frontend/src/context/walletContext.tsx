@@ -57,6 +57,7 @@ type TransactionHistoryItem = {
 
 interface CardanoContext {
   address?: string;
+  latestEpoch?: number;
   balance?: string;
   disconnectWallet: () => Promise<void>;
   enable: (walletName: string) => Promise<EnableResponse>;
@@ -124,6 +125,7 @@ function CardanoProvider(props: Props) {
     vkey: string;
   } | null>(null);
 
+  const [latestEpoch, setLatestEpoch] = useState<number>(0);
   const [registeredStakeKeysListState, setRegisteredPubStakeKeysState] =
     useState<string[]>([]);
   const [error, setError] = useState<string | undefined>(undefined);
@@ -151,6 +153,11 @@ function CardanoProvider(props: Props) {
       }
     };
     enableCurrentWallet();
+    const getLatestEpoch = async () => {
+      const protocol = await getEpochParams();
+      setLatestEpoch(protocol.epoch);
+    }
+    getLatestEpoch();
   }, []);
   useEffect(() => {
     if (sharedState?.loginCredentials?.signature) {
@@ -177,7 +184,9 @@ function CardanoProvider(props: Props) {
     try {
       const balanceCBORHex = await enabledApi.getBalance();
 
-      const balance = Number(Value.from_bytes(Buffer.from(balanceCBORHex, 'hex')).coin().to_str());
+      const balance = Number(
+        Value.from_bytes(Buffer.from(balanceCBORHex, 'hex')).coin().to_str(),
+      );
       setWalletState((prev) => ({ ...prev, balance }));
     } catch (err) {
       console.log(err);
@@ -552,6 +561,7 @@ function CardanoProvider(props: Props) {
       stakeKey,
       isGettingSignatures,
       setVoter,
+      latestEpoch,
       setStakeKey,
       stakeKeys,
       walletApi,
@@ -573,6 +583,7 @@ function CardanoProvider(props: Props) {
       disconnectWallet,
       dRepID,
       dRepIDBech32,
+      latestEpoch,
       pubDRepKey,
       isGettingSignatures,
       stakeKey,

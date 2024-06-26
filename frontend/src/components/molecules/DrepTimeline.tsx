@@ -3,7 +3,7 @@ import SearchBar from '../atoms/SearchBar';
 import DrepTimelineCard from '../atoms/DrepTimelineCard';
 import DrepTimelineWaterfall from './DrepTimelineWaterfall';
 import DrepTabGroup from '../atoms/DrepTabGroup';
-const ProfileClaimedChip = () => {
+const ProfileClaimedChip = ({ claimedAddress }) => {
   return (
     <div className="flex flex-col gap-1 rounded-xl bg-yellow-500 px-3 py-2 ">
       <div className="flex flex-row items-center justify-between">
@@ -14,29 +14,42 @@ const ProfileClaimedChip = () => {
         <p>{new Date().toDateString()}</p>
       </div>
       <p className="overflow-x-scroll text-nowrap">
-        Profile claimed by: 6LKJSA876SDMA571IQAKLASPPOIWLKJKLSA12
+        Profile claimed by: {claimedAddress}
       </p>
     </div>
   );
 };
-const DrepTimeline = () => {
+const DrepTimeline = ({
+  drepId,
+  latestEpoch,
+  cexplorerDetails,
+  activity,
+}: {
+  drepId: string;
+  latestEpoch: number;
+  cexplorerDetails: any;
+  activity: any[];
+}) => {
   const [searchText, setSearchText] = useState('');
   return (
-    <div className="bg-white p-3 h-full">
-      <div className="flex w-full flex-row items-center justify-between">
-        <p className="text-3xl font-bold">Timeline</p>
-        <SearchBar searchText={searchText} setSearchText={setSearchText} />
+    <div className="flex h-full w-full flex-col gap-5 bg-white px-5 py-3">
+      <div className="flex flex-col items-center gap-2 sm:flex-row sm:justify-between">
+        <p className="w-full text-2xl font-bold sm:w-auto lg:text-3xl">
+          Timeline
+        </p>
+        <SearchBar searchText={searchText} setSearchText={setSearchText} handleSort={() => {}} />
       </div>
       <div className="flex items-center gap-3">
         <img src="/rotate-clockwise.svg" alt="Load" />
-        <p className="text-2xl font-bold">Epoch 232</p>
+        <p className="text-2xl font-bold">Epoch {latestEpoch}</p>
       </div>
-      <div className="flex flex-row items-center justify-center gap-2 text-gray-500">
-        <img src="/loader.svg" alt="" />
-        <p>Registered, Epoch 232</p>
-      </div>
-      <ProfileClaimedChip />
-      <DrepTimelineWaterfall />
+      
+      {
+        drepId &&
+        <ProfileClaimedChip claimedAddress={drepId} />
+      }
+     
+      <DrepTimelineWaterfall activity={activity} epochOfRegistration={cexplorerDetails?.epoch_of_registration}/>
     </div>
   );
 };

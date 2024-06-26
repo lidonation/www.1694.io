@@ -1,9 +1,12 @@
 import React from 'react';
 import Button from './Button';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
-import { Typography } from '@mui/material';
+import { Typography, Skeleton } from '@mui/material';
 import Link from 'next/link';
 import DrepTimeline from '../molecules/DrepTimeline';
+import { convertString } from '@/lib';
+import { useScreenDimension } from '@/hooks';
+import { useRouter } from 'next/navigation';
 
 interface StatusProps {
   status:
@@ -48,15 +51,42 @@ const StatusChip = ({ status }: StatusProps) => {
   );
 };
 
-const DrepProfileCard = () => {
+const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
+  const { isMobile } = useScreenDimension();
+  const router = useRouter();
   return (
-    <div className='bg-white bg-opacity-50 px-5 py-10 flex flex-col gap-5 '>
-      <div className="flex  items-center justify-center rounded-md">
-        <img className="w-full" src="/sample.png" alt="" />
+    <div className="flex w-full flex-col gap-5 bg-white bg-opacity-50 px-5 py-10">
+      <div className="flex max-w-52 items-center justify-center rounded-md">
+        {state ? (
+          <Skeleton
+            animation={'wave'}
+            variant="circular"
+            width={150}
+            height={150}
+          />
+        ) : (
+          <img
+            className="w-full"
+            src={`${drep?.attachment_url ? drep.attachment_url : '/user-circle.svg'}`}
+            alt=""
+          />
+        )}
       </div>
       <div>
         <Typography variant="h4">
-          Charles Miner
+          {state ? (
+            <Skeleton
+              animation={'wave'}
+              variant="text"
+              width={200}
+              height={50}
+            />
+          ) : (
+            drep &&
+            (drep?.drep_name
+              ? drep.drep_name
+              : convertString(drep?.cexplorerDetails?.view, isMobile))
+          )}
         </Typography>
       </div>
       <div className="flex flex-row gap-2">
@@ -64,17 +94,38 @@ const DrepProfileCard = () => {
         <StatusChip status="Verified" />
       </div>
       <div>
-        <p className="font-bold">Voting power</p>
-        <p>₳ 47.92</p>
+        <Typography variant="h6">Voting power</Typography>
+        <p className="flex items-center gap-3 font-normal">
+          ₳{' '}
+          {state ? (
+            <Skeleton animation={'wave'} width={50} height={20} />
+          ) : (
+            drep?.cexplorerDetails?.amount || 0
+          )}
+        </p>
       </div>
       <div>
-        <p className="font-bold">Total delegation</p>
-        <p>25 Delegators</p>
+        <Typography variant="h6">Total delegation</Typography>
+        <p>
+          {' '}
+          {state ? (
+            <Skeleton animation={'wave'} width={100} height={20} />
+          ) : (
+            `${drep?.cexplorerDetails?.delegation_vote_count} ${drep?.cexplorerDetails?.delegation_vote_count > 1 ? 'Delegators' : 'Delegator'}`
+          )}
+        </p>
       </div>
       <div className="flex flex-row gap-2 rounded-full border border-blue-100 px-4 py-2">
-      <p className='overflow-x-scroll text-nowrap'>ID 098290SACX876X323d768QAS92</p>
+        <p className="flex w-full items-center gap-3">
+          ID{' '}
+          {state ? (
+            <Skeleton animation={'wave'} width={150} height={20} />
+          ) : (
+            convertString(drep?.cexplorerDetails?.view, true)
+          )}
+        </p>
         <CopyToClipboard
-          text={'textToCopy'}
+          text={drep?.cexplorerDetails?.view}
           onCopy={() => {
             console.log('copied!');
           }}
@@ -84,48 +135,54 @@ const DrepProfileCard = () => {
         </CopyToClipboard>
       </div>
       <div className="flex flex-row gap-2">
-        {/* Social links */}
-        
-        <Link href="#">
-            <img className='w-full' src="/github-dark.svg" alt="" />
+        <Link href={drep ? drep?.drep_social?.github || '#' : '#'}>
+          <img className="w-full" src="/github-dark.svg" alt="" />
         </Link>
-        <Link href="#">
-            <img className='w-full' src="/twitter.svg" alt="" />
+        <Link href={drep ? drep?.drep_social?.x || '#' : '#'}>
+          <img className="w-full" src="/twitter.svg" alt="" />
         </Link>
-        <Link href="#">
-            <img className='w-full' src="/fb-dark.svg" alt="" />
+        <Link href={drep ? drep?.drep_social?.facebook || '#' : '#'}>
+          <img className="w-full" src="/fb-dark.svg" alt="" />
         </Link>
-        <Link href="#">
-            <img className='w-full' src="/ig-dark.svg" alt="" />
+        <Link href={drep ? drep?.drep_social?.instagram || '#' : '#'}>
+          <img className="w-full" src="/ig-dark.svg" alt="" />
         </Link>
       </div>
       <div>
-        <p className="font-bold">Bio</p>
+        <Typography variant="h6">Bio</Typography>
         <p>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed
-          vulputate, enim sit amet accumsan elementum, lorem ipsum dolor sit
-          amet, consectetur adipiscing elit. Sed vulputate, enim sit amet
-          accumsan elementum, lorem ipsum dolor sit amet, consectetur
-          adipiscing.
+          {' '}
+          {state ? (
+            <Skeleton animation={'wave'} width={150} height={20} />
+          ) : (
+            drep?.drep_bio || 'Empty'
+          )}
         </p>
       </div>
       <div>
-        <p className="font-bold">Statement</p>
+        <Typography variant="h6">Statement</Typography>
         <p>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed
-          vulputate, enim sit amet accumsan elementum, lorem ipsum dolor sit
-          amet, consectetur adipiscing elit. Sed vulputate, enim sit amet
-          accumsan elementum, lorem ipsum dolor sit amet, consectetur
-          adipiscing.
+          {' '}
+          {state ? (
+            <Skeleton animation={'wave'} width={150} height={20} />
+          ) : (
+            drep?.drep_platform_statement || 'Empty'
+          )}
         </p>
       </div>
       <div>
-        <p className='font-bold'>Metadata</p>
+        <Typography variant="h6">Metadata</Typography>
         <p>None</p>
       </div>
-      <div className="flex flex-col gap-2">
+      <div className="flex max-w-prose flex-col gap-2">
         <Button>Set up Metadata</Button>
-        <Button variant="outlined" bgColor="transparent">
+        <Button
+          variant="outlined"
+          bgColor="transparent"
+          handleClick={() => {
+            router.push(`/dreps/workflow/profile/update/step1`);
+          }}
+        >
           Edit Profile
         </Button>
       </div>
