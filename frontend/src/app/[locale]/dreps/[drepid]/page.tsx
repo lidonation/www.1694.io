@@ -16,7 +16,7 @@ import { useCardano } from '@/context/walletContext';
 const page = () => {
   const [currentTab, setCurrentTab] = useState('profile');
   const [isLoading, setIsLoading] = useState(true);
-  const {latestEpoch} = useCardano();
+  const { latestEpoch, dRepIDBech32 } = useCardano();
   const { isMobile, screenWidth } = useScreenDimension();
   const [drep, setDrep] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -39,19 +39,24 @@ const page = () => {
   }, []);
   return (
     <div className="flex">
-      <DRepProfileBar isOpen={isOpen} setIsOpen={setIsOpen} />
+      {/* If current user is a drep, the drawer will be available for use */}
+      {drep?.drep_id && drep?.cexplorerDetails?.view == dRepIDBech32 && (
+        <DRepProfileBar isOpen={isOpen} setIsOpen={setIsOpen} />
+      )}
       <div className="base_container w-full">
         <div className="flex h-full w-full flex-col">
           <div className="flex items-center justify-start">
             <div className="w-[30%]">
-              <IconButton
-                data-testid="close-drawer-button"
-                onClick={() => {
-                  setIsOpen(!isOpen);
-                }}
-              >
-                <img width={'50%'} className="shrink-0" src={'/menu.svg'} />
-              </IconButton>
+              {drep?.drep_id && drep?.cexplorerDetails?.view == dRepIDBech32 && (
+                <IconButton
+                  data-testid="close-drawer-button"
+                  onClick={() => {
+                    setIsOpen(!isOpen);
+                  }}
+                >
+                  <img width={'50%'} className="shrink-0" src={'/menu.svg'} />
+                </IconButton>
+              )}
             </div>
             <div className="w-[70%]">
               <DrepTabGroup setActiveTab={setCurrentTab} />

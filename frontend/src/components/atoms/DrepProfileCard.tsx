@@ -115,8 +115,8 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
           )}
         </p>
       </div>
-      <div className="flex flex-row gap-2 rounded-full border border-blue-100 px-4 py-2">
-        <p className="flex w-full items-center gap-3">
+      <div className="flex flex-row gap-2 rounded-full border border-blue-100 px-4 py-2 w-fit">
+        <p className="flex w-full items-center gap-3 ">
           ID{' '}
           {state ? (
             <Skeleton animation={'wave'} width={150} height={20} />

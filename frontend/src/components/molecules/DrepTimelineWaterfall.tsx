@@ -33,7 +33,7 @@ export default function DrepTimelineWaterfall({
       (a, b) => Number(b) - Number(a),
     );
 
-    // Sort activities within each epoch from earliest to latest
+    // Sort activities within each epoch from latest to earliest
     sortedEpochs.forEach((epoch) => {
       grouped[epoch].sort(
         (a, b) =>
@@ -80,13 +80,13 @@ export default function DrepTimelineWaterfall({
                 <TimelineConnector />
               </TimelineSeparator>
               <TimelineContent>
-                <h4 className='font-bold'>Epoch {epoch}</h4>
+                <h4 className="font-bold">Epoch {epoch}</h4>
               </TimelineContent>
             </TimelineItem>
             {epochOfRegistration !== null && (
-              <TimelineItem >
+              <TimelineItem>
                 <TimelineSeparator>
-                  <div className="flex flex-row items-center justify-center gap-2 text-gray-500 text-nowrap">
+                  <div className="flex flex-row items-center justify-center gap-2 text-nowrap text-gray-500">
                     <img src="/loader.svg" alt="" />
                     <p>Registered, Epoch {epochOfRegistration}</p>
                   </div>
@@ -97,7 +97,11 @@ export default function DrepTimelineWaterfall({
           </React.Fragment>
         ))
       ) : (
-        <p className="pt-10 text-center">No timeline events for this drep</p>
+        // otherwise just show registration entry
+        <div className="flex flex-row items-center justify-center gap-2 text-nowrap text-gray-500">
+          <img src="/loader.svg" alt="" />
+          <p>Registered, Epoch {epochOfRegistration}</p>
+        </div>
       )}
     </Timeline>
   );
