@@ -20,7 +20,7 @@ const stepStatusChip = (stepNumber, stepText, stepStatus, handleClick) => {
     return (
       <div className={`${baseClasses} ${stepStatus === 'update' ? activeClasses : inactiveClasses}`} onClick={onClick}>
         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-lime-300 text-white">
-          <img src="/check.svg" alt="check" className="h-8 w-8" />
+          <img src="/svgs/check.svg" alt="check" className="h-8 w-8" />
         </div>
         <p className="text-center">{stepText}</p>
       </div>

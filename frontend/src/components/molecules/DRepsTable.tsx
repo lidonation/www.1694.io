@@ -8,7 +8,7 @@ import { useScreenDimension } from '@/hooks';
 
 const DRepsTable = ({ searchQuery }) => {
   const router = useRouter();
-  const {isMobile} = useScreenDimension();
+  const { isMobile } = useScreenDimension();
   const { DReps, isDRepsLoading } = useGetDRepsQuery();
   //will be later changed to filter by drep name
   const filteredDreps =
@@ -59,7 +59,9 @@ const DRepsTable = ({ searchQuery }) => {
                 data-testid={`drep-id-${drep.view}`}
                 className="text-nowrap text-left text-sm"
               >
-                <td className="px-4 py-2">{convertString(drep.view, isMobile)}</td>
+                <td className="px-4 py-2">
+                  {convertString(drep.view, isMobile)}
+                </td>
                 <td className="px-4 py-2">{drep.epoch_no}</td>
                 <td className="px-4 py-2">{drep?.name || 'Coming soon'}</td>
                 <td className="px-4 py-2">
@@ -82,27 +84,26 @@ const DRepsTable = ({ searchQuery }) => {
                 <td className="px-4 py-2">
                   <div className="flex space-x-2">
                     <HoverChip
-                      icon="/link.svg"
                       text="View Profile"
-                      handleClick={() =>
-                        router.push(`/dreps/${drep.view}`)
-                      }
-                    />
+                      handleClick={() => router.push(`/dreps/${drep.view}`)}
+                    >
+                      <img src="/svgs/link.svg" alt="" />
+                    </HoverChip>
                     <HoverChip
-                      icon="/user-circle.svg"
                       text="Link DRep"
                       handleClick={
                         () => console.log('linking drep', drep.view)
                         // router.push(`/drep/${drep.id}`)
                       }
-                    />
+                    >
+                      <img src="/svgs/user-circle.svg" alt="" />
+                    </HoverChip>
                     <HoverChip
-                      icon="/medal.svg"
                       text="Claim DRep Profile"
-                      handleClick={() =>
-                        router.push(`/dreps/${drep.view}`)
-                      }
-                    />
+                      handleClick={() => router.push(`/dreps/${drep.view}`)}
+                    >
+                      <img src="/svgs/medal.svg" alt="" />
+                    </HoverChip>
                   </div>
                 </td>
               </tr>
