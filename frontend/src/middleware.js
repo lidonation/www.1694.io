@@ -76,7 +76,7 @@ export function middleware(request) {
   const locale = getLocale(request);
   if (protectedRoutesRegex.test(pathname)) {
     const response = protectRoutes(request, locale);
-    if (response) return response;
+    if (response.status === 307) return response;
   }
   request.nextUrl.pathname = `/${locale}${pathname}`;
   return NextResponse.redirect(request.nextUrl);

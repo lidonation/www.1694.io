@@ -11,7 +11,8 @@ import { DataSource } from 'typeorm';
 export class AttachmentService {
   constructor(
     @InjectDataSource('default')
-    private voltaireService: DataSource) {}
+    private voltaireService: DataSource,
+  ) {}
   async parseMimeType(mimeType: string) {
     switch (mimeType) {
       case 'image/png':
@@ -78,8 +79,10 @@ export class AttachmentService {
         parentid: parentId,
         attachmentType: await this.parseMimeType(mimeType),
       };
-      const res=await this.voltaireService.getRepository('Attachment').insert(newAttachment);
-      return res.identifiers[0].id
+      const res = await this.voltaireService
+        .getRepository('Attachment')
+        .insert(newAttachment);
+      return res.identifiers[0].id;
     } catch (error) {
       console.log(error);
     }
@@ -107,15 +110,17 @@ export class AttachmentService {
         parentid: parentId,
         attachmentType: await this.parseMimeType(mimeType),
       };
-      await this.voltaireService
-        .getRepository('Attachment')
-        .update(attachmentId, newAttachment);
+      if (attachmentId) {
+        await this.voltaireService
+          .getRepository('Attachment')
+          .update(attachmentId, newAttachment);
+      } else await this.insertAttachment(attachment, mimeType, parentId);
       return true;
     } catch (error) {
       console.log(error);
     }
   }
-  async deleteAttachment (attachmentId: number) {
+  async deleteAttachment(attachmentId: number) {
     try {
       await this.voltaireService
         .getRepository('Attachment')
