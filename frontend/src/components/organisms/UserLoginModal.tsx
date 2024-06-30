@@ -126,7 +126,7 @@ export function UserLoginModal() {
       >
         <img src="/info-circle.png" width={'40px'}  alt='login icon' />
 
-        <Typography variant="h4" className="py-1 text-center ">
+        <Typography variant="h4" className="py-1 text-center" component="span">
           Login
         </Typography>
       </ModalHeader>
