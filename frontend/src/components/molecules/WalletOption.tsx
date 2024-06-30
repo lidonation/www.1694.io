@@ -27,8 +27,8 @@ export const WalletOptionButton: FC<WalletOption> = ({ ...props }) => {
         alignItems: 'center',
         border: isEnableLoading ? 'none' : `1px solid blue`,
         bgcolor: isEnableLoading ? '#EAE9F0' : 'white',
-        borderRadius: '100px',
-        boxShadow: isEnableLoading ? undefined : '0px 0px 11px 0px #24223230',
+        borderRadius: '0.9375rem',
+        boxShadow: isEnableLoading ? undefined : '0 0 0.75rem rgba(36, 34, 50, 0.1)',
         boxSizing: 'border-box',
         cursor: cip95Available
           ? isEnableLoading
@@ -37,8 +37,8 @@ export const WalletOptionButton: FC<WalletOption> = ({ ...props }) => {
           : 'unset',
         display: 'flex',
         justifyContent: 'space-between',
-        marginBottom: '16px',
-        padding: '12px 13px 12px 13px',
+        marginBottom: '1rem',
+        padding: '0.75rem 0.8125rem 0.75rem 0.8125rem',
         transition: 'background .2s',
         position: 'relative',
         width: '100%',
@@ -76,3 +76,4 @@ export const WalletOptionButton: FC<WalletOption> = ({ ...props }) => {
     </Box>
   );
 };
+

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Button from '../atoms/Button';
-import HoverLinkChip from '../atoms/HoverLinkChip';
 import { useScreenDimension } from '@/hooks';
+import { HtmlTooltip } from '../atoms/HoverChip';
 interface MultipartDataFormProps {
   activeForm: string;
   nullify: () => void;
@@ -21,7 +21,7 @@ const MultipartDataForm = ({
   const [currentLinkTitle, setCurrentLinkTitle] = useState('');
   const [currentLinkURL, setCurrentLinkURL] = useState('');
   const formRef = useRef<HTMLDivElement>(null);
-  const {isMobile, screenWidth}=useScreenDimension()
+  const { isMobile, screenWidth } = useScreenDimension();
   const formatFileSize = (sizeInBytes) => {
     const kiloBytes = sizeInBytes / 1024;
     const megaBytes = kiloBytes / 1024;
@@ -151,10 +151,12 @@ const MultipartDataForm = ({
   // Handle clicks/taps outside the form
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent | TouchEvent) => {
-      if (formRef.current &&
+      if (
+        formRef.current &&
         !formRef.current.contains(event.target as Node) &&
         !event.target['closest']('.image-add-button') &&
-        !event.target['closest']('.link-add-button')) {
+        !event.target['closest']('.link-add-button')
+      ) {
         nullify();
       }
     };
@@ -168,10 +170,13 @@ const MultipartDataForm = ({
     };
   }, [nullify]);
   return (
-    <div ref={formRef} className={`${isMobile || screenWidth < 1024 ? "fixed top-1/2 left-1/2 translate-x-[-50%] translate-y-[-50%]": "absolute top-9"} z-50 flex min-h-[140px] min-w-96 flex-col rounded-lg bg-white p-5 shadow-lg`}>
+    <div
+      ref={formRef}
+      className={`${isMobile || screenWidth < 1024 ? 'fixed left-1/2 top-1/2 translate-x-[-50%] translate-y-[-50%]' : 'absolute top-9'} z-50 flex min-h-[8.75rem] min-w-96 flex-col rounded-lg bg-white p-5 shadow-lg`}
+    >
       {activeForm === 'image' ? (
         <>
-          <div className="h-11 text-[22px] font-bold text-zinc-800">
+          <div className="h-11 text-[1.375rem] font-bold text-zinc-800">
             Add File
           </div>
           <div
@@ -180,7 +185,7 @@ const MultipartDataForm = ({
             onDragEnter={preventDefault}
             onDrop={handleDrop}
           >
-            <p className="text-[11px] font-medium text-slate-500">
+            <p className="text-[0.6875rem] font-medium text-slate-500">
               Drag and drop file
             </p>
           </div>
@@ -249,7 +254,7 @@ const MultipartDataForm = ({
         </>
       ) : (
         <>
-          <div className="h-11 text-[22px] font-bold text-zinc-800">
+          <div className="h-11 text-[1.375rem] font-bold text-zinc-800">
             Add a Link
           </div>
           <div className="flex flex-col gap-1">
@@ -287,11 +292,26 @@ const MultipartDataForm = ({
                   key={index}
                   className="flex items-center justify-center rounded-xl"
                 >
-                  <HoverLinkChip
-                    children={<p className="text-blue-400">{link.title}</p>}
-                    link={link.url}
-                    position="top"
-                  />
+                  <HtmlTooltip
+                    title={
+                      <React.Fragment>
+                        <div className="flex w-full flex-row">
+                          <img src="/svgs/notesvgs/link.svg" alt="" />
+                          <a
+                            href={link.url}
+                            target="_blank"
+                            className="text-sm text-blue-300 underline"
+                          >
+                            {link.url}
+                          </a>
+                        </div>
+                      </React.Fragment>
+                    }
+                    arrow
+                    placement="top"
+                  >
+                    <p className='text-blue-400'>{link.title}</p>
+                  </HtmlTooltip>
                 </div>
               ))}
             </div>

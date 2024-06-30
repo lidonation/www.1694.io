@@ -13,7 +13,7 @@ const CIPSpecifications = () => {
         </div>
         <HotLinks />
         <div className="flex items-center justify-center">
-          <img src="/building.png" alt="Building" />
+          <img src="/img/building.png" alt="Building" />
         </div>
         <div
           id="the-cardano-constitution"

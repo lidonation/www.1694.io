@@ -16,7 +16,7 @@ function NoteHeaderTitle() {
 
       <Button
         size="extraLarge"
-        width={'180px'}
+        width={'11.25rem'}
         variant="outlined"
         bgColor="transparent"
         color="primary"

@@ -65,7 +65,7 @@ export const SliderMenu = ({ options, handleClose }: SliderMenuProps) => {
                 onClick={handleClose}
                 sx={{ padding: 0 }}
               >
-                <img src={'/close.svg'} />
+                <img src={'/svgs/close.svg'} />
               </IconButton>
             </Box>
             <Grid

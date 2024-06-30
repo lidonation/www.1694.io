@@ -16,7 +16,7 @@ export const Background = ({
     <>
       <img
         height={isMobile ? 600 : 'auto'}
-        src="/bgorange.png"
+        src="/img/bgorange.png"
         style={{
           bottom: isMobile ? -150 : isReverted ? 200 : -650,
           opacity: opacity,
@@ -29,7 +29,7 @@ export const Background = ({
       {children}
       <img
         height={isMobile ? 600 : 'auto'}
-        src="/bgblue.png"
+        src="/img/bgblue.png"
         style={{
           left: isMobile ? -250 : isReverted ? 400 : -400,
           opacity: opacity,

@@ -209,3 +209,10 @@ body {
 .MuiTimelineContent-root {
   text-align: left !important;
 }
+
+.MuiTooltip-tooltip {
+  @apply bg-black text-white p-2
+}
+.MuiTooltip-arrow{
+  color:black;
+}

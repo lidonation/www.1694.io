@@ -48,7 +48,7 @@ export const WalletInfoCard = () => {
               </Typography>
             ) : (
               <div className="mr-1">
-                <img src="/wallet.svg" alt="wallet icon" />
+                <img src="/svgs/wallet.svg" alt="wallet icon" />
               </div>
             )}
             <Typography fontWeight={600} className="text-sm">

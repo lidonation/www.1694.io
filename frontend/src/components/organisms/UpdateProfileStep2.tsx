@@ -36,7 +36,7 @@ const UpdateProfileStep2 = () => {
     useCardano();
   const SwitchWithTextTrack = getSwitchWithTextTrack(
     isMobile,
-    isMobile ? '150px' : '220px',
+    isMobile ? '9.375rem' : '13.75rem',
   );
   const { setIsNotDRepErrorModalOpen, drepId, setStep2Status, setNewDrepId } =
     useDRepContext();
@@ -132,7 +132,7 @@ const UpdateProfileStep2 = () => {
               }}
               className="clipboard-text cursor-pointer"
             >
-              <img src="/copy.svg" alt="copy" />
+              <img src="/svgs/copy.svg" alt="copy" />
             </CopyToClipboard>
           </div>
         )}
