@@ -1,6 +1,6 @@
 'use client'
 import { useEffect } from 'react';
-const ClientScriptLoader = () => {
+const SprigClientScriptLoader = () => {
   useEffect(() => {
     (function(l, e, a, p) {
       if (window.Sprig) return;
@@ -20,4 +20,4 @@ const ClientScriptLoader = () => {
   return null;
 };
 
-export default ClientScriptLoader;
+export default SprigClientScriptLoader;

@@ -25,7 +25,8 @@ export const metadata = {
     'Town Halls and Campaigns for Voltaire DReps and their communities.',
 };
 // Dynamically imported ClientScriptLoader with no SSR
-const ClientScriptLoader = dynamic(() => import('@/components/Sprig/ClientScriptLoader'), { ssr: false });
+const SprigClientScriptLoader = dynamic(() => import('@/components/analytics/SprigClientScriptLoader'), { ssr: false });
+const FathomClientScriptLoader = dynamic(() => import('@/components/analytics/AnalyticsLoader'), { ssr: false });
 
 async function RootLayout({ children, params: { locale } }) {
   // Root layout component, sets up locale, loads messages, and wraps the app with providers.
@@ -51,7 +52,8 @@ async function RootLayout({ children, params: { locale } }) {
       <body className={poppins.className} suppressHydrationWarning={true}>
         <NextIntlClientProvider locale={locale} messages={messages}>
           <AppContextProvider>{children}</AppContextProvider>
-          <ClientScriptLoader/>
+          <SprigClientScriptLoader/>
+          <FathomClientScriptLoader/>
         </NextIntlClientProvider>
       </body>
     </html>
