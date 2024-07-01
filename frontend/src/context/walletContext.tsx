@@ -423,12 +423,10 @@ function CardanoProvider(props: Props) {
     if (!walletApi) return;
     setIsGettingSignatures(true);
     try {
-      //get the public key of the wallet
-      const drepPubKey = dRepID;
       const payloadBuffer = Buffer.from(`Verify DRep ${dRepIDBech32}`).toString(
         'hex',
       );
-      const sign = await walletApi.signData(drepPubKey, payloadBuffer);
+      const sign = await walletApi.signData(address, payloadBuffer);
       const { signature, key } = sign;
       setLoginCredentials({ signature, vkey: key });
       setIsGettingSignatures(false);
