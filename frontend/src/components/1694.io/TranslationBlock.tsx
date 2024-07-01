@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Button from '../atoms/Button';
 import BecomeADRepButton from './BecomeADRepButton';
-import HoverChip from '../atoms/HoverChip';
+import HoverChip, { HtmlTooltip } from '../atoms/HoverChip';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
 import {
   Accordion,
   AccordionDetails,
@@ -23,47 +24,47 @@ const TranslationBlock = () => {
   const flags = [
     {
       link: '#',
-      icon: '/flags/GR.png',
+      icon: '/img/flags/GR.png',
     },
     {
       link: '#',
-      icon: '/flags/SA.png',
+      icon: '/img/flags/SA.png',
     },
     {
       link: '#',
-      icon: '/flags/DE.png',
+      icon: '/img/flags/DE.png',
     },
     {
       link: '#',
-      icon: '/flags/FR.png',
+      icon: '/img/flags/FR.png',
     },
     {
       link: '#',
-      icon: '/flags/NL.png',
+      icon: '/img/flags/NL.png',
     },
     {
       link: '#',
-      icon: '/flags/JP.png',
+      icon: '/img/flags/JP.png',
     },
     {
       link: '#',
-      icon: '/flags/KR.png',
+      icon: '/img/flags/KR.png',
     },
     {
       link: '#',
-      icon: '/flags/ID.png',
+      icon: '/img/flags/ID.png',
     },
     {
       link: '#',
-      icon: '/flags/PT.png',
+      icon: '/img/flags/PT.png',
     },
     {
       link: '#',
-      icon: '/flags/ES.png',
+      icon: '/img/flags/ES.png',
     },
     {
       link: '#',
-      icon: '/flags/KE.png',
+      icon: '/img/flags/KE.png',
     },
   ];
 
@@ -74,14 +75,30 @@ const TranslationBlock = () => {
           <>
             <div className="mr-10 flex shrink-0 flex-row items-center justify-center gap-2">
               <p>Translation</p>
-              <HoverChip
-                icon={'/info-circle.svg'}
-                text={
-                  'Translations done through rewarded bounties at the Catalyst Swarm Bounty Board. Donations to Catalyst Swarm'
+              <HtmlTooltip
+                title={
+                  <React.Fragment>
+                    <Typography color="inherit">
+                      Translations done through rewarded bounties at the
+                      Catalyst Swarm Bounty Board. Donations to Catalyst Swarm
+                      can be done through: Addr1qxhxg0mwzahfv8x4nr5s9zmffssxueqsnxxv282kz2c30nykg8fw8x99crukwyc7yftwfgxmhsu2xx0n8elfvj7mljlqm45kgs
+                    </Typography>
+                    <CopyToClipboard
+                      textToCopy="Addr1qxhxg0mwzahfv8x4nr5s9zmffssxueqsnxxv282kz2c30nykg8fw8x99crukwyc7yftwfgxmhsu2xx0n8elfvj7mljlqm45kgs"
+                      onCopy={() => {
+                        console.log('copied!');
+                      }}
+                      className="clipboard-text cursor-pointer"
+                    >
+                      <img src="/svgs/copy.svg" alt="copy" />
+                    </CopyToClipboard>
+                  </React.Fragment>
                 }
-                position="bottom"
-                textToCopy="Addr1qxhxg0mwzahfv8x4nr5s9zmffssxueqsnxxv282kz2c30nykg8fw8x99crukwyc7yftwfgxmhsu2xx0n8elfvj7mljlqm45kgs"
-              />
+                placement="bottom"
+                arrow
+              >
+                <img src="/svgs/info-circle.svg" alt="info" />
+              </HtmlTooltip>
             </div>
             <div className="flex flex-row gap-5">
               {flags.map((flag) => (
@@ -98,33 +115,49 @@ const TranslationBlock = () => {
               className="bg-transparent shadow-none"
             >
               <AccordionSummary
-                expandIcon={<img src="/chevron-down.svg" alt="down" />}
+                expandIcon={<img src="/svgs/chevron-down.svg" alt="down" />}
                 aria-controls="panel1-content"
                 id="panel1-header"
                 onClick={() => setIsAccordionExpanded(!isAccordionExpanded)}
               >
                 <div className="mr-5 flex shrink-0 flex-row items-center justify-center gap-2 lg:mr-10">
                   <p>Translation</p>
-                  <HoverChip
-                    icon={'/info-circle.svg'}
-                    handleClick={toggleTooltip}
-                    text={
-                      'Translations done through rewarded bounties at the Catalyst Swarm Bounty Board. Donations to Catalyst Swarm'
+                  <HtmlTooltip
+                    title={
+                      <React.Fragment>
+                        <Typography color="inherit">
+                          Translations done through rewarded bounties at the
+                          Catalyst Swarm Bounty Board. Donations to Catalyst
+                          Swarm can be done through: Addr1qxhxg0mwzahfv8x4nr5s9zmffssxueqsnxxv282kz2c30nykg8fw8x99crukwyc7yftwfgxmhsu2xx0n8elfvj7mljlqm45kgs
+                        </Typography>
+                        <CopyToClipboard
+                          textToCopy="Addr1qxhxg0mwzahfv8x4nr5s9zmffssxueqsnxxv282kz2c30nykg8fw8x99crukwyc7yftwfgxmhsu2xx0n8elfvj7mljlqm45kgs"
+                          onCopy={() => {
+                            console.log('copied!');
+                          }}
+                          className="clipboard-text cursor-pointer"
+                        >
+                          <img src="/svgs/copy.svg" alt="copy" onClick={toggleTooltip} />
+                        </CopyToClipboard>
+                      </React.Fragment>
                     }
-                    position="bottom"
-                    textToCopy="Addr1qxhxg0mwzahfv8x4nr5s9zmffssxueqsnxxv282kz2c30nykg8fw8x99crukwyc7yftwfgxmhsu2xx0n8elfvj7mljlqm45kgs"
-                  />
+                    placement="bottom"
+                    arrow
+                    open={isTooltipActive}
+                  >
+                    <img src="/svgs/info-circle.svg" alt="info" onClick={toggleTooltip} />
+                  </HtmlTooltip>
                 </div>
               </AccordionSummary>
               <AccordionDetails className="grid grid-cols-3 gap-2">
-                  {flags.map((flag) => (
-                    <div
-                      key={flag.icon}
-                      className="flex cursor-pointer items-center justify-center pt-1"
-                    >
-                      <img src={flag.icon} alt="Flag" />
-                    </div>
-                  ))}
+                {flags.map((flag) => (
+                  <div
+                    key={flag.icon}
+                    className="flex cursor-pointer items-center justify-center pt-1"
+                  >
+                    <img src={flag.icon} alt="Flag" />
+                  </div>
+                ))}
               </AccordionDetails>
             </Accordion>
           </div>

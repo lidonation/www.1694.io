@@ -37,7 +37,7 @@ export function ModalWrapper({
         <div className="absolute right-6 top-6 cursor-pointer ">
           <img
             data-testid={'close-modal-button'}
-            src="/close.svg"
+            src="/svgs/close.svg"
             onClick={onClose}
            alt='modal close icon' />
         </div>

@@ -49,10 +49,10 @@ export function ChooseWalletModal() {
           sx={{
             display: 'flex',
             flexDirection: 'column',
-            maxHeight: '500px',
+            maxHeight: '31.25rem',
             overflow: 'auto',
             width: '100%',
-            padding: '8px',
+            padding: '0.5rem',
           }}
         >
           {!walletOptions.length ? (

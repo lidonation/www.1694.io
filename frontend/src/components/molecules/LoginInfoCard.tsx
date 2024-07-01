@@ -24,7 +24,7 @@ export const LoginInfoCard = () => {
           px: 1.25,
           py: 1,
           position: 'relative',
-          width: '120px',
+          width: '7.5rem',
         }}
       >
         <Typography className="text-sm font-medium text-gray-200">
@@ -44,9 +44,9 @@ export const LoginInfoCard = () => {
             data-testid={'disconnect-button'}
             variant="text"
             onClick={onClickLogout}
-            className="flex w-[1px] justify-end"
+            className="flex w-[0.0625rem] justify-end"
           >
-            <img src="/close.svg" alt="Close Icon" />
+            <img src="/svgs/close.svg" alt="Close Icon" />
           </Button>
         </Box>
       </Box>

@@ -42,7 +42,7 @@ const Header = () => {
       <div className="base_container flex shrink-0 flex-row items-center justify-between py-6 ">
         <Link href="/">
           <img
-            src="/sancho1694.svg"
+            src="/svgs/sancho1694.svg"
             alt="Sancho logo"
             width={isMobile ? 100 : 150}
           />
@@ -84,7 +84,7 @@ const Header = () => {
           </div>
           {!isMobile && (
             <div className="cursor-pointer">
-              <img src="/bell.svg" alt="Notifs" />
+              <img src="/svgs/bell.svg" alt="Notifs" />
             </div>
           )}
           {isMobile && (
@@ -92,7 +92,7 @@ const Header = () => {
               className="cursor-pointer"
               onClick={() => setIsMobileDrawerOpen(true)}
             >
-              <img src="/drawer-icon.svg" alt="Drawer" />
+              <img src="/svgs/drawer-icon.svg" alt="Drawer" />
             </div>
           )}
         </div>

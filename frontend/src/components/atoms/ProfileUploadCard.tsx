@@ -75,7 +75,7 @@ const ProfileUploadCard = ({
       ></div>
 
       {!preview ? (
-        <img src="/user-circle-filled.svg" alt="upload" />
+        <img src="/svgs/user-circle-filled.svg" alt="upload" />
       ) : (
         <div
           className="relative flex h-32 w-32 items-center justify-center "

@@ -53,14 +53,14 @@ export const WalletInfoCard = () => {
               {' '}
               {showDetails ? (
                 <img
-                  src="/chevron-up.svg"
-                  alt="wallet icon"
+                  src="/svgs/chevron-up.svg"
+                  alt="Toggle to close wallet details"
                   className="h-5 w-6"
                 />
               ) : (
                 <img
-                  src="/chevron-down.svg"
-                  alt="wallet icon"
+                  src="/svgs/chevron-down.svg"
+                  alt="Toggle to open wallet details"
                   className="h-5 w-6"
                 />
               )}
