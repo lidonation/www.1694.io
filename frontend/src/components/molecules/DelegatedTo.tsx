@@ -3,11 +3,13 @@ import { useGetAdaHolderCurrentDelegationQuery } from '@/hooks/useGetAdaHolderCu
 import { useGetSingleDRepViaVoterIdQuery } from '@/hooks/useGetSingleDRepViaVoterIdQuery';
 import { formattedAda, shortenAddress } from '@/lib';
 import { Box, Button, Typography } from '@mui/material';
+import { memo } from 'react';
 
 type DelegatedToProps = {
   className?: string;
 };
-const DelegatedTo = ({ className }: DelegatedToProps) => {
+
+export const DelegatedTo = memo(({ className }: DelegatedToProps) => {
   const { stakeKey } = useCardano();
   const { currentDelegation } = useGetAdaHolderCurrentDelegationQuery(stakeKey);
   const { DRep } = useGetSingleDRepViaVoterIdQuery(
@@ -86,5 +88,4 @@ const DelegatedTo = ({ className }: DelegatedToProps) => {
       )}
     </Box>
   );
-};
-export default DelegatedTo;
+});

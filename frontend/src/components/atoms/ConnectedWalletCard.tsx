@@ -2,8 +2,9 @@ import { useCardano } from '@/context/walletContext';
 import { useScreenDimension } from '@/hooks';
 import { formattedAda, shortenAddress } from '@/lib';
 import { Box, Typography } from '@mui/material';
+import { memo } from 'react';
 
-export function ConnectedWalletCard() {
+export const ConnectedWalletCard = memo(() => {
   const { address, walletState } = useCardano();
   const { isMobile } = useScreenDimension();
   return (
@@ -50,4 +51,4 @@ export function ConnectedWalletCard() {
       </Box>
     </Box>
   );
-}
+});

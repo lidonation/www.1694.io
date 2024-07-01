@@ -2,12 +2,16 @@ import { Box, Typography, Button, Grow } from '@mui/material';
 import { useCardano } from '@/context/walletContext';
 import './MoleculeStyles.css';
 import { useDRepContext } from '@/context/drepContext';
-import DelegatedTo from './DelegatedTo';
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { ConnectedWalletCard } from '../atoms/ConnectedWalletCard';
+import { DelegatedTo } from './DelegatedTo';
 
-export const WalletInfoCard = () => {
-  const { isEnabled, disconnectWallet } = useCardano();
+type WalletInfoCardProps = {
+  test_name: string;
+};
+
+export const WalletInfoCard = memo(({ test_name }: WalletInfoCardProps) => {
+  const { address, isEnabled, disconnectWallet, } = useCardano();
   const { setLoginModalOpen, isLoggedIn, logout } = useDRepContext();
   const [showDetails, setShowDetails] = useState(false);
 
@@ -23,10 +27,10 @@ export const WalletInfoCard = () => {
     <Grow
       in={isEnabled}
       style={{ transformOrigin: 'top center' }}
-      {...(isEnabled ? { timeout: 300 } : {})}
+      {...(!!address ? { timeout: 0 } : { timeout: 300 })}
     >
       <Box
-        data-testid="wallet-info-card"
+        data-testid={`${test_name}-wallet-info-card`}
         className={`relative rounded-3xl bg-gray-800 ${!!isLoggedIn ? 'cursor-pointer' : ''}`}
       >
         <Box
@@ -89,4 +93,4 @@ export const WalletInfoCard = () => {
       </Box>
     </Grow>
   );
-};
+});
