@@ -4,6 +4,8 @@ import { useGetSingleDRepViaVoterIdQuery } from '@/hooks/useGetSingleDRepViaVote
 import { formattedAda, shortenAddress } from '@/lib';
 import { Box, Button, Typography } from '@mui/material';
 import { memo } from 'react';
+import ViewDRepTableBtn from './ViewDRepTableButton';
+import { useRouter } from 'next/navigation';
 
 type DelegatedToProps = {
   className?: string;
@@ -15,6 +17,11 @@ export const DelegatedTo = memo(({ className }: DelegatedToProps) => {
   const { DRep } = useGetSingleDRepViaVoterIdQuery(
     currentDelegation?.drep_view,
   );
+
+  const router = useRouter();
+  const navToDRepList = () => {
+    router.push('/dreps/list');
+  };
 
   return (
     <Box
@@ -51,7 +58,7 @@ export const DelegatedTo = memo(({ className }: DelegatedToProps) => {
         )}
         {!currentDelegation && (
           <Box className="space-y-2">
-            <Box>
+            <Box className="space-y-1">
               <Typography fontWeight={600}>No DRep data available.</Typography>
               <Typography className="w-full text-wrap text-sm font-bold tracking-wide text-gray-300">
                 You have not yet delegated to a DRep.
@@ -60,20 +67,7 @@ export const DelegatedTo = memo(({ className }: DelegatedToProps) => {
                 Consider selecting one on the GovTool website.
               </Typography>
             </Box>
-            <Button
-              size="small"
-              variant="outlined"
-              className="rounded-3xl px-2 capitalize text-white hover:bg-blue-900"
-              onClick={() =>
-                window.open(
-                  'https://sanchogov.tools',
-                  '_blank',
-                  'noopener,noreferrer',
-                )
-              }
-            >
-              Explore DReps
-            </Button>
+            <ViewDRepTableBtn handleClick={navToDRepList}></ViewDRepTableBtn>
           </Box>
         )}
       </Box>
