@@ -1,5 +1,5 @@
 import { QUERY_KEYS } from '@/constants/queryKeys';
-import { currentDelegation } from '@/models/api';
+import { currentDelegation } from '../../types/api';
 import { getAdaHolderCurrentDelegation } from '@/services/requests/getAdaHolderCurrentDelegation';
 import { useQuery } from 'react-query';
 

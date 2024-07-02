@@ -105,7 +105,6 @@ function DRepProvider(props: Props) {
 
   const logout = useCallback(async () => {
     removeItemFromLocalStorage('token');
-    Cookies.remove('token', { path: '/' });
     setIsLoggedIn(false);
   }, []);
 

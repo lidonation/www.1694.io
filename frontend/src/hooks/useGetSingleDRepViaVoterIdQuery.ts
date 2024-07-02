@@ -1,5 +1,5 @@
 import { QUERY_KEYS } from '@/constants/queryKeys';
-import { SingleDRep } from '@/models/api';
+import { SingleDRep } from '../../types/api';
 import { getSingleDRepViaVoterId } from '@/services/requests/getSingleDrepViaVoterId';
 import { useQuery } from 'react-query';
 
