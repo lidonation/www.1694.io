@@ -5,8 +5,4 @@ export class createDrepDto extends FormData {
   expertise: string;
   perspective: string;
   profileUrl?: string;
-  stake_addr?:string
-  voter_id?:string
-  signature?:string
-  key?:string
 }
