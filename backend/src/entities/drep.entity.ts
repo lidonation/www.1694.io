@@ -1,18 +1,9 @@
-import {
-  Column,
-  CreateDateColumn,
-  DeleteDateColumn,
-  Entity,
-  OneToMany,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
-import { Note } from './note.entity';
+import { Column, Entity, OneToMany } from 'typeorm';
+import { Signature } from './signatures.entity';
 import { BaseEntity } from 'src/global';
 
 @Entity()
 export class Drep extends BaseEntity {
- 
   @Column({ unique: true, nullable: true })
   name: string;
 
@@ -32,10 +23,12 @@ export class Drep extends BaseEntity {
   @Column({ nullable: true })
   perspective: string;
 
+  @OneToMany(() => Signature, (signature) => signature.drep)
+  signatures: Signature[];
+
   @Column({})
   stake_addr: string;
 
   @Column({ nullable: false, unique: true })
   voter_id: string;
-
 }
