@@ -4,7 +4,7 @@ export class createNoteDto {
   @IsNotEmpty()
   note_title: string;
   @IsNotEmpty()
-  note_tag: string;
+  note_tag: string[];
   @IsNotEmpty()
   note_content: string;
   @IsNotEmpty()

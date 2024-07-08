@@ -21,7 +21,7 @@ const DrepClaimProfileCard = ({
         ) : (
           <img
             className="w-full"
-            src={`${drep?.attachment_url ? drep.attachment_url : '/user-circle.svg'}`}
+            src={`${drep?.attachment_url ? drep.attachment_url : '/svgs/user-circle.svg'}`}
             alt=""
           />
         )}
@@ -68,21 +68,21 @@ const DrepClaimProfileCard = ({
           }}
           className="clipboard-text cursor-pointer"
         >
-          <img src="/copy.svg" alt="copy" />
+          <img src="/svgs/copy.svg" alt="copy" />
         </CopyToClipboard>
       </div>
       <div className="flex flex-row gap-2">
         <Link href={drep ? drep?.drep_social?.github || '#' : '#'}>
-          <img className="w-full" src="/github-dark.svg" alt="" />
+          <img className="w-full" src="/svgs/github-dark.svg" alt="" />
         </Link>
         <Link href={drep ? drep?.drep_social?.x || '#' : '#'}>
-          <img className="w-full" src="/twitter.svg" alt="" />
+          <img className="w-full" src="/svgs/twitter.svg" alt="" />
         </Link>
         <Link href={drep ? drep?.drep_social?.facebook || '#' : '#'}>
-          <img className="w-full" src="/fb-dark.svg" alt="" />
+          <img className="w-full" src="/svgs/fb-dark.svg" alt="" />
         </Link>
         <Link href={drep ? drep?.drep_social?.instagram || '#' : '#'}>
-          <img className="w-full" src="/ig-dark.svg" alt="" />
+          <img className="w-full" src="/svgs/ig-dark.svg" alt="" />
         </Link>
       </div>
       <div>

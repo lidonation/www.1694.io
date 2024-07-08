@@ -40,7 +40,7 @@ const DrepTimeline = ({
         <SearchBar searchText={searchText} setSearchText={setSearchText} handleSort={() => {}} />
       </div>
       <div className="flex items-center gap-3">
-        <img src="/rotate-clockwise.svg" alt="Load" />
+        <img src="/svgs/rotate-clockwise.svg" alt="Load" />
         <p className="text-2xl font-bold">Epoch {latestEpoch}</p>
       </div>
       

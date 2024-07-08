@@ -3,8 +3,9 @@ import PostInput from '../atoms/PostInput';
 import PostSubmitArea from '../atoms/PostSubmitArea';
 import PostTextareaInput from '../atoms/PostTextareaInput';
 import PostVisiblityInput from '../atoms/PostVisiblityInput';
+import CustomAutocomplete from '../atoms/PostAutoComplete';
 
-const UpdateNotePostForm = ({ register, control, errors }) => {
+const UpdateNotePostForm = ({ register, control, errors}) => {
   return (
     <div className="mt-3 flex flex-col gap-3">
       <PostInput
@@ -15,13 +16,14 @@ const UpdateNotePostForm = ({ register, control, errors }) => {
         errors={errors}
         dataTestId={'post-title-input'}
       />
-      <PostInput
-        inputName={'Tags'}
-        id={'postTag'}
-        placeholder={'Note Tags'}
-        registerValue={register}
+      <CustomAutocomplete
+        control={control}
+        inputName="Tags"
+        id="postTag"
+        placeholder="Enter tags"
+        options={[]}
         errors={errors}
-        dataTestId={'post-tag-input'}
+        dataTestId="tags-input"
       />
       <PostTextareaInput control={control} errors={errors} />
       <PostVisiblityInput registerVisibility={register} errors={errors} />

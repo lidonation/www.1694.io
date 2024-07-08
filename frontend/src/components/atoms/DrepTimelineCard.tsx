@@ -7,7 +7,7 @@ const VoteStatusChip = ({ date }: { date: string }) => {
   return (
     <div className="flex flex-row items-center justify-between">
       <div className="flex w-fit flex-row items-center gap-2 rounded-full bg-purple-500 px-3 py-1 text-sm">
-        <img src="/file-check.svg" alt="" />
+        <img src="/svgs/file-check.svg" alt="" />
         <p>Voted</p>
       </div>
       <p>{new Date(date).toLocaleDateString('en-GB')}</p>
@@ -16,7 +16,7 @@ const VoteStatusChip = ({ date }: { date: string }) => {
 };
 const DrepTimelineCard = ({ item }: { item: any }) => {
   return (
-    <div className="flex max-w-md flex-col gap-3 rounded-xl bg-white p-5 shadow-lg">
+    <div id='epoch-card' className="flex max-w-md flex-col gap-3 rounded-xl bg-white p-5 shadow-lg">
       <VoteStatusChip date={item.time_voted} />
       <hr />
       <div className="flex max-w-52 flex-col gap-1">
@@ -33,7 +33,7 @@ const DrepTimelineCard = ({ item }: { item: any }) => {
             }}
             className="clipboard-text cursor-pointer"
           >
-            <img src="/copy.svg" alt="copy" />
+            <img src="/svgs/copy.svg" alt="copy" />
           </CopyToClipboard>
         </div>
       </div>

@@ -58,7 +58,8 @@ export default function DrepTimelineWaterfall({
       }}
       position={screenWidth < 1024 ? 'right' : 'alternate-reverse'}
     >
-      {activity && activity.length > 0 ? (
+      {activity &&
+        activity.length > 0 &&
         sortedEpochs.map((epoch, epochIndex) => (
           <React.Fragment key={epochIndex}>
             {/* Render activity items for this epoch */}
@@ -80,28 +81,22 @@ export default function DrepTimelineWaterfall({
                 <TimelineConnector />
               </TimelineSeparator>
               <TimelineContent>
-                <h4 className="font-bold">Epoch {epoch}</h4>
+                <h4 className="font-bold ">Epoch {epoch}</h4>
               </TimelineContent>
             </TimelineItem>
-            {epochOfRegistration !== null && (
-              <TimelineItem>
-                <TimelineSeparator>
-                  <div className="flex flex-row items-center justify-center gap-2 text-nowrap text-gray-500">
-                    <img src="/loader.svg" alt="" />
-                    <p>Registered, Epoch {epochOfRegistration}</p>
-                  </div>
-                </TimelineSeparator>
-                <TimelineContent></TimelineContent>
-              </TimelineItem>
-            )}
           </React.Fragment>
-        ))
-      ) : (
-        // otherwise just show registration entry
-        <div className="flex flex-row items-center justify-center gap-2 text-nowrap text-gray-500">
-          <img src="/loader.svg" alt="" />
-          <p>Registered, Epoch {epochOfRegistration}</p>
-        </div>
+        ))}
+        {/* Default display  */}
+      {epochOfRegistration !== null && (
+        <TimelineItem>
+          <TimelineSeparator>
+            <div className="flex flex-row items-center justify-center gap-2 text-nowrap text-gray-500">
+              <img src="/svgs/loader.svg" alt="" />
+              <p>Registered, Epoch {epochOfRegistration}</p>
+            </div>
+          </TimelineSeparator>
+          <TimelineContent></TimelineContent>
+        </TimelineItem>
       )}
     </Timeline>
   );

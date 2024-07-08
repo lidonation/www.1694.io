@@ -7,9 +7,10 @@ import {
   JoinTable,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
 import { Note } from './note.entity';
-import { Delegator } from './delegator.entity';
+import { Reaction } from './reaction.entity';
 export enum CommentParentEntityType {
   Note = 'note',
   Comment = 'comment',
@@ -38,12 +39,15 @@ export class Comment {
   @ManyToOne(() => Comment, (comment) => comment.id) // Many-to-One relationship with Comment
   comment: Comment;
 
-  @ManyToOne(() => Delegator, (delegator) => delegator.id) // Many-to-One relationship with Delegator
-  delegator: Delegator;
+  @Column({  nullable: false })
+  voter: string;
 
   @CreateDateColumn()
   createdAt: Date;
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @OneToMany(() => Reaction, (reaction) => reaction.comment, { onDelete: 'CASCADE' })
+  reactions: Reaction[];
 }

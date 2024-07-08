@@ -10,6 +10,7 @@ import {
   DeleteDateColumn,
 } from 'typeorm';
 import { Drep } from './drep.entity';
+import { Reaction } from './reaction.entity';
 
 @Entity()
 export class Note {
@@ -20,8 +21,8 @@ export class Note {
   @Column({ unique: true, nullable: false })
   note_title: string;
 
-  @Column({})
-  note_tag: string;
+  @Column('simple-array')
+  note_tag: string[];
 
   @Column({ nullable: false })
   note_content: string;
@@ -40,4 +41,7 @@ export class Note {
 
   @DeleteDateColumn({ nullable: true })
   deletedAt: Date;
+
+  @OneToMany(() => Reaction, (reaction) => reaction.note, {onDelete: 'CASCADE'})
+  reactions: Reaction[];
 }

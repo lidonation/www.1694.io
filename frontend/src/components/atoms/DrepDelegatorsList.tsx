@@ -5,7 +5,7 @@ import React from 'react';
 const ViewProfileAction = () => {
   return (
     <div className="flex w-fit flex-row items-center gap-2 rounded-full bg-gray-200 px-3 py-1 text-sm">
-      <img src="/eye.svg" alt="View Profile" />
+      <img src="/svgs/eye.svg" alt="View Profile" />
       <p>View Profile</p>
     </div>
   );

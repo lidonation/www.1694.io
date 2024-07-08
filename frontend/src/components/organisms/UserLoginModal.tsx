@@ -131,8 +131,6 @@ export function UserLoginModal() {
           marginBottom: '4rem',
         }}
       >
-        <img src="/img/info-circle.png" width={'0.125rem'} alt="login icon" />
-
         <Typography variant="h4" className="py-1 text-center ">
           Login
         </Typography>
