@@ -23,7 +23,7 @@ const UpdateNotePostForm = ({ register, control, errors}) => {
         placeholder="Enter tags"
         options={[]}
         errors={errors}
-        dataTestId="tags-input"
+        dataTestId={'post-tag-input'}
       />
       <PostTextareaInput control={control} errors={errors} />
       <PostVisiblityInput registerVisibility={register} errors={errors} />
