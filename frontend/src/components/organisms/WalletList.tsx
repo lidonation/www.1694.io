@@ -42,7 +42,14 @@ export function ChooseWalletModal() {
     >
       <ModalHeader>Connect Your Wallet</ModalHeader>
       <ModalContents>
-        <Typography className="mb-6 text-center text-sm font-medium">
+        <Typography
+          sx={{
+            fontSize: '16px',
+            fontWeight: '500',
+            marginBottom: '24px',
+            textAlign: 'center',
+          }}
+        >
           Choose Wallet
         </Typography>
         <Box

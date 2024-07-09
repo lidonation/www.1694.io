@@ -5,6 +5,7 @@ import { AttachmentService } from 'src/attachment/attachment.service';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
+import axios from 'axios';
 @Injectable()
 export class DrepService {
   constructor(
@@ -121,12 +122,13 @@ export class DrepService {
     if (drep.length > 0) drepVoterId = drep[0].signature_drepVoterId;
     const drepCexplorer = await this.getDrepCexplorerDetails(drepVoterId);
     const drepVotingHistory = await this.getDrepVotingActivity(drepVoterId);
-    const drepDelegators= await this.getDrepDelegatorsWithVotingPower(drepVoterId);
+    const drepDelegators =
+      await this.getDrepDelegatorsWithVotingPower(drepVoterId);
     const combinedResult = {
       ...drep[0],
       cexplorerDetails: drepCexplorer,
       activity: drepVotingHistory,
-      delegators: drepDelegators
+      delegators: drepDelegators,
     };
     if (
       (!drep || drep.length === 0) &&
@@ -159,12 +161,13 @@ export class DrepService {
       .getRawMany();
     const drepCexplorer = await this.getDrepCexplorerDetails(drepVoterId);
     const drepVotingHistory = await this.getDrepVotingActivity(drepVoterId);
-    const drepDelegators= await this.getDrepDelegatorsWithVotingPower(drepVoterId);
+    const drepDelegators =
+      await this.getDrepDelegatorsWithVotingPower(drepVoterId);
     const combinedResult = {
       ...drep[0],
       cexplorerDetails: drepCexplorer,
       activity: drepVotingHistory,
-      delegators: drepDelegators
+      delegators: drepDelegators,
     };
     if (
       (!drep || drep.length === 0) &&
@@ -285,7 +288,7 @@ export class DrepService {
       WHERE
           dh.view = $1
       ORDER BY 
-          bk.epoch_no;`, 
+          bk.epoch_no;`,
       [viewParam],
     )) as any[];
     return drepVotingHistory.map((item) => {
@@ -295,7 +298,6 @@ export class DrepService {
       };
     });
   }
-  
 
   async populateFakeDRepData() {
     const dreps = await this.getAllDrepsCexplorer();
@@ -337,17 +339,21 @@ export class DrepService {
     return { insertedDrep, insertedSig };
   }
   async getEpochParams() {
-    const APIURL =
-      'https://cardano-sanchonet.blockfrost.io/api/v0/epochs/latest/parameters';
-    const response = await fetch(APIURL, {
-      headers: {
-        project_id: this.configService.get<string>(
-          'BLOCKFROST_SANCHONET_PROJECT_ID',
-        ),
-      },
-      method: 'GET',
-    });
-    return response.json();
+    try {
+      const APIURL =
+        'https://cardano-sanchonet.blockfrost.io/api/v0/epochs/latest/parameters';
+      const response = await axios.get(APIURL, {
+        headers: {
+          project_id: this.configService.get<string>(
+            'BLOCKFROST_SANCHONET_PROJECT_ID',
+          ),
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.log(error);
+      throw new Error(error);
+    }
   }
   async getDrepDelegatorsWithVotingPower(drepVoterId: string) {
     // Step 1: Get the delegators and their delegation epoch
@@ -369,17 +375,22 @@ export class DrepService {
           dh.view = $1`,
       [drepVoterId],
     );
-  
+
     // Step 2: Remove duplicates and keep track of delegation epochs
     const uniqueDelegatorsMap = new Map<string, number>();
-    drepDelegators.forEach(delegator => {
-      uniqueDelegatorsMap.set(delegator.stake_address, delegator.delegation_epoch);
+    drepDelegators.forEach((delegator) => {
+      uniqueDelegatorsMap.set(
+        delegator.stake_address,
+        delegator.delegation_epoch,
+      );
     });
-  
+
     // Step 3: Calculate voting power for each unique delegator
-    const delegatorsWithVotingPower = await Promise.all(Array.from(uniqueDelegatorsMap).map(async ([stakeAddress, delegationEpoch]) => {
-      const votingPowerResult = await this.cexplorerService.manager.query(
-        `SELECT 
+    const delegatorsWithVotingPower = await Promise.all(
+      Array.from(uniqueDelegatorsMap).map(
+        async ([stakeAddress, delegationEpoch]) => {
+          const votingPowerResult = await this.cexplorerService.manager.query(
+            `SELECT 
             SUM(uv.value) AS total_stake
          FROM 
             utxo_view uv
@@ -389,28 +400,34 @@ export class DrepService {
             sa.view = $1
          GROUP BY 
             sa.view;`,
-        [stakeAddress]
-      );
-  
-      let totalStakeInAda = 0;
-      if (votingPowerResult.length > 0) {
-        const totalStakeInLovelace = parseInt(votingPowerResult[0].total_stake, 10);
-        totalStakeInAda = totalStakeInLovelace / 1000000;
-      }
-  
-      return {
-        stakeAddress,
-        delegationEpoch,
-        votingPower: totalStakeInAda,
-      };
-    }));
+            [stakeAddress],
+          );
+
+          let totalStakeInAda = 0;
+          if (votingPowerResult.length > 0) {
+            const totalStakeInLovelace = parseInt(
+              votingPowerResult[0].total_stake,
+              10,
+            );
+            totalStakeInAda = totalStakeInLovelace / 1000000;
+          }
+
+          return {
+            stakeAddress,
+            delegationEpoch,
+            votingPower: totalStakeInAda,
+          };
+        },
+      ),
+    );
     //sort from highest epoch
-    delegatorsWithVotingPower.sort((a, b) => b.delegationEpoch - a.delegationEpoch);
+    delegatorsWithVotingPower.sort(
+      (a, b) => b.delegationEpoch - a.delegationEpoch,
+    );
 
     return delegatorsWithVotingPower;
   }
-  
-  
+
   async updateDrepInfo(
     drepId: number,
     drep: createDrepDto,

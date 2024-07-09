@@ -3,6 +3,8 @@ import PostInput from '../atoms/PostInput';
 import PostSubmitArea from '../atoms/PostSubmitArea';
 import PostTextareaInput from '../atoms/PostTextareaInput';
 import PostVisiblityInput from '../atoms/PostVisiblityInput';
+import { Autocomplete, Chip, TextField } from '@mui/material';
+import CustomAutocomplete from '../atoms/PostAutoComplete';
 
 const NewNotePostForm = ({ register, control, errors }) => {
   return (
@@ -15,11 +17,12 @@ const NewNotePostForm = ({ register, control, errors }) => {
         errors={errors}
         dataTestId={'post-title-input'}
       />
-      <PostInput
+      <CustomAutocomplete
         inputName={'Tags'}
+        control={control}
         id={'postTag'}
-        placeholder={'Note Tags'}
-        registerValue={register}
+        placeholder={'Press Enter to add tag'}
+        options={[]}
         errors={errors}
         dataTestId={'post-tag-input'}
       />

@@ -8,7 +8,7 @@ const ProfileClaimedChip = ({ claimedAddress }) => {
     <div className="flex flex-col gap-1 rounded-xl bg-yellow-500 px-3 py-2 ">
       <div className="flex flex-row items-center justify-between">
         <div className="flex max-w-fit items-center gap-2 rounded-full bg-black px-3 py-1 text-sm text-white">
-          <img src="/user-circle-filled-yellow.svg" alt="" />
+          <img src="/svgs/user-circle-filled-yellow.svg" alt="" />
           <p>Profile Claimed</p>
         </div>
         <p>{new Date().toDateString()}</p>
@@ -40,7 +40,7 @@ const DrepTimeline = ({
         <SearchBar searchText={searchText} setSearchText={setSearchText} handleSort={() => {}} />
       </div>
       <div className="flex items-center gap-3">
-        <img src="/rotate-clockwise.svg" alt="Load" />
+        <img src="/svgs/rotate-clockwise.svg" alt="Load" />
         <p className="text-2xl font-bold">Epoch {latestEpoch}</p>
       </div>
       

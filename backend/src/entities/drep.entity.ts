@@ -25,10 +25,4 @@ export class Drep extends BaseEntity {
 
   @OneToMany(() => Signature, (signature) => signature.drep)
   signatures: Signature[];
-
-  @Column({})
-  stake_addr: string;
-
-  @Column({ nullable: false, unique: true })
-  voter_id: string;
 }

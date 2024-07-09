@@ -13,6 +13,7 @@ const DRepsTable = ({ searchQuery }) => {
   //will be later changed to filter by drep name
   const filteredDreps =
     DReps &&
+    DReps.length > 0 &&
     DReps.filter((drep) =>
       drep.view.toLowerCase().includes(searchQuery.toLowerCase()),
     );

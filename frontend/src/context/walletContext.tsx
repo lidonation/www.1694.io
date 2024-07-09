@@ -81,6 +81,7 @@ interface CardanoContext {
   isGettingSignatures: boolean;
   isMainnet: boolean;
   stakeKey?: string;
+  stakeKeyBech32?: string;
   setVoter: (key: undefined | VoterInfo) => void;
   setStakeKey: (key: string) => void;
   loginSignTransaction: () => Promise<any>;
@@ -117,6 +118,9 @@ function CardanoProvider(props: Props) {
   const [dRepID, setDRepID] = useState<string>('');
   const [dRepIDBech32, setDRepIDBech32] = useState<string>('');
   const [stakeKey, setStakeKey] = useState<string | undefined>(undefined);
+  const [stakeKeyBech32, setStakeKeyBech32] = useState<string | undefined>(
+    undefined,
+  );
   const [stakeKeys, setStakeKeys] = useState<string[]>([]);
   const [isMainnet, setIsMainnet] = useState<boolean>(false);
   const [isGettingSignatures, setIsGettingSignatures] = useState(false);
@@ -156,7 +160,7 @@ function CardanoProvider(props: Props) {
     const getLatestEpoch = async () => {
       const protocol = await getEpochParams();
       setLatestEpoch(protocol.epoch);
-    }
+    };
     getLatestEpoch();
   }, []);
   useEffect(() => {
@@ -275,6 +279,15 @@ function CardanoProvider(props: Props) {
       console.log(err);
     }
   };
+  const setEpochParams = async () => {
+    try {
+      const protocol = await getEpochParams();
+      setItemToLocalStorage('protocolParams', protocol);
+      return protocol;
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   const enable = useCallback(
     async (walletName: string) => {
@@ -374,10 +387,17 @@ function CardanoProvider(props: Props) {
           );
           if (savedStakeKey && stakeKeysList.includes(savedStakeKey)) {
             setStakeKey(savedStakeKey);
+            const stakeAddress = Address.from_bytes(
+              Buffer.from(savedStakeKey, 'hex'),
+            ).to_bech32();
+            setStakeKeyBech32(stakeAddress);
             stakeKeySet = true;
           } else if (stakeKeysList.length === 1) {
             setStakeKey(stakeKeysList[0]);
-
+            const stakeAddress = Address.from_bytes(
+              Buffer.from(stakeKeysList[0], 'hex'),
+            ).to_bech32();
+            setStakeKeyBech32(stakeAddress);
             setItemToLocalStorage(
               `${WALLET_LS_KEY}_stake_key`,
               stakeKeysList[0],
@@ -388,8 +408,7 @@ function CardanoProvider(props: Props) {
           setPubDRepKey(dRepIDs?.dRepKey || '');
           setDRepID(dRepIDs?.dRepID || '');
           setDRepIDBech32(dRepIDs?.dRepIDBech32 || '');
-          const protocol = await getEpochParams();
-          setItemToLocalStorage('protocolParams', protocol);
+          await setEpochParams();
           setItemToLocalStorage(`${WALLET_LS_KEY}_name`, walletName);
           setItemToLocalStorage(`${WALLET_LS_KEY}_api`, enabledApi);
           setIsEnabling(false);
@@ -403,6 +422,7 @@ function CardanoProvider(props: Props) {
           setWalletApi(undefined);
           setPubDRepKey('');
           setStakeKey(undefined);
+          setStakeKeyBech32(undefined);
           setIsEnabled(false);
           setIsEnabling(false);
           throw {
@@ -442,6 +462,10 @@ function CardanoProvider(props: Props) {
     const protocolParams = getItemFromLocalStorage(
       'protocolParams',
     ) as Protocol;
+    if (!protocolParams) {
+      await getEpochParams();
+      throw new Error('No protocol params found');
+    }
     const txBuilder = TransactionBuilder.new(
       TransactionBuilderConfigBuilder.new()
         .fee_algo(
@@ -500,6 +524,7 @@ function CardanoProvider(props: Props) {
       // calculate the min fee required and send any change to an address
       txBuilder.add_change_if_needed(shelleyChangeAddress);
       //expiry of 1 minute
+      console.log('adding ttl')
       txBuilder.set_ttl_bignum(BigNum.from_str((1.5 * 60).toString()));
       // once the transaction is ready, we build it to get the tx body without witnesses
       const txBody = txBuilder.build();
@@ -557,6 +582,7 @@ function CardanoProvider(props: Props) {
       dRepIDBech32,
       pubDRepKey,
       stakeKey,
+      stakeKeyBech32,
       isGettingSignatures,
       setVoter,
       latestEpoch,
@@ -585,6 +611,7 @@ function CardanoProvider(props: Props) {
       pubDRepKey,
       isGettingSignatures,
       stakeKey,
+      stakeKeyBech32,
       setVoter,
       setStakeKey,
       stakeKeys,

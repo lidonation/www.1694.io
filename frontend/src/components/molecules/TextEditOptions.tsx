@@ -2,6 +2,7 @@ import { Editor } from '@tiptap/react';
 import React, { useEffect, useState } from 'react';
 import MultipartDataForm from './MultipartDataForm';
 import { set } from 'cypress/types/lodash';
+import { useScreenDimension } from '@/hooks';
 type TextEditOptionsProps = {
   editor: Editor;
   active: boolean;
@@ -15,6 +16,7 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({
   const [activeForm, setActiveForm] = useState(null);
   const [imagePayload, setImagePayload] = useState(null);
   const [linkPayload, setLinkPayload] = useState(null);
+  const {screenWidth}=useScreenDimension()
   const resetState = () => {
     setShowOverlay(false);
     setActiveForm(null);
@@ -84,7 +86,7 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({
   return (
     <div
       id="toolbar-container"
-      className="overflow-x-scroll lg:overflow-visible flex h-9 w-full lg:w-[80%] items-center justify-start gap-3 bg-slate-50 px-2"
+      className={`${(showOverlay && screenWidth > 1024) ? "overflow-x-visible" : " overflow-x-scroll"} flex h-9 w-full lg:w-[80%] items-center justify-start gap-3 bg-slate-50 px-2`}
     >
       <div
         className={`${active ? 'cursor-pointer' : 'pointer-events-none'} shrink-0 ${

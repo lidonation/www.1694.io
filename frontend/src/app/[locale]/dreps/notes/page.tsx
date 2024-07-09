@@ -1,9 +1,9 @@
-import NoteHeader from '@/components/dreps/notes/NoteHeader';
+import NotesPage from "@/components/dreps/notes/NotesPage";
 
 function Notes() {
   return (
     <div className="base_container">
-      <NoteHeader />
+      <NotesPage />
     </div>
   );
 }
