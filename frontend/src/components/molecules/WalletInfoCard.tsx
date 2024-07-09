@@ -1,88 +1,96 @@
-import { Box, Typography } from '@mui/material';
-
+import { Box, Typography, Button, Grow } from '@mui/material';
 import { useCardano } from '@/context/walletContext';
 import './MoleculeStyles.css';
 import { useDRepContext } from '@/context/drepContext';
-import { formatWalletAddress, lovelaceToAda, shortNumber } from '@/lib';
-import Button from '../atoms/Button';
-import { useScreenDimension } from '@/hooks';
+import { memo, useState } from 'react';
+import { ConnectedWalletCard } from '../atoms/ConnectedWalletCard';
+import { DelegatedTo } from './DelegatedTo';
 
-export const WalletInfoCard = () => {
-  const { address, walletState } = useCardano();
-  const { setLoginModalOpen, isLoggedIn } = useDRepContext();
-  const { isMobile } = useScreenDimension();
+type WalletInfoCardProps = {
+  test_name: string;
+};
 
-  //Convert lovelace to ada and format the number
-  function formattedAda(lovelace: number) {
-    let ada = lovelaceToAda(lovelace);
-    return shortNumber(ada, 2);
+export const WalletInfoCard = memo(({ test_name }: WalletInfoCardProps) => {
+  const { address, isEnabled, disconnectWallet, } = useCardano();
+  const { setLoginModalOpen, isLoggedIn, logout } = useDRepContext();
+  const [showDetails, setShowDetails] = useState(false);
+
+  async function logUserOut() {
+    setShowDetails(false);
+    setTimeout(() => {
+      logout();
+      disconnectWallet();
+    }, 400);
   }
 
   return (
-    address &&
-    walletState.balance && (
+    <Grow
+      in={isEnabled}
+      style={{ transformOrigin: 'top center' }}
+      {...(!!address ? { timeout: 0 } : { timeout: 300 })}
+    >
       <Box
-        data-testid="wallet-info-card"
-        display="flex"
-        flexDirection="row"
-        alignItems="center"
-        bgcolor="black"
-        justifyContent="space-around"
-        height={32}
-        className="rounded-3xl p-0.5 text-white"
+        data-testid={`${test_name}-wallet-info-card`}
+        className={`relative rounded-3xl bg-gray-800 ${!!isLoggedIn ? 'cursor-pointer' : ''}`}
       >
         <Box
           display="flex"
           flexDirection="row"
           alignItems="center"
           justifyContent="space-between"
-          className="divide-x-2 divide-white"
+          className="p-1.5"
+          onClick={() => {
+            isLoggedIn && setShowDetails(!showDetails);
+          }}
         >
-          <Box alignItems="center" display="flex" className="px-1">
-            {!isMobile ? (
-              <Typography
-                fontWeight={300}
-                className="mr-1 text-sm tracking-wide"
-              >
-                Wallet:
-              </Typography>
-            ) : (
-              <div className="mr-1">
-                <img src="/svgs/wallet.svg" alt="wallet icon" />
-              </div>
-            )}
-            <Typography fontWeight={600} className="text-sm">
-              {formatWalletAddress(address)}
-            </Typography>
-          </Box>
-          <Box alignItems="center" display="flex" className="px-1">
-            {!isMobile && (
-              <Typography
-                fontWeight={300}
-                className="mr-1 text-sm tracking-wide"
-              >
-                Voting Power:
-              </Typography>
-            )}
-            <Typography fontWeight={600} className="text-sm">
-              ₳ {formattedAda(walletState.balance)}
-            </Typography>
-          </Box>
-        </Box>
-        {!isLoggedIn && (
-          <Button
-            size="extraSmall"
-            sx={{
-              width: 3
-            }}
-            handleClick={() => setLoginModalOpen(true)}
-          >
-            <Typography className="text-sm font-bold capitalize tracking-wide">
+          <ConnectedWalletCard />
+          {!isLoggedIn ? (
+            <Button
+              size="small"
+              className="rounded-3xl bg-blue-800 px-1 py-0 font-bold capitalize text-white hover:bg-blue-900"
+              onClick={() => setLoginModalOpen(true)}
+            >
               Login
+            </Button>
+          ) : (
+            <Typography className="rounded-3xl bg-blue-800 px-1 py-0 hover:bg-blue-900">
+              {' '}
+              {showDetails ? (
+                <img
+                  src="/svgs/chevron-up.svg"
+                  alt="Toggle to close wallet details"
+                  className="h-5 w-6"
+                />
+              ) : (
+                <img
+                  src="/svgs/chevron-down.svg"
+                  alt="Toggle to open wallet details"
+                  className="h-5 w-6"
+                />
+              )}
             </Typography>
-          </Button>
-        )}
+          )}
+        </Box>
+        <Grow
+          in={showDetails}
+          style={{ transformOrigin: 'top center' }}
+          {...(showDetails ? { timeout: 300 } : {})}
+        >
+          <Box className="absolute left-0 right-0 z-50">
+            <DelegatedTo className="mt-1 rounded-t-3xl" />
+            <Box className="flex w-full justify-end rounded-b-3xl bg-white p-1.5">
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={logUserOut}
+                className="rounded-3xl bg-gray-800 capitalize text-white hover:bg-blue-800"
+              >
+                Logout
+              </Button>
+            </Box>
+          </Box>
+        </Grow>
       </Box>
-    )
+    </Grow>
   );
-};
+});
