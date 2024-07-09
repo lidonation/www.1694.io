@@ -17,7 +17,10 @@ export const ConnectedWalletCard = memo(() => {
     >
       <Box alignItems="center" display="flex" className="px-1">
         {!isMobile ? (
-          <Typography fontWeight={300} className="mr-1 text-sm tracking-wide">
+          <Typography fontSize='0.75rem'
+                      fontWeight={300}
+                      marginRight='0.125rem'
+                      className="mr-1 text-xs tracking-wide">
             Wallet:
           </Typography>
         ) : (
@@ -28,7 +31,8 @@ export const ConnectedWalletCard = memo(() => {
         {address && (
           <Typography
             fontWeight={600}
-            className="text-sm uppercase tracking-wide text-gray-300"
+            fontSize='0.75rem'
+            className="text-xs uppercase tracking-wide text-gray-300"
           >
             {shortenAddress(address, 5)}
           </Typography>
@@ -36,14 +40,19 @@ export const ConnectedWalletCard = memo(() => {
       </Box>
       <Box alignItems="center" display="flex" className="px-1">
         {!isMobile && (
-          <Typography fontWeight={300} className="mr-1 text-sm tracking-wide">
+          <Typography
+              fontWeight={300}
+              fontSize='0.75rem'
+              marginRight='0.25rem'
+              className="mr-1 text-xs tracking-wide">
             Voting Power:
           </Typography>
         )}
         {walletState.balance && (
           <Typography
             fontWeight={600}
-            className="text-sm tracking-wide text-gray-300"
+            fontSize='0.75rem'
+            className="text-xs tracking-wide text-gray-300"
           >
             ₳ {formattedAda(walletState.balance, 2)}
           </Typography>
