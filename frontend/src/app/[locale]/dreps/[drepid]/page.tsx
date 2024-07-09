@@ -54,13 +54,13 @@ const page = () => {
                     setIsOpen(!isOpen);
                   }}
                 >
-                  <img width={'50%'} className="shrink-0" src={'/menu.svg'} />
+                  <img width={'50%'} className="shrink-0" src={'/svgs/menu.svg'} />
                 </IconButton>
               )}
             </div>
             <div className="w-[70%]">
               <DrepTabGroup setActiveTab={setCurrentTab} />
-            </div>
+            </div> 
           </div>
           {currentTab === 'profile' ? (
             <div className="flex flex-col lg:flex-row">

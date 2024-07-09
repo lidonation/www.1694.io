@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { Note } from './note.entity';
 import { Comment } from './comment.entity';
+import { BaseEntity } from 'src/global';
 
 enum ReactionTypeName {
   Like = 'like',
@@ -24,10 +25,8 @@ export enum ReactionParentEntityType {
 
 @Entity()
 @Unique(['voter', 'type', 'parentId', 'parentEntity']) // Ensures delegator can't react twice to the same parent entity
-export class Reaction {
-  //auto increment primary key decorator
-  @PrimaryGeneratedColumn()
-  id: number;
+export class Reaction extends BaseEntity {
+ 
 
   @Column({
     type: 'enum',

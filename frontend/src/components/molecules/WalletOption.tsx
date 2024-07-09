@@ -2,6 +2,7 @@ import { FC, useCallback } from 'react';
 import { Box, CircularProgress, Typography } from '@mui/material';
 import { useCardano } from '@/context/walletContext';
 import './MoleculeStyles.css';
+import { useDRepContext } from '@/context/drepContext';
 export interface WalletOption {
   icon: string;
   label: string;
@@ -12,12 +13,14 @@ export interface WalletOption {
 
 export const WalletOptionButton: FC<WalletOption> = ({ ...props }) => {
   const { enable, isEnableLoading } = useCardano();
+  const { setIsWalletListModalOpen } = useDRepContext();
 
   const { dataTestId, icon, label, name, cip95Available } = props;
 
   const enableByWalletName = useCallback(async () => {
     if (isEnableLoading) return;
-    const result = await enable(name);
+    await enable(name);
+    setIsWalletListModalOpen(false)
   }, [enable, isEnableLoading]);
 
   return (

@@ -11,15 +11,13 @@ import {
 } from 'typeorm';
 import { Note } from './note.entity';
 import { Reaction } from './reaction.entity';
+import { BaseEntity } from 'src/global';
 export enum CommentParentEntityType {
   Note = 'note',
   Comment = 'comment',
 }
 @Entity()
-export class Comment {
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class Comment extends BaseEntity {
   @Column()
   content: string;
 
@@ -42,11 +40,6 @@ export class Comment {
   @Column({  nullable: false })
   voter: string;
 
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
 
   @OneToMany(() => Reaction, (reaction) => reaction.comment, { onDelete: 'CASCADE' })
   reactions: Reaction[];

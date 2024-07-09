@@ -29,9 +29,9 @@ export function decodeToken(token: string) {
   return { decoded, isExpired };
 }
 
-export function formatWalletAddress(address: string) {
+export function shortenAddress(address: string, length: number) {
   // get five characters from the start and end of the address
-  return address.slice(0, 5) + '...' + address.slice(-5);
+  return address.slice(0, length) + '...' + address.slice(-length);
 }
 
 export function shortNumber(value: number, digits = 0) {
@@ -51,4 +51,10 @@ export function lovelaceToAda(lovelace: number) {
   // convert lovelace to ada, assuming 1 lovelace = 1000000 ada
   const divisibility = 1000000;
   return Number(lovelace) / divisibility;
+}
+
+export function formattedAda(lovelace: number | string, decimals: number) {
+  let numberLovelace = Number(lovelace)
+  let ada = lovelaceToAda(numberLovelace);
+  return shortNumber(ada, decimals);
 }

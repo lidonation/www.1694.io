@@ -79,7 +79,7 @@ const Header = () => {
             {!isEnabled ? (
               <WalletConnectButton test_name={'header'} />
             ) : (
-              <WalletInfoCard />
+              <WalletInfoCard test_name={'header'}/>
             )}
           </div>
           {!isMobile && (

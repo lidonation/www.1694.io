@@ -279,6 +279,15 @@ function CardanoProvider(props: Props) {
       console.log(err);
     }
   };
+  const setEpochParams = async () => {
+    try {
+      const protocol = await getEpochParams();
+      setItemToLocalStorage('protocolParams', protocol);
+      return protocol;
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   const enable = useCallback(
     async (walletName: string) => {
@@ -399,8 +408,7 @@ function CardanoProvider(props: Props) {
           setPubDRepKey(dRepIDs?.dRepKey || '');
           setDRepID(dRepIDs?.dRepID || '');
           setDRepIDBech32(dRepIDs?.dRepIDBech32 || '');
-          const protocol = await getEpochParams();
-          setItemToLocalStorage('protocolParams', protocol);
+          await setEpochParams();
           setItemToLocalStorage(`${WALLET_LS_KEY}_name`, walletName);
           setItemToLocalStorage(`${WALLET_LS_KEY}_api`, enabledApi);
           setIsEnabling(false);
@@ -435,12 +443,10 @@ function CardanoProvider(props: Props) {
     if (!walletApi) return;
     setIsGettingSignatures(true);
     try {
-      //get the public key of the wallet
-      const drepPubKey = dRepID;
       const payloadBuffer = Buffer.from(`Verify DRep ${dRepIDBech32}`).toString(
         'hex',
       );
-      const sign = await walletApi.signData(drepPubKey, payloadBuffer);
+      const sign = await walletApi.signData(address, payloadBuffer);
       const { signature, key } = sign;
       setLoginCredentials({ signature, vkey: key });
       setIsGettingSignatures(false);
@@ -456,6 +462,10 @@ function CardanoProvider(props: Props) {
     const protocolParams = getItemFromLocalStorage(
       'protocolParams',
     ) as Protocol;
+    if (!protocolParams) {
+      await getEpochParams();
+      throw new Error('No protocol params found');
+    }
     const txBuilder = TransactionBuilder.new(
       TransactionBuilderConfigBuilder.new()
         .fee_algo(
@@ -514,6 +524,7 @@ function CardanoProvider(props: Props) {
       // calculate the min fee required and send any change to an address
       txBuilder.add_change_if_needed(shelleyChangeAddress);
       //expiry of 1 minute
+      console.log('adding ttl')
       txBuilder.set_ttl_bignum(BigNum.from_str((1.5 * 60).toString()));
       // once the transaction is ready, we build it to get the tx body without witnesses
       const txBody = txBuilder.build();
