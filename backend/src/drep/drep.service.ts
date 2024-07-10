@@ -131,7 +131,6 @@ export class DrepService {
     const drepVotingHistory = await this.getDrepTimeline(
       drep[0].drep_id,
       drepVoterId,
-      1719705600000,
     );
     const drepDelegators =
       await this.getDrepDelegatorsWithVotingPower(drepVoterId);
@@ -279,7 +278,6 @@ export class DrepService {
     beforeDate?: number,
     tillDate?: number,
   ) {
-    console.log(new Date(beforeDate));
     //get current time in timestamp form then backtrack till the time the drep is registered
     //limit activity to three epochs or five days=>432000seconds
     //get epochs
@@ -330,7 +328,6 @@ export class DrepService {
   }
 
   async getEpochs(beforeDate: Date, tillDate: Date) {
-    console.log(beforeDate, tillDate);
     const epochs = (await this.cexplorerService.manager.query(
       `SELECT 
       start_time, end_time, no

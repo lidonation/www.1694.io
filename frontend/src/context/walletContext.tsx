@@ -524,7 +524,6 @@ function CardanoProvider(props: Props) {
       // calculate the min fee required and send any change to an address
       txBuilder.add_change_if_needed(shelleyChangeAddress);
       //expiry of 1 minute
-      console.log('adding ttl')
       txBuilder.set_ttl_bignum(BigNum.from_str((1.5 * 60).toString()));
       // once the transaction is ready, we build it to get the tx body without witnesses
       const txBody = txBuilder.build();
