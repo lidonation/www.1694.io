@@ -17,35 +17,6 @@ export default function DrepTimelineWaterfall({
 }) {
   const { isMobile, screenWidth } = useScreenDimension();
 
-  // Function to group and sort activity items by epoch
-  const groupAndSortByEpoch = (activity) => {
-    const grouped = activity.reduce((acc, item) => {
-      const epoch = item.voting_epoch;
-      if (!acc[epoch]) {
-        acc[epoch] = [];
-      }
-      acc[epoch].push(item);
-      return acc;
-    }, {});
-
-    // Sort epochs from latest to earliest
-    const sortedEpochs = Object.keys(grouped).sort(
-      (a, b) => Number(b) - Number(a),
-    );
-
-    // Sort activities within each epoch from latest to earliest
-    sortedEpochs.forEach((epoch) => {
-      grouped[epoch].sort(
-        (a, b) =>
-          new Date(b.time_voted).getTime() - new Date(a.time_voted).getTime(),
-      );
-    });
-
-    return { grouped, sortedEpochs };
-  };
-
-  const { grouped, sortedEpochs } = groupAndSortByEpoch(activity);
-
   return (
     <Timeline
       sx={{
@@ -60,33 +31,25 @@ export default function DrepTimelineWaterfall({
     >
       {activity &&
         activity.length > 0 &&
-        sortedEpochs.map((epoch, epochIndex) => (
-          <React.Fragment key={epochIndex}>
-            {/* Render activity items for this epoch */}
-            {grouped[epoch].map((item, index) => (
-              <TimelineItem key={index}>
-                <TimelineSeparator>
-                  <TimelineDot />
-                  <TimelineConnector />
-                </TimelineSeparator>
-                <TimelineContent>
-                  <DrepTimelineCard item={item} />
-                </TimelineContent>
-              </TimelineItem>
-            ))}
-            {/* Render epoch label */}
-            <TimelineItem>
-              <TimelineSeparator>
-                <TimelineDot color="primary" />
-                <TimelineConnector />
-              </TimelineSeparator>
-              <TimelineContent>
-                <h4 className="font-bold ">Epoch {epoch}</h4>
-              </TimelineContent>
-            </TimelineItem>
-          </React.Fragment>
+        activity.map((item, epochIndex) => (
+          <TimelineItem key={epochIndex}>
+            <TimelineSeparator>
+              {item?.no ? (
+                <h4 className="text-nowrap font-bold py-2">Epoch {item?.no}</h4>
+              ) : (
+                <TimelineDot />
+              )}
+              <TimelineConnector />
+            </TimelineSeparator>
+            <TimelineContent>
+              {item.type === 'note' && <p>Note here</p>}
+              {item.type === 'voting_activity' && (
+                <DrepTimelineCard item={item} />
+              )}
+            </TimelineContent>
+          </TimelineItem>
         ))}
-        {/* Default display  */}
+      {/* Default display */}
       {epochOfRegistration !== null && (
         <TimelineItem>
           <TimelineSeparator>

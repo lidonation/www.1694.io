@@ -5,6 +5,7 @@ import HoverChip from '../atoms/HoverChip';
 import { useRouter } from 'next/navigation';
 import { convertString } from '@/lib';
 import { useScreenDimension } from '@/hooks';
+import { Skeleton } from '@mui/material';
 
 const DRepsTable = ({ searchQuery }) => {
   const router = useRouter();
@@ -50,7 +51,11 @@ const DRepsTable = ({ searchQuery }) => {
           {isDRepsLoading ? (
             <tr>
               <td colSpan={10} className="text-center">
-                Loading.....
+              {
+                Array.from({ length: 10 }).map((_, index) => (
+                  <Skeleton height={40} key={index}/>
+                ))
+              }
               </td>
             </tr>
           ) : filteredDreps && filteredDreps.length > 0 ? (
@@ -64,7 +69,7 @@ const DRepsTable = ({ searchQuery }) => {
                   {convertString(drep.view, isMobile)}
                 </td>
                 <td className="px-4 py-2">{drep.epoch_no}</td>
-                <td className="px-4 py-2">{drep?.name || 'Coming soon'}</td>
+                <td className="px-4 py-2">{drep?.drep_name || 'Coming soon'}</td>
                 <td className="px-4 py-2">
                   <StatusChip status={statusChecker(drep.deposit)} />
                 </td>
