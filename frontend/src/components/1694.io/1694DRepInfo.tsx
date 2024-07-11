@@ -78,7 +78,7 @@ const CIPDRepInfo = () => {
               considered active. Specifically, if a DRep does not submit any
               votes for drepActivity-many epochs, the DRep is considered
               inactive, where drepActivity is a new protocol parameter. Inactive DReps do not count towards the active voting stake anymore, and can become active again for
-              <strong className='font-bold'>drepActivity </strong>-many epochs by voting on any governance actions or submitting a DRep update certificate. The reason for marking DReps as inactive
+              <strong className='font-bold'> drepActivity </strong>-many epochs by voting on any governance actions or submitting a DRep update certificate. The reason for marking DReps as inactive
               is so that DReps who stop participating but still have stake
               delegated to them do not eventually leave the system in a state
               where no governance action can pass. Registered DReps are
