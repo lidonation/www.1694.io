@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import SearchBar from '../atoms/SearchBar';
-import DrepTimelineCard from '../atoms/DrepTimelineCard';
+import DrepTimelineCard from '../atoms/DrepVoteTimelineCard';
 import DrepTimelineWaterfall from './DrepTimelineWaterfall';
 import DrepTabGroup from '../atoms/DrepTabGroup';
 const ProfileClaimedChip = ({ claimedAddress }) => {

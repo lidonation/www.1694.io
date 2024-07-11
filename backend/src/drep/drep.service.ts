@@ -173,6 +173,8 @@ export class DrepService {
     const drepVotingHistory = await this.getDrepTimeline(
       drep[0]?.drep_id,
       drepVoterId,
+      1720569600000,
+      1688947200000
     );
     const drepDelegators =
       await this.getDrepDelegatorsWithVotingPower(drepVoterId);

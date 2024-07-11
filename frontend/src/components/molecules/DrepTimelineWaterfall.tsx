@@ -5,13 +5,15 @@ import TimelineSeparator from '@mui/lab/TimelineSeparator';
 import TimelineConnector from '@mui/lab/TimelineConnector';
 import TimelineContent from '@mui/lab/TimelineContent';
 import TimelineDot from '@mui/lab/TimelineDot';
-import DrepTimelineCard from '../atoms/DrepTimelineCard';
 import { useScreenDimension } from '@/hooks';
 import SingleNote from '../dreps/notes/SingleNote';
 import { useCardano } from '@/context/walletContext';
 import { useDRepContext } from '@/context/drepContext';
 import { Box, Typography } from '@mui/material';
 import EpochTimelineCard from '../atoms/EpochTimelineCard';
+import MetadataUpdateTimelineCard from '../atoms/MetadataUpdateTimelineCard';
+import DrepVoteTimelineCard from '../atoms/DrepVoteTimelineCard';
+import DrepGovActionSubmitCard from '../atoms/DrepGovActionSubmitCard';
 
 export default function DrepTimelineWaterfall({
   activity = [],
@@ -79,13 +81,24 @@ export default function DrepTimelineWaterfall({
                   />
                 </TimelineSeparator>
                 <TimelineContent>
-                  <DrepTimelineCard item={item} />
+                  <DrepVoteTimelineCard item={item} />
                 </TimelineContent>
               </TimelineItem>
             )}
           </>
         ))}
-      {/* Default display */}
+      <TimelineItem>
+        <TimelineSeparator>
+          <TimelineDot />
+          <TimelineConnector
+            className="h-10 border-2 border-dotted border-gray-300"
+            sx={{ backgroundColor: 'white' }}
+          />
+        </TimelineSeparator>
+        <TimelineContent>
+          <DrepGovActionSubmitCard actionType='hard-fork intitiation' />
+        </TimelineContent>
+      </TimelineItem>
       {epochOfRegistration !== null && (
         <div className="flex w-full flex-col items-center space-y-2">
           <TimelineSeparator>
