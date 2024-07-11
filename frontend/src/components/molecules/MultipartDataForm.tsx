@@ -172,7 +172,7 @@ const MultipartDataForm = ({
   return (
     <div
       ref={formRef}
-      className={`${isMobile || screenWidth < 1024 ? 'fixed left-1/2 top-1/2 translate-x-[-50%] translate-y-[-50%]' : 'absolute top-9'} z-50 flex min-h-[8.75rem] min-w-96 flex-col rounded-lg bg-white p-5 shadow-lg`}
+      className={`flex min-h-[8.75rem] min-w-96 flex-col rounded-lg bg-white p-5 shadow-lg`}
     >
       {activeForm === 'image' ? (
         <>
@@ -310,7 +310,7 @@ const MultipartDataForm = ({
                     arrow
                     placement="top"
                   >
-                    <p className='text-blue-400'>{link.title}</p>
+                    <p className="text-blue-400">{link.title}</p>
                   </HtmlTooltip>
                 </div>
               ))}

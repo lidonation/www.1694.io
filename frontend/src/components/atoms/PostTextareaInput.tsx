@@ -31,15 +31,16 @@ const EditorArticle = ({
   isEnabled,
   description,
   onChange,
-  label
+  label,
 }: {
   editor: Editor;
   isEnabled: boolean;
   description: string;
   onChange: any;
-  label: string
+  label: string;
 }) => {
-  description && editor &&
+  description &&
+    editor &&
     editor.commands.setContent(description, false, {
       preserveWhitespace: 'full',
     });
@@ -49,12 +50,12 @@ const EditorArticle = ({
     });
   return (
     editor && (
-      <div className="flex flex-col items-start justify-center">
+      <div className="relative flex flex-col items-start justify-center">
         <label>{label}</label>
         <TextEditOptions editor={editor} active={isEnabled} />
         <div
           id="post-textarea"
-          className="flex min-h-40 w-full xl:w-[80%] items-center justify-center rounded-bl-xl rounded-br-xl border-b border-l border-r border-zinc-100"
+          className="flex min-h-40 w-full items-center justify-center rounded-bl-xl rounded-br-xl border-b border-l border-r border-zinc-100"
         >
           <EditorContent
             editor={editor}
@@ -68,7 +69,12 @@ const EditorArticle = ({
   );
 };
 
-const PostTextareaInput = ({ control, errors, name='postText' , label="Write your note" }) => {
+const PostTextareaInput = ({
+  control,
+  errors,
+  name = 'postText',
+  label = 'Write your note',
+}) => {
   const { isEnabled } = useCardano();
   const [editor, setEditor] = useState(null);
 

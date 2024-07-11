@@ -7,6 +7,11 @@ import TimelineContent from '@mui/lab/TimelineContent';
 import TimelineDot from '@mui/lab/TimelineDot';
 import DrepTimelineCard from '../atoms/DrepTimelineCard';
 import { useScreenDimension } from '@/hooks';
+import SingleNote from '../dreps/notes/SingleNote';
+import { useCardano } from '@/context/walletContext';
+import { useDRepContext } from '@/context/drepContext';
+import { Box, Typography } from '@mui/material';
+import EpochTimelineCard from '../atoms/EpochTimelineCard';
 
 export default function DrepTimelineWaterfall({
   activity = [],
@@ -16,6 +21,8 @@ export default function DrepTimelineWaterfall({
   epochOfRegistration: number;
 }) {
   const { isMobile, screenWidth } = useScreenDimension();
+  const { stakeKeyBech32, isEnabled } = useCardano();
+  const { isLoggedIn } = useDRepContext();
 
   return (
     <Timeline
@@ -32,34 +39,67 @@ export default function DrepTimelineWaterfall({
       {activity &&
         activity.length > 0 &&
         activity.map((item, epochIndex) => (
-          <TimelineItem key={epochIndex}>
-            <TimelineSeparator>
-              {item?.no ? (
-                <h4 className="text-nowrap font-bold py-2">Epoch {item?.no}</h4>
-              ) : (
-                <TimelineDot />
-              )}
-              <TimelineConnector />
-            </TimelineSeparator>
-            <TimelineContent>
-              {item.type === 'note' && <p>Note here</p>}
-              {item.type === 'voting_activity' && (
-                <DrepTimelineCard item={item} />
-              )}
-            </TimelineContent>
-          </TimelineItem>
+          <>
+            {item.type === 'note' && (
+              <div className="flex w-full flex-col items-center space-y-2">
+                <TimelineSeparator>
+                  <TimelineDot />
+                  <TimelineConnector
+                    className="h-10 border-2 border-dotted border-gray-300"
+                    sx={{ backgroundColor: 'white' }}
+                  />
+                </TimelineSeparator>
+                <SingleNote
+                  note={item}
+                  currentVoter={stakeKeyBech32}
+                  isEnabled={isEnabled}
+                  isLoggedIn={isLoggedIn}
+                />
+              </div>
+            )}
+            {item.type === 'epoch' && (
+              <div className="flex w-full flex-col items-center space-y-2">
+                <TimelineSeparator>
+                  <TimelineDot />
+                  <TimelineConnector
+                    className="h-10 border-2 border-dotted border-gray-300"
+                    sx={{ backgroundColor: 'white' }}
+                  />
+                </TimelineSeparator>
+                <EpochTimelineCard epoch={item} />
+              </div>
+            )}
+            {item.type !== 'note' && item.type !== 'epoch' && (
+              <TimelineItem key={epochIndex}>
+                <TimelineSeparator>
+                  <TimelineDot />
+                  <TimelineConnector
+                    className="h-10 border-2 border-dotted border-gray-300"
+                    sx={{ backgroundColor: 'white' }}
+                  />
+                </TimelineSeparator>
+                <TimelineContent>
+                  <DrepTimelineCard item={item} />
+                </TimelineContent>
+              </TimelineItem>
+            )}
+          </>
         ))}
       {/* Default display */}
       {epochOfRegistration !== null && (
-        <TimelineItem>
+        <div className="flex w-full flex-col items-center space-y-2">
           <TimelineSeparator>
-            <div className="flex flex-row items-center justify-center gap-2 text-nowrap text-gray-500">
-              <img src="/svgs/loader.svg" alt="" />
-              <p>Registered, Epoch {epochOfRegistration}</p>
-            </div>
+            <TimelineDot />
+            <TimelineConnector
+              className="h-10 border-2 border-dotted border-gray-300"
+              sx={{ backgroundColor: 'white' }}
+            />
           </TimelineSeparator>
-          <TimelineContent></TimelineContent>
-        </TimelineItem>
+          <div className="flex flex-row items-center justify-center gap-2 text-nowrap text-gray-500">
+            <img src="/svgs/loader.svg" alt="" />
+            <p>Registered, Epoch {epochOfRegistration}</p>
+          </div>
+        </div>
       )}
     </Timeline>
   );

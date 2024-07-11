@@ -2,10 +2,11 @@ import { useCardano } from '@/context/walletContext';
 import { useGetAdaHolderCurrentDelegationQuery } from '@/hooks/useGetAdaHolderCurrentDelegationQuery';
 import { useGetSingleDRepViaVoterIdQuery } from '@/hooks/useGetSingleDRepViaVoterIdQuery';
 import { formattedAda, shortenAddress } from '@/lib';
-import { Box, Button, Typography } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { memo } from 'react';
 import ViewDRepTableBtn from './ViewDRepTableButton';
 import { useRouter } from 'next/navigation';
+import Button from '../atoms/Button';
 
 type DelegatedToProps = {
   className?: string;
@@ -28,7 +29,11 @@ export const DelegatedTo = memo(({ className }: DelegatedToProps) => {
       className={`flex flex-col space-y-2 bg-blue-800 px-4 py-2 text-white md:px-10 ${className}`}
     >
       <Box className="flex w-full justify-start">
-        <Typography className="w-auto rounded-3xl bg-gray-800 px-2 py-1 text-sm">
+        <Typography
+          fontSize="0.85rem"
+          fontWeight={600}
+          className="w-auto rounded-3xl bg-gray-800 px-2 py-1"
+        >
           {!!currentDelegation?.drep_view ? 'Delegating' : 'Not Delegating'}
         </Typography>
       </Box>
@@ -36,20 +41,26 @@ export const DelegatedTo = memo(({ className }: DelegatedToProps) => {
         {currentDelegation && DRep && (
           <>
             <Box>
-              <Typography fontWeight={600}>Delegated to:</Typography>
+              <Typography fontSize="0.85rem" fontWeight={600}>
+                Delegated to:
+              </Typography>
               <Typography
+                fontSize="0.75rem"
                 fontWeight={600}
-                className="overflow-hidden text-sm text-gray-300"
+                className="overflow-hidden text-gray-300"
               >
                 {shortenAddress(currentDelegation?.drep_view, 12)}
               </Typography>
             </Box>
             <Box>
-              <Typography fontWeight={600}>Voting Power</Typography>
+              <Typography fontSize="0.85rem" fontWeight={600}>
+                Voting Power
+              </Typography>
 
               <Typography
+                fontSize="0.75rem"
                 fontWeight={600}
-                className="overflow-hidden text-sm text-gray-300"
+                className="overflow-hidden text-gray-300"
               >
                 ₳ {formattedAda(DRep?.cexplorerDetails?.amount, 2)}
               </Typography>
@@ -59,12 +70,15 @@ export const DelegatedTo = memo(({ className }: DelegatedToProps) => {
         {!currentDelegation && (
           <Box className="space-y-2">
             <Box className="space-y-1">
-              <Typography fontWeight={600}>No DRep data available.</Typography>
-              <Typography className="w-full text-wrap text-sm font-bold tracking-wide text-gray-300">
-                You have not yet delegated to a DRep.
+              <Typography fontWeight={600} fontSize="0.85rem">
+                No DRep data available.
               </Typography>
-              <Typography className="w-full text-wrap text-sm font-bold tracking-wide text-gray-300">
-                Consider selecting one on the GovTool website.
+              <Typography
+                fontSize="0.75rem"
+                fontWeight={600}
+                className="w-full text-wrap tracking-wide text-gray-300"
+              >
+                You have not yet delegated to a DRep, consider selecting one on the GovTool website.
               </Typography>
             </Box>
             <ViewDRepTableBtn handleClick={navToDRepList}></ViewDRepTableBtn>
@@ -73,9 +87,13 @@ export const DelegatedTo = memo(({ className }: DelegatedToProps) => {
       </Box>
       {currentDelegation && (
         <Button
-          size="small"
           variant="outlined"
-          className="rounded-3xl capitalize text-white hover:bg-blue-900"
+          size="small"
+          sx={{
+            color: 'white',
+            borderColor: 'white',
+            // fontWeight: 300
+          }}
         >
           View Profile
         </Button>

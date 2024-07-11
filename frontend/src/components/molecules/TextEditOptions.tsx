@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import MultipartDataForm from './MultipartDataForm';
 import { set } from 'cypress/types/lodash';
 import { useScreenDimension } from '@/hooks';
+import { Box } from '@mui/material';
 type TextEditOptionsProps = {
   editor: Editor;
   active: boolean;
@@ -16,7 +17,7 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({
   const [activeForm, setActiveForm] = useState(null);
   const [imagePayload, setImagePayload] = useState(null);
   const [linkPayload, setLinkPayload] = useState(null);
-  const {screenWidth}=useScreenDimension()
+  const { screenWidth } = useScreenDimension();
   const resetState = () => {
     setShowOverlay(false);
     setActiveForm(null);
@@ -86,7 +87,7 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({
   return (
     <div
       id="toolbar-container"
-      className={`${(showOverlay && screenWidth > 1024) ? "overflow-x-visible" : " overflow-x-scroll"} flex h-9 w-full lg:w-[80%] items-center justify-start gap-3 bg-slate-50 px-2`}
+      className={`flex h-9 w-full items-center justify-start gap-3 overflow-x-auto bg-slate-50 px-2`}
     >
       <div
         className={`${active ? 'cursor-pointer' : 'pointer-events-none'} shrink-0 ${
@@ -183,9 +184,9 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({
       >
         <img src="/svgs/notesvgs/table.svg" alt="table" />
       </div>
-      <div className={`relative flex h-full flex-col`}>
+      <div className={`flex h-full flex-col`}>
         <div
-          className={`flex h-full flex-row items-center justify-center gap-5 text-nowrap rounded-lg ${activeForm === 'image' ? 'bg-white' : 'bg-violet-50'} px-3 text-zinc-800 ${active ? 'cursor-pointer' : 'pointer-events-none'} shrink-0 image-add-button`}
+          className={`flex h-full flex-row items-center justify-center gap-5 text-nowrap rounded-lg ${activeForm === 'image' ? 'bg-white' : 'bg-violet-50'} px-3 text-zinc-800 ${active ? 'cursor-pointer' : 'pointer-events-none'} image-add-button shrink-0`}
           onClick={() => handleFormatText('image')}
         >
           <img
@@ -196,16 +197,18 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({
           <p>Add Image</p>
         </div>
         {showOverlay && activeForm === 'image' && (
-          <MultipartDataForm
-            activeForm={'image'}
-            nullify={resetState}
-            setImagePayload={setImagePayload}
-          />
+          <Box className="absolute top-9 right-0 z-50">
+            <MultipartDataForm
+              activeForm={'image'}
+              nullify={resetState}
+              setImagePayload={setImagePayload}
+            />
+          </Box>
         )}
       </div>
-      <div className={`relative flex h-full flex-col`}>
+      <div className={`flex h-full flex-col`}>
         <div
-          className={`flex h-full flex-row items-center justify-center gap-5 text-nowrap rounded-lg ${activeForm === 'link' ? 'bg-white' : 'bg-violet-50'} px-3 text-zinc-800 ${active ? 'cursor-pointer' : 'pointer-events-none'} shrink-0 link-add-button`}
+          className={`flex h-full flex-row items-center justify-center gap-5 text-nowrap rounded-lg ${activeForm === 'link' ? 'bg-white' : 'bg-violet-50'} px-3 text-zinc-800 ${active ? 'cursor-pointer' : 'pointer-events-none'} link-add-button shrink-0`}
           onClick={() => handleFormatText('link')}
         >
           <img
@@ -216,11 +219,13 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({
           <p>Add Link</p>
         </div>
         {showOverlay && activeForm === 'link' && (
-          <MultipartDataForm
-            activeForm={'link'}
-            nullify={resetState}
-            setLinkPayload={setLinkPayload}
-          />
+          <Box className="absolute top-9 right-0 z-50">
+            <MultipartDataForm
+              activeForm={'link'}
+              nullify={resetState}
+              setLinkPayload={setLinkPayload}
+            />
+          </Box>
         )}
       </div>
     </div>
