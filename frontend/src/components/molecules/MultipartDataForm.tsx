@@ -2,6 +2,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import Button from '../atoms/Button';
 import { useScreenDimension } from '@/hooks';
 import { HtmlTooltip } from '../atoms/HoverChip';
+import { urls } from '@/constants';
+import axiosInstance from '@/services/axiosInstance';
+import { CircularProgress } from '@mui/material';
 interface MultipartDataFormProps {
   activeForm: string;
   nullify: () => void;
@@ -15,6 +18,7 @@ const MultipartDataForm = ({
   setLinkPayload,
 }: MultipartDataFormProps) => {
   const [files, setFiles] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
   const [preview, setPreview] = useState(null);
   const [fileSize, setFileSize] = useState('');
   const [links, setLinks] = useState(null);
@@ -121,18 +125,31 @@ const MultipartDataForm = ({
       };
     });
   };
-  const sendFile = async () => {
-    const base64strArray = await Promise.all(
-      Array.from(files as FileList).map(async (file) => {
-        const base64str = (await toBase64(file)) as string;
-        const mimeType = file.type;
-        return { src: base64str, type: mimeType };
-      }),
-    );
-    setFiles(null);
-    setPreview(null);
-    setImagePayload(base64strArray);
-    nullify();
+  const uploadFilesAndSendIds = async () => {
+    try {
+      setIsUploading(true);
+      const insertedFiles = await Promise.all(
+        Array.from(files as FileList).map(async (file) => {
+          const formData = new FormData();
+          formData.append('attachment', file);
+          formData.append('parentEntity', 'note');
+          formData.append('parentId', null);
+          const mimeType = file.type;
+          const res = await axiosInstance.post(
+            `${urls.baseServerUrl}/api/attachments/add`,
+            formData,
+          );
+          return { name: res.data.name, type: mimeType };
+        }),
+      );
+      setIsUploading(false);
+      setFiles(null);
+      setPreview(null);
+      setImagePayload(insertedFiles);
+      nullify();
+    } catch (error) {
+      console.log(error);
+    }
   };
   const sendLink = () => {
     if (!links || links.length === 0) {
@@ -172,7 +189,7 @@ const MultipartDataForm = ({
   return (
     <div
       ref={formRef}
-      className={`flex min-h-[8.75rem] min-w-96 flex-col rounded-lg bg-white p-5 shadow-lg`}
+      className={`flex min-h-[8.75rem] w-full flex-col rounded-lg bg-white p-5 shadow-lg text-nowrap`}
     >
       {activeForm === 'image' ? (
         <>
@@ -235,8 +252,12 @@ const MultipartDataForm = ({
           {fileSize && <p>File Size: {fileSize}</p>}
           {files && (
             <div className="mt-2 flex flex-col gap-2">
-              <Button handleClick={sendFile}>
-                <p>Add File</p>
+              <Button handleClick={uploadFilesAndSendIds}>
+                {isUploading ? (
+                  <CircularProgress size={20} color="inherit" />
+                ) : (
+                  <p>Add File</p>
+                )}
               </Button>
               <Button
                 handleClick={() => {

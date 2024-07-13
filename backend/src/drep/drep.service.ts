@@ -410,28 +410,7 @@ export class DrepService {
 
     // Use Promise.all to ensure all asynchronous operations complete
     allNotes = await Promise.all(
-      allNotes.map(async (note) => {
-        // Extract image IDs from note_content
-        const imgTagMatches =
-          note.note_note_content.match(/<img id="(\d+)" \/>/g);
-        if (imgTagMatches) {
-          for (const imgTagMatch of imgTagMatches) {
-            const idMatch = imgTagMatch.match(/id="(\d+)"/);
-            if (idMatch && idMatch[1]) {
-              const attachmentId = Number(idMatch[1]);
-              const attachment =
-                await this.attachmentService.getSingleAttachment(attachmentId);
-              if (attachment) {
-                const base64String = `data:image/${attachment.attachmentType};base64,${attachment.url}`;
-                note.note_note_content = note.note_note_content.replace(
-                  imgTagMatch,
-                  `<img id="${idMatch[1]}" src="${base64String}" />`,
-                );
-              }
-            }
-          }
-        }
-
+      allNotes.map(async (note) => {      
         // Get reactions and comments
         const reactions = await this.reactionsService.getReactions(
           note.note_id,
@@ -473,13 +452,14 @@ export class DrepService {
     if (profileUrl) {
       const optimizedProfileImageUrl =
         await this.attachmentService.parseImageSize(
-          profileUrl.buffer,
+          profileUrl,
           profileUrl.mimetype,
         );
       await this.attachmentService.insertAttachment(
         optimizedProfileImageUrl,
         profileUrl.mimetype,
         insertedDrep.identifiers[0].id,
+        'drep',
       );
     }
     const signatureDto = {
@@ -605,7 +585,7 @@ export class DrepService {
     if (profileUrl) {
       const optimizedProfileImageBuffer =
         await this.attachmentService.parseImageSize(
-          profileUrl.buffer,
+          profileUrl,
           profileUrl.mimetype,
         );
       await this.attachmentService.updateAttachment(
@@ -613,6 +593,7 @@ export class DrepService {
         foundDrep[0].attachment_id,
         profileUrl.mimetype,
         drepId,
+        'drep',
       );
     }
     if (drep.signature) {

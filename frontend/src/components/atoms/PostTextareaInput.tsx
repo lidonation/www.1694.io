@@ -117,9 +117,7 @@ const PostTextareaInput = ({
         Heading,
       ],
       editable: isEnabled,
-      parseOptions: {
-        preserveWhitespace: 'full',
-      },
+      
     });
     setEditor(newEditor);
   }, [isEnabled]);

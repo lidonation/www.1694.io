@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import Jimp from 'jimp';
 import {
+  Attachment,
   AttachmentParentEntityType,
   AttachmentTypeName,
 } from 'src/entities/attachment.entity';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
+import { Multer } from 'multer';
 
 @Injectable()
 export class AttachmentService {
@@ -54,9 +56,9 @@ export class AttachmentService {
         return Jimp.MIME_PNG;
     }
   }
-  async parseImageSize(buffer: Buffer, mimeType: string) {
+  async parseImageSize(file: Express.Multer.File, mimeType: string) {
     try {
-      const optimizedImageBuffer = await Jimp.read(buffer)
+      const optimizedImageBuffer = await Jimp.read(file.buffer)
         .then((image) => {
           return image
             .resize(480, 480)
@@ -66,27 +68,60 @@ export class AttachmentService {
         .then((buffer) => {
           return buffer;
         });
-      return optimizedImageBuffer;
+      return { ...file, buffer: optimizedImageBuffer };
     } catch (error) {
       console.log(error);
     }
   }
-  async insertAttachment(attachment: any, mimeType: string, parentId: number) {
+  parseEntityType(entityType: string) {
+    switch (entityType) {
+      case 'drep':
+        return AttachmentParentEntityType.DRep;
+      case 'note':
+        return AttachmentParentEntityType.Note;
+      case 'comment':
+        return AttachmentParentEntityType.Comment;
+      default:
+        return AttachmentParentEntityType.DRep;
+    }
+  }
+  async insertAttachment(
+    attachment: Express.Multer.File,
+    mimeType: string,
+    parentId: number,
+    parentEntity: string,
+  ) {
     try {
       const newAttachment = {
-        url: attachment,
-        parententity: AttachmentParentEntityType.DRep,
-        parentid: parentId,
+        url: attachment.buffer,
+        name: attachment.originalname,
+        parententity: this.parseEntityType(parentEntity),
+        parentid: !String(parentId).includes('null') ? parentId : null,
         attachmentType: await this.parseMimeType(mimeType),
       };
-      const res = await this.voltaireService
-        .getRepository('Attachment')
-        .insert(newAttachment);
-      return res.identifiers[0].id;
+  
+      const attachmentRepo = await this.voltaireService.getRepository('Attachment');
+      const createdAttachment = attachmentRepo.create(newAttachment);
+      const res = await attachmentRepo.save(createdAttachment) as Attachment;
+      return res;
+  
     } catch (error) {
-      console.log(error);
+      //duplicate key value violates unique constraint
+      if (error.code === '23505') {
+        try {
+          const existingAttachment =await this.voltaireService.getRepository('Attachment').findOneBy({ name: attachment.originalname });
+          return existingAttachment;
+        } catch (findError) {
+          console.log('Error finding existing attachment:', findError);
+          throw findError;
+        }
+      } else {
+        console.log('Error inserting attachment:', error);
+        throw error;
+      }
     }
   }
+  
   async getSingleAttachment(attachmentId: number) {
     try {
       const attachment = await this.voltaireService
@@ -97,16 +132,27 @@ export class AttachmentService {
       console.log(error);
     }
   }
+  async getSingleAttachmentByName(attachmentName: string) {
+    try {
+      const attachment = await this.voltaireService
+        .getRepository('Attachment')
+        .findOneBy({ name: attachmentName });
+      return attachment;
+    } catch (error) {
+      console.log(error);
+    }
+  }
   async updateAttachment(
     attachment: any,
     attachmentId: number,
     mimeType: string,
     parentId: number,
+    parentEntity: string,
   ) {
     try {
       const newAttachment = {
         url: attachment,
-        parententity: AttachmentParentEntityType.DRep,
+        parententity: this.parseEntityType(parentEntity),
         parentid: parentId,
         attachmentType: await this.parseMimeType(mimeType),
       };
@@ -114,7 +160,13 @@ export class AttachmentService {
         await this.voltaireService
           .getRepository('Attachment')
           .update(attachmentId, newAttachment);
-      } else await this.insertAttachment(attachment, mimeType, parentId);
+      } else
+        await this.insertAttachment(
+          attachment,
+          mimeType,
+          parentId,
+          parentEntity,
+        );
       return true;
     } catch (error) {
       console.log(error);
