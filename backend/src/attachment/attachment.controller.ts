@@ -34,14 +34,14 @@ export class AttachmentController {
     }
     res.setHeader('Content-Type', attachment.attachmentType);
     //set inline for images, otherwise download eg pdf
-    if (attachment.attachmentType.includes('pdf')) {
-      res.setHeader(
-        'Content-Disposition',
-        `attachment; filename=${attachment.name}`,
-      );
-    } else {
-      res.setHeader('Content-Disposition', `inline; filename=${attachment.name}`);
-    }
+    // if (attachment.attachmentType.includes('pdf')) {
+    //   res.setHeader(
+    //     'Content-Disposition',
+    //     `attachment; filename=${attachment.name}`,
+    //   );
+    // } else {
+    // }
+    res.setHeader('Content-Disposition', `inline; filename=${attachment.name}`);
     return res.send(attachment.url);
   }
 
