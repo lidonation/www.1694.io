@@ -7,7 +7,6 @@ import {
 } from 'src/entities/attachment.entity';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
-import { Multer } from 'multer';
 
 @Injectable()
 export class AttachmentService {

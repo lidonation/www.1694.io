@@ -13,19 +13,17 @@ import {
   Transaction,
   TransactionUnspentOutput,
   TransactionUnspentOutputs,
-  StakeCredential,
   Value,
+  Credential,
   TransactionBuilder,
   TransactionBuilderConfigBuilder,
   LinearFee,
   BigNum,
   TransactionOutput,
   TransactionWitnessSet,
-  TransactionWitnessSetJSON,
-} from '@emurgo/cardano-serialization-lib-asmjs';
+} from "@emurgo/cardano-serialization-lib-asmjs";
 import { Buffer } from 'buffer';
 import * as Sentry from '@sentry/react';
-import { useDRepContext } from './drepContext';
 
 import {
   getPubDRepID,
@@ -187,7 +185,6 @@ function CardanoProvider(props: Props) {
   const getBalance = async (enabledApi: CardanoApiWallet) => {
     try {
       const balanceCBORHex = await enabledApi.getBalance();
-
       const balance = Number(
         Value.from_bytes(Buffer.from(balanceCBORHex, 'hex')).coin().to_str(),
       );
@@ -352,7 +349,7 @@ function CardanoProvider(props: Props) {
             stakeKeysList = registeredStakeKeysList.map((stakeKey) => {
               const stakeKeyHash = PublicKey.from_hex(stakeKey).hash();
               const stakeCredential =
-                StakeCredential.from_keyhash(stakeKeyHash);
+                Credential.from_keyhash(stakeKeyHash);
               if (network === 1)
                 return RewardAddress.new(1, stakeCredential)
                   .to_address()
@@ -367,7 +364,7 @@ function CardanoProvider(props: Props) {
             stakeKeysList = unregisteredStakeKeysList.map((stakeKey) => {
               const stakeKeyHash = PublicKey.from_hex(stakeKey).hash();
               const stakeCredential =
-                StakeCredential.from_keyhash(stakeKeyHash);
+                Credential.from_keyhash(stakeKeyHash);
               if (network === 1)
                 return RewardAddress.new(1, stakeCredential)
                   .to_address()
@@ -476,8 +473,8 @@ function CardanoProvider(props: Props) {
         )
         .pool_deposit(BigNum.from_str(protocolParams.pool_deposit))
         .key_deposit(BigNum.from_str(protocolParams.key_deposit))
-        .coins_per_utxo_word(
-          BigNum.from_str(protocolParams.coins_per_utxo_size.toString()),
+        .coins_per_utxo_byte(
+          BigNum.from_str(String(protocolParams.coins_per_utxo_size)),
         )
         .max_value_size(protocolParams.max_val_size)
         .max_tx_size(protocolParams.max_tx_size)

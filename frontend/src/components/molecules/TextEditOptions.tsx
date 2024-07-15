@@ -2,10 +2,9 @@ import { Editor } from '@tiptap/react';
 import * as ReactDOM from 'react-dom';
 import React, { useEffect, useRef, useState } from 'react';
 import MultipartDataForm from './MultipartDataForm';
-import {
-  Box,
-} from '@mui/material';
+import { Box } from '@mui/material';
 import { urls } from '@/constants';
+import ProposalActionForm from './ProposalActionForm';
 
 type DropDownActionsProps = {
   active: boolean;
@@ -55,6 +54,7 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({
   const [activeForm, setActiveForm] = useState(null);
   const [imagePayload, setImagePayload] = useState(null);
   const [linkPayload, setLinkPayload] = useState(null);
+  const [proposalHashPayload, setProposalHashPayload] = useState(null);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   const dropdownRef = useRef(null);
 
@@ -129,7 +129,21 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({
       }
       resetState();
     }
-  }, [imagePayload, linkPayload]);
+    if (proposalHashPayload) {
+      if (proposalHashPayload.length > 1) {
+        proposalHashPayload.forEach((hash) => {
+          const proposalMarkdown = `[gov_action hash='${hash}']`;
+          editor.chain().focus().insertContent(proposalMarkdown).run();
+        });
+        setProposalHashPayload(null);
+      } else {
+        const proposalMarkdown = `[gov_action hash='${proposalHashPayload[0]}']`;
+        editor.chain().focus().insertContent(proposalMarkdown).run();
+        setProposalHashPayload(null);
+      }
+      resetState();
+    }
+  }, [imagePayload, linkPayload, proposalHashPayload]);
   const handleFormatText = (format) => {
     //active maps to isEnabled
     if (!active) return;
@@ -157,8 +171,8 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({
         setActiveForm((prev) => (prev === 'link' ? null : 'link'));
         break;
       case 'proposal':
-        const proposalMarkdown = `[gov_action hash='proposalhash']`;
-        editor.chain().focus().insertContent(proposalMarkdown).run();
+        setShowOverlay((prev) => !prev);
+        setActiveForm((prev) => (prev === 'proposal' ? null : 'proposal'));
         break;
       default:
         editor.commands[
@@ -281,16 +295,24 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({
             isOpen={isOpen}
           />
         </div>
-        {showOverlay && (
-          <Box className="fixed left-1/2 top-1/2 z-50 w-fit -translate-x-1/2 -translate-y-1/2 sm:absolute sm:left-auto sm:right-0 sm:top-14 sm:translate-x-0 sm:translate-y-0">
-            <MultipartDataForm
-              activeForm={activeForm}
-              nullify={resetState}
-              setImagePayload={setImagePayload}
-              setLinkPayload={setLinkPayload}
-            />
-          </Box>
-        )}
+        {showOverlay &&
+          (activeForm && activeForm !== 'proposal' ? (
+            <Box className="fixed left-1/2 top-1/2 z-50 w-fit -translate-x-1/2 -translate-y-1/2 sm:absolute sm:left-auto sm:right-0 sm:top-14 sm:translate-x-0 sm:translate-y-0">
+              <MultipartDataForm
+                activeForm={activeForm}
+                nullify={resetState}
+                setImagePayload={setImagePayload}
+                setLinkPayload={setLinkPayload}
+              />
+            </Box>
+          ) : (
+            <Box className="fixed left-1/2 top-1/2 z-50 w-fit -translate-x-1/2 -translate-y-1/2 sm:absolute sm:left-auto sm:right-0 sm:top-14 sm:translate-x-0 sm:translate-y-0">
+              <ProposalActionForm
+                nullify={resetState}
+                setProposalHashPayload={setProposalHashPayload}
+              />
+            </Box>
+          ))}
       </div>
       {isOpen &&
         ReactDOM.createPortal(

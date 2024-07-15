@@ -17,7 +17,7 @@ const EpochTimelineCard = ({ epoch }: EpochTimelineCardProps) => {
             )}
           </div>
         </div>
-        <p className='font-bold'>New epoch - Epoch {epoch?.no}</p>
+        <p className='font-bold'>Epoch {epoch?.no}</p>
       </div>
     </div>
   );

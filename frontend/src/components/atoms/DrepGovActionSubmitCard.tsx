@@ -52,20 +52,20 @@ const DrepGovActionSubmitCard = ({
             actionName:"Hard-Fork Initiation"
           };
           break;
-        case actionType.includes('update to the constitution'):
+        case actionType.includes('new constitution or guardrails script'):
           style = {
             borderColor: 'border-[#D96CAE]',
             bgColor: 'bg-[#D96CAE]',
             imgSrc: '/svgs/notebook.svg',
-            actionName:"Update to the Constitution or proposal policy"
+            actionName:"New Constitution or Guardrails Script"
           };
           break;
-        case actionType.includes('new constitutional committee'):
+        case actionType.includes('update committee '):
           style = {
             borderColor: 'border-[#6FDF8E]',
             bgColor: 'bg-[#6FDF8E]',
             imgSrc: '/svgs/users-group.svg',
-            actionName:"New Constitutional Committee"
+            actionName:"Update committee and/or threshold and/or terms"
           };
           break;
         default:
@@ -85,7 +85,7 @@ const DrepGovActionSubmitCard = ({
         <div className={`rounded-full p-1 ${style.bgColor} w-fit`}>
           <img src={style.imgSrc} alt="" className="h-5 w-5" />
         </div>
-        <p className="text-lg font-medium">{style.actionName}</p>
+        <p className="text-lg font-medium text-wrap">{style.actionName}</p>
       </div>
       <Link
         href={`${urls.govToolUrl}/governance_actions/${item?.gov_action_proposal_id}`}

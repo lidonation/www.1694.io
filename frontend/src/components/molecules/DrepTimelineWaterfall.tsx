@@ -87,18 +87,7 @@ export default function DrepTimelineWaterfall({
             )}
           </>
         ))}
-      <TimelineItem>
-        <TimelineSeparator>
-          <TimelineDot />
-          <TimelineConnector
-            className="h-10 border-2 border-dotted border-gray-300"
-            sx={{ backgroundColor: 'white' }}
-          />
-        </TimelineSeparator>
-        <TimelineContent>
-          <DrepGovActionSubmitCard actionType='hard-fork intitiation' />
-        </TimelineContent>
-      </TimelineItem>
+     
       {epochOfRegistration !== null && (
         <div className="flex w-full flex-col items-center space-y-2">
           <TimelineSeparator>

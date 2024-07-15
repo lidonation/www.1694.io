@@ -58,7 +58,7 @@ const DrepClaimProfileCard = ({
           {state ? (
             <Skeleton animation={'wave'} width={150} height={20} />
           ) : (
-            convertString(drep?.cexplorerDetails?.view, true)
+            convertString(drep?.cexplorerDetails?.view || "", true)
           )}
         </p>
         <CopyToClipboard
