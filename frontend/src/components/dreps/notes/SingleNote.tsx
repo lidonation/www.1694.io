@@ -14,6 +14,7 @@ import { SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { postAddComment } from '@/services/requests/postAddComment';
 import { useGetNotesQuery } from '@/hooks/useGetNotesQuery';
+import { processNoteContent } from '@/lib/noteContentProcessor/processNoteContent';
 
 const SingleNote = ({
   note,
@@ -36,7 +37,6 @@ const SingleNote = ({
     rocket: 0,
   };
   // Count initial reactions
-  
 
   const [reactions, setReactions] = useState(initialReactions);
   const [userReactions, setUserReactions] = useState({});
@@ -159,6 +159,8 @@ const SingleNote = ({
     }
   };
 
+  const noteContent = processNoteContent(note.note_note_content);
+
   const reactionIcons = {
     like: '/svgs/reactions/heart.svg',
     thumbsup: '/svgs/reactions/thumb-up.svg',
@@ -173,14 +175,23 @@ const SingleNote = ({
     rocket: '/svgs/reactions/rocket-filled.svg',
   };
   return (
-    <div className="flex flex-col gap-3 bg-white  rounded-xl  bg-opacity-70 shadow-md">
+    <div className="flex flex-col gap-3 rounded-xl bg-white bg-opacity-70 shadow-md">
       <div className="flex flex-col gap-3 p-5">
         <Typography className="font-black" variant="h5">
           {note.note_note_title}
         </Typography>
-        <Typography 
-          dangerouslySetInnerHTML={{ __html: note.note_note_content }}
-        ></Typography>
+        {!!noteContent && noteContent.map((item, index) => {
+          if (typeof item === 'string') {
+            return (
+              <Typography
+                key={index}
+                dangerouslySetInnerHTML={{ __html: item }}
+              ></Typography>
+            );
+          } else if (React.isValidElement(item)) {
+            return React.cloneElement(item, { key: index });
+          }
+        })}
         <div className="flex flex-col gap-1">
           <p className="text-sm">Tags</p>
           <div className="flex flex-wrap gap-1">
@@ -202,7 +213,7 @@ const SingleNote = ({
           {new Date(note.note_createdAt).toDateString()}
         </p>
       </div>
-      <div className="flex flex-col-reverse items-center gap-5 md:flex-row p-5">
+      <div className="flex flex-col-reverse items-center gap-5 p-5 md:flex-row">
         <div className="flex gap-2">
           {/* comment button, view responses */}
           {!isCommenting && (
