@@ -24,8 +24,6 @@ const NewNoteForm = () => {
   const {
     register,
     handleSubmit,
-    reset,
-    setValue,
     control,
     formState: { errors },
   } = useForm<InputType>({

@@ -64,7 +64,7 @@ const ProfileUploadCard = ({
     setIsOverlay(false);
   };
   return (
-    <div className="relative flex h-48 flex-col items-center justify-center gap-1 rounded-lg border-2 border-zinc-100 bg-violet-50 px-6 py-4 text-center">
+    <div className="relative flex min-h-48 flex-col items-center justify-center gap-1 rounded-lg border-2 border-zinc-100 bg-violet-50 px-6 py-4 text-center">
       <div
         className="transparent absolute left-0 top-0 h-full w-full"
         onDragOver={preventDefault}

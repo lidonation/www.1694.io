@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { convertString } from '@/lib';
 import { useScreenDimension } from '@/hooks';
 import { useRouter } from 'next/navigation';
+import { useCardano } from '@/context/walletContext';
 
 interface StatusProps {
   status:
@@ -52,7 +53,8 @@ const StatusChip = ({ status }: StatusProps) => {
 
 const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
   const { isMobile } = useScreenDimension();
-  const router = useRouter();
+  const { dRepIDBech32 } = useCardano();
+  const router = useRouter()
   return (
     <div className="flex w-full flex-col gap-5 bg-white bg-opacity-50 px-5 py-10">
       <div className="flex max-w-52 items-center justify-center rounded-md">
@@ -114,7 +116,7 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
           )}
         </p>
       </div>
-      <div className="flex flex-row gap-2 rounded-full border border-blue-100 px-4 py-2 w-fit">
+      <div className="flex w-fit flex-row gap-2 rounded-full border border-blue-100 px-4 py-2">
         <p className="flex w-full items-center gap-3 ">
           ID{' '}
           {state ? (
@@ -173,18 +175,21 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
         <Typography variant="h6">Metadata</Typography>
         <p>None</p>
       </div>
-      <div className="flex max-w-prose flex-col gap-2">
-        <Button>Set up Metadata</Button>
-        <Button
-          variant="outlined"
-          bgColor="transparent"
-          handleClick={() => {
-            router.push(`/dreps/workflow/profile/update/step1`);
-          }}
-        >
-          Edit Profile
-        </Button>
-      </div>
+      {(drep?.cexplorerDetails?.view == dRepIDBech32 ||
+        drep?.signature_drepVoterId == dRepIDBech32) && (
+        <div className="flex max-w-prose flex-col gap-2">
+          <Button>Set up Metadata</Button>
+          <Button
+            variant="outlined"
+            bgColor="transparent"
+            handleClick={() => {
+              router.push(`/dreps/workflow/profile/update/step1`);
+            }}
+          >
+            Edit Profile
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

@@ -23,19 +23,16 @@ const UpdateProfile = () => {
   const {
     register,
     handleSubmit,
-    getFieldState, 
     control,
-    getValues,
     formState: { errors },
     setValue,
   } = useForm<InputType>({
-    resolver: zodResolver(FormSchema),
+    resolver: zodResolver(FormSchema)    
   });
-  const { isEnabled, dRepIDBech32, stakeKey } = useCardano();
+  const { dRepIDBech32, stakeKey } = useCardano();
   const [currentProfileUrl, setCurrentProfileUrl] = useState<string | null>(
     null,
   );
-  const router = useRouter();
   const { setIsNotDRepErrorModalOpen, drepId, setStep1Status, setNewDrepId } = useDRepContext();
   const { addChangesSavedAlert } = useGlobalNotifications();
   const updateDrepMutation = usePostUpdateDrepMutation();
@@ -64,15 +61,12 @@ const UpdateProfile = () => {
         setIsNotDRepErrorModalOpen(true);
         return;
       }
-      const stakeAddress = Address.from_bytes(
-        Buffer.from(stakeKey, 'hex'),
-      ).to_bech32();
       const formData = new FormData();
       formData.append('name', data.profileName);
       if (data.profileUrl) {
         formData.append('profileUrl', data?.profileUrl[0] as string);
       }
-      const res = await updateDrepMutation.mutateAsync({
+      await updateDrepMutation.mutateAsync({
         drepId: drepId,
         drep: formData as drepInput,
       });

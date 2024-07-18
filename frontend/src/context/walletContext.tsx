@@ -559,6 +559,12 @@ function CardanoProvider(props: Props) {
     setWalletApi(undefined);
     setAddress(undefined);
     setStakeKey(undefined);
+    setStakeKeyBech32(undefined);
+    setVoter(undefined);
+    setDelegatedDRepID(undefined);
+    setPubDRepKey(undefined);
+    setDRepID(undefined);
+    setDRepIDBech32(undefined);
     setIsEnabled(false);
   }, []);
 

@@ -3,19 +3,16 @@ import { Chip, Typography } from '@mui/material';
 import Button from '@/components/atoms/Button';
 import { postAddReaction } from '@/services/requests/postAddReaction';
 import { postRemoveReaction } from '@/services/requests/postRemoveReaction';
-import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import SingleNoteResponses from './SingleNoteResponses';
 import { useDRepContext } from '@/context/drepContext';
-import { useCardano } from '@/context/walletContext';
 import PostTextareaInput from '@/components/atoms/PostTextareaInput';
 import { z } from 'zod';
-import { Address } from '@emurgo/cardano-serialization-lib-asmjs';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { postAddComment } from '@/services/requests/postAddComment';
 import { useGetNotesQuery } from '@/hooks/useGetNotesQuery';
 import { processNoteContent } from '@/lib/noteContentProcessor/processNoteContent';
-
+import * as marked from 'marked'
 const SingleNote = ({
   note,
   currentVoter,
@@ -53,6 +50,9 @@ const SingleNote = ({
     formState: { errors },
   } = useForm<InputType>({
     resolver: zodResolver(FormSchema),
+    defaultValues: {
+      comment: '',
+    }
   });
   // Update user reactions whenever currentVoter changes
   useEffect(() => {
@@ -185,7 +185,7 @@ const SingleNote = ({
             return (
               <Typography
                 key={index}
-                dangerouslySetInnerHTML={{ __html: item }}
+                dangerouslySetInnerHTML={{ __html: marked.parse(item) }}
               ></Typography>
             );
           } else if (React.isValidElement(item)) {
@@ -213,7 +213,7 @@ const SingleNote = ({
           {new Date(note.note_createdAt).toDateString()}
         </p>
       </div>
-      <div className="flex flex-col-reverse items-center gap-5 p-5 md:flex-row">
+      <div className="flex flex-col-reverse gap-5 p-5 md:flex-row">
         <div className="flex gap-2">
           {/* comment button, view responses */}
           {!isCommenting && (
