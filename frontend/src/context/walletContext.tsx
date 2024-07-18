@@ -178,7 +178,6 @@ function CardanoProvider(props: Props) {
       ).to_bech32();
       setWalletState((prev) => ({ ...prev, changeAddress }));
     } catch (err) {
-      Sentry.captureException(err);
       console.log(err);
     }
   };
@@ -203,7 +202,6 @@ function CardanoProvider(props: Props) {
       ).to_bech32();
       setWalletState((prev) => ({ ...prev, usedAddress }));
     } catch (err) {
-      Sentry.captureException(err);
       console.log(err);
     }
   };
@@ -272,7 +270,6 @@ function CardanoProvider(props: Props) {
 
       return Utxos;
     } catch (err) {
-      Sentry.captureException(err);
       console.log(err);
     }
   };
@@ -309,7 +306,6 @@ function CardanoProvider(props: Props) {
               extensions: [{ cip: 95 }],
             })
             .catch((e) => {
-              Sentry.captureException(e);
               throw e.info;
             });
           await getChangeAddress(enabledApi);
@@ -412,7 +408,6 @@ function CardanoProvider(props: Props) {
           updateSharedState({ isWalletListModalOpen: false });
           return { status: 'ok', stakeKey: stakeKeySet };
         } catch (e) {
-          Sentry.captureException(e);
           console.error(e);
           setError(`${e}`);
           setAddress(undefined);
@@ -449,7 +444,6 @@ function CardanoProvider(props: Props) {
       setIsGettingSignatures(false);
       return { signature, key };
     } catch (e) {
-      Sentry.captureException(e);
       console.error(e);
       setIsGettingSignatures(false);
       throw e;
@@ -642,7 +636,6 @@ function useCardano() {
           return result;
         }
       } catch (e: any) {
-        Sentry.captureException(e);
         await context.disconnectWallet();
         throw e;
       }
