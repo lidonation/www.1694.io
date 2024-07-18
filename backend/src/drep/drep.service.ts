@@ -178,8 +178,6 @@ export class DrepService {
     const drepVotingHistory = await this.getDrepTimeline(
       drep[0]?.drep_id,
       drepVoterId,
-      1720569600000,
-      1688947200000
     );
     const drepDelegators =
       await this.getDrepDelegatorsWithVotingPower(drepVoterId);
@@ -415,7 +413,29 @@ export class DrepService {
 
     // Use Promise.all to ensure all asynchronous operations complete
     allNotes = await Promise.all(
-      allNotes.map(async (note) => {      
+
+      allNotes.map(async (note) => {
+        // Extract image IDs from note_content
+        const imgTagMatches =
+          note.note_note_content.match(/<img id="(\d+)" \/>/g);
+        if (imgTagMatches) {
+          for (const imgTagMatch of imgTagMatches) {
+            const idMatch = imgTagMatch.match(/id="(\d+)"/);
+            if (idMatch && idMatch[1]) {
+              const attachmentId = Number(idMatch[1]);
+              const attachment =
+                await this.attachmentService.getSingleAttachment(attachmentId);
+              if (attachment) {
+                const base64String = `data:image/${attachment.attachmentType};base64,${attachment.url}`;
+                note.note_note_content = note.note_note_content.replace(
+                  imgTagMatch,
+                  `<img id="${idMatch[1]}" src="${base64String}" />`,
+                );
+              }
+            }
+          }
+        }
+
         // Get reactions and comments
         const reactions = await this.reactionsService.getReactions(
           note.note_id,
