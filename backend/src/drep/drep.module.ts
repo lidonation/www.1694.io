@@ -8,8 +8,10 @@ import { AttachmentService } from 'src/attachment/attachment.service';
 import { Note } from 'src/entities/note.entity';
 
 @Module({
-  imports: [ TypeOrmModule.forFeature([Drep, Attachment, Note], 'default'),
-  TypeOrmModule.forFeature([], 'dbsync')],
+  imports: [
+    TypeOrmModule.forFeature([Drep, Attachment, Note], 'default'),
+    TypeOrmModule.forFeature([], 'dbsync'),
+  ],
   controllers: [DrepController],
   providers: [DrepService, AttachmentService],
 })
