@@ -13,13 +13,11 @@ const FormSchema = z.object({
     .string()
     .min(3, 'Post Title cant be less than 3 chars')
     .max(12, "Post Title can't be more than 12 chars"),
-  postTag: z
-    .string()
-    .min(3, 'Post Tag cant be less than 3 chars')
-    .max(12, "Post Tag can't be more than 12 chars"),
+  postTag: z.array(z.string()),
   postText: z.string().min(10, 'Post Text cant be less than 10 chars'),
-  postVisibility: z.string().min(1, "Visibilty status can't be empty"),
+  postVisibility: z.string().min(1, "Visibility status can't be empty"),
 });
+
 type InputType = z.infer<typeof FormSchema>;
 
 const NewNoteForm = () => {
@@ -27,6 +25,7 @@ const NewNoteForm = () => {
     register,
     handleSubmit,
     reset,
+    setValue,
     control,
     formState: { errors },
   } = useForm<InputType>({
@@ -68,7 +67,11 @@ const NewNoteForm = () => {
       className="mb-48 mt-4 rounded-3xl bg-slate-50 p-5 shadow-lg"
       onSubmit={handleSubmit(saveNote, onError)}
     >
-      <NewNotePostForm register={register} control={control} errors={errors} />
+      <NewNotePostForm
+        register={register}
+        control={control}
+        errors={errors}
+      />
     </form>
   );
 };

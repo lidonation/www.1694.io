@@ -8,9 +8,9 @@ import {
   Unique,
   ManyToMany,
 } from 'typeorm';
-import { Delegator } from './delegator.entity';
 import { Note } from './note.entity';
 import { Comment } from './comment.entity';
+import { BaseEntity } from 'src/global';
 
 enum ReactionTypeName {
   Like = 'like',
@@ -24,11 +24,9 @@ export enum ReactionParentEntityType {
 }
 
 @Entity()
-@Unique(['delegator', 'type']) // Ensures delegator cant like or thumbs up twice
-export class Reaction {
-  //auto increment primary key decorator
-  @PrimaryGeneratedColumn()
-  id: number;
+@Unique(['voter', 'type', 'parentId', 'parentEntity']) // Ensures delegator can't react twice to the same parent entity
+export class Reaction extends BaseEntity {
+ 
 
   @Column({
     type: 'enum',
@@ -48,14 +46,14 @@ export class Reaction {
   @Column({ type: 'int', nullable: false })
   parentId: number;
 
-  @ManyToOne(() => Comment, (comment) => comment.id) // Many-to-One relationship with Comment
+  @ManyToOne(() => Comment, (comment) => comment.id ) // Many-to-One relationship with Comment
   comment: Comment;
 
   @ManyToMany(() => Note, (note) => note.id)
-  note: Note[];
+  note: Note;
 
-  @ManyToOne(() => Delegator, (delegator) => delegator.id) // Many-to-One relationship with Delegator
-  delegator: Delegator;
+  @Column({ nullable: false,  })
+  voter: string;
   //timestamps
   @CreateDateColumn()
   createdAt: Date;

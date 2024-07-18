@@ -1,11 +1,12 @@
 import { ChooseWalletModal } from '@/components/organisms';
 import { NotDRepErrorModal } from '@/components/organisms/NotDRepErrorModal';
-import { createContext, useContext, useMemo, useState, useEffect } from 'react';
+import { createContext, useContext, useMemo, useState, useEffect, useCallback } from 'react';
 import { useSharedContext } from './sharedContext';
 import { navOptions } from '@/components/atoms/Header';
 import { SliderMenu } from '@/components/organisms/SliderMenu';
 import { UserLoginModal } from '@/components/organisms/UserLoginModal';
 import { decodeToken, getItemFromLocalStorage, removeItemFromLocalStorage } from '@/lib';
+import Cookies from 'js-cookie';
 
 interface DRepContext {
   step1Status: stepStatus['status'];
@@ -28,6 +29,7 @@ interface DRepContext {
   setStep5Status: React.Dispatch<React.SetStateAction<stepStatus['status']>>;
   setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
   persistLogin: () => void;
+  logout: () => void;
   setCurrentRegistrationStep: React.Dispatch<React.SetStateAction<number>>;
   setIsNotDRepErrorModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsWalletListModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -100,6 +102,12 @@ function DRepProvider(props: Props) {
       updateSharedState({ loginCredentials: { signature, key } });
     }
   };
+
+  const logout = useCallback(async () => {
+    removeItemFromLocalStorage('token');
+    setIsLoggedIn(false);
+  }, []);
+
   const value = useMemo(
     () => ({
       isWalletListModalOpen,
@@ -128,6 +136,7 @@ function DRepProvider(props: Props) {
       setIsMobileDrawerOpen,
       setNewDrepId,
       persistLogin,
+      logout,
       setLoginModalOpen,
       ...sharedState,
     }),
@@ -183,7 +192,11 @@ function useDRepContext() {
     throw new Error('useDRepContext must be used within a DRepProvider');
   }
 
-  return context;
+  const logout = useCallback( async () => {
+    await context.logout();
+  }, [context]);
+
+  return { ...context, logout };
 }
 
 export { DRepProvider, useDRepContext };

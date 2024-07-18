@@ -1,20 +1,58 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { AttachmentService } from 'src/attachment/attachment.service';
+import { CommentsService } from 'src/comments/comments.service';
 import { DrepService } from 'src/drep/drep.service';
 import { createNoteDto } from 'src/dto';
+import { ReactionsService } from 'src/reactions/reactions.service';
 import { DataSource } from 'typeorm';
 @Injectable()
 export class NoteService {
   constructor(
     @InjectDataSource('default')
     private voltaireService: DataSource,
-    private drepService:DrepService,
+    private drepService: DrepService,
     private attachmentService: AttachmentService,
+    private reactionsService: ReactionsService,
+    private commentsService: CommentsService
   ) {}
   async getAllNotes() {
-    return await this.voltaireService.getRepository('Note').find();
+    let allNotes = await this.voltaireService
+      .getRepository('Note')
+      .createQueryBuilder('note')
+      .leftJoinAndSelect('drep', 'drep', 'drep.id = note.voterId')
+      .getRawMany();
+  
+    // Used Promise.all to ensure all asynchronous operations complete
+    allNotes = await Promise.all(allNotes.map(async (note) => {
+      // Extract image IDs from note_content
+      const imgTagMatches = note.note_note_content.match(/<img id="(\d+)" \/>/g);
+      if (imgTagMatches) {
+        for (const imgTagMatch of imgTagMatches) {
+          const idMatch = imgTagMatch.match(/id="(\d+)"/);
+          if (idMatch && idMatch[1]) {
+            const attachmentId = Number(idMatch[1]);
+            const attachment = await this.attachmentService.getSingleAttachment(attachmentId);
+            if (attachment) {
+              const base64String = `data:image/${attachment.attachmentType};base64,${attachment.url}`;
+              note.note_note_content = note.note_note_content.replace(
+                imgTagMatch,
+                `<img id="${idMatch[1]}" src="${base64String}" />`,
+              );
+            }
+          }
+        }
+      }
+  
+      // Get reactions and comments
+      const reactions = await this.reactionsService.getReactions(note.note_id, 'note');
+      const comments = await this.commentsService.getComments(note.note_id, 'note');
+      // Add reactions and comments to the note
+      return { ...note, reactions: reactions, comments: comments };
+    }));
+    return allNotes;
   }
+  
   async getSingleNote(noteId: string) {
     const numifiedNoteId = Number(noteId);
     const note = await this.voltaireService.getRepository('Note').findOne({
@@ -46,7 +84,9 @@ export class NoteService {
     return note;
   }
   async registerNote(noteDto: createNoteDto) {
-    const isPresent = await this.drepService.getSingleDrepViaVoterID(noteDto.voter);
+    const isPresent = await this.drepService.getSingleDrepViaVoterID(
+      noteDto.voter,
+    );
     if (isPresent) {
       const modifiedNoteDto = { ...noteDto, voter: isPresent.drep_id };
       //get the note_content from the modifiedNoteDto
@@ -96,7 +136,9 @@ export class NoteService {
     if (!foundNote) {
       throw new NotFoundException('Note to be updated not found!');
     }
-    const isPresent = await this.drepService.getSingleDrepViaVoterID(note.voter);
+    const isPresent = await this.drepService.getSingleDrepViaVoterID(
+      note.voter,
+    );
     if (isPresent) {
       const modifiedNote = { ...note, voter: isPresent.drep_id };
       if (foundNote.note_content) {
@@ -145,7 +187,7 @@ export class NoteService {
       Object.keys(modifiedNote).forEach((key) => {
         foundNote[key] = modifiedNote[key];
       });
-      return await this.voltaireService.getRepository('Note').save(foundNote)
+      return await this.voltaireService.getRepository('Note').save(foundNote);
     } else {
       return new NotFoundException('DRep associated with note not found!');
     }

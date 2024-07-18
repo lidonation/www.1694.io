@@ -7,8 +7,8 @@ const ViewDraftsButton = () => {
       variant="outlined"
       bgColor="transparent"
       data-testid="view-drafts-button"
-      borderRadius="43px"
-      width={'139px'}
+      borderRadius="2.6875rem"
+      width={'8.6875rem'}
       size="extraLarge"
     >
       <p className="text-center text-sm font-medium leading-4 text-blue-800">

@@ -2,6 +2,7 @@ import { Editor } from '@tiptap/react';
 import React, { useEffect, useState } from 'react';
 import MultipartDataForm from './MultipartDataForm';
 import { set } from 'cypress/types/lodash';
+import { useScreenDimension } from '@/hooks';
 type TextEditOptionsProps = {
   editor: Editor;
   active: boolean;
@@ -15,6 +16,7 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({
   const [activeForm, setActiveForm] = useState(null);
   const [imagePayload, setImagePayload] = useState(null);
   const [linkPayload, setLinkPayload] = useState(null);
+  const {screenWidth}=useScreenDimension()
   const resetState = () => {
     setShowOverlay(false);
     setActiveForm(null);
@@ -84,7 +86,7 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({
   return (
     <div
       id="toolbar-container"
-      className="overflow-x-scroll lg:overflow-visible flex h-9 w-full lg:w-[80%] items-center justify-start gap-3 bg-slate-50 px-2"
+      className={`${(showOverlay && screenWidth > 1024) ? "overflow-x-visible" : " overflow-x-scroll"} flex h-9 w-full lg:w-[80%] items-center justify-start gap-3 bg-slate-50 px-2`}
     >
       <div
         className={`${active ? 'cursor-pointer' : 'pointer-events-none'} shrink-0 ${
@@ -92,7 +94,7 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({
         }`}
         onClick={() => handleFormatText('bold')}
       >
-        <img src="/note/bold.svg" alt="Bold img" />
+        <img src="/svgs/notesvgs/bold.svg" alt="Bold img" />
       </div>
       <div
         className={`${active ? 'cursor-pointer' : 'pointer-events-none'} shrink-0 ${
@@ -100,7 +102,7 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({
         }`}
         onClick={() => handleFormatText('italic')}
       >
-        <img src="/note/italic.svg" alt="Italic img" />
+        <img src="/svgs/notesvgs/italic.svg" alt="Italic img" />
       </div>
       <div
         className={`${active ? 'cursor-pointer' : 'pointer-events-none'} shrink-0 ${
@@ -108,7 +110,7 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({
         }`}
         onClick={() => handleFormatText('strike')}
       >
-        <img src="/note/strikethrough.svg" alt="Strikethru" />
+        <img src="/svgs/notesvgs/strikethrough.svg" alt="Strikethru" />
       </div>
       <div
         className={`${active ? 'cursor-pointer' : 'pointer-events-none'} shrink-0 ${
@@ -116,7 +118,7 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({
         }`}
         onClick={() => handleFormatText('code')}
       >
-        <img src="/note/code.svg" alt="Code" />
+        <img src="/svgs/notesvgs/code.svg" alt="Code" />
       </div>
       <div
         className={`${active ? 'cursor-pointer' : 'pointer-events-none'} shrink-0 ${
@@ -124,7 +126,7 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({
         }`}
         onClick={() => handleFormatText('superscript')}
       >
-        <img src="/note/superscript.svg" alt="Superscrpt" />
+        <img src="/svgs/notesvgs/superscript.svg" alt="Superscrpt" />
       </div>
 
       <div
@@ -133,7 +135,7 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({
         }`}
         onClick={() => handleFormatText('highlight')}
       >
-        <img src="/note/highlight.svg" alt="Highlight" />
+        <img src="/svgs/notesvgs/highlight.svg" alt="Highlight" />
       </div>
       <div
         className={`${active ? 'cursor-pointer' : 'pointer-events-none'} shrink-0 ${
@@ -141,7 +143,7 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({
         }`}
         onClick={() => handleFormatText('heading')}
       >
-        <img src="/note/heading.svg" alt="Heading" />
+        <img src="/svgs/notesvgs/heading.svg" alt="Heading" />
       </div>
       <div
         className={`${active ? 'cursor-pointer' : 'pointer-events-none'} shrink-0 ${
@@ -149,7 +151,7 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({
         }`}
         onClick={() => handleFormatText('bulletList')}
       >
-        <img src="/note/list.svg" alt="List" />
+        <img src="/svgs/notesvgs/list.svg" alt="List" />
       </div>
       <div
         className={`${active ? 'cursor-pointer' : 'pointer-events-none'} shrink-0 ${
@@ -157,7 +159,7 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({
         }`}
         onClick={() => handleFormatText('orderedList')}
       >
-        <img src="/note/list-numbers.svg" alt="Listnums" />
+        <img src="/svgs/notesvgs/list-numbers.svg" alt="Listnums" />
       </div>
       <div
         className={`${active ? 'cursor-pointer' : 'pointer-events-none'} shrink-0 ${
@@ -165,7 +167,7 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({
         }`}
         onClick={() => handleFormatText('blockquote')}
       >
-        <img src="/note/quote.svg" alt="Quote" />
+        <img src="/svgs/notesvgs/quote.svg" alt="Quote" />
       </div>
       <div
         className={`${active ? 'cursor-pointer' : 'pointer-events-none'} shrink-0 ${
@@ -173,13 +175,13 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({
         }`}
         onClick={() => handleFormatText('codeBlock')}
       >
-        <img src="/note/source-code.svg" alt="Srccode" />
+        <img src="/svgs/notesvgs/source-code.svg" alt="Srccode" />
       </div>
       <div
         className={`${active ? 'cursor-pointer' : 'pointer-events-none'} shrink-0`}
         onClick={() => handleFormatText('table')}
       >
-        <img src="/note/table.svg" alt="table" />
+        <img src="/svgs/notesvgs/table.svg" alt="table" />
       </div>
       <div className={`relative flex h-full flex-col`}>
         <div
@@ -187,7 +189,7 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({
           onClick={() => handleFormatText('image')}
         >
           <img
-            src="/note/photo.svg"
+            src="/svgs/notesvgs/photo.svg"
             alt="Image"
             className={`${activeForm === 'image' ? 'opacity-100' : 'opacity-50'}`}
           />
@@ -207,7 +209,7 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({
           onClick={() => handleFormatText('link')}
         >
           <img
-            src="/note/link.svg"
+            src="/svgs/notesvgs/link.svg"
             alt="Link"
             className={`${activeForm === 'link' ? 'opacity-100' : 'opacity-50'}`}
           />

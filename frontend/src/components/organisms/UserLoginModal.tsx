@@ -101,6 +101,7 @@ export function UserLoginModal() {
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     setIsHardware(!event.target.checked);
   };
+
   const handleCheck = (e) => {
     if (e.target.checked) {
       setLoginPeriod('2 weeks');
@@ -113,7 +114,7 @@ export function UserLoginModal() {
 
   const SwitchWithTextTrack = getSwitchWithTextTrack(
     isMobile,
-    isMobile ? '150px' : '220px',
+    isMobile ? '9.375rem' : '15.625rem',
   );
 
   return (
@@ -122,11 +123,17 @@ export function UserLoginModal() {
       onClose={() => setLoginModalOpen(false)}
     >
       <ModalHeader
-        sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginBottom: '4rem' }}
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '1rem',
+          marginBottom: '4rem',
+        }}
       >
-        <img src="/info-circle.png" width={'40px'}  alt='login icon' />
+        <img src="/img/info-circle.png" width={'0.125rem'} alt="login icon" />
 
-        <Typography variant="h4" className="py-1 text-center ">
+        <Typography variant="h4" className="py-1 text-center" component="span">
           Login
         </Typography>
       </ModalHeader>
@@ -138,28 +145,39 @@ export function UserLoginModal() {
             flexDirection: 'column',
             gap: '1rem',
             alignItems: 'center',
-            maxHeight: '500px',
+            maxHeight: '31.25rem',
             overflow: 'auto',
             width: '100%',
-            padding: '4px',
+            padding: '0.25rem',
           }}
         >
-
           {isEnabled ? (
-              <LoginButton isHardware={isHardware} loginMode loginPeriod={loginPeriod}/>
+            <LoginButton
+              isHardware={isHardware}
+              loginMode
+              loginPeriod={loginPeriod}
+            />
           ) : (
-              <WalletConnectButton test_name={'login'} />
+            <WalletConnectButton test_name={'login'} />
           )}
-
-          <SwitchWithTextTrack checked={!isHardware} onChange={handleChange} />
-
-
+          <label htmlFor="switch">
+            <SwitchWithTextTrack
+              id="switch"
+              checked={!isHardware}
+              onChange={handleChange}
+            />
+          </label>
         </Box>
 
-        <Typography variant="subtitle2" color={'dimgray'}>
-          <Checkbox checked={isChecked} onChange={handleCheck} /> Keep me logged
-          in for two weeks.
-        </Typography>
+        <label
+          htmlFor="checkbox"
+          className="flex cursor-pointer items-center gap-1"
+        >
+          <Checkbox id="checkbox" checked={isChecked} onChange={handleCheck} />
+          <Typography variant="subtitle2" color={'dimgray'}>
+            Keep me logged in for two weeks.
+          </Typography>
+        </label>
         <Typography variant="subtitle2" color={'dimgray'}>
           Signing in with a hardware wallet requires signing an expired
           transaction.

@@ -48,9 +48,8 @@ const Page = () => {
     <div className="bg-[url(/1694-asset-1.png)] bg-auto bg-right-top bg-no-repeat">
       <Background>
         <Header />
-
-        {/*<TranslationBlock/>*/}
-        
+        {/* Disabled till further notice */}
+        {/* <TranslationBlock/> */}
         <ScrollToTop/>
         <CIPIntro />
         <CIPInfo />

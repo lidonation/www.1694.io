@@ -1,53 +1,96 @@
-import { Box, Button, Typography } from '@mui/material';
-
+import { Box, Typography, Button, Grow } from '@mui/material';
 import { useCardano } from '@/context/walletContext';
 import './MoleculeStyles.css';
 import { useDRepContext } from '@/context/drepContext';
-export const WalletInfoCard = () => {
-  const { address, disconnectWallet } = useCardano();
-  const {setIsWalletListModalOpen}=useDRepContext()
-  const onClickDisconnect = async () => {
-    await disconnectWallet();
-    setIsWalletListModalOpen(false)
-  };
+import { memo, useState } from 'react';
+import { ConnectedWalletCard } from '../atoms/ConnectedWalletCard';
+import { DelegatedTo } from './DelegatedTo';
+
+type WalletInfoCardProps = {
+  test_name: string;
+};
+
+export const WalletInfoCard = memo(({ test_name }: WalletInfoCardProps) => {
+  const { address, isEnabled, disconnectWallet, } = useCardano();
+  const { setLoginModalOpen, isLoggedIn, logout } = useDRepContext();
+  const [showDetails, setShowDetails] = useState(false);
+
+  async function logUserOut() {
+    setShowDetails(false);
+    setTimeout(() => {
+      logout();
+      disconnectWallet();
+    }, 400);
+  }
 
   return (
-    address && (
+    <Grow
+      in={isEnabled}
+      style={{ transformOrigin: 'top center' }}
+      {...(!!address ? { timeout: 0 } : { timeout: 300 })}
+    >
       <Box
-        data-testid="wallet-info-card"
-        sx={{
-          border: 1,
-          borderColor: 'lightBlue',
-          borderRadius: 3,
-          px: 1.25,
-          py: 1,
-          position: 'relative',
-          width: '150px',
-        }}
+        data-testid={`${test_name}-wallet-info-card`}
+        className={`relative rounded-3xl bg-gray-800 ${!!isLoggedIn ? 'cursor-pointer' : ''}`}
       >
-        <Typography className="text-sm font-medium text-gray-200">
-          Connected Wallet
-        </Typography>
         <Box
-          sx={{
-            alignItems: 'center',
-            display: 'flex',
-            justifyContent: 'space-between',
+          display="flex"
+          flexDirection="row"
+          alignItems="center"
+          justifyContent="space-between"
+          className="p-1.5"
+          onClick={() => {
+            isLoggedIn && setShowDetails(!showDetails);
           }}
         >
-          <Typography className="flex-1 overflow-hidden overflow-ellipsis text-sm font-normal">
-            {address}
-          </Typography>
-          <Button
-            data-testid={'disconnect-button'}
-            variant="text"
-            onClick={onClickDisconnect}
-            className="flex w-[1px] justify-end"
-          >
-            <img src="/close.svg" alt="Close Icon" />
-          </Button>
+          <ConnectedWalletCard />
+          {!isLoggedIn ? (
+            <Button
+              size="small"
+              className="rounded-3xl bg-blue-800 px-1 py-0 font-bold capitalize text-white hover:bg-blue-900"
+              onClick={() => setLoginModalOpen(true)}
+            >
+              Login
+            </Button>
+          ) : (
+            <Typography className="rounded-3xl bg-blue-800 px-1 py-0 hover:bg-blue-900">
+              {' '}
+              {showDetails ? (
+                <img
+                  src="/svgs/chevron-up.svg"
+                  alt="Toggle to close wallet details"
+                  className="h-5 w-6"
+                />
+              ) : (
+                <img
+                  src="/svgs/chevron-down.svg"
+                  alt="Toggle to open wallet details"
+                  className="h-5 w-6"
+                />
+              )}
+            </Typography>
+          )}
         </Box>
+        <Grow
+          in={showDetails}
+          style={{ transformOrigin: 'top center' }}
+          {...(showDetails ? { timeout: 300 } : {})}
+        >
+          <Box className="absolute left-0 right-0 z-50">
+            <DelegatedTo className="mt-1 rounded-t-3xl" />
+            <Box className="flex w-full justify-end rounded-b-3xl bg-white p-1.5">
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={logUserOut}
+                className="rounded-3xl bg-gray-800 capitalize text-white hover:bg-blue-800"
+              >
+                Logout
+              </Button>
+            </Box>
+          </Box>
+        </Grow>
       </Box>
-    )
+    </Grow>
   );
-};
+});

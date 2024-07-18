@@ -44,6 +44,16 @@ const FormSchema = z.object({
         /^https?:\/\/(www\.)?facebook\.com\/[a-zA-Z0-9-]+(\/)?$/.test(val),
       { message: 'Invalid Facebook URL' },
     ),
+  instagram: z
+    .string()
+    .nullable()
+    .refine(
+      (val) =>
+        val === null ||
+        val === '' ||
+        /^https?:\/\/(www\.)?instagram\.com\/[a-zA-Z0-9-]+(\/)?$/.test(val),
+      { message: 'Invalid Instagram URL' },
+    ),
 });
 type InputType = z.infer<typeof FormSchema>;
 
@@ -74,8 +84,9 @@ const UpdateProfileStep5 = () => {
           setValue('github', drep.drep_social?.github||'');
           setValue('x', drep.drep_social?.x || '');
           setValue('facebook', drep.drep_social?.facebook || '');
+          setValue('instagram', drep.drep_social?.instagram || '');
           setNewDrepId(drep.drep_id)
-          if (drep.drep_social?.github || drep.drep_social?.x || drep.drep_social?.facebook) {
+          if (drep.drep_social?.github || drep.drep_social?.x || drep.drep_social?.facebook || drep.drep_social?.instagram) {
             setStep5Status('update');
           } else setStep5Status('active');
         } catch (error) {
@@ -84,7 +95,7 @@ const UpdateProfileStep5 = () => {
       };
       getDRep();
       return () => {
-        if(Boolean(getValues('github')) || Boolean(getValues('x')) || Boolean(getValues('facebook'))){
+        if(Boolean(getValues('github')) || Boolean(getValues('x')) || Boolean(getValues('facebook')) || Boolean(getValues('instagram'))){
           setStep5Status('success')
         } else setStep5Status('pending')
       }
@@ -125,7 +136,7 @@ const UpdateProfileStep5 = () => {
               }}
               className="clipboard-text cursor-pointer"
             >
-              <img src="/copy.svg" alt="copy" />
+              <img src="/svgs/copy.svg" alt="copy" />
             </CopyToClipboard>
           </div>
         )}
@@ -169,6 +180,18 @@ const UpdateProfileStep5 = () => {
           />
           <div className="text-sm text-red-700" data-testid="error-msg">
             {errors?.facebook && errors?.facebook?.message}
+          </div>
+        </div>
+        <div className="flex flex-col gap-1">
+          <label>Instagram</label>
+          <input
+            type="text"
+            className={`rounded-full border border-zinc-100 py-3 pl-5 pr-3`}
+            {...register('instagram')}
+            placeholder="Paste your instagram url here"
+          />
+          <div className="text-sm text-red-700" data-testid="error-msg">
+            {errors?.instagram && errors?.instagram?.message}
           </div>
         </div>
         <ProfileSubmitArea isUpdate />

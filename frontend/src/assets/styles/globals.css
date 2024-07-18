@@ -206,3 +206,7 @@ body {
   @apply shrink-0;
 }
 
+#epoch-card {
+  text-align: left !important;
+}
+

@@ -236,7 +236,7 @@ const CIPPathtoactive = () => {
                 registration certificate. Upon retirement, all of the DRep's
                 delegations would be automatically transferred to the given DRep
                 credential. If that DRep had already retired, the delegation
-                would be transfer to the 'Abstain' DRep.
+                would be transfer to the 'Abstain' voting option.
               </p>
             </div>
             <div className="md:text-md flex flex-col gap-4 text-sm lg:text-lg">
@@ -334,7 +334,7 @@ const CIPPathtoactive = () => {
                 might be confused with Project Catalst DReps. Similarly, some
                 people have expressed confusion between the state of
                 no-confidence, the motion of no-confidence and the no-confidence
-                DReps.
+                voting option.
                 <br />
                 We could imagine finding better terms for these concepts.
               </p>

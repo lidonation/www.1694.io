@@ -7,9 +7,6 @@ import { usePathname } from 'next/navigation';
 import { useDRepContext } from '@/context/drepContext';
 import TranslationBlock from '../1694.io/TranslationBlock';
 import { useScreenDimension } from '@/hooks';
-import LoginButton from '../molecules/LoginButton';
-import { LoginInfoCard } from '../molecules/LoginInfoCard';
-import Button from './Button';
 
 const navOptions = [
   {
@@ -31,12 +28,7 @@ const navOptions = [
 ];
 const Header = () => {
   const { isEnabled } = useCardano();
-  const {
-    currentLocale,
-    setIsMobileDrawerOpen,
-    isLoggedIn,
-    setLoginModalOpen,
-  } = useDRepContext();
+  const { currentLocale, setIsMobileDrawerOpen } = useDRepContext();
   const { isMobile } = useScreenDimension();
   const pathname = usePathname();
   const [activeLink, setActiveLink] = useState(null);
@@ -50,11 +42,60 @@ const Header = () => {
       <div className="base_container flex shrink-0 flex-row items-center justify-between py-6 ">
         <Link href="/">
           <img
-            src="/sancho1694.svg"
+            src="/svgs/sancho1694.svg"
             alt="Sancho logo"
             width={isMobile ? 100 : 150}
           />
         </Link>
+        <div className="flex shrink-0 items-center gap-3 text-nowrap text-sm font-bold">
+          {!isMobile && (
+            <div className="flex flex-row gap-6">
+              <Link
+                href={'/'}
+                className={`${
+                  activeLink === `/${currentLocale}`
+                    ? 'text-orange-500'
+                    : 'text-gray-800'
+                }`}
+              >
+                CIP
+              </Link>
+              {navOptions.slice(0, 1).map((option, index) => (
+                <Link
+                  key={index + option.name + option.path + option}
+                  href={option.path}
+                  className={`${
+                    activeLink === `/${currentLocale}${option.path}`
+                      ? 'text-orange-500'
+                      : 'text-gray-800'
+                  }`}
+                >
+                  {option.name}
+                </Link>
+              ))}
+            </div>
+          )}
+          <div>
+            {!isEnabled ? (
+              <WalletConnectButton test_name={'header'} />
+            ) : (
+              <WalletInfoCard test_name={'header'}/>
+            )}
+          </div>
+          {!isMobile && (
+            <div className="cursor-pointer">
+              <img src="/svgs/bell.svg" alt="Notifs" />
+            </div>
+          )}
+          {isMobile && (
+            <div
+              className="cursor-pointer"
+              onClick={() => setIsMobileDrawerOpen(true)}
+            >
+              <img src="/svgs/drawer-icon.svg" alt="Drawer" />
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );

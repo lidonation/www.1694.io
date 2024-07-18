@@ -6,6 +6,9 @@ import { ConfigModule } from '@nestjs/config';
 import { DbModule } from './db.module';
 import { HealthzModule } from './healthz/healthz.module';
 import { AuthModule } from './auth/auth.module';
+import { VoterModule } from './voter/voter.module';
+import { CommentsModule } from './comments/comments.module';
+import { ReactionsModule } from './reactions/reactions.module';
 
 @Module({
   imports: [
@@ -19,6 +22,9 @@ import { AuthModule } from './auth/auth.module';
     AttachmentModule,
     HealthzModule,
     AuthModule,
+    VoterModule,
+    CommentsModule,
+    ReactionsModule,
   ],
   controllers: [],
   providers: [],

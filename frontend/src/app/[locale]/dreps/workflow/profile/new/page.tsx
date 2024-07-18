@@ -18,7 +18,7 @@ const page = () => {
       const checkIfExistingDREp = async () => {
         try {
           const drep = await getSingleDRepViaVoterId(dRepIDBech32);
-          setNewDrepId(drep.id)
+          setNewDrepId(drep.drep_id)
           setStep1Status('update');
           router.push(`/dreps/workflow/profile/update/step1`);
         } catch (error) {

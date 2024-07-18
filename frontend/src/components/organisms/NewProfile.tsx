@@ -102,7 +102,7 @@ const NewProfile = () => {
               }}
               className="clipboard-text cursor-pointer"
             >
-              <img src="/copy.svg" alt="copy" />
+              <img src="/svgs/copy.svg" alt="copy" />
             </CopyToClipboard>
           </div>
         )}

@@ -19,10 +19,10 @@ const CIPAcknowledgments = () => {
             </div>
             <div className="col-span-1 flex flex-col items-center justify-between">
               <div>
-                <img src="/doublecoin-top.png" alt="" />
+                <img src="/img/doublecoin-top.png" alt="" />
               </div>
               <div>
-                <img src="/doublecoin-bottom.png" alt="" />
+                <img src="/img/doublecoin-bottom.png" alt="" />
               </div>
             </div>
           </div>

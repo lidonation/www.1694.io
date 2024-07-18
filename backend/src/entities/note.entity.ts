@@ -1,27 +1,15 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  OneToMany,
-  CreateDateColumn,
-  UpdateDateColumn,
-  ManyToMany,
-  DeleteDateColumn,
-} from 'typeorm';
+import { Entity, Column, ManyToOne, OneToMany } from 'typeorm';
 import { Drep } from './drep.entity';
+import { BaseEntity } from 'src/global';
+import { Reaction } from './reaction.entity';
 
 @Entity()
-export class Note {
-  //auto increment primary key decorator
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class Note extends BaseEntity {
   @Column({ unique: true, nullable: false })
   note_title: string;
 
-  @Column({})
-  note_tag: string;
+  @Column('simple-array')
+  note_tag: string[];
 
   @Column({ nullable: false })
   note_content: string;
@@ -32,12 +20,6 @@ export class Note {
   @Column()
   note_visibility: string;
 
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
-
-  @DeleteDateColumn({ nullable: true })
-  deletedAt: Date;
+  @OneToMany(() => Reaction, (reaction) => reaction.note, {onDelete: 'CASCADE'})
+  reactions: Reaction[];
 }
