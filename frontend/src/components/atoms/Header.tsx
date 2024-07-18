@@ -5,27 +5,10 @@ import { WalletInfoCard } from '@/components/molecules';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useDRepContext } from '@/context/drepContext';
-import TranslationBlock from '../1694.io/TranslationBlock';
 import { useScreenDimension } from '@/hooks';
+import VoltaireMenu from '../molecules/VoltaireMenu';
+import DRepMenu from '../molecules/DRepMenu';
 
-const navOptions = [
-  {
-    name: 'DReps',
-    path: '/dreps',
-  },
-  {
-    name: 'DRep List',
-    path: '/dreps/list',
-  },
-  {
-    name: 'Notes',
-    path: '/dreps/notes',
-  },
-  {
-    name: 'Ecosystem',
-    path: '/ecosystem',
-  },
-];
 const Header = () => {
   const { isEnabled } = useCardano();
   const { currentLocale, setIsMobileDrawerOpen } = useDRepContext();
@@ -49,7 +32,7 @@ const Header = () => {
         </Link>
         <div className="flex shrink-0 items-center gap-3 text-nowrap text-sm font-bold">
           {!isMobile && (
-            <div className="flex flex-row gap-6">
+            <div className="flex flex-row items-center gap-6">
               <Link
                 href={'/'}
                 className={`${
@@ -60,26 +43,15 @@ const Header = () => {
               >
                 CIP
               </Link>
-              {navOptions.slice(0, 1).map((option, index) => (
-                <Link
-                  key={index + option.name + option.path + option}
-                  href={option.path}
-                  className={`${
-                    activeLink === `/${currentLocale}${option.path}`
-                      ? 'text-orange-500'
-                      : 'text-gray-800'
-                  }`}
-                >
-                  {option.name}
-                </Link>
-              ))}
+              <DRepMenu />
+              <VoltaireMenu />
             </div>
           )}
           <div>
             {!isEnabled ? (
               <WalletConnectButton test_name={'header'} />
             ) : (
-              <WalletInfoCard test_name={'header'}/>
+              <WalletInfoCard test_name={'header'} />
             )}
           </div>
           {!isMobile && (
@@ -101,4 +73,4 @@ const Header = () => {
   );
 };
 
-export { Header, navOptions };
+export { Header };
