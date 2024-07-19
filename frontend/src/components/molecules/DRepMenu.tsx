@@ -13,11 +13,11 @@ export default function DRepMenu() {
       text: 'Delegate your voting power or become a DRep.',
       to: '/dreps/list',
     },
-    {
-      label: 'DRep Notes',
-      text: 'Check out notes written by DReps in the Cardano community.',
-      to: '/dreps/notes',
-    },
+    // {
+    //   label: 'DRep Notes',
+    //   text: 'Check out notes written by DReps in the Cardano community.',
+    //   to: '/dreps/notes',
+    // },
   ];
 
   return <MenuDropDown title="DReps" menuItems={menuItems} />;

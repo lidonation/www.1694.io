@@ -1,8 +1,8 @@
-import { Box, Typography, Grow, IconButton } from '@mui/material';
+import { Box, Grow } from '@mui/material';
 import { useCardano } from '@/context/walletContext';
 import './MoleculeStyles.css';
 import { useDRepContext } from '@/context/drepContext';
-import { memo, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 import { ConnectedWalletCard } from '../atoms/ConnectedWalletCard';
 import { DelegatedTo } from './DelegatedTo';
 import Button from '../atoms/Button';
@@ -15,6 +15,27 @@ export const WalletInfoCard = memo(({ test_name }: WalletInfoCardProps) => {
   const { address, isEnabled, disconnectWallet } = useCardano();
   const { setLoginModalOpen, isLoggedIn, logout } = useDRepContext();
   const [showDetails, setShowDetails] = useState(false);
+
+  const dropDownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      if (
+        dropDownRef.current &&
+        !dropDownRef.current.contains(event.target as Node)
+      ) {
+        setShowDetails(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [showDetails]);
 
   async function logUserOut() {
     setShowDetails(false);
@@ -31,6 +52,7 @@ export const WalletInfoCard = memo(({ test_name }: WalletInfoCardProps) => {
       {...(!!address ? { timeout: 0 } : { timeout: 300 })}
     >
       <Box
+        ref={dropDownRef}
         data-testid={`${test_name}-wallet-info-card`}
         className={`relative rounded-3xl bg-gray-800 ${!!isLoggedIn ? 'cursor-pointer' : ''}`}
       >

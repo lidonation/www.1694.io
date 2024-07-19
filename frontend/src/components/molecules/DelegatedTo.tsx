@@ -7,6 +7,7 @@ import { memo } from 'react';
 import ViewDRepTableBtn from './ViewDRepTableButton';
 import { useRouter } from 'next/navigation';
 import Button from '../atoms/Button';
+import Link from 'next/link';
 
 type DelegatedToProps = {
   className?: string;
@@ -75,10 +76,13 @@ export const DelegatedTo = memo(({ className }: DelegatedToProps) => {
                 fontWeight={600}
                 className="w-full text-wrap tracking-wide text-gray-300"
               >
-                You have not yet delegated to a DRep, consider selecting one on the GovTool website.
+                You have not yet delegated to a DRep, consider selecting one on
+                the GovTool website.
               </Typography>
             </Box>
-            <ViewDRepTableBtn handleClick={navToDRepList}></ViewDRepTableBtn>
+            <Link href="/dreps/list">
+              <ViewDRepTableBtn size="small"></ViewDRepTableBtn>
+            </Link>
           </Box>
         )}
       </Box>
@@ -89,7 +93,6 @@ export const DelegatedTo = memo(({ className }: DelegatedToProps) => {
           sx={{
             color: 'white',
             borderColor: 'white',
-            // fontWeight: 300
           }}
         >
           View Profile
