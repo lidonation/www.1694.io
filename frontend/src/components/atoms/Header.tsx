@@ -9,6 +9,25 @@ import { useScreenDimension } from '@/hooks';
 import VoltaireMenu from '../molecules/VoltaireMenu';
 import DRepMenu from '../molecules/DRepMenu';
 
+const navOptions = [
+  {
+    name: 'DReps',
+    path: '/dreps',
+  },
+  {
+    name: 'DRep List',
+    path: '/dreps/list',
+  },
+  {
+    name: 'Notes',
+    path: '/dreps/notes',
+  },
+  {
+    name: 'Ecosystem',
+    path: '/ecosystem',
+  },
+];
+
 const Header = () => {
   const { isEnabled } = useCardano();
   const { currentLocale, setIsMobileDrawerOpen } = useDRepContext();
@@ -73,4 +92,4 @@ const Header = () => {
   );
 };
 
-export { Header };
+export { Header, navOptions };

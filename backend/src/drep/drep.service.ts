@@ -6,6 +6,7 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
+
 @Injectable()
 export class DrepService {
   constructor(
@@ -18,6 +19,11 @@ export class DrepService {
   ) {}
   //get from cexplorer db
   async getAllDrepsCexplorer() {
+        console.log('dbsync::', this.configService.get<string>(
+            'BLOCKFROST_SANCHONET_PROJECT_ID',
+        ));
+      console.log('dbsync_db::', this.configService.get('DATABASE_HOST_DBSYNC', 'dbsync_db'));
+
     const drepList = await this.cexplorerService.manager.query(
       `WITH RankedRows AS (
           SELECT 
@@ -76,15 +82,14 @@ export class DrepService {
       WHERE 
           RowNum = 1`,
     );
-    const drepListInADA = drepList.map((entry) => {
+
+    return drepList.map((entry) => {
       return {
         ...entry,
         deposit: (entry.deposit / 1000000).toFixed(1),
         amount: (entry.amount / 1000000).toFixed(1),
       };
     });
-
-    return drepListInADA;
   }
   async getAllDRepsVoltaire() {
     return await this.voltaireService.getRepository('Drep').find();
