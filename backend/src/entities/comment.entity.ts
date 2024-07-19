@@ -1,12 +1,7 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
   Column,
   ManyToOne,
-  ManyToMany,
-  JoinTable,
-  CreateDateColumn,
-  UpdateDateColumn,
   OneToMany,
 } from 'typeorm';
 import { Note } from './note.entity';

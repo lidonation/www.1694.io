@@ -3,7 +3,6 @@ import Button from './Button';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { Typography, Skeleton } from '@mui/material';
 import Link from 'next/link';
-import DrepTimeline from '../molecules/DrepTimeline';
 import { convertString } from '@/lib';
 import { useScreenDimension } from '@/hooks';
 import { useRouter } from 'next/navigation';
@@ -85,7 +84,7 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
             drep &&
             (drep?.drep_name
               ? drep.drep_name
-              : convertString(drep?.cexplorerDetails?.view, isMobile))
+              : convertString(drep?.cexplorerDetails?.view || '', isMobile))
           )}
         </Typography>
       </div>
@@ -121,7 +120,7 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
           {state ? (
             <Skeleton animation={'wave'} width={150} height={20} />
           ) : (
-            convertString(drep?.cexplorerDetails?.view, true)
+            convertString(drep?.cexplorerDetails?.view || '', true)
           )}
         </p>
         <CopyToClipboard

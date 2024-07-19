@@ -251,7 +251,7 @@ const SingleNote = ({
             name="comment"
             label=""
           />
-          <div className="flex flex-row items-center justify-center gap-2 sm:justify-end lg:w-[80%] lg:gap-3">
+          <div className="flex flex-row items-center justify-center gap-2 sm:justify-end lg:gap-3">
             <Button type="submit">Comment</Button>
             <Button
               bgColor="transparent"

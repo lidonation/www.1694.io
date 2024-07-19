@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import SearchBar from '../atoms/SearchBar';
-import DrepTimelineCard from '../atoms/DrepTimelineCard';
+import DrepTimelineCard from '../atoms/DrepVoteTimelineCard';
 import DrepTimelineWaterfall from './DrepTimelineWaterfall';
 import DrepTabGroup from '../atoms/DrepTabGroup';
 const ProfileClaimedChip = ({ claimedAddress }) => {
@@ -19,6 +19,7 @@ const ProfileClaimedChip = ({ claimedAddress }) => {
     </div>
   );
 };
+
 const DrepTimeline = ({
   drepId,
   latestEpoch,
@@ -37,7 +38,7 @@ const DrepTimeline = ({
         <p className="w-full text-2xl font-bold sm:w-auto lg:text-3xl">
           Timeline
         </p>
-        <SearchBar searchText={searchText} setSearchText={setSearchText} handleSort={() => {}} />
+        <SearchBar searchText={searchText} setSearchText={setSearchText} handleSort={() => {}} handleFilter={()=>{}}/>
       </div>
       <div className="flex items-center gap-3">
         <img src="/svgs/rotate-clockwise.svg" alt="Load" />

@@ -92,4 +92,4 @@ const Header = () => {
   );
 };
 
-export { Header, navOptions };
+export { Header };

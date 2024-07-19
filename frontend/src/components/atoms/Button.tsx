@@ -22,6 +22,7 @@ export interface ButtonProps {
   children?: React.ReactNode;
   handleClick?: (any) => any;
   type?: 'submit' | 'button';
+  className?: string;
 }
 
 const Button: React.FC<ButtonProps> = ({
@@ -37,6 +38,7 @@ const Button: React.FC<ButtonProps> = ({
   children,
   handleClick,
   type = 'button',
+  className,
   ...props
 }) => {
   const buttonHeight = {
@@ -49,7 +51,7 @@ const Button: React.FC<ButtonProps> = ({
 
   return (
     <MUIButton
-      className={`rounded-3xl bg-blue-800 font-poppins capitalize ${size}`}
+      className={`rounded-3xl bg-blue-800 font-poppins capitalize ${className}`}
       style={{
         height: buttonHeight,
         width: width,

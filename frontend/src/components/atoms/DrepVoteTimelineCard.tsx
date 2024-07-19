@@ -14,9 +14,9 @@ const VoteStatusChip = ({ date }: { date: string }) => {
     </div>
   );
 };
-const DrepTimelineCard = ({ item }: { item: any }) => {
+const DrepVoteTimelineCard = ({ item }: { item: any }) => {
   return (
-    <div id='epoch-card' className="flex max-w-md flex-col gap-3 rounded-xl bg-white p-5 shadow-lg">
+    <div id='epoch-card' className="flex max-w-md flex-col gap-3 rounded-xl bg-white p-3 shadow-lg">
       <VoteStatusChip date={item.time_voted} />
       <hr />
       <div className="flex max-w-52 flex-col gap-1">
@@ -48,4 +48,4 @@ const DrepTimelineCard = ({ item }: { item: any }) => {
   );
 };
 
-export default DrepTimelineCard;
+export default DrepVoteTimelineCard;
