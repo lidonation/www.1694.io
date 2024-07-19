@@ -136,6 +136,7 @@ export class DrepService {
     const drepVotingHistory = await this.getDrepTimeline(
       drep[0].drep_id,
       drepVoterId,
+      1719705600000,
     );
     const drepDelegators =
       await this.getDrepDelegatorsWithVotingPower(drepVoterId);
@@ -413,7 +414,6 @@ export class DrepService {
 
     // Use Promise.all to ensure all asynchronous operations complete
     allNotes = await Promise.all(
-
       allNotes.map(async (note) => {
         // Extract image IDs from note_content
         const imgTagMatches =
