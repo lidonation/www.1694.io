@@ -3,6 +3,9 @@ import SearchBar from '../atoms/SearchBar';
 import DrepTimelineCard from '../atoms/DrepVoteTimelineCard';
 import DrepTimelineWaterfall from './DrepTimelineWaterfall';
 import DrepTabGroup from '../atoms/DrepTabGroup';
+import Link from 'next/link';
+import Button from '../atoms/Button';
+import { useCardano } from '@/context/walletContext';
 const ProfileClaimedChip = ({ claimedAddress }) => {
   return (
     <div className="flex flex-col gap-1 rounded-xl bg-yellow-500 px-3 py-2 ">
@@ -22,7 +25,6 @@ const ProfileClaimedChip = ({ claimedAddress }) => {
 
 const DrepTimeline = ({
   drepId,
-  latestEpoch,
   cexplorerDetails,
   activity,
 }: {
@@ -32,25 +34,30 @@ const DrepTimeline = ({
   activity: any[];
 }) => {
   const [searchText, setSearchText] = useState('');
+  const { dRepIDBech32 } = useCardano();
+  console.log(cexplorerDetails , dRepIDBech32)
   return (
     <div className="flex h-full w-full flex-col gap-5 bg-white px-5 py-3">
       <div className="flex flex-col items-center gap-2 sm:flex-row sm:justify-between">
         <p className="w-full text-2xl font-bold sm:w-auto lg:text-3xl">
           Timeline
         </p>
-        <SearchBar searchText={searchText} setSearchText={setSearchText} handleSort={() => {}} handleFilter={()=>{}}/>
+        <SearchBar
+          searchText={searchText}
+          setSearchText={setSearchText}
+          handleSort={() => {}}
+          handleFilter={() => {}}
+        />
       </div>
-      <div className="flex items-center gap-3">
-        <img src="/svgs/rotate-clockwise.svg" alt="Load" />
-        <p className="text-2xl font-bold">Epoch {latestEpoch}</p>
-      </div>
-      
-      {
-        drepId &&
-        <ProfileClaimedChip claimedAddress={drepId} />
-      }
-     
-      <DrepTimelineWaterfall activity={activity} epochOfRegistration={cexplorerDetails?.epoch_of_registration}/>
+      {cexplorerDetails?.view == dRepIDBech32 && (
+        <Button className="flex w-fit items-center">
+          <Link href={`/dreps/workflow/notes/new`}>Add a note</Link>
+        </Button>
+      )}
+
+      {drepId && <ProfileClaimedChip claimedAddress={drepId} />}
+
+      <DrepTimelineWaterfall activity={activity} />
     </div>
   );
 };

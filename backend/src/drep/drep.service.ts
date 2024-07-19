@@ -23,11 +23,6 @@ export class DrepService {
   ) {}
   //get from cexplorer db
   async getAllDrepsCexplorer() {
-        console.log('dbsync::', this.configService.get<string>(
-            'BLOCKFROST_SANCHONET_PROJECT_ID',
-        ));
-      console.log('dbsync_db::', this.configService.get('DATABASE_HOST_DBSYNC', 'dbsync_db'));
-
     const drepList = await this.cexplorerService.manager.query(
       `WITH RankedRows AS (
           SELECT 
@@ -290,6 +285,45 @@ export class DrepService {
     );
     return drepCexplorer[0];
   }
+  async getDrepDateofRegistration(drepVoterId: string) {
+    const viewParam = drepVoterId;
+    const drepRegistrationData = await this.cexplorerService.manager.query(
+      `WITH RankedRows AS (
+          SELECT 
+              dh.id AS drep_hash_id, 
+              reg_tx_bk.time AS date_of_registration,
+              reg_tx_bk.epoch_no AS epoch_of_registration,
+              ROW_NUMBER() OVER (PARTITION BY dh.id ORDER BY dd.epoch_no DESC) AS RowNum
+          FROM 
+              drep_hash AS dh
+          LEFT JOIN 
+              drep_distr AS dd ON dh.id = dd.hash_id
+          LEFT JOIN 
+              drep_registration AS dr ON dh.id = dr.drep_hash_id
+          LEFT JOIN 
+              voting_anchor AS va ON dr.voting_anchor_id = va.id
+          LEFT JOIN 
+              delegation_vote AS dv ON dh.id = dv.drep_hash_id 
+          LEFT JOIN 
+              tx AS reg_tx ON dr.tx_id = reg_tx.id 
+          LEFT JOIN 
+              block AS reg_tx_bk ON reg_tx.block_id = reg_tx_bk.id 
+          LEFT JOIN
+              stake_address AS sa ON dv.addr_id = sa.id 
+          WHERE 
+              dh.view = $1
+      )
+      SELECT 
+          date_of_registration,
+          epoch_of_registration
+      FROM 
+          RankedRows
+      WHERE 
+          RowNum = 1`,
+      [viewParam],
+    );
+    return drepRegistrationData[0];
+  }
   async getDrepTimeline(
     drepId: number,
     drepVoterId: string,
@@ -309,6 +343,8 @@ export class DrepService {
       ? new Date(tillDate)
       : new Date(new Date(startingTime).getTime() - 432000000); // 5 days ago
     const epochs = await this.getEpochs(startingTime, endingTime);
+    const drepRegData = await this.getDrepDateofRegistration(drepVoterId);
+    const regDate = new Date(drepRegData?.date_of_registration).getTime();
     const drepVotingHistory = await this.getDrepVotingActivity(
       drepVoterId,
       startingTime,
@@ -343,7 +379,14 @@ export class DrepService {
         timestamp: note.note_createdAt,
       })),
     ];
-
+    // Add the registration event if it falls within the time range
+    if (startingTime.getTime() > regDate && endingTime.getTime() < regDate) {
+      drepActivity.push({
+        type: 'registration',
+        timestamp: drepRegData.date_of_registration,
+        epoch_no: drepRegData.epoch_of_registration,
+      });
+    }
     // Sort the combined array by timestamp from latest to earliest
     drepActivity.sort(
       (a, b) =>
@@ -423,9 +466,8 @@ export class DrepService {
     beforeDate: Date,
     tillDate: Date,
     stakeKeyBech32?: string,
-    delegation?,
+    delegation?: any,
   ) {
-
     const queryBuilder = await this.voltaireService
       .getRepository('Note')
       .createQueryBuilder('note')

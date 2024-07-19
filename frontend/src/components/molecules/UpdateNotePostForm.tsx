@@ -26,7 +26,7 @@ const UpdateNotePostForm = ({ register, control, errors }) => {
       />
       <MarkdownEditor name="postText" control={control} errors={errors} />
       <PostVisiblityInput registerVisibility={register} errors={errors} />
-      <PostSubmitArea />
+      <PostSubmitArea isUpdating={true} />
     </div>
   );
 };
