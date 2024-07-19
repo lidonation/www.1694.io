@@ -1,4 +1,5 @@
 'use client';
+import ViewDraftsButton from '@/components/molecules/ViewDraftsButton';
 import UpdateNoteForm from '@/components/organisms/UpdateNoteForm';
 import { useDRepContext } from '@/context/drepContext';
 import { useCardano } from '@/context/walletContext';
@@ -33,9 +34,9 @@ const page = (params: { params: { noteid: number } }) => {
             <h2 className="w-[85%] shrink grow basis-0 text-4xl font-bold leading-10">
               Update Note
             </h2>
-            {/* <div className="flex items-center justify-center w-[15%] text-base font-medium leading-4 text-center">
-              <ViewDraftsButton />
-            </div> */}
+            <div className="flex items-center justify-center w-[15%] text-base font-medium leading-4 text-center">
+              <ViewDraftsButton isUpdating={true} />
+            </div>
           </div>
           <UpdateNoteForm
             noteId={params.params.noteid}

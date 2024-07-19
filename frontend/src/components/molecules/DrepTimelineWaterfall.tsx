@@ -14,10 +14,8 @@ import DrepVoteTimelineCard from '../atoms/DrepVoteTimelineCard';
 
 export default function DrepTimelineWaterfall({
   activity = [],
-  epochOfRegistration = null,
 }: {
   activity: any[];
-  epochOfRegistration: number;
 }) {
   const { isMobile, screenWidth } = useScreenDimension();
   const { stakeKeyBech32, isEnabled } = useCardano();
@@ -76,7 +74,22 @@ export default function DrepTimelineWaterfall({
                 <EpochTimelineCard epoch={item} />
               </div>
             )}
-            {item.type !== 'note' && item.type !== 'epoch' && (
+            {item.type === 'registration' && (
+              <div className="flex w-full flex-col items-center space-y-2">
+                <TimelineSeparator>
+                  <TimelineDot />
+                  <TimelineConnector
+                    className="h-10 border-2 border-dotted border-gray-300"
+                    sx={{ backgroundColor: 'white' }}
+                  />
+                </TimelineSeparator>
+                <div className="flex flex-row items-center justify-center gap-2 text-nowrap text-gray-500">
+                  <img src="/svgs/loader.svg" alt="" />
+                  <p>Registered, Epoch {item?.epoch_no}</p>
+                </div>
+              </div>
+            )}
+            {item.type === 'voting_activity' && (
               <TimelineItem key={epochIndex}>
                 <TimelineSeparator>
                   <TimelineDot />
@@ -92,22 +105,6 @@ export default function DrepTimelineWaterfall({
             )}
           </>
         ))}
-
-      {epochOfRegistration !== null && (
-        <div className="flex w-full flex-col items-center space-y-2">
-          <TimelineSeparator>
-            <TimelineDot />
-            <TimelineConnector
-              className="h-10 border-2 border-dotted border-gray-300"
-              sx={{ backgroundColor: 'white' }}
-            />
-          </TimelineSeparator>
-          <div className="flex flex-row items-center justify-center gap-2 text-nowrap text-gray-500">
-            <img src="/svgs/loader.svg" alt="" />
-            <p>Registered, Epoch {epochOfRegistration}</p>
-          </div>
-        </div>
-      )}
     </Timeline>
   );
 }
