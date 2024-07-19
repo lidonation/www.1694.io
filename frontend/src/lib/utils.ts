@@ -10,7 +10,7 @@ export const sumTestExample = (a, b) => {
   return a + b;
 };
 export function convertString(inputString: string, isMobile: boolean) {
-  if (inputString.length <= 10) {
+  if (typeof  inputString === 'undefined' || inputString?.length <= 10) {
     return inputString; // If the string is too short, no replacement is needed
   }
   //the string will be truncated per mobile width
