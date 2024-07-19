@@ -10,8 +10,10 @@ import { CommentsService } from 'src/comments/comments.service';
 import { ReactionsService } from 'src/reactions/reactions.service';
 
 @Module({
-  imports: [ TypeOrmModule.forFeature([Drep, Attachment, Note], 'default'),
-  TypeOrmModule.forFeature([], 'dbsync')],
+  imports: [
+    TypeOrmModule.forFeature([Drep, Attachment, Note], 'default'),
+    TypeOrmModule.forFeature([], 'dbsync'),
+  ],
   controllers: [DrepController],
   providers: [DrepService, AttachmentService, CommentsService, ReactionsService],
 })
