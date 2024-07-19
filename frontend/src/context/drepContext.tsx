@@ -2,7 +2,6 @@ import { ChooseWalletModal } from '@/components/organisms';
 import { NotDRepErrorModal } from '@/components/organisms/NotDRepErrorModal';
 import { createContext, useContext, useMemo, useState, useEffect, useCallback } from 'react';
 import { useSharedContext } from './sharedContext';
-import { navOptions } from '@/components/atoms/Header';
 import { SliderMenu } from '@/components/organisms/SliderMenu';
 import { UserLoginModal } from '@/components/organisms/UserLoginModal';
 import { decodeToken, getItemFromLocalStorage, removeItemFromLocalStorage } from '@/lib';
@@ -170,12 +169,12 @@ function DRepProvider(props: Props) {
           <NotDRepErrorModal />
         </div>
       )}
-      {sharedState.isMobileDrawerOpen && (
+      {/* {sharedState.isMobileDrawerOpen && (
         <SliderMenu
           options={navOptions}
           handleClose={() => setIsMobileDrawerOpen(false)}
         />
-      )}
+      )} */}
       {loginModalOpen && (
         <div className="blur-container fixed left-0 top-0  z-50 flex h-screen w-full items-center justify-center">
           <UserLoginModal />

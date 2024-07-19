@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { AttachmentService } from 'src/attachment/attachment.service';
 import { CommentsService } from 'src/comments/comments.service';
+import { Delegation, StakeKeys } from 'src/common/types';
 import { DrepService } from 'src/drep/drep.service';
 import { createNoteDto } from 'src/dto';
 import { ReactionsService } from 'src/reactions/reactions.service';
@@ -14,26 +15,33 @@ export class NoteService {
     private drepService: DrepService,
     private attachmentService: AttachmentService,
     private reactionsService: ReactionsService,
-    private commentsService: CommentsService
+    private commentsService: CommentsService,
   ) {}
-  async getAllNotes() {
-    let allNotes = await this.voltaireService
-      .getRepository('Note')
-      .createQueryBuilder('note')
-      .leftJoinAndSelect('drep', 'drep', 'drep.id = note.voterId')
-      .getRawMany();
-  
+  async getAllNotes(stakeKeyBech32?: string, delegation?: Delegation) {
+    let allNotes = await this.getNotesWithVisibility(
+      delegation,
+      stakeKeyBech32,
+    );
+
     // Used Promise.all to ensure all asynchronous operations complete
-    allNotes = await Promise.all(allNotes.map(async (note) => {  
-      // Get reactions and comments
-      const reactions = await this.reactionsService.getReactions(note.note_id, 'note');
-      const comments = await this.commentsService.getComments(note.note_id, 'note');
-      // Add reactions and comments to the note
-      return { ...note, reactions: reactions, comments: comments };
-    }));
+    allNotes = await Promise.all(
+      allNotes.map(async (note) => {
+        // Get reactions and comments
+        const reactions = await this.reactionsService.getReactions(
+          note.note_id,
+          'note',
+        );
+        const comments = await this.commentsService.getComments(
+          note.note_id,
+          'note',
+        );
+        // Add reactions and comments to the note
+        return { ...note, reactions: reactions, comments: comments };
+      }),
+    );
     return allNotes;
   }
-  
+
   async getSingleNote(noteId: string) {
     const numifiedNoteId = Number(noteId);
     const note = await this.voltaireService.getRepository('Note').findOne({
@@ -79,5 +87,42 @@ export class NoteService {
     } else {
       return new NotFoundException('DRep associated with note not found!');
     }
+  }
+
+  private async getNotesWithVisibility(delegation?, stakeKeyBech32?: string) {
+
+    const queryBuilder = this.voltaireService
+      .getRepository('Note')
+      .createQueryBuilder('note')
+      .leftJoinAndSelect('note.voter', 'drep')
+      .leftJoin('drep.signatures', 'signature');
+
+    // Basic query for notes with visibility 'everyone'
+    queryBuilder.where('note.note_visibility = :everyone', {
+      everyone: 'everyone',
+    });
+
+    // 'delegators' visibility
+    if (delegation) {
+      queryBuilder.orWhere(
+        'note.note_visibility = :delegators AND signature.drepVoterId = :drepVoterId',
+        {
+          delegators: 'delegators',
+          drepVoterId: delegation.drep_view,
+        },
+      );
+    }
+    // 'myself' visibility
+    if (stakeKeyBech32) {
+      queryBuilder.orWhere(
+        'note.note_visibility = :myself AND signature.drepStakeKey = :stakeKeyBech32',
+        {
+          myself: 'myself',
+          stakeKeyBech32: stakeKeyBech32,
+        },
+      );
+    }
+
+    return queryBuilder.getRawMany();
   }
 }

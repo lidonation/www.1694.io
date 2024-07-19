@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   Post,
+  Query,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -11,10 +12,15 @@ import {
 import { createDrepDto } from 'src/dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { DrepService } from './drep.service';
+import { VoterService } from 'src/voter/voter.service';
+import { Delegation, StakeKeys } from 'src/common/types';
 
 @Controller('dreps')
 export class DrepController {
-  constructor(private drepService: DrepService) {}
+  constructor(
+    private drepService: DrepService,
+    private voterService: VoterService,
+  ) {}
   @Get('')
   getAll() {
     return this.drepService.getAllDreps();
@@ -24,12 +30,39 @@ export class DrepController {
     return this.drepService.getEpochParams();
   }
   @Get(':id/drep')
-  getSingle(@Param('id') drepId: number) {
-    return this.drepService.getSingleDrepViaID(drepId);
+  async getSingle(@Param('id') drepId: number, @Query() stakeKeys?: StakeKeys) {
+    const { stakeKey, stakeKeyBech32 } = stakeKeys;
+
+    let delegation: Delegation = null;
+
+    if (stakeKey) {
+      delegation =
+        await this.voterService.getAdaHolderCurrentDelegation(stakeKey);
+    }
+    return this.drepService.getSingleDrepViaID(
+      drepId,
+      stakeKeyBech32,
+      delegation,
+    );
   }
   @Get(':voterId/voter')
-  getSingleViaVoterId(@Param('voterId') voterId: string) {
-    return this.drepService.getSingleDrepViaVoterID(voterId);
+  async getSingleViaVoterId(
+    @Param('voterId') voterId: string,
+    @Query() stakeKeys?: StakeKeys,
+  ) {
+    const { stakeKey, stakeKeyBech32 } = stakeKeys;
+
+    let delegation: Delegation = null;
+
+    if (stakeKey) {
+      delegation =
+        await this.voterService.getAdaHolderCurrentDelegation(stakeKey);
+    }
+    return this.drepService.getSingleDrepViaVoterID(
+      voterId,
+      stakeKeyBech32,
+      delegation,
+    );
   }
   @Post('new')
   @UseInterceptors(FileInterceptor('profileUrl'))

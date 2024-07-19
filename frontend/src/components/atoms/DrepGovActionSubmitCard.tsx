@@ -69,6 +69,12 @@ const DrepGovActionSubmitCard = ({
           };
           break;
         default:
+          style = {
+            borderColor: 'border-[#6FDF8E]',
+            bgColor: 'bg-[#6FDF8E]',
+            imgSrc: '/svgs/users-group.svg',
+            actionName:actionType
+          };
           // Handle other cases
           console.log('Default case');
           break;

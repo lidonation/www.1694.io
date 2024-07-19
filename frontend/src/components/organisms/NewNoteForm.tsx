@@ -24,12 +24,11 @@ const NewNoteForm = () => {
   const {
     register,
     handleSubmit,
-    reset,
-    setValue,
     control,
     formState: { errors },
   } = useForm<InputType>({
     resolver: zodResolver(FormSchema),
+    defaultValues: { postText: '' },
   });
   const { isEnabled, dRepIDBech32, stakeKey } = useCardano();
   const router = useRouter();
@@ -67,11 +66,7 @@ const NewNoteForm = () => {
       className="mb-48 mt-4 rounded-3xl bg-slate-50 p-5 shadow-lg"
       onSubmit={handleSubmit(saveNote, onError)}
     >
-      <NewNotePostForm
-        register={register}
-        control={control}
-        errors={errors}
-      />
+      <NewNotePostForm register={register} control={control} errors={errors} />
     </form>
   );
 };

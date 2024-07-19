@@ -9,7 +9,7 @@ import { postAddComment } from '@/services/requests/postAddComment';
 import { convertString } from '@/lib';
 import { postRemoveReaction } from '@/services/requests/postRemoveReaction';
 import { postAddReaction } from '@/services/requests/postAddReaction';
-
+import * as marked from 'marked'
 type CommentProps = {
   comment: any; // Replace `any` with your comment type
   currentVoter: string;
@@ -46,6 +46,9 @@ const Comment: React.FC<CommentProps> = ({
     formState: { errors },
   } = useForm<InputType>({
     resolver: zodResolver(FormSchema),
+    defaultValues: {
+      comment: '',
+    }
   });
 
   type InputType = z.infer<typeof FormSchema>;
@@ -151,7 +154,7 @@ const Comment: React.FC<CommentProps> = ({
         {convertString(comment.voter, true)}
       </Typography>
       <Typography
-        dangerouslySetInnerHTML={{ __html: comment.content }}
+        dangerouslySetInnerHTML={{ __html: marked.parse(comment.content) }}
         variant="caption"
       ></Typography>
       <div className="flex flex-col justify-start gap-3 md:gap-5 md:flex-row">

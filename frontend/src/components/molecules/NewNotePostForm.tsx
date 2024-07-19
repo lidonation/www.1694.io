@@ -1,11 +1,9 @@
 import React from 'react';
 import PostInput from '../atoms/PostInput';
 import PostSubmitArea from '../atoms/PostSubmitArea';
-import PostTextareaInput from '../atoms/PostTextareaInput';
 import PostVisiblityInput from '../atoms/PostVisiblityInput';
-import { Autocomplete, Chip, TextField } from '@mui/material';
 import CustomAutocomplete from '../atoms/PostAutoComplete';
-
+import MarkdownEditor from '../atoms/MarkdownEditor';
 const NewNotePostForm = ({ register, control, errors }) => {
   return (
     <div className="mt-3 flex flex-col gap-3">
@@ -26,7 +24,7 @@ const NewNotePostForm = ({ register, control, errors }) => {
         errors={errors}
         dataTestId={'post-tag-input'}
       />
-      <PostTextareaInput control={control} errors={errors} />
+      <MarkdownEditor name='postText' control={control} errors={errors} />
       <PostVisiblityInput registerVisibility={register} errors={errors} />
       <PostSubmitArea />
     </div>

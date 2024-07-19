@@ -7,10 +7,11 @@ import { AttachmentService } from 'src/attachment/attachment.service';
 import { DrepService } from 'src/drep/drep.service';
 import { ReactionsService } from 'src/reactions/reactions.service';
 import { CommentsService } from 'src/comments/comments.service';
+import { VoterService } from 'src/voter/voter.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Note])],
   controllers: [NoteController],
-  providers: [NoteService, AttachmentService, DrepService, ReactionsService, CommentsService],
+  providers: [NoteService, AttachmentService, DrepService, ReactionsService, CommentsService, VoterService],
 })
 export class NoteModule {}

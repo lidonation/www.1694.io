@@ -8,8 +8,8 @@ export class VoterService {
     @InjectDataSource('dbsync')
     private cexplorerService: DataSource,
   ) {}
-  getAdaHolderCurrentDelegation(stakeKey: string) {
-    const delegation = this.cexplorerService.manager.query(
+  async getAdaHolderCurrentDelegation(stakeKey: string) {
+    const delegation = await this.cexplorerService.manager.query(
       `SELECT
           CASE
               WHEN drep_hash.raw IS NULL THEN NULL
@@ -35,6 +35,6 @@ export class VoterService {
           )
       LIMIT 1;`,
     );
-    return delegation;
+    return delegation[0];
   }
 }

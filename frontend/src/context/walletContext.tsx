@@ -24,7 +24,6 @@ import {
 } from "@emurgo/cardano-serialization-lib-asmjs";
 import { Buffer } from 'buffer';
 
-
 import {
   getPubDRepID,
   WALLET_LS_KEY,
@@ -553,6 +552,12 @@ function CardanoProvider(props: Props) {
     setWalletApi(undefined);
     setAddress(undefined);
     setStakeKey(undefined);
+    setStakeKeyBech32(undefined);
+    setVoter(undefined);
+    setDelegatedDRepID(undefined);
+    setPubDRepKey(undefined);
+    setDRepID(undefined);
+    setDRepIDBech32(undefined);
     setIsEnabled(false);
   }, []);
 

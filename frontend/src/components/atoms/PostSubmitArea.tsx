@@ -5,7 +5,7 @@ import { useCardano } from '@/context/walletContext';
 const PostSubmitArea = () => {
   const { isEnabled } = useCardano();
   return (
-    <div className="flex w-full lg:w-[80%] flex-row items-center justify-between">
+    <div className="flex w-full flex-row items-center justify-between">
       <div className="ml-5 flex items-center justify-center">
         <Button
           variant="text"

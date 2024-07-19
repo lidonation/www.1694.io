@@ -1,20 +1,19 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Button from '../atoms/Button';
-import { useScreenDimension } from '@/hooks';
-import { HtmlTooltip } from '../atoms/HoverChip';
-import { urls } from '@/constants';
-import axiosInstance from '@/services/axiosInstance';
 import { CircularProgress } from '@mui/material';
 import DrepGovActionSubmitCard from '../atoms/DrepGovActionSubmitCard';
+import { MDXEditorMethods } from '@mdxeditor/editor';
 interface ProposalActionFormProps {
   nullify: () => void;
   setProposalHashPayload?: (payload: any) => void;
+  editor?: MDXEditorMethods | any; //any type of editor
 }
 const ProposalActionForm = ({
   nullify,
   setProposalHashPayload,
+  editor,
 }: ProposalActionFormProps) => {
-  const [proposals, setProposals] = useState(null);
+  const [proposals, setProposals] = useState(null); // only hashes
   const [fetchedProposals, setFetchedProposals] = useState(null);
   const [currentHash, setCurrentHash] = useState('');
   const [isFetching, setIsFetching] = useState(false);
@@ -113,7 +112,10 @@ const ProposalActionForm = ({
   };
   const uploadProposal = async () => {
     try {
-      setProposalHashPayload(proposals);
+      const markdown = `[gov_action hash='${proposals[0]}']`;
+      if (editor) {
+        editor.insertMarkdown(markdown);
+      } else setProposalHashPayload([markdown]);
       setProposals(null);
       nullify();
     } catch (error) {
@@ -166,7 +168,7 @@ const ProposalActionForm = ({
       </p>
       <div className="mt-3 flex max-h-52 flex-col gap-3 overflow-y-auto">
         {!isFetching ? (
-          (fetchedProposals && fetchedProposals.length>0)? (
+          fetchedProposals && fetchedProposals.length > 0 ? (
             fetchedProposals.map((proposal, index) => (
               <div
                 className="flex cursor-pointer items-center justify-center"

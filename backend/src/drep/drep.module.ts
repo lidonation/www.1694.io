@@ -8,6 +8,7 @@ import { AttachmentService } from 'src/attachment/attachment.service';
 import { Note } from 'src/entities/note.entity';
 import { CommentsService } from 'src/comments/comments.service';
 import { ReactionsService } from 'src/reactions/reactions.service';
+import { VoterService } from 'src/voter/voter.service';
 
 @Module({
   imports: [
@@ -15,6 +16,12 @@ import { ReactionsService } from 'src/reactions/reactions.service';
     TypeOrmModule.forFeature([], 'dbsync'),
   ],
   controllers: [DrepController],
-  providers: [DrepService, AttachmentService, CommentsService, ReactionsService],
+  providers: [
+    DrepService,
+    AttachmentService,
+    CommentsService,
+    ReactionsService,
+    VoterService,
+  ],
 })
 export class DrepModule {}

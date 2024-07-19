@@ -5,17 +5,20 @@ import { HtmlTooltip } from '../atoms/HoverChip';
 import { urls } from '@/constants';
 import axiosInstance from '@/services/axiosInstance';
 import { CircularProgress } from '@mui/material';
+import { MDXEditorMethods } from '@mdxeditor/editor';
 interface MultipartDataFormProps {
   activeForm: string;
-  nullify: () => void;
   setImagePayload?: (payload: any) => void;
   setLinkPayload?: (payload: any) => void;
+  nullify: () => void;
+  editor?: MDXEditorMethods | any; // any type of editor
 }
 const MultipartDataForm = ({
   activeForm,
-  nullify,
   setImagePayload,
   setLinkPayload,
+  nullify,
+  editor,
 }: MultipartDataFormProps) => {
   const [files, setFiles] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -25,7 +28,6 @@ const MultipartDataForm = ({
   const [currentLinkTitle, setCurrentLinkTitle] = useState('');
   const [currentLinkURL, setCurrentLinkURL] = useState('');
   const formRef = useRef<HTMLDivElement>(null);
-  const { isMobile, screenWidth } = useScreenDimension();
   const formatFileSize = (sizeInBytes) => {
     const kiloBytes = sizeInBytes / 1024;
     const megaBytes = kiloBytes / 1024;
@@ -110,21 +112,6 @@ const MultipartDataForm = ({
       });
     });
   };
-  const toBase64 = (file: File) => {
-    return new Promise((resolve, reject) => {
-      const fileReader = new FileReader();
-
-      fileReader.readAsDataURL(file);
-
-      fileReader.onload = () => {
-        resolve(fileReader.result);
-      };
-
-      fileReader.onerror = (error) => {
-        reject(error);
-      };
-    });
-  };
   const uploadFilesAndSendIds = async () => {
     try {
       setIsUploading(true);
@@ -143,27 +130,51 @@ const MultipartDataForm = ({
         }),
       );
       setIsUploading(false);
+      insertedFiles.forEach((file) => {
+        const encodedFileName = encodeURIComponent(file.name);
+        const markdown = file.type.includes('pdf')
+          ? `[pdf](${urls.baseServerUrl}/api/attachments/${encodedFileName})`
+          : `![image](${urls.baseServerUrl}/api/attachments/${encodedFileName})`;
+        if (editor)
+          editor.focus(
+            () => {
+              editor.insertMarkdown(markdown);
+            },
+            {
+              defaultSelection: 'rootEnd',
+            },
+          );
+        file['markdown'] = markdown;
+        return file;
+      });
+      setImagePayload(insertedFiles);
       setFiles(null);
       setPreview(null);
-      setImagePayload(insertedFiles);
       nullify();
     } catch (error) {
       console.log(error);
+      setIsUploading(false);
     }
   };
   const sendLink = () => {
+    let linksToInsert = [];
     if (!links || links.length === 0) {
-      setLinkPayload([{ title: currentLinkTitle, url: currentLinkURL }]);
-      setCurrentLinkTitle('');
-      setCurrentLinkURL('');
-      nullify();
-      return;
+      linksToInsert = [{ title: currentLinkTitle, url: currentLinkURL }];
+    } else {
+      linksToInsert = links;
     }
-    if (links && links.length > 0) {
-      setLinkPayload(links);
-      setLinks(null);
-      nullify();
-    }
+
+    linksToInsert.forEach((link) => {
+      const markdown = `[${link.title}](${link.url})`;
+      if (editor) editor.insertMarkdown(markdown);
+      link['markdown'] = markdown;
+      return link;
+    });
+    if (!editor) setLinkPayload(linksToInsert);
+    setCurrentLinkTitle('');
+    setCurrentLinkURL('');
+    setLinks(null);
+    nullify();
   };
   // Handle clicks/taps outside the form
   useEffect(() => {
@@ -189,7 +200,7 @@ const MultipartDataForm = ({
   return (
     <div
       ref={formRef}
-      className={`flex min-h-[8.75rem] w-full flex-col rounded-lg bg-white p-5 shadow-lg text-nowrap`}
+      className={`flex min-h-[8.75rem] w-full flex-col text-nowrap rounded-lg bg-white p-5 shadow-lg`}
     >
       {activeForm === 'image' ? (
         <>
