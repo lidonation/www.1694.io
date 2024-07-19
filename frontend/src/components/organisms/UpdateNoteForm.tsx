@@ -29,10 +29,10 @@ const UpdateNoteForm = ({ noteId, initialValues }) => {
     formState: { errors },
   } = useForm<InputType>({
     resolver: zodResolver(FormSchema),
+    defaultValues: { postText: '' },
   });
   const mutation = usePostUpdateNoteMutation();
-  const { isEnabled, dRepIDBech32, stakeKey } = useCardano();
-  const router = useRouter();
+  const { dRepIDBech32, stakeKey } = useCardano();
   const { setIsNotDRepErrorModalOpen } = useDRepContext();
   useEffect(() => {
     if (initialValues) {

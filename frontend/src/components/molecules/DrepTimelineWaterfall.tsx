@@ -9,15 +9,12 @@ import { useScreenDimension } from '@/hooks';
 import SingleNote from '../dreps/notes/SingleNote';
 import { useCardano } from '@/context/walletContext';
 import { useDRepContext } from '@/context/drepContext';
-import { Box, Typography } from '@mui/material';
 import EpochTimelineCard from '../atoms/EpochTimelineCard';
-import MetadataUpdateTimelineCard from '../atoms/MetadataUpdateTimelineCard';
 import DrepVoteTimelineCard from '../atoms/DrepVoteTimelineCard';
-import DrepGovActionSubmitCard from '../atoms/DrepGovActionSubmitCard';
 
 export default function DrepTimelineWaterfall({
   activity = [],
-  epochOfRegistration = 0,
+  epochOfRegistration = null,
 }: {
   activity: any[];
   epochOfRegistration: number;
@@ -54,12 +51,14 @@ export default function DrepTimelineWaterfall({
                     sx={{ backgroundColor: 'white' }}
                   />
                 </TimelineSeparator>
-                <SingleNote
-                  note={item}
-                  currentVoter={stakeKeyBech32}
-                  isEnabled={isEnabled}
-                  isLoggedIn={isLoggedIn}
-                />
+                <div className="w-full">
+                  <SingleNote
+                    note={item}
+                    currentVoter={stakeKeyBech32}
+                    isEnabled={isEnabled}
+                    isLoggedIn={isLoggedIn}
+                  />
+                </div>
               </div>
             )}
             {item.type === 'epoch' && (

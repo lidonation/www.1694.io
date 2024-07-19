@@ -8,7 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 import { ReactionsService } from 'src/reactions/reactions.service';
 import { CommentsService } from 'src/comments/comments.service';
-
+import { Delegation } from 'src/common/types';
 @Injectable()
 export class DrepService {
   constructor(
@@ -118,7 +118,11 @@ export class DrepService {
     });
     return mergedDreps;
   }
-  async getSingleDrepViaID(drepId: number) {
+  async getSingleDrepViaID(
+    drepId: number,
+    stakeKeyBech32?: string,
+    delegation?: Delegation,
+  ) {
     const drep = await this.voltaireService
       .getRepository('Drep')
       .createQueryBuilder('drep')
@@ -137,7 +141,8 @@ export class DrepService {
     const drepVotingHistory = await this.getDrepTimeline(
       drep[0].drep_id,
       drepVoterId,
-      1719705600000,
+      stakeKeyBech32,
+      delegation,
     );
     const drepDelegators =
       await this.getDrepDelegatorsWithVotingPower(drepVoterId);
@@ -163,7 +168,11 @@ export class DrepService {
 
     return combinedResult;
   }
-  async getSingleDrepViaVoterID(drepVoterId: string) {
+  async getSingleDrepViaVoterID(
+    drepVoterId: string,
+    stakeKeyBech32?: string,
+    delegation?: Delegation,
+  ) {
     const drep = await this.voltaireService
       .getRepository('Drep')
       .createQueryBuilder('drep')
@@ -180,6 +189,8 @@ export class DrepService {
     const drepVotingHistory = await this.getDrepTimeline(
       drep[0]?.drep_id,
       drepVoterId,
+      stakeKeyBech32,
+      delegation,
     );
     const drepDelegators =
       await this.getDrepDelegatorsWithVotingPower(drepVoterId);
@@ -282,6 +293,8 @@ export class DrepService {
   async getDrepTimeline(
     drepId: number,
     drepVoterId: string,
+    stakeKeyBech32?: string,
+    delegation?: Delegation,
     beforeDate?: number,
     tillDate?: number,
   ) {
@@ -305,7 +318,13 @@ export class DrepService {
 
     // Retrieve notes if drepId is defined
     if (drepId) {
-      drepNotes = await this.getDRepNotes(drepId, startingTime, endingTime);
+      drepNotes = await this.getDRepNotes(
+        drepId,
+        startingTime,
+        endingTime,
+        stakeKeyBech32,
+        delegation,
+      );
     }
     const drepActivity = [
       ...epochs.map((epoch) => ({
@@ -390,7 +409,7 @@ export class DrepService {
           bk.epoch_no`,
       [viewParam, beforeDate, tillDate],
     )) as any[];
-    console.log({drepVotingHistory});
+
     return drepVotingHistory.map((item) => {
       return {
         ...item,
@@ -399,11 +418,19 @@ export class DrepService {
       };
     });
   }
-  async getDRepNotes(drepId: number, beforeDate: Date, tillDate: Date) {
-    // Convert the start and end times from seconds to timestamps
-    let allNotes = await this.voltaireService
+  async getDRepNotes(
+    drepId: number,
+    beforeDate: Date,
+    tillDate: Date,
+    stakeKeyBech32?: string,
+    delegation?,
+  ) {
+
+    const queryBuilder = await this.voltaireService
       .getRepository('Note')
       .createQueryBuilder('note')
+      .leftJoinAndSelect('note.voter', 'drep')
+      .leftJoin('drep.signatures', 'signature')
       .where('note.voterId = :drepId', { drepId })
       .andWhere(
         'note."createdAt"::DATE BETWEEN :tillDate::DATE AND :beforeDate::DATE',
@@ -411,33 +438,40 @@ export class DrepService {
           beforeDate,
           tillDate,
         },
-      )
-      .getRawMany();
+      );
+
+    // Basic query for notes with visibility 'everyone'
+    queryBuilder.andWhere('note.note_visibility = :everyone', {
+      everyone: 'everyone',
+    });
+
+    // 'delegators' visibility
+    if (delegation) {
+      queryBuilder.orWhere(
+        'note.note_visibility = :delegators AND signature.drepVoterId = :drepVoterId',
+        {
+          delegators: 'delegators',
+          drepVoterId: delegation.drep_view,
+        },
+      );
+    }
+
+    // 'myself' visibility
+    if (stakeKeyBech32) {
+      queryBuilder.orWhere(
+        'note.note_visibility = :myself AND signature.drepStakeKey = :stakeKeyBech32',
+        {
+          myself: 'myself',
+          stakeKeyBech32: stakeKeyBech32,
+        },
+      );
+    }
+
+    let allNotes = await queryBuilder.getRawMany();
 
     // Use Promise.all to ensure all asynchronous operations complete
     allNotes = await Promise.all(
       allNotes.map(async (note) => {
-        // Extract image IDs from note_content
-        const imgTagMatches =
-          note.note_note_content.match(/<img id="(\d+)" \/>/g);
-        if (imgTagMatches) {
-          for (const imgTagMatch of imgTagMatches) {
-            const idMatch = imgTagMatch.match(/id="(\d+)"/);
-            if (idMatch && idMatch[1]) {
-              const attachmentId = Number(idMatch[1]);
-              const attachment =
-                await this.attachmentService.getSingleAttachment(attachmentId);
-              if (attachment) {
-                const base64String = `data:image/${attachment.attachmentType};base64,${attachment.url}`;
-                note.note_note_content = note.note_note_content.replace(
-                  imgTagMatch,
-                  `<img id="${idMatch[1]}" src="${base64String}" />`,
-                );
-              }
-            }
-          }
-        }
-
         // Get reactions and comments
         const reactions = await this.reactionsService.getReactions(
           note.note_id,

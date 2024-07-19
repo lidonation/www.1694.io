@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Chip, Typography } from '@mui/material';
 import Button from '@/components/atoms/Button';
 import { postAddReaction } from '@/services/requests/postAddReaction';
@@ -63,7 +63,7 @@ const SingleNote = ({
       return acc;
     }, {});
     const updatedReactions = note.reactions.reduce((acc, reaction) => {
-      acc[reaction.type] = (acc[reaction.type] || 0) + 1;
+      acc[reaction.type] = (acc[reaction.type] || 0) +1;
       return acc;
     }, initialReactions);
 
@@ -159,7 +159,10 @@ const SingleNote = ({
     }
   };
 
-  const noteContent = processNoteContent(note.note_note_content);
+  const noteContent = useMemo(
+    () => processNoteContent(note.note_note_content),
+    [note.note_note_content],
+  );
 
   const reactionIcons = {
     like: '/svgs/reactions/heart.svg',

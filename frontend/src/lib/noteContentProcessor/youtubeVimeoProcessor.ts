@@ -5,10 +5,10 @@ export const youtubeVimeoProcessor = (content: string) => {
     /\[([^\]]+)\]\((?:<a[^>]*href=")?(https?:\/\/(?:www\.)?vimeo\.com\/([^\s)]+))(?:\"[^>]*>.*?<\/a>)?\)/g;
 
   const youtubeEmbed = (id: string, text: string) =>
-    `<div class="aspect-video">
+    `<div class="aspect-video my-4">
       <iframe 
         style="display: block !important; visibility: visible !important;" 
-        class="w-full h-full rounded-xl" 
+        class="w-full h-full rounded-lg" 
         src="https://www.youtube.com/embed/${id}" 
         title="${text}" 
         frameborder="0" 
@@ -24,10 +24,10 @@ export const youtubeVimeoProcessor = (content: string) => {
       </iframe>
     </div>`;
   const vimeoEmbed = (id: string) =>
-    `<div class="aspect-video">
+    `<div class="aspect-video my-4">
       <iframe 
         style="display: block !important; visibility: visible !important;" 
-        class="w-full h-full rounded-xl" 
+        class="w-full h-full rounded-lg" 
         src="https://player.vimeo.com/video/${id}" 
         frameborder="0" 
         allow="autoplay; 
