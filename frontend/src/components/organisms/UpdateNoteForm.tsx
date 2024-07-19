@@ -8,6 +8,7 @@ import { SubmitHandler, useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import UpdateNotePostForm from '../molecules/UpdateNotePostForm';
 import { usePostUpdateNoteMutation } from '@/hooks/usePostUpdateNoteMutation';
+import { useGlobalNotifications } from '@/context/globalNotificationContext';
 
 const FormSchema = z.object({
   postTitle: z
@@ -34,6 +35,7 @@ const UpdateNoteForm = ({ noteId, initialValues }) => {
   const mutation = usePostUpdateNoteMutation();
   const { dRepIDBech32, stakeKey } = useCardano();
   const { setIsNotDRepErrorModalOpen } = useDRepContext();
+  const { addSuccessAlert, addErrorAlert } = useGlobalNotifications();
   useEffect(() => {
     if (initialValues) {
       setValue('postTitle', initialValues?.note_title);
@@ -61,7 +63,9 @@ const UpdateNoteForm = ({ noteId, initialValues }) => {
         voter: dRepIDBech32,
       };
       const res = mutation.mutateAsync({ noteId: noteId, note: updatedNote });
+      addSuccessAlert('Note Updated Successfully!');
     } catch (error) {
+      addErrorAlert('Error updating note');
       console.log(error);
     }
   };

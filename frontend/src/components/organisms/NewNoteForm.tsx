@@ -8,6 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import { usePostNewNoteMutation } from '@/hooks/usePostNewNoteMutation';
+import { useGlobalNotifications } from '@/context/globalNotificationContext';
 const FormSchema = z.object({
   postTitle: z
     .string()
@@ -34,6 +35,7 @@ const NewNoteForm = () => {
   const router = useRouter();
   const mutation = usePostNewNoteMutation();
   const { setIsNotDRepErrorModalOpen } = useDRepContext();
+  const { addSuccessAlert, addErrorAlert } = useGlobalNotifications();
   const saveNote: SubmitHandler<InputType> = async (data) => {
     try {
       if (!dRepIDBech32 || dRepIDBech32 == '') {
@@ -54,7 +56,9 @@ const NewNoteForm = () => {
       };
       const { noteAdded } = await mutation.mutateAsync({ note: newNote });
       router.push(`/dreps/workflow/notes/${noteAdded}/update`);
+      addSuccessAlert('Note Created Successfully!');
     } catch (error) {
+      addErrorAlert('Note Creation Failed!');
       console.log(error);
     }
   };
