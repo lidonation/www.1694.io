@@ -26,7 +26,7 @@ export const DelegatedTo = memo(({ className }: DelegatedToProps) => {
 
   return (
     <Box
-      className={`flex flex-col space-y-2 bg-blue-800 px-4 py-2 text-white md:px-10 ${className}`}
+      className={`flex flex-col space-y-2 bg-blue-800 px-3 py-3 text-white md:px-3 ${className}`}
     >
       <Box className="flex w-full justify-start">
         <Typography
@@ -70,9 +70,6 @@ export const DelegatedTo = memo(({ className }: DelegatedToProps) => {
         {!currentDelegation && (
           <Box className="space-y-2">
             <Box className="space-y-1">
-              <Typography fontWeight={600} fontSize="0.85rem">
-                No DRep data available.
-              </Typography>
               <Typography
                 fontSize="0.75rem"
                 fontWeight={600}

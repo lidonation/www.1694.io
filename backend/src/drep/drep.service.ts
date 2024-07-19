@@ -23,13 +23,6 @@ export class DrepService {
   ) {}
   //get from cexplorer db
   async getAllDrepsCexplorer() {
-    console.log(
-        'db_sync::',
-        this.configService.get(
-            'DATABASE_PASSWORD_DBSYNC',
-            'v8hlDV0yMAHHlIurYupj',
-        )
-    );
     const drepList = await this.cexplorerService.manager.query(
       `WITH RankedRows AS (
           SELECT 
@@ -98,10 +91,11 @@ export class DrepService {
     });
   }
   async getAllDRepsVoltaire() {
-    return await this.voltaireService.getRepository('Drep')
-    .createQueryBuilder('drep')
-    .leftJoinAndSelect('signature', 'signature', 'signature.drepId = drep.id')
-    .getRawMany()
+    return await this.voltaireService
+      .getRepository('Drep')
+      .createQueryBuilder('drep')
+      .leftJoinAndSelect('signature', 'signature', 'signature.drepId = drep.id')
+      .getRawMany();
   }
   async getAllDreps() {
     // get both dreps from voltaire and cexplorer matching drep.view from cexplorer with drep.voter_id from voltaire
@@ -292,8 +286,8 @@ export class DrepService {
     //get voting activity
     //get notes
     // TODO: get delegating activity across a certain epoch
-    let startingTime = beforeDate ? new Date(beforeDate) : new Date();
-    let endingTime = tillDate
+    const startingTime = beforeDate ? new Date(beforeDate) : new Date();
+    const endingTime = tillDate
       ? new Date(tillDate)
       : new Date(new Date(startingTime).getTime() - 432000000); // 5 days ago
     const epochs = await this.getEpochs(startingTime, endingTime);
@@ -308,7 +302,7 @@ export class DrepService {
     if (drepId) {
       drepNotes = await this.getDRepNotes(drepId, startingTime, endingTime);
     }
-    let drepActivity = [
+    const drepActivity = [
       ...epochs.map((epoch) => ({
         ...epoch,
         type: 'epoch',
@@ -391,6 +385,7 @@ export class DrepService {
           bk.epoch_no`,
       [viewParam, beforeDate, tillDate],
     )) as any[];
+    console.log({drepVotingHistory});
     return drepVotingHistory.map((item) => {
       return {
         ...item,
