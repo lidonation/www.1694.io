@@ -32,12 +32,9 @@ import { Signature } from './entities/signatures.entity';
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
         host: configService.get('DATABASE_HOST_DBSYNC', 'dbsync_db'),
-        port: configService.get('DATABASE_PORT', 5432),
+        port: configService.get('DATABASE_PORT_DBSYNC', 5432),
         username: configService.get('DATABASE_USERNAME_DBSYNC', 'postgres'),
-        password: configService.get(
-          'DATABASE_PASSWORD_DBSYNC',
-          'v8hlDV0yMAHHlIurYupj',
-        ),
+        password: configService.get('DATABASE_PASSWORD_DBSYNC'),
         database: configService.get('DATABASE_NAME_DBSYNC', 'cexplorer'),
       }),
     }),

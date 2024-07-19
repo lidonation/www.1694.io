@@ -43,7 +43,10 @@ export default function DrepTimelineWaterfall({
         activity.map((item, epochIndex) => (
           <>
             {item.type === 'note' && (
-              <div className="flex w-full flex-col items-center space-y-2" key={epochIndex}>
+              <div
+                className="flex w-full flex-col items-center space-y-2"
+                key={epochIndex}
+              >
                 <TimelineSeparator>
                   <TimelineDot />
                   <TimelineConnector
@@ -60,7 +63,10 @@ export default function DrepTimelineWaterfall({
               </div>
             )}
             {item.type === 'epoch' && (
-              <div className="flex w-full flex-col items-center space-y-2" key={epochIndex}>
+              <div
+                className="flex w-full flex-col items-center space-y-2"
+                key={epochIndex}
+              >
                 <TimelineSeparator>
                   <TimelineDot />
                   <TimelineConnector
@@ -87,7 +93,7 @@ export default function DrepTimelineWaterfall({
             )}
           </>
         ))}
-     
+
       {epochOfRegistration !== null && (
         <div className="flex w-full flex-col items-center space-y-2">
           <TimelineSeparator>

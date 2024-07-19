@@ -96,10 +96,11 @@ export class DrepService {
     });
   }
   async getAllDRepsVoltaire() {
-    return await this.voltaireService.getRepository('Drep')
-    .createQueryBuilder('drep')
-    .leftJoinAndSelect('signature', 'signature', 'signature.drepId = drep.id')
-    .getRawMany()
+    return await this.voltaireService
+      .getRepository('Drep')
+      .createQueryBuilder('drep')
+      .leftJoinAndSelect('signature', 'signature', 'signature.drepId = drep.id')
+      .getRawMany();
   }
   async getAllDreps() {
     // get both dreps from voltaire and cexplorer matching drep.view from cexplorer with drep.voter_id from voltaire
@@ -136,6 +137,7 @@ export class DrepService {
     const drepVotingHistory = await this.getDrepTimeline(
       drep[0].drep_id,
       drepVoterId,
+      1719705600000,
     );
     const drepDelegators =
       await this.getDrepDelegatorsWithVotingPower(drepVoterId);
@@ -177,7 +179,7 @@ export class DrepService {
     const drepCexplorer = await this.getDrepCexplorerDetails(drepVoterId);
     const drepVotingHistory = await this.getDrepTimeline(
       drep[0]?.drep_id,
-      drepVoterId
+      drepVoterId,
     );
     const drepDelegators =
       await this.getDrepDelegatorsWithVotingPower(drepVoterId);
@@ -289,8 +291,8 @@ export class DrepService {
     //get voting activity
     //get notes
     // TODO: get delegating activity across a certain epoch
-    let startingTime = beforeDate ? new Date(beforeDate) : new Date();
-    let endingTime = tillDate
+    const startingTime = beforeDate ? new Date(beforeDate) : new Date();
+    const endingTime = tillDate
       ? new Date(tillDate)
       : new Date(new Date(startingTime).getTime() - 432000000); // 5 days ago
     const epochs = await this.getEpochs(startingTime, endingTime);
@@ -305,7 +307,7 @@ export class DrepService {
     if (drepId) {
       drepNotes = await this.getDRepNotes(drepId, startingTime, endingTime);
     }
-    let drepActivity = [
+    const drepActivity = [
       ...epochs.map((epoch) => ({
         ...epoch,
         type: 'epoch',
@@ -388,6 +390,7 @@ export class DrepService {
           bk.epoch_no`,
       [viewParam, beforeDate, tillDate],
     )) as any[];
+    console.log({drepVotingHistory});
     return drepVotingHistory.map((item) => {
       return {
         ...item,
@@ -413,7 +416,28 @@ export class DrepService {
 
     // Use Promise.all to ensure all asynchronous operations complete
     allNotes = await Promise.all(
-      allNotes.map(async (note) => {      
+      allNotes.map(async (note) => {
+        // Extract image IDs from note_content
+        const imgTagMatches =
+          note.note_note_content.match(/<img id="(\d+)" \/>/g);
+        if (imgTagMatches) {
+          for (const imgTagMatch of imgTagMatches) {
+            const idMatch = imgTagMatch.match(/id="(\d+)"/);
+            if (idMatch && idMatch[1]) {
+              const attachmentId = Number(idMatch[1]);
+              const attachment =
+                await this.attachmentService.getSingleAttachment(attachmentId);
+              if (attachment) {
+                const base64String = `data:image/${attachment.attachmentType};base64,${attachment.url}`;
+                note.note_note_content = note.note_note_content.replace(
+                  imgTagMatch,
+                  `<img id="${idMatch[1]}" src="${base64String}" />`,
+                );
+              }
+            }
+          }
+        }
+
         // Get reactions and comments
         const reactions = await this.reactionsService.getReactions(
           note.note_id,
