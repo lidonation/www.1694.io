@@ -86,7 +86,8 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
             drep &&
             (drep?.drep_name
               ? drep.drep_name
-              : convertString(drep?.cexplorerDetails?.view || '', isMobile))
+              : drep?.cexplorerDetails?.view &&
+                convertString(drep?.cexplorerDetails?.view, isMobile))
           )}
         </Typography>
       </div>
@@ -112,7 +113,7 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
           {state ? (
             <Skeleton animation={'wave'} width={100} height={20} />
           ) : (
-            `${drep?.cexplorerDetails?.delegation_vote_count} ${drep?.cexplorerDetails?.delegation_vote_count > 1 ? 'Delegators' : 'Delegator'}`
+            `${drep?.cexplorerDetails?.delegation_vote_count || 0} ${drep?.cexplorerDetails?.delegation_vote_count > 1 ? 'Delegators' : 'Delegator'}`
           )}
         </p>
       </div>
@@ -122,7 +123,8 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
           {state ? (
             <Skeleton animation={'wave'} width={150} height={20} />
           ) : (
-            convertString(drep?.cexplorerDetails?.view || '', true)
+            drep?.cexplorerDetails?.view &&
+            convertString(drep?.cexplorerDetails?.view, true)
           )}
         </p>
         <CopyToClipboard

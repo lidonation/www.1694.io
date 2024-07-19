@@ -48,7 +48,7 @@ const DrepClaimProfileCard = ({
           {state ? (
             <Skeleton animation={'wave'} width={150} height={20} />
           ) : (
-            `${drep?.cexplorerDetails?.delegation_vote_count} ${drep?.cexplorerDetails?.delegation_vote_count > 1 ? 'Delegators' : 'Delegator'}`
+            `${drep?.cexplorerDetails?.delegation_vote_count || 0} ${drep?.cexplorerDetails?.delegation_vote_count > 1 ? 'Delegators' : 'Delegator'}`
           )}
         </p>
       </div>
