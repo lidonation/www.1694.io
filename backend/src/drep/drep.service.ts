@@ -23,6 +23,11 @@ export class DrepService {
   ) {}
   //get from cexplorer db
   async getAllDrepsCexplorer() {
+        console.log('dbsync::', this.configService.get<string>(
+            'BLOCKFROST_SANCHONET_PROJECT_ID',
+        ));
+      console.log('dbsync_db::', this.configService.get('DATABASE_HOST_DBSYNC', 'dbsync_db'));
+
     const drepList = await this.cexplorerService.manager.query(
       `WITH RankedRows AS (
           SELECT 
