@@ -23,7 +23,7 @@ import {
   TransactionWitnessSet,
 } from "@emurgo/cardano-serialization-lib-asmjs";
 import { Buffer } from 'buffer';
-import * as Sentry from '@sentry/react';
+
 
 import {
   getPubDRepID,
