@@ -14,10 +14,10 @@ services:
       DATABASE_NAME: 1694
       DATABASE_USERNAME: voltaire
       DATABASE_PASSWORD: postgres
-#      DATABASE_HOST_DBSYNC: dbsync_db
-#      DATABASE_NAME_DBSYNC: cexplorer
-#      DATABASE_USERNAME_DBSYNC: postgres
-#      DATABASE_PASSWORD_DBSYNC: v8hlDV0yMAHHlIurYupj
+      DATABASE_HOST_DBSYNC: dbsync_db
+      DATABASE_NAME_DBSYNC: cexplorer
+      DATABASE_USERNAME_DBSYNC: postgres
+      DATABASE_PASSWORD_DBSYNC: v8hlDV0yMAHHlIurYupj
       NODE_ENV: development # Set node environment to development
     volumes: # Mount points for persistent data and source code
       - "./backend:/app"
