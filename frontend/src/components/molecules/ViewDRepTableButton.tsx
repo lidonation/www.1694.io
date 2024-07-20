@@ -3,7 +3,13 @@ import Button from '../atoms/Button';
 
 type ViewDRepTableBtnProps = {
   handleClick?: () => void;
-  size?: 'extraLarge' | 'large' | 'medium' | 'small' | 'extraSmall';
+  size?:
+    | 'extraLarge'
+    | 'large'
+    | 'medium'
+    | 'small'
+    | 'extraSmall'
+    | 'smallest';
 };
 const ViewDRepTableBtn = ({ handleClick, size }: ViewDRepTableBtnProps) => {
   return (

@@ -3,14 +3,18 @@ import StatusChip from '../atoms/StatusChip';
 import { useGetDRepsQuery } from '@/hooks/useGetDRepsQuery';
 import HoverChip from '../atoms/HoverChip';
 import { useRouter } from 'next/navigation';
-import { convertString } from '@/lib';
+import { convertString, formatAsCurrency, shortNumber } from '@/lib';
 import { useScreenDimension } from '@/hooks';
 import { Skeleton } from '@mui/material';
+import Button from '../atoms/Button';
+import Link from 'next/link';
+import HoverText from '../atoms/HoverText';
 
 const DRepsTable = ({ searchQuery }) => {
   const router = useRouter();
   const { isMobile } = useScreenDimension();
   const { DReps, isDRepsLoading } = useGetDRepsQuery();
+
   //will be later changed to filter by drep name
   const filteredDreps =
     DReps &&
@@ -32,32 +36,28 @@ const DRepsTable = ({ searchQuery }) => {
     <div className="overflow-x-auto">
       <table className="min-w-full">
         <thead className="mb-2">
-        <tr className="overflow-x-auto text-nowrap bg-white text-left text-xl font-black">
-          <th className="px-4 py-2">
-            Campaign
-          </th>
+          <tr className="overflow-x-auto text-nowrap bg-white text-left text-xl font-black">
+            <th className="px-4 py-2">Campaign</th>
 
-          <th className="px-4 py-2">Drep Id</th>
-          {/*<th className="px-4 py-2">Epoch</th>*/}
+            <th className="px-4 py-2">Drep Id</th>
+            {/*<th className="px-4 py-2">Epoch</th>*/}
 
-          <th className="px-4 py-2">Live Power</th>
-          {/*<th className="px-4 py-2">Live Power</th>*/}
-          <th className="px-4 py-2">Delegators</th>
-          <th className="px-4 py-2">Status</th>
-          {/*<th colSpan={3} className="px-4 py-2">*/}
-          {/*  Actions*/}
-          {/*</th>*/}
-        </tr>
+            <th className="px-4 py-2">Live Power</th>
+            {/*<th className="px-4 py-2">Live Power</th>*/}
+            <th className="px-4 py-2">Delegators</th>
+            <th className="px-4 py-2">Status</th>
+            {/*<th colSpan={3} className="px-4 py-2">*/}
+            {/*  Actions*/}
+            {/*</th>*/}
+          </tr>
         </thead>
         <tbody>
-        {isDRepsLoading ? (
+          {isDRepsLoading ? (
             <tr>
               <td colSpan={10} className="text-center">
-              {
-                Array.from({ length: 10 }).map((_, index) => (
-                  <Skeleton height={40} key={index}/>
-                ))
-              }
+                {Array.from({ length: 10 }).map((_, index) => (
+                  <Skeleton height={40} key={index} />
+                ))}
               </td>
             </tr>
           ) : filteredDreps && filteredDreps.length > 0 ? (
@@ -68,8 +68,32 @@ const DRepsTable = ({ searchQuery }) => {
                 className="text-nowrap text-left text-sm"
               >
                 {/*drep_name*/}
-                <td className="px-4 py-2 flex gap-2.5 flex-nowrap">
-                  {drep?.drep_name || 'Unclaimed'}
+                <td className="flex flex-nowrap gap-2.5 px-4 py-2">
+                  <>
+                    {!!drep.drep_id ? (
+                      <Link href={`/dreps/${drep.drep_id}`}>
+                        <Button
+                          sx={{
+                            backgroundColor: '#FFEFE6',
+                            color: 'black',
+                          }}
+                          size="extraSmall"
+                        >
+                          View Campaign
+                        </Button>
+                      </Link>
+                    ) : (
+                      <Button
+                        sx={{
+                          backgroundColor: '#C2EFF2',
+                          color: 'black',
+                        }}
+                        size="extraSmall"
+                      >
+                        Claim
+                      </Button>
+                    )}
+                  </>
                   <StatusChip status={statusChecker(drep.deposit)} />
                 </td>
                 {/*ID*/}
@@ -86,24 +110,27 @@ const DRepsTable = ({ searchQuery }) => {
                 {/*</td>*/}
 
                 {/*active voting power*/}
-                <td className="px-4 py-2">₳ {drep.amount}</td>
+                <td className="px-4 py-2">
+                  <HoverText
+                    shortText={shortNumber(drep.amount, 2)}
+                    longText={formatAsCurrency(Number(drep.amount))}
+                  />
+                </td>
 
                 {/*upcoming voting power*/}
                 {/*<td className="px-4 py-2">₳ {drep.amount}</td>*/}
 
                 {/*delegators*/}
-                <td className="px-4 py-2">
-                  {drep.delegation_vote_count}
-                </td>
+                <td className="px-4 py-2">{drep.delegation_vote_count}</td>
 
                 {/*Drep status*/}
                 <td className="px-4 py-2">
                   <StatusChip
-                      status={
-                        isActive(drep.epoch_no, drep.active_until)
-                            ? 'Active'
-                            : 'Inactive'
-                      }
+                    status={
+                      isActive(drep.epoch_no, drep.active_until)
+                        ? 'Active'
+                        : 'Inactive'
+                    }
                   />
                 </td>
 

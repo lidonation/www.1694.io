@@ -10,7 +10,7 @@ const page = () => {
       <section className="mb-12">
         <h2 className="text-7xl font-black">Available DReps</h2>
       </section>
-      <section className="mb-10">
+      <section className="flex justify-end mb-10">
         <SearchBar searchText={searchText} setSearchText={setSearchText} />
       </section>
 

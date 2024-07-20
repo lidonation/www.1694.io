@@ -10,7 +10,7 @@ export const sumTestExample = (a, b) => {
   return a + b;
 };
 export function convertString(inputString: string, isMobile: boolean) {
-  if (typeof  inputString === 'undefined' || inputString?.length <= 10) {
+  if (typeof inputString === 'undefined' || inputString?.length <= 10) {
     return inputString; // If the string is too short, no replacement is needed
   }
   //the string will be truncated per mobile width
@@ -34,16 +34,16 @@ export function shortenAddress(address: string, length: number) {
   return address.slice(0, length) + '...' + address.slice(-length);
 }
 
-export function shortNumber(value: number, digits = 0) {
+export function shortNumber(value: number, decimals: number = 0) {
   // nine Zeroes for Billions
   return Math.abs(Number(value)) >= 1.0e9
-    ? (Math.abs(Number(value)) / 1.0e9).toFixed(digits) + 'B'
+    ? (Math.abs(Number(value)) / 1.0e9).toFixed(decimals) + 'B'
     : // six Zeroes for Millions
       Math.abs(Number(value)) >= 1.0e6
-      ? (Math.abs(Number(value)) / 1.0e6).toFixed(digits) + 'M'
+      ? (Math.abs(Number(value)) / 1.0e6).toFixed(decimals) + 'M'
       : // three Zeroes for Thousands
         Math.abs(Number(value)) >= 1.0e3
-        ? (Math.abs(Number(value)) / 1.0e3).toFixed(digits) + 'K'
+        ? (Math.abs(Number(value)) / 1.0e3).toFixed(decimals) + 'K'
         : Math.abs(Number(value));
 }
 
@@ -54,7 +54,11 @@ export function lovelaceToAda(lovelace: number) {
 }
 
 export function formattedAda(lovelace: number | string, decimals: number) {
-  let numberLovelace = Number(lovelace)
+  let numberLovelace = Number(lovelace);
   let ada = lovelaceToAda(numberLovelace);
   return shortNumber(ada, decimals);
+}
+
+export function formatAsCurrency(amount: number) {
+  return amount.toLocaleString('en-US');
 }
