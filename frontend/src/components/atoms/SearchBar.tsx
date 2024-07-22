@@ -1,16 +1,28 @@
+'use client';
 import React from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useDebouncedCallback } from 'use-debounce';
 
-const SearchBar = ({
-  searchText,
-  setSearchText,
-  handleFilter,
-  handleSort,
-}: {
-  searchText: string;
-  setSearchText: any;
+type SearchBarProps = {
   handleFilter?: Function;
   handleSort?: Function;
-}) => {
+};
+
+const SearchBar = ({ handleFilter, handleSort }: SearchBarProps) => {
+  const searchParams = useSearchParams();
+  const pathName = usePathname();
+  const { replace } = useRouter();
+
+  const handleSearch = useDebouncedCallback((term: string) => {
+    const params = new URLSearchParams(searchParams);
+    if (term) {
+      params.set('s', term);
+    } else {
+      params.delete('s');
+    }
+    replace(`${pathName}?${params.toString()}`);
+  }, 300)
+
   return (
     <div className="flex flex-row-reverse gap-7">
       <div className="relative flex flex-row items-center justify-start rounded-full border border-blue-800">
@@ -19,8 +31,8 @@ const SearchBar = ({
         </div>
         <input
           type="text"
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
+          defaultValue={searchParams.get('s')?.toString()}
+          onChange={(e) => handleSearch(e.target.value)}
           data-testid="drep-search-input"
           className="h-full w-full rounded-full bg-transparent py-2 pl-14 placeholder:font-black focus:border-none"
           placeholder="Search..."

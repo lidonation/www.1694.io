@@ -59,6 +59,7 @@ export function formattedAda(lovelace: number | string, decimals: number) {
   return shortNumber(ada, decimals);
 }
 
-export function formatAsCurrency(amount: number) {
-  return amount.toLocaleString('en-US');
+export function formatAsCurrency(amount: number | string) {
+  let numberAmount = Number(amount);
+  return numberAmount.toLocaleString('en-US');
 }

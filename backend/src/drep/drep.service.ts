@@ -22,7 +22,21 @@ export class DrepService {
     private commentsService: CommentsService,
   ) {}
   //get from cexplorer db
-  async getAllDrepsCexplorer() {
+  async getAllDRepsCexplorer(
+    query?: string,
+    currentPage?: number,
+    itemsPerPage?: number,
+    nameFilteredDRepViews?: string[],
+  ) {
+    const offset = (currentPage - 1) * itemsPerPage;
+
+    const sanitizedSearch = query ? query.replace(/'/g, "''") : '';
+
+    let drepViewsCondition = '';
+    if (nameFilteredDRepViews && nameFilteredDRepViews.length > 0) {
+      drepViewsCondition = `OR dh.view IN (${nameFilteredDRepViews.map((v) => `'${v}'`).join(', ')})`;
+    }
+
     const drepList = await this.cexplorerService.manager.query(
       `WITH RankedRows AS (
           SELECT 
@@ -63,7 +77,10 @@ export class DrepService {
           LEFT JOIN 
               delegation_vote AS dv ON dh.id = dv.drep_hash_id 
           LEFT JOIN
-              stake_address AS sa ON dv.addr_id = sa.id 
+              stake_address AS sa ON dv.addr_id = sa.id
+          WHERE
+              dh.view ILIKE '%${sanitizedSearch}%' 
+              ${drepViewsCondition}
       )
       SELECT 
           drep_hash_id,
@@ -79,16 +96,24 @@ export class DrepService {
       FROM 
           RankedRows
       WHERE 
-          RowNum = 1`,
+          RowNum = 1
+      LIMIT ${itemsPerPage} OFFSET ${offset}`,
     );
 
-    return drepList.map((entry) => {
-      return {
-        ...entry,
-        deposit: (entry.deposit / 1000000).toFixed(1),
-        amount: (entry.amount / 1000000).toFixed(1),
-      };
-    });
+    const totalResults = await this.cexplorerService.manager.query(
+      `SELECT COUNT(*) AS total FROM drep_hash AS dh WHERE dh.view ILIKE '%${sanitizedSearch}%' ${drepViewsCondition}`,
+    );
+
+    return {
+      data: drepList.map((entry) => {
+        return {
+          ...entry,
+          deposit: (entry.deposit / 1000000).toFixed(1),
+          amount: (entry.amount / 1000000).toFixed(1),
+        };
+      }),
+      totalItems: parseInt(totalResults[0].total, 10),
+    };
   }
   async getAllDRepsVoltaire() {
     return await this.voltaireService
@@ -97,21 +122,67 @@ export class DrepService {
       .leftJoinAndSelect('signature', 'signature', 'signature.drepId = drep.id')
       .getRawMany();
   }
-  async getAllDreps() {
-    // get both dreps from voltaire and cexplorer matching drep.view from cexplorer with drep.voter_id from voltaire
-    const drepList = await this.getAllDrepsCexplorer();
-    const voltaireDreps = await this.getAllDRepsVoltaire();
-    //add all fields from voltaire to cexplorer, if no matching, the field can be null
-    const mergedDreps = drepList.map((drep) => {
-      const voltaireDrep = voltaireDreps.find(
+
+  async getVoltaireDRepsByViews(views: string[]) {
+    if (views.length === 0) return [];
+
+    return await this.voltaireService
+      .getRepository('Drep')
+      .createQueryBuilder('drep')
+      .leftJoinAndSelect('drep.signatures', 'signature')
+      .where('signature.drepVoterId IN (:...views)', { views })
+      .getRawMany();
+  }
+
+  async getDRepsByName(name: string) {
+    return await this.voltaireService
+      .getRepository('Drep')
+      .createQueryBuilder('drep')
+      .leftJoinAndSelect('drep.signatures', 'signature')
+      .where('drep.name ILIKE :name', { name: `%${name}%` })
+      .getRawMany();
+  }
+  
+  async getAllDReps(
+    query?: string,
+    currentPage?: number,
+    itemsPerPage?: number,
+  ) {
+    const nameFilteredDReps = query ? await this.getDRepsByName(query) : [];
+    const nameFilteredDrepViews: string[] = nameFilteredDReps.map(
+      (drep) => drep.signature_drepVoterId,
+    );
+
+    const drepList = await this.getAllDRepsCexplorer(
+      query,
+      currentPage,
+      itemsPerPage,
+      nameFilteredDrepViews,
+    );
+
+    const drepViews = drepList.data.map((drep) => drep.view);
+
+    const voltaireDReps = await this.getVoltaireDRepsByViews(drepViews);
+
+    const totalPages = Math.ceil(drepList.totalItems / itemsPerPage);
+
+    const mergedDRepsData = drepList.data.map((drep) => {
+      const voltaireDrep = voltaireDReps.find(
         (voltaireDrep) => voltaireDrep.signature_drepVoterId === drep.view,
       );
       return {
         ...drep,
-        ...voltaireDrep,
+        ...(voltaireDrep ? voltaireDrep : {}),
       };
     });
-    return mergedDreps;
+
+    return {
+      data: mergedDRepsData,
+      totalItems: drepList.totalItems,
+      currentPage,
+      itemsPerPage,
+      totalPages,
+    };
   }
   async getSingleDrepViaID(
     drepId: number,
@@ -536,9 +607,9 @@ export class DrepService {
   }
 
   async populateFakeDRepData() {
-    const dreps = await this.getAllDrepsCexplorer();
+    const dreps = await this.getAllDRepsCexplorer();
     //seeding`
-    const modified = dreps.map((drep) => {
+    const modified = dreps.data.map((drep) => {
       return {
         ...drep,
         name: faker.person.fullName(),

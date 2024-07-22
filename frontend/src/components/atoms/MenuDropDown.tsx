@@ -87,7 +87,10 @@ export default function MenuDropDown({ title, menuItems }: MenuDropDownProps) {
                         },
                       }}
                     >
-                      <Box className="text-complementary-500 flex max-w-64 flex-col items-start text-wrap">
+                      <Box
+                        key={index}
+                        className="flex max-w-64 flex-col items-start text-wrap text-complementary-500"
+                      >
                         <p className="text-base font-normal">{item.label}</p>
                         <p className="text-xs font-normal leading-4">
                           {item.text}
@@ -107,7 +110,10 @@ export default function MenuDropDown({ title, menuItems }: MenuDropDownProps) {
                         },
                       }}
                     >
-                      <Box className="text-complementary-500 flex max-w-64 flex-col items-start text-wrap">
+                      <Box
+                        key={index}
+                        className="flex max-w-64 flex-col items-start text-wrap text-complementary-500"
+                      >
                         <p className="text-base font-normal">{item.label}</p>
                         <p className="text-xs font-normal leading-4">
                           {item.text}
