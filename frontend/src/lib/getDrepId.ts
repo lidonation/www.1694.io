@@ -2,7 +2,7 @@ import { Buffer } from 'buffer';
 import * as blake from 'blakejs';
 import { bech32 } from 'bech32';
 import { CardanoApiWallet } from '@/models/wallet';
-import { Credential, Ed25519KeyHash } from '@emurgo/cardano-serialization-lib-asmjs';
+import { StakeCredential, Ed25519KeyHash } from '@emurgo/cardano-serialization-lib-asmjs';
 
 export const formHexToBech32 = (dRepID?: string) => {
   if (!dRepID) return;
@@ -41,7 +41,7 @@ export const getPubDRepID = async (walletApi: CardanoApiWallet) => {
     const pubDRepIDHex = fromBech32ToHex(myDrepId);
     console.log('Recovered pubDRepID (hex):', pubDRepIDHex);
     const dRepKeyHash = Ed25519KeyHash.from_hex(pubDRepIDHex);
-    const dRepCred = Credential.from_keyhash(dRepKeyHash);
+    const dRepCred = StakeCredential.from_keyhash(dRepKeyHash);
     console.log(dRepKeyHash.to_bech32('drep'))
     console.log(dRepCred.to_json())
     return {

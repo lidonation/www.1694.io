@@ -14,7 +14,7 @@ import {
   TransactionUnspentOutput,
   TransactionUnspentOutputs,
   Value,
-  Credential,
+  StakeCredential,
   TransactionBuilder,
   TransactionBuilderConfigBuilder,
   LinearFee,
@@ -344,7 +344,7 @@ function CardanoProvider(props: Props) {
             stakeKeysList = registeredStakeKeysList.map((stakeKey) => {
               const stakeKeyHash = PublicKey.from_hex(stakeKey).hash();
               const stakeCredential =
-                Credential.from_keyhash(stakeKeyHash);
+                StakeCredential.from_keyhash(stakeKeyHash);
               if (network === 1)
                 return RewardAddress.new(1, stakeCredential)
                   .to_address()
@@ -359,7 +359,7 @@ function CardanoProvider(props: Props) {
             stakeKeysList = unregisteredStakeKeysList.map((stakeKey) => {
               const stakeKeyHash = PublicKey.from_hex(stakeKey).hash();
               const stakeCredential =
-                Credential.from_keyhash(stakeKeyHash);
+                StakeCredential.from_keyhash(stakeKeyHash);
               if (network === 1)
                 return RewardAddress.new(1, stakeCredential)
                   .to_address()
