@@ -31,8 +31,10 @@ export class DrepController {
     page: number,
     @Query('perPage', new DefaultValuePipe(24), ParseIntPipe)
     perPage: number,
+    @Query('sortBy') sortBy?: string,
+    @Query('order') order?: string,
   ) {
-    return this.drepService.getAllDReps(s, page, perPage);
+    return this.drepService.getAllDReps(s, page, perPage, sortBy, order);
   }
   @Get('epochs/latest/parameters')
   getEpochParams() {

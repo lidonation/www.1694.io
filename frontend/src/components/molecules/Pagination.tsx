@@ -33,7 +33,7 @@ const Pagination = ({
         <Box className="flex flex-col items-end space-y-2">
           <Box className="flex items-center rounded-lg bg-gray-800 px-1 py-1">
             <Box
-              className="flex cursor-pointer items-center space-x-1 rounded-lg py-2 pl-2 pr-1 text-white hover:bg-gray-950 sm:pr-3"
+              className="flex cursor-pointer items-center space-x-1 rounded-lg py-2 pl-2 pr-1 text-white hover:bg-blue-800 sm:pr-3"
               onClick={() => moveToFirstPage(1)}
             >
               <img
@@ -44,7 +44,7 @@ const Pagination = ({
               <span className="text-xs font-medium">First</span>
             </Box>
             <Box
-              className="flex cursor-pointer items-center space-x-1 rounded-lg py-2 pl-2 pr-3 text-white hover:bg-gray-950"
+              className="flex cursor-pointer items-center space-x-1 rounded-lg py-2 pl-2 pr-3 text-white hover:bg-blue-800"
               onClick={() => moveToPreviousPage(currentPage - 1)}
             >
               <img
@@ -53,11 +53,11 @@ const Pagination = ({
                 className="h-5 w-5"
               />
             </Box>
-            <Box className="cursor-default rounded-lg bg-gray-950 px-3  py-2 text-xs font-medium text-white sm:mx-3">
+            <Box className="cursor-default rounded-lg bg-blue-800 px-3  py-2 text-xs font-medium text-white sm:mx-3">
               <span>Page {currentPage}</span>
             </Box>
             <Box
-              className="flex cursor-pointer items-center space-x-1 rounded-lg py-2 pl-3 pr-2 text-white hover:bg-gray-950"
+              className="flex cursor-pointer items-center space-x-1 rounded-lg py-2 pl-3 pr-2 text-white hover:bg-blue-800"
               onClick={() => moveToNextPage(currentPage + 1)}
             >
               <img
@@ -67,7 +67,7 @@ const Pagination = ({
               />
             </Box>
             <Box
-              className="flex cursor-pointer items-center space-x-1 rounded-lg py-2 pl-2 pr-1 text-white hover:bg-gray-950 sm:pr-3"
+              className="flex cursor-pointer items-center space-x-1 rounded-lg py-2 pl-2 pr-1 text-white hover:bg-blue-800 sm:pr-3"
               onClick={() => moveToLastPage(totalPages)}
             >
               <span className="text-xs font-medium">Last</span>

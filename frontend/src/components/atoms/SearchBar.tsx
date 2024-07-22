@@ -1,14 +1,11 @@
 'use client';
+
 import React from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useDebouncedCallback } from 'use-debounce';
+import DRepListSort from '../molecules/DRepListSort';
 
-type SearchBarProps = {
-  handleFilter?: Function;
-  handleSort?: Function;
-};
-
-const SearchBar = ({ handleFilter, handleSort }: SearchBarProps) => {
+const SearchBar = () => {
   const searchParams = useSearchParams();
   const pathName = usePathname();
   const { replace } = useRouter();
@@ -17,11 +14,12 @@ const SearchBar = ({ handleFilter, handleSort }: SearchBarProps) => {
     const params = new URLSearchParams(searchParams);
     if (term) {
       params.set('s', term);
+      params.set('page', '1');
     } else {
       params.delete('s');
     }
     replace(`${pathName}?${params.toString()}`);
-  }, 300)
+  }, 300);
 
   return (
     <div className="flex flex-row-reverse gap-7">
@@ -39,18 +37,14 @@ const SearchBar = ({ handleFilter, handleSort }: SearchBarProps) => {
         />
       </div>
       <div className="flex max-w-5 flex-row items-center justify-center gap-2">
-        <div
+        {/* <div
           className="w-full shrink-0 cursor-pointer"
           onClick={() => handleFilter()}
         >
           <img src="/svgs/filter.svg" alt="Filter Icon" />
-        </div>
-        <div
-          className="w-full shrink-0 cursor-pointer"
-          onClick={() => handleSort()}
-        >
-          <img src="/svgs/arrows-sort.svg" alt="Arrows Sort" />
-        </div>
+        </div> */}
+        
+        <DRepListSort />
       </div>
     </div>
   );

@@ -6,11 +6,15 @@ type PageProps = {
   searchParams?: {
     s?: string;
     page?: string;
+    sortBy?: string;
+    order?: string;
   };
 };
 const page = ({ searchParams }: PageProps) => {
   const query = searchParams?.s || '';
   const page = Number(searchParams?.page) || 1;
+  const sortBy = searchParams?.sortBy || null;
+  const order = searchParams?.order || null;
 
   return (
     <div className="base_container py-10">
@@ -22,7 +26,7 @@ const page = ({ searchParams }: PageProps) => {
       </section>
 
       <section className="rounded-md bg-white p-5 shadow">
-        <DRepsTable query={query} page={page} />
+        <DRepsTable query={query} page={page} sortBy={sortBy} order={order} />
       </section>
     </div>
   );

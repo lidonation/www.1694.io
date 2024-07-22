@@ -1,4 +1,5 @@
 'use client';
+
 import React from 'react';
 import StatusChip from '../atoms/StatusChip';
 import { useGetDRepsQuery } from '@/hooks/useGetDRepsQuery';
@@ -12,17 +13,25 @@ import Pagination from './Pagination';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 type DRepsTableProps = {
-  query: string;
-  page: number;
+  query?: string;
+  page?: number;
+  sortBy?: string;
+  order?: string;
 };
 
-const DRepsTable = ({ query, page }: DRepsTableProps) => {
+const DRepsTable = ({ query, page, sortBy, order }: DRepsTableProps) => {
   const searchParams = useSearchParams();
   const pathName = usePathname();
   const { replace } = useRouter();
   const { isMobile } = useScreenDimension();
-  const { DReps, isDRepsLoading } = useGetDRepsQuery(query, page);
-
+  
+  const { DReps, isDRepsLoading } = useGetDRepsQuery(
+    query,
+    page,
+    sortBy,
+    order,
+  );
+  
   function isActive(epoch_no: number, active_until: number) {
     return active_until > epoch_no;
   }
@@ -33,8 +42,8 @@ const DRepsTable = ({ query, page }: DRepsTableProps) => {
 
     if (page !== targetPage) {
       params.set('page', targetPage.toString());
-      replace(`${pathName}?${params.toString()}`);
     }
+    replace(`${pathName}?${params.toString()}`);
   }
 
   function moveToFirstPage(firstPage: number) {
