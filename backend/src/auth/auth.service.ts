@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Global, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import jwtConstants from './jwtConstants';
 @Injectable()

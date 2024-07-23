@@ -9,6 +9,7 @@ import axios from 'axios';
 import { ReactionsService } from 'src/reactions/reactions.service';
 import { CommentsService } from 'src/comments/comments.service';
 import { Delegation } from 'src/common/types';
+import { AuthService } from 'src/auth/auth.service';
 @Injectable()
 export class DrepService {
   constructor(
@@ -20,6 +21,7 @@ export class DrepService {
     private configService: ConfigService,
     private reactionsService: ReactionsService,
     private commentsService: CommentsService,
+    private authService: AuthService,
   ) {}
   async getAllDReps(
     query?: string,
@@ -673,11 +675,17 @@ export class DrepService {
       drep: insertedDrep.identifiers[0].id,
       drepVoterId: drepDto?.voter_id,
       drepStakeKey: drepDto?.stake_addr,
+      drepSignatureKey: drepDto?.key,
+      drepSignature: drepDto?.signature,
     };
     const insertedSig = await this.voltaireService
       .getRepository('Signature')
       .insert(signatureDto);
-    return { insertedDrep, insertedSig };
+    const { token } = await this.authService.login(
+      { signature: drepDto?.signature, key: drepDto.key },
+      10000,
+    );
+    return { insertedDrep, insertedSig, token };
   }
   async getEpochParams() {
     try {

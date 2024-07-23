@@ -9,6 +9,8 @@ import { Note } from 'src/entities/note.entity';
 import { CommentsService } from 'src/comments/comments.service';
 import { ReactionsService } from 'src/reactions/reactions.service';
 import { VoterService } from 'src/voter/voter.service';
+import { AuthService } from 'src/auth/auth.service';
+import { JwtService } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -22,6 +24,7 @@ import { VoterService } from 'src/voter/voter.service';
     CommentsService,
     ReactionsService,
     VoterService,
+    AuthService,
   ],
 })
 export class DrepModule {}
