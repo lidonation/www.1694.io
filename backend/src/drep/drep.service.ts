@@ -223,6 +223,8 @@ export class DrepService {
     drepId: number,
     stakeKeyBech32?: string,
     delegation?: Delegation,
+    startDateCursor?: number,
+    endDateCursor?: number,
   ) {
     const drep = await this.voltaireService
       .getRepository('Drep')
@@ -244,6 +246,8 @@ export class DrepService {
       drepVoterId,
       stakeKeyBech32,
       delegation,
+      startDateCursor,
+      endDateCursor,
     );
     const drepDelegators =
       await this.getDrepDelegatorsWithVotingPower(drepVoterId);
@@ -273,6 +277,8 @@ export class DrepService {
     drepVoterId: string,
     stakeKeyBech32?: string,
     delegation?: Delegation,
+    startDateCursor?: number,
+    endDateCursor?: number,
   ) {
     const drep = await this.voltaireService
       .getRepository('Drep')
@@ -292,6 +298,8 @@ export class DrepService {
       drepVoterId,
       stakeKeyBech32,
       delegation,
+      startDateCursor,
+      endDateCursor,
     );
     const drepDelegators =
       await this.getDrepDelegatorsWithVotingPower(drepVoterId);
@@ -444,10 +452,11 @@ export class DrepService {
     //get voting activity
     //get notes
     // TODO: get delegating activity across a certain epoch
-    const startingTime = beforeDate ? new Date(beforeDate) : new Date();
+    const startingTime = beforeDate ? new Date(Number(beforeDate)) : new Date();
     const endingTime = tillDate
-      ? new Date(tillDate)
+      ? new Date(Number(tillDate))
       : new Date(new Date(startingTime).getTime() - 432000000); // 5 days ago
+      console.log(startingTime, endingTime)
     const epochs = await this.getEpochs(startingTime, endingTime);
     const drepRegData = await this.getDrepDateofRegistration(drepVoterId);
     const regDate = new Date(drepRegData?.date_of_registration).getTime();

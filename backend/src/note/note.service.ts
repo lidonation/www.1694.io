@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { AttachmentService } from 'src/attachment/attachment.service';
 import { CommentsService } from 'src/comments/comments.service';
@@ -17,10 +17,12 @@ export class NoteService {
     private reactionsService: ReactionsService,
     private commentsService: CommentsService,
   ) {}
-  async getAllNotes(stakeKeyBech32?: string, delegation?: Delegation) {
+  async getAllNotes(stakeKeyBech32?: string, delegation?: Delegation,beforeNote?: number, afterNote?: number) {
     let allNotes = await this.getNotesWithVisibility(
       delegation,
       stakeKeyBech32,
+      beforeNote,
+      afterNote
     );
 
     // Used Promise.all to ensure all asynchronous operations complete
@@ -39,7 +41,8 @@ export class NoteService {
         return { ...note, reactions: reactions, comments: comments };
       }),
     );
-    return allNotes;
+    
+    return allNotes
   }
 
   async getSingleNote(noteId: string) {
@@ -89,19 +92,25 @@ export class NoteService {
     }
   }
 
-  private async getNotesWithVisibility(delegation?, stakeKeyBech32?: string) {
-
+  private async getNotesWithVisibility(delegation?, stakeKeyBech32?: string, beforeNote?: number, afterNote?: number) {
     const queryBuilder = this.voltaireService
       .getRepository('Note')
       .createQueryBuilder('note')
       .leftJoinAndSelect('note.voter', 'drep')
-      .leftJoin('drep.signatures', 'signature');
-
+      .leftJoin('drep.signatures', 'signature')
+      .orderBy('note.createdAt', 'DESC') // Order by createdAt descending
+      .limit(20); // limit per req
     // Basic query for notes with visibility 'everyone'
     queryBuilder.where('note.note_visibility = :everyone', {
       everyone: 'everyone',
     });
-
+    if (beforeNote) {
+     queryBuilder.where('note.id > :beforeNote', { beforeNote });
+    }
+    if (afterNote) {
+     queryBuilder.where('note.id < :afterNote', { afterNote });
+    }
+    
     // 'delegators' visibility
     if (delegation) {
       queryBuilder.orWhere(

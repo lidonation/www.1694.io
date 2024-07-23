@@ -59,7 +59,7 @@ const page = () => {
               </div>
               <div className="lg:w-[70%]">
                 <DrepTimeline
-                  drepId={dRep?.drep_id}
+                  drepId={dRep?.drep_id || dRep?.cexplorerDetails?.view}
                   latestEpoch={latestEpoch}
                   cexplorerDetails={dRep?.cexplorerDetails}
                   activity={dRep?.activity}

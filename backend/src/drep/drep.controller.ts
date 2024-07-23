@@ -41,9 +41,8 @@ export class DrepController {
     return this.drepService.getEpochParams();
   }
   @Get(':id/drep')
-  async getSingle(@Param('id') drepId: number, @Query() stakeKeys?: StakeKeys) {
-    const { stakeKey, stakeKeyBech32 } = stakeKeys;
-
+  async getSingle(@Param('id') drepId: number, @Query('stakeKeys') stakeKeys?: StakeKeys, @Query('startTimeCursor') startTimeCursor?: number, @Query('endTimeCursor') endTimeCursor?: number) {
+    const { stakeKey, stakeKeyBech32 } = stakeKeys || {};
     let delegation: Delegation = null;
 
     if (stakeKey) {
@@ -54,14 +53,18 @@ export class DrepController {
       drepId,
       stakeKeyBech32,
       delegation,
+      startTimeCursor,
+      endTimeCursor
     );
   }
   @Get(':voterId/voter')
   async getSingleViaVoterId(
     @Param('voterId') voterId: string,
-    @Query() stakeKeys?: StakeKeys,
+    @Query('stakeKeys') stakeKeys?: StakeKeys,
+    @Query('startTimeCursor') startTimeCursor?: number,
+    @Query('endTimeCursor') endTimeCursor?: number,
   ) {
-    const { stakeKey, stakeKeyBech32 } = stakeKeys;
+    const { stakeKey, stakeKeyBech32 } = stakeKeys || {};
 
     let delegation: Delegation = null;
 
@@ -73,6 +76,8 @@ export class DrepController {
       voterId,
       stakeKeyBech32,
       delegation,
+      startTimeCursor,
+      endTimeCursor
     );
   }
   @Post('new')
