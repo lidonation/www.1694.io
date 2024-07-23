@@ -138,7 +138,7 @@ const DrepTimeline = ({
         </Button>
       )}
 
-      {drepId && <ProfileClaimedChip claimedAddress={drepId} />}
+      {drepId && !drepId.includes('drep') && <ProfileClaimedChip claimedAddress={drepId} />}
       {allActivities && allActivities.length > 0 && (
         <InfiniteScroll
           onScroll={updateDominantActivity}
