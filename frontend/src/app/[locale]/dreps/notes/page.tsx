@@ -1,3 +1,4 @@
+'use client';
 import NotesPage from "@/components/dreps/notes/NotesPage";
 
 function Notes() {
