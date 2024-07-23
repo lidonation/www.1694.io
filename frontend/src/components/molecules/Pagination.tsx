@@ -1,5 +1,9 @@
 import { Box, Skeleton } from '@mui/material';
 import React from 'react';
+import ChevronsRightIcon from '../atoms/svgs/ChevronsRightIcon';
+import ChevronRightIcon from '../atoms/svgs/ChevronRightIcon';
+import ChevronLeftIcon from '../atoms/svgs/ChevronLeftIcon';
+import ChevronsLeftIcon from '../atoms/svgs/ChevronsLeftIcon';
 
 type PaginationProps = {
   currentPage: number;
@@ -20,6 +24,9 @@ const Pagination = ({
   moveToNextPage,
   moveToLastPage,
 }: PaginationProps) => {
+  const isLastPage = currentPage === totalPages;
+  const isFirstPage = currentPage === 1;
+
   return (
     <>
       {!totalItems && totalPages && currentPage ? (
@@ -33,48 +40,54 @@ const Pagination = ({
         <Box className="flex flex-col items-end space-y-2">
           <Box className="flex items-center rounded-lg bg-gray-800 px-1 py-1">
             <Box
-              className="flex cursor-pointer items-center space-x-1 rounded-lg py-2 pl-2 pr-1 text-white hover:bg-blue-800 sm:pr-3"
+              className={`flex items-center space-x-1 rounded-lg px-2 py-1 ${isFirstPage ? 'pointer-events-none text-destructive-300' : 'cursor-pointer text-bar_back hover:bg-primary-300'}`}
               onClick={() => moveToFirstPage(1)}
             >
-              <img
-                src="/svgs/pagination/chevrons-left.svg"
-                alt="Navigate to first page"
-                className="h-5 w-5"
+              <ChevronsLeftIcon
+                color={isFirstPage ? '#73828c' : 'white'}
+                width={22}
               />
               <span className="text-xs font-medium">First</span>
             </Box>
             <Box
-              className="flex cursor-pointer items-center space-x-1 rounded-lg py-2 pl-2 pr-3 text-white hover:bg-blue-800"
-              onClick={() => moveToPreviousPage(currentPage - 1)}
+              className={`flex items-center rounded-lg px-2 py-1 ${isFirstPage ? 'pointer-events-none' : 'cursor-pointer hover:bg-primary-300'}`}
+              onClick={() =>
+                currentPage > 1 && moveToPreviousPage(currentPage - 1)
+              }
             >
-              <img
-                src="/svgs/pagination/chevron-left.svg"
-                alt="Navigate to the previous page"
-                className="h-5 w-5"
+              <ChevronLeftIcon
+                color={isFirstPage ? '#73828c' : 'white'}
+                width={22}
+                height={23}
               />
             </Box>
-            <Box className="cursor-default rounded-lg bg-blue-800 px-3  py-2 text-xs font-medium text-white sm:mx-3">
+            <Box className="cursor-default rounded-lg bg-primary-300 px-3  py-2 text-xs font-medium text-bar_back sm:mx-3">
               <span>Page {currentPage}</span>
             </Box>
             <Box
-              className="flex cursor-pointer items-center space-x-1 rounded-lg py-2 pl-3 pr-2 text-white hover:bg-blue-800"
-              onClick={() => moveToNextPage(currentPage + 1)}
+              className={`flex items-center rounded-lg px-2 py-1 ${isLastPage ? 'pointer-events-none' : 'cursor-pointer hover:bg-primary-300'}`}
+              onClick={() =>
+                currentPage < totalPages && moveToNextPage(currentPage + 1)
+              }
             >
-              <img
-                src="/svgs/pagination/chevron-right.svg"
-                alt="Navigate to the next page"
-                className="h-5 w-5"
+              <ChevronRightIcon
+                color={isLastPage ? '#73828c' : 'white'}
+                width={22}
+                height={23}
               />
             </Box>
             <Box
-              className="flex cursor-pointer items-center space-x-1 rounded-lg py-2 pl-2 pr-1 text-white hover:bg-blue-800 sm:pr-3"
+              className={`flex items-center space-x-1 rounded-lg px-2 py-1 ${
+                isLastPage
+                  ? 'pointer-events-none text-destructive-300'
+                  : 'cursor-pointer text-bar_back hover:bg-primary-300'
+              }`}
               onClick={() => moveToLastPage(totalPages)}
             >
               <span className="text-xs font-medium">Last</span>
-              <img
-                src="/svgs/pagination/chevrons-right.svg"
-                alt="Navigate to first page"
-                className="h-5 w-5"
+              <ChevronsRightIcon
+                color={isLastPage ? '#73828c' : 'white'}
+                width={22}
               />
             </Box>
           </Box>

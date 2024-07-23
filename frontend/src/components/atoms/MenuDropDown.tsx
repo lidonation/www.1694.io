@@ -62,6 +62,14 @@ export default function MenuDropDown({ title, menuItems }: MenuDropDownProps) {
           open={open}
           onClose={handleClose}
           TransitionComponent={Grow}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'center',
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'center',
+          }}
           sx={{
             '.MuiPaper-root': {
               borderRadius: '0 0 1rem 1rem',

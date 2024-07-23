@@ -1,4 +1,4 @@
-import SearchBar from '@/components/atoms/SearchBar';
+import DRepTableSearch from '@/components/atoms/DRepTableSearch';
 import DRepsTable from '@/components/molecules/DRepsTable';
 import React from 'react';
 
@@ -22,7 +22,7 @@ const page = ({ searchParams }: PageProps) => {
         <h2 className="text-7xl font-black">Available DReps</h2>
       </section>
       <section className="mb-10 flex justify-end">
-        <SearchBar />
+        <DRepTableSearch />
       </section>
 
       <section className="rounded-md bg-white p-5 shadow">

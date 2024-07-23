@@ -5,6 +5,7 @@ import Popover from '@mui/material/Popover';
 import {
   Box,
   Checkbox,
+  Divider,
   FormControl,
   FormControlLabel,
   FormGroup,
@@ -45,39 +46,43 @@ export default function DRepListSort() {
     setAnchorEl(null);
   };
 
+  const isChecked = (sortBy: string, order: string) => {
+    return (
+      searchParams.get('sortBy')?.toString() === sortBy &&
+      searchParams.get('order')?.toString() === order
+    );
+  };
+
   const open = Boolean(anchorEl);
   const id = open ? 'sort-popover' : undefined;
 
   return (
-    <div>
-      <button aria-describedby={id} onClick={handleClick}>
+    <Box className="mt-2">
+      <Box component="button" aria-describedby={id} onClick={handleClick}>
         <img src="/svgs/arrows-sort.svg" alt="Arrows Sort" />
-      </button>
+      </Box>
       <Popover
         id={id}
         open={open}
         anchorEl={anchorEl}
         onClose={handleClose}
         anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'center',
-          }}
-          transformOrigin={{
-            vertical: 'top',
-            horizontal: 'center',
-          }}
+          vertical: 'bottom',
+          horizontal: 'center',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'center',
+        }}
       >
-        <Box className="flex flex-col space-y-4 px-6 py-3">
+        <Box className="bg-extra_gray flex flex-col space-y-4 px-4 py-2">
           <FormControl component="fieldset" variant="standard">
-            <FormLabel component="legend">Sort by Voting Power</FormLabel>
+            <span className="text-xs font-semibold">Sort by Voting Power</span>
             <FormGroup>
               <FormControlLabel
                 control={
                   <Checkbox
-                    checked={
-                      searchParams.get('sortBy')?.toString() === 'power' &&
-                      searchParams.get('order')?.toString() === 'desc'
-                    }
+                    checked={isChecked('power', 'desc')}
                     onChange={handleChange}
                     name="power-desc"
                   />
@@ -87,10 +92,7 @@ export default function DRepListSort() {
               <FormControlLabel
                 control={
                   <Checkbox
-                    checked={
-                      searchParams.get('sortBy')?.toString() === 'power' &&
-                      searchParams.get('order')?.toString() === 'asc'
-                    }
+                    checked={isChecked('power', 'asc')}
                     onChange={handleChange}
                     name="power-asc"
                   />
@@ -100,16 +102,17 @@ export default function DRepListSort() {
             </FormGroup>
           </FormControl>
 
+          <Divider />
+
           <FormControl component="fieldset" variant="standard">
-            <FormLabel component="legend">Sort by Delegators count</FormLabel>
+            <span className="text-xs font-semibold">
+              Sort by Delegators count
+            </span>
             <FormGroup>
               <FormControlLabel
                 control={
                   <Checkbox
-                    checked={
-                      searchParams.get('sortBy')?.toString() === 'delegators' &&
-                      searchParams.get('order')?.toString() === 'desc'
-                    }
+                    checked={isChecked('delegators', 'desc')}
                     onChange={handleChange}
                     name="delegators-desc"
                   />
@@ -119,10 +122,7 @@ export default function DRepListSort() {
               <FormControlLabel
                 control={
                   <Checkbox
-                    checked={
-                      searchParams.get('sortBy')?.toString() === 'delegators' &&
-                      searchParams.get('order')?.toString() === 'asc'
-                    }
+                    checked={isChecked('delegators', 'asc')}
                     onChange={handleChange}
                     name="delegators-asc"
                   />
@@ -133,6 +133,6 @@ export default function DRepListSort() {
           </FormControl>
         </Box>
       </Popover>
-    </div>
+    </Box>
   );
 }

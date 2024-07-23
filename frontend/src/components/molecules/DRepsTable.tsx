@@ -5,12 +5,13 @@ import StatusChip from '../atoms/StatusChip';
 import { useGetDRepsQuery } from '@/hooks/useGetDRepsQuery';
 import { convertString, formatAsCurrency, shortNumber } from '@/lib';
 import { useScreenDimension } from '@/hooks';
-import { Box, Skeleton } from '@mui/material';
+import { Box, IconButton, Skeleton, Tooltip } from '@mui/material';
 import Button from '../atoms/Button';
 import Link from 'next/link';
 import HoverText from '../atoms/HoverText';
 import Pagination from './Pagination';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import CopyToClipBoard from '../atoms/svgs/CopyToClipBoard';
 
 type DRepsTableProps = {
   query?: string;
@@ -24,17 +25,21 @@ const DRepsTable = ({ query, page, sortBy, order }: DRepsTableProps) => {
   const pathName = usePathname();
   const { replace } = useRouter();
   const { isMobile } = useScreenDimension();
-  
+
   const { DReps, isDRepsLoading } = useGetDRepsQuery(
     query,
     page,
     sortBy,
     order,
   );
-  
+
   function isActive(epoch_no: number, active_until: number) {
     return active_until > epoch_no;
   }
+
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text);
+  };
 
   // Handle table pagination
   function moveToPage(targetPage: number) {
@@ -74,8 +79,8 @@ const DRepsTable = ({ query, page, sortBy, order }: DRepsTableProps) => {
 
             <th className="px-4 py-2">Live Power</th>
             {/*<th className="px-4 py-2">Live Power</th>*/}
-            <th className="px-4 py-2">Delegators</th>
-            <th className="px-4 py-2">Status</th>
+            <th className="px-4 py-2 text-center">Delegators</th>
+            <th className="px-4 py-2 text-center">Status</th>
             {/*<th colSpan={3} className="px-4 py-2">*/}
             {/*  Actions*/}
             {/*</th>*/}
@@ -100,7 +105,7 @@ const DRepsTable = ({ query, page, sortBy, order }: DRepsTableProps) => {
                 <td className="px-4 py-2">
                   {!!drep.drep_id ? (
                     <Box className="flex items-center gap-4">
-                      <Link href={`/dreps/${drep.drep_id}`}>
+                      <Link href={`/dreps/${drep.view}`}>
                         <Button size="extraSmall" width={4}>
                           View
                         </Button>
@@ -109,16 +114,32 @@ const DRepsTable = ({ query, page, sortBy, order }: DRepsTableProps) => {
                     </Box>
                   ) : (
                     <Box className="flex items-center gap-4">
-                      <Button size="extraSmall" width={4}>
-                        Claim
-                      </Button>
+                      <Link href={`/dreps/workflow/profile/new`}>
+                        <Button size="extraSmall" width={4}>
+                          Claim
+                        </Button>
+                      </Link>
                       <p className="font-medium">unclaimed</p>
                     </Box>
                   )}
                 </td>
-                {/*ID*/}
-                <td className="px-4 py-2">
-                  <p>{convertString(drep.view, isMobile)}</p>
+
+                <td className="flex items-center justify-between px-4 py-2">
+                  <Link href={`/dreps/${drep.view}`}>
+                    <p className="hover:font-semibold">
+                      {convertString(drep.view, isMobile)}
+                    </p>
+                  </Link>
+                  <Box className="flex w-full justify-end pr-6">
+                    <Tooltip title="Copy DRep ID">
+                      <IconButton
+                        size="small"
+                        onClick={() => handleCopy(drep.view)}
+                      >
+                        <CopyToClipBoard width={22} height={22} />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
                 </td>
 
                 {/*epoch_no*/}
@@ -194,7 +215,7 @@ const DRepsTable = ({ query, page, sortBy, order }: DRepsTableProps) => {
         </tbody>
       </table>
       {!isDRepsLoading && (
-        <div className="mt-4 flex justify-end">
+        <Box className="mt-6 flex justify-end">
           <Pagination
             currentPage={DReps.currentPage}
             totalPages={DReps.totalPages}
@@ -204,7 +225,7 @@ const DRepsTable = ({ query, page, sortBy, order }: DRepsTableProps) => {
             moveToPreviousPage={moveToPreviousPage}
             moveToNextPage={moveToNextPage}
           />
-        </div>
+        </Box>
       )}
     </div>
   );
