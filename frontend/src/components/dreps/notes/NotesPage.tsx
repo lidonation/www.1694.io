@@ -25,8 +25,7 @@ const LoaderComponent = () => {
 
 function NotesPage() {
   const router = useRouter();
-  const [searchParams, setSearchParams] = useState(null);
-  
+  const searchParams = useSearchParams();
   const { stakeKeyBech32, isEnabled } = useCardano();
   const { isLoggedIn } = useDRepContext();
   const [lastNoteID, setLastNoteID] = useState<number | undefined>(undefined);
@@ -36,15 +35,12 @@ function NotesPage() {
   const [allNotes, setAllNotes] = useState<any[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const noteRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
-  
+
   const { Notes, isNotesLoading, isNotesFetching, isPreviousData } =
-  useGetNotesQuery({
-    afterNote:lastNoteID,
-  });
-  
-  useEffect(() => {
-    setSearchParams(useSearchParams());
-  }, []);
+    useGetNotesQuery({
+      afterNote:lastNoteID,
+    });
+
   useEffect(() => {
     if (Notes && !isPreviousData) {
       setAllNotes((prevNotes) => {

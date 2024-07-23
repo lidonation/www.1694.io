@@ -1,10 +1,13 @@
 'use client';
-import NotesPage from "@/components/dreps/notes/NotesPage";
+import NotesPage from '@/components/dreps/notes/NotesPage';
+import { Suspense } from 'react';
 
 function Notes() {
   return (
     <div className="base_container">
-      <NotesPage />
+      <Suspense fallback={null}>
+        <NotesPage />
+      </Suspense>
     </div>
   );
 }
