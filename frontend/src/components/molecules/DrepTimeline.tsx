@@ -44,8 +44,12 @@ const DrepTimeline = ({
   const [startTime, setStartTime] = useState(
     () => endTime - 30 * 24 * 60 * 60 * 1000,
   );// 30 days for now
-  const searchParams = useSearchParams();
+  const [searchParams, setSearchParams] = useState(null);
   const { dRepIDBech32 } = useCardano();
+  
+  useEffect(() => {
+    setSearchParams(useSearchParams());
+  }, []);
   const updateURL = (startTime?: number, endTime?: number) => {
     const params = new URLSearchParams(searchParams);
     if (startTime) {
