@@ -69,14 +69,14 @@ export const WalletInfoCard = memo(({ test_name }: WalletInfoCardProps) => {
           <ConnectedWalletCard />
           {!isLoggedIn ? (
             <Button
-              size="extraSmall"
+              size="smallest"
               handleClick={() => setLoginModalOpen(true)}
             >
               Login
             </Button>
           ) : (
             <div className="w-fit">
-              <Button size="extraSmall">
+              <Button size="smallest">
                 {' '}
                 {showDetails ? (
                   <img

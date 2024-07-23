@@ -62,6 +62,14 @@ export default function MenuDropDown({ title, menuItems }: MenuDropDownProps) {
           open={open}
           onClose={handleClose}
           TransitionComponent={Grow}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'center',
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'center',
+          }}
           sx={{
             '.MuiPaper-root': {
               borderRadius: '0 0 1rem 1rem',
@@ -87,7 +95,10 @@ export default function MenuDropDown({ title, menuItems }: MenuDropDownProps) {
                         },
                       }}
                     >
-                      <Box className="text-complementary-500 flex max-w-64 flex-col items-start text-wrap">
+                      <Box
+                        key={index}
+                        className="flex max-w-64 flex-col items-start text-wrap text-complementary-500"
+                      >
                         <p className="text-base font-normal">{item.label}</p>
                         <p className="text-xs font-normal leading-4">
                           {item.text}
@@ -107,7 +118,10 @@ export default function MenuDropDown({ title, menuItems }: MenuDropDownProps) {
                         },
                       }}
                     >
-                      <Box className="text-complementary-500 flex max-w-64 flex-col items-start text-wrap">
+                      <Box
+                        key={index}
+                        className="flex max-w-64 flex-col items-start text-wrap text-complementary-500"
+                      >
                         <p className="text-base font-normal">{item.label}</p>
                         <p className="text-xs font-normal leading-4">
                           {item.text}

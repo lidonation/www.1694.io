@@ -22,8 +22,8 @@ const page = () => {
           if (drep?.drep_id) {
             setNewDrepId(drep.drep_id);
             setStep1Status('update');
+            router.push(`/dreps/workflow/profile/update/step1`);
           } else setStep1Status('active');
-          router.push(`/dreps/workflow/profile/update/step1`);
         } catch (error) {
           if (
             error.response?.status === 404 &&

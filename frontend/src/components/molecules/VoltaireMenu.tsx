@@ -83,6 +83,14 @@ export default function VoltaireMenu() {
           open={open}
           onClose={handleClose}
           TransitionComponent={Grow}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'center',
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'center',
+          }}
           sx={{
             '.MuiPaper-root': {
               borderRadius: '0 0 1rem 1rem',
@@ -110,7 +118,7 @@ export default function VoltaireMenu() {
                     <img
                       alt={`${item.label} svg`}
                       src={item.svg}
-                      className="h-12 w-12 mt-1"
+                      className="mt-1 h-12 w-12"
                     />
                     <Box className="flex flex-col text-wrap text-complementary-500">
                       <p className="p-0 text-base font-normal">{item.label}</p>

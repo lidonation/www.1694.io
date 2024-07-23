@@ -10,7 +10,7 @@ export const useGetAdaHolderCurrentDelegationQuery = (
     queryKey: [QUERY_KEYS.getAdaHolderCurrentDelegationKey],
     queryFn: async () => await getAdaHolderCurrentDelegation(stakeKey),
     enabled: !!stakeKey,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
   });
 
   return { currentDelegation: data, isCurrentDelegationLoading: isLoading};

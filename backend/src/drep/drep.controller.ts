@@ -1,10 +1,13 @@
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Get,
   Param,
+  ParseIntPipe,
   Post,
   Query,
+  Search,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -22,8 +25,16 @@ export class DrepController {
     private voterService: VoterService,
   ) {}
   @Get('')
-  getAll() {
-    return this.drepService.getAllDreps();
+  getAll(
+    @Query('s', new DefaultValuePipe('')) s: string,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe)
+    page: number,
+    @Query('perPage', new DefaultValuePipe(24), ParseIntPipe)
+    perPage: number,
+    @Query('sortBy') sortBy?: string,
+    @Query('order') order?: string,
+  ) {
+    return this.drepService.getAllDReps(s, page, perPage, sortBy, order);
   }
   @Get('epochs/latest/parameters')
   getEpochParams() {
