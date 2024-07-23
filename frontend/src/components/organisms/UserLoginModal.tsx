@@ -97,7 +97,7 @@ export function UserLoginModal() {
   const [isChecked, setIsChecked] = useState(false);
   const [loginPeriod, setLoginPeriod] = useState('24 hrs');
   const { isMobile } = useScreenDimension();
-  const [isHardware, setIsHardware] = useState(!false);
+  const [isHardware, setIsHardware] = useState(false);
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     setIsHardware(!event.target.checked);
   };
@@ -116,7 +116,6 @@ export function UserLoginModal() {
     isMobile,
     isMobile ? '9.375rem' : '15.625rem',
   );
-
   return (
     <ModalWrapper
       dataTestId="login-modal"

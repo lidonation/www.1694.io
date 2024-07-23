@@ -9,6 +9,8 @@ import { AuthModule } from './auth/auth.module';
 import { VoterModule } from './voter/voter.module';
 import { CommentsModule } from './comments/comments.module';
 import { ReactionsModule } from './reactions/reactions.module';
+import { AuthService } from './auth/auth.service';
+import { JwtService } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -27,6 +29,6 @@ import { ReactionsModule } from './reactions/reactions.module';
     ReactionsModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [AuthService],
 })
 export class AppModule {}

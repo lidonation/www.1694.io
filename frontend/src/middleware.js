@@ -74,10 +74,10 @@ export function middleware(request) {
   if (pathname.match(/\.(svg|png|ico)$/)) return NextResponse.next();
   // Redirect if there is no locale
   const locale = getLocale(request);
-  if (protectedRoutesRegex.test(pathname)) {
-    const response = protectRoutes(request, locale);
-    if (response.status === 307) return response;
-  }
+  // if (protectedRoutesRegex.test(pathname)) {
+  //   const response = protectRoutes(request, locale);
+  //   if (response.status === 307) return response;
+  // }
   request.nextUrl.pathname = `/${locale}${pathname}`;
   return NextResponse.redirect(request.nextUrl);
 }

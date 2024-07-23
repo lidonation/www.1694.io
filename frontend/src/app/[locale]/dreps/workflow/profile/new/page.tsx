@@ -16,7 +16,7 @@ const page = () => {
     if (!isEnabled) {
       setIsWalletListModalOpen(true);
     } else if (dRepIDBech32) {
-      const checkIfExistingDREp = async () => {
+      const checkIfExistingDRep = async () => {
         try {
           const drep = await getSingleDRepViaVoterId(dRepIDBech32);
           if (drep?.drep_id) {
@@ -33,7 +33,7 @@ const page = () => {
           }
         }
       };
-      checkIfExistingDREp();
+      checkIfExistingDRep();
     }
   }, [isEnabled, dRepIDBech32]);
   return <NewProfile />;

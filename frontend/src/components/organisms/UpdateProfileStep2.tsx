@@ -138,7 +138,7 @@ const UpdateProfileStep2 = () => {
         )}
         <p className="text-base font-normal text-gray-800">
           Verify your profile so as to track your connected wallets across the
-          same drep profile.
+          same drep profile. Multiple signatures will be supported in future releases
         </p>
       </div>
       <form id="profile_form" onSubmit={handleSubmit(saveProfile, onError)}>
