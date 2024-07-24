@@ -10,22 +10,12 @@ const SingleNoteResponses = ({
   isLoggedIn,
   currentVoter,
 }) => {
-  const [sortedComments, setSortedComments] = useState(comments);
   const { refetch } = useGetNotesQuery();
   const { setIsWalletListModalOpen, setLoginModalOpen } = useDRepContext();
-
-  useEffect(() => {
-    const sorted = [...comments].sort(
-      (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-    );
-    setSortedComments(sorted);
-  }, [currentVoter, comments]);
-
   return (
     <div className="flex flex-col gap-3 p-2 pl-8">
-      {sortedComments && sortedComments.length > 0 ? (
-        sortedComments.map((comment) => (
+      {comments && comments.length > 0 ? (
+        comments.map((comment) => (
           <Comment
             key={comment.id}
             comment={comment}

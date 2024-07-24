@@ -4,10 +4,16 @@ import axiosInstance from '../axiosInstance';
 
 export const getSingleDRepViaVoterId = async (
   voterid: string,
-  stakeKeys?: StakeKeys
+  stakeKeys?: StakeKeys,
+  startTimeCursor?: number,
+  endTimeCursor?: number
 ) => {
   const response = await axiosInstance.get(`/api/dreps/${voterid}/voter`, {
-    params: stakeKeys,
+    params: {
+      stakeKeys:stakeKeys,
+      startTimeCursor: startTimeCursor,
+      endTimeCursor: endTimeCursor
+    },
   });
   return response.data;
 };

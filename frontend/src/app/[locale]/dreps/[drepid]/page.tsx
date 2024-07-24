@@ -2,7 +2,7 @@
 import DRepProfileBar from '@/components/atoms/DrepProfileBar';
 import DrepProfileCard from '@/components/atoms/DrepProfileCard';
 import DrepTabGroup from '@/components/atoms/DrepTabGroup';
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { IconButton } from '@mui/material';
 import DrepTimeline from '@/components/molecules/DrepTimeline';
 import DrepProfileMetrics from '@/components/molecules/DrepProfileMetrics';
@@ -58,12 +58,14 @@ const page = () => {
                 )}
               </div>
               <div className="lg:w-[70%]">
+                <Suspense>
                 <DrepTimeline
-                  drepId={dRep?.drep_id}
+                  drepId={dRep?.drep_id || dRep?.cexplorerDetails?.view}
                   latestEpoch={latestEpoch}
                   cexplorerDetails={dRep?.cexplorerDetails}
                   activity={dRep?.activity}
                 />
+                </Suspense>
               </div>
             </div>
           ) : (
