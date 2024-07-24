@@ -1,16 +1,16 @@
 import React from 'react';
 
-type CopyToClipBoardProps = {
+type CopyToClipBoardIconProps = {
   color?: string;
   width?: number;
   height?: number;
 };
 
-const CopyToClipBoard = ({
+const CopyToClipBoardIcon = ({
   color = 'black',
   width = 24,
   height = 24,
-}: CopyToClipBoardProps) => (
+}: CopyToClipBoardIconProps) => (
   <svg
     width={width}
     height={height}
@@ -28,4 +28,4 @@ const CopyToClipBoard = ({
   </svg>
 );
 
-export default CopyToClipBoard;
+export default CopyToClipBoardIcon;
