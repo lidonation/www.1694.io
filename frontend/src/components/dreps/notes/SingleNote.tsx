@@ -279,7 +279,6 @@ const SingleNote = ({
         </div>
         <div className="flex gap-5">
           {Object.keys(reactionIcons).map((type) => {
-            console.log(currentReactions)
             return (
               <div
                 key={type}
