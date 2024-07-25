@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import DrepTimelineWaterfall from './DrepTimelineWaterfall';
 import Link from 'next/link';
 import useInfiniteScroll from 'react-easy-infinite-scroll-hook';
-
+import _ from 'lodash';
 import Button from '../atoms/Button';
 import { useCardano } from '@/context/walletContext';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -42,23 +42,25 @@ const DrepTimeline = ({
   const [allActivities, setAllActivities] = useState(activity || []);
   const [hasMoreBelow, setHasMoreBelow] = useState(true);
   const [hasMoreAbove, setHasMoreAbove] = useState(true);
+  const [isPreviousData, setIsPreviousData] = useState(false);
+  const [lastBatch, setlastBatch] = useState([]);
   const [prevScrollTop, setPrevScrollTop] = useState(0);
-  const [scrollDirection, setScrollDirection] = useState(null);
+ const [scrollDirection, setScrollDirection] = useState(null);
   const router = useRouter();
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [endTime, setEndTime] = useState(() => Date.now());
   const [startTime, setStartTime] = useState(
-    () => endTime - 30 * 24 * 60 * 60 * 1000,
-  ); // 30 days for now
+    () => endTime - 5 * 24 * 60 * 60 * 1000,
+  ); // 5 days for now
   const searchParams = useSearchParams();
   const { dRepIDBech32 } = useCardano();
   const updateURL = (startTime?: number, endTime?: number) => {
     const params = new URLSearchParams(searchParams);
     if (startTime) {
-      params.set('startTime', startTime.toString());
+      params.set('startTime', new Date(startTime).toISOString());
     }
     if (endTime) {
-      params.set('endTime', endTime.toString());
+      params.set('endTime', new Date(endTime).toISOString());
     }
     router.replace(`?${params.toString()}`, { scroll: false });
   };
@@ -70,18 +72,19 @@ const DrepTimeline = ({
       handleScroll(event);
       updateDominantActivity();
     },
+    initialScroll: { top: 0 },
   });
   useEffect(() => {
     let startTime, endTime;
     if (searchParams) {
       const params = new URLSearchParams(searchParams);
       if (params.get('startTime')) {
-        setStartTime(Number(params.get('startTime')));
-        startTime = Number(params.get('startTime'));
+        setStartTime(new Date(params.get('startTime')).getTime());
+        startTime = new Date(params.get('startTime')).getTime();
       }
       if (params.get('endTime')) {
-        setEndTime(Number(params.get('endTime')));
-        endTime = Number(params.get('endTime'));
+        setEndTime(new Date(params.get('endTime')).getTime());
+        endTime = new Date(params.get('endTime')).getTime();
       }
     }
     const initialFetch = async (startTime, endTime) => {
@@ -133,21 +136,22 @@ const DrepTimeline = ({
     setPrevScrollTop(currentScrollTop);
   };
   const fetchMoreData = useCallback(async () => {
-    if (allActivities && allActivities.length > 0) {
+    if (allActivities && allActivities.length > 0 && !isPreviousData) {
       setIsLoadingMore(true);
-      let newStartTime, newEndTime;
+      let newStartTime;
+      let newEndTime;
       if (scrollDirection === 'up') {
-        const oldestActivityTimestamp = Math.max(
+        const newestActivityTimestamp = Math.max(
           ...allActivities.map((a) => new Date(a.timestamp).getTime()),
         );
-        newStartTime = oldestActivityTimestamp;
-        newEndTime = newStartTime + 30 * 24 * 60 * 60 * 1000; // 30 days earlier
+        newStartTime = newestActivityTimestamp;
+        newEndTime = newStartTime + 5 * 24 * 60 * 60 * 1000; // 5 days earlier
       } else {
         const oldestActivityTimestamp = Math.min(
           ...allActivities.map((a) => new Date(a.timestamp).getTime()),
         );
         newEndTime = oldestActivityTimestamp;
-        newStartTime = newEndTime - 30 * 24 * 60 * 60 * 1000; // Fetch 30 more days
+        newStartTime = newEndTime - 5 * 24 * 60 * 60 * 1000; // Fetch 5 more days
       }
 
       let drep;
@@ -165,6 +169,7 @@ const DrepTimeline = ({
             newStartTime,
           ));
       if (drep.activity && drep.activity.length > 0) {
+        setlastBatch(drep.activity);
         setAllActivities((prevActivities) => {
           const uniqueActivitiesMap = new Map(
             [...prevActivities, ...drep.activity].map((activity) => [
@@ -183,8 +188,11 @@ const DrepTimeline = ({
         if (scrollDirection === 'down') {
           setHasMoreBelow(drep.activity.length > 1);
         }
+        //check if data is simlar to preiovus
+
         // Update time states
         setEndTime(newEndTime);
+        setIsPreviousData(_.isEqual(drep.activity, lastBatch));
         setStartTime(newStartTime);
         setIsLoadingMore(false);
       } else {
