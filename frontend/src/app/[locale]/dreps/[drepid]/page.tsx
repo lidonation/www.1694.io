@@ -24,8 +24,8 @@ const page = () => {
       <div className="lg:w-[70%]">
         <Suspense>
           <DrepTimeline
-            drepId={dRep?.drep_id || dRep?.cexplorerDetails?.view}
-            latestEpoch={latestEpoch}
+            claimingDrepId={dRep?.drep_id}
+            drepId={dRep?.cexplorerDetails?.view}
             cexplorerDetails={dRep?.cexplorerDetails}
             activity={dRep?.activity}
           />

@@ -3,11 +3,13 @@ import axiosInstance from '../axiosInstance';
 export const getDReps = async (
   s?: string,
   page?: number,
-  sortBy?: string,
+  sort?: string,
   order?: string,
+  onChainStatus?: string,
+  campaignStatus?: string,
 ) => {
   const response = await axiosInstance.get(`/api/dreps`, {
-    params: { s, page, sortBy, order },
+    params: { s, page, sort, order, onChainStatus, campaignStatus },
   });
 
   return response.data;

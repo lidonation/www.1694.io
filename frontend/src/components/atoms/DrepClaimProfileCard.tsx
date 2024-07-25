@@ -26,7 +26,9 @@ const DrepClaimProfileCard = ({
           />
         )}
       </div>
-      <Button>Claim this profile</Button>
+      <Link className='w-full' href={`/dreps/workflow/profile/new`}>
+        <Button className='w-full'>Claim this profile</Button>
+      </Link>
       <div className="flex flex-row gap-2">
         <StatusChip status="Not claimed" />
         <StatusChip status="Unverified" />

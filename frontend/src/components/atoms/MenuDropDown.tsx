@@ -83,12 +83,11 @@ export default function MenuDropDown({ title, menuItems }: MenuDropDownProps) {
         >
           <Box>
             {menuItems.map((item, index) => (
-              <>
+              <div key={index + item.label}>
                 {!!item.to && (
-                  <Link key={index + item.label} href={item?.to}>
+                  <Link  href={item?.to}>
                     <MenuItem
                       onClick={handleClose}
-                      key={index}
                       sx={{
                         '&:hover': {
                           backgroundColor: '#FFC19D',
@@ -96,7 +95,7 @@ export default function MenuDropDown({ title, menuItems }: MenuDropDownProps) {
                       }}
                     >
                       <Box
-                        key={index}
+
                         className="flex max-w-64 flex-col items-start text-wrap text-complementary-500"
                       >
                         <p className="text-base font-normal">{item.label}</p>
@@ -108,10 +107,9 @@ export default function MenuDropDown({ title, menuItems }: MenuDropDownProps) {
                   </Link>
                 )}
                 {!!item.href && (
-                  <a key={index + item.label} href={item?.href} target="_blank">
+                  <a href={item?.href} target="_blank">
                     <MenuItem
                       onClick={handleClose}
-                      key={index}
                       sx={{
                         '&:hover': {
                           backgroundColor: '#FFC19D',
@@ -119,7 +117,6 @@ export default function MenuDropDown({ title, menuItems }: MenuDropDownProps) {
                       }}
                     >
                       <Box
-                        key={index}
                         className="flex max-w-64 flex-col items-start text-wrap text-complementary-500"
                       >
                         <p className="text-base font-normal">{item.label}</p>
@@ -130,7 +127,7 @@ export default function MenuDropDown({ title, menuItems }: MenuDropDownProps) {
                     </MenuItem>
                   </a>
                 )}
-              </>
+              </div>
             ))}
           </Box>
         </Menu>

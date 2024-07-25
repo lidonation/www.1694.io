@@ -4,6 +4,7 @@ import React from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useDebouncedCallback } from 'use-debounce';
 import DRepListSort from '../molecules/DRepListSort';
+import DRepListFilters from '../molecules/DRepListFilters';
 
 const DRepTableSearch = () => {
   const searchParams = useSearchParams();
@@ -22,7 +23,7 @@ const DRepTableSearch = () => {
   }, 300);
 
   return (
-    <div className="flex flex-row-reverse items-center gap-7">
+    <div className="flex flex-row-reverse items-center gap-4">
       <div className="relative flex flex-row items-center justify-start rounded-full border border-blue-800">
         <div className="pointer-events-none absolute flex items-center justify-center pl-6">
           <img src="/svgs/search.svg" alt="Search Icon" />
@@ -37,6 +38,7 @@ const DRepTableSearch = () => {
         />
       </div>
       <DRepListSort />
+      <DRepListFilters />
     </div>
   );
 };

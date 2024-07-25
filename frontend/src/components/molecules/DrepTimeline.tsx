@@ -28,12 +28,13 @@ const ProfileClaimedChip = ({ claimedAddress }) => {
 };
 
 const DrepTimeline = ({
+  claimingDrepId,
   drepId,
   cexplorerDetails,
   activity,
 }: {
+  claimingDrepId: number;
   drepId: string;
-  latestEpoch: number;
   cexplorerDetails: any;
   activity: any[];
 }) => {
@@ -150,9 +151,9 @@ const DrepTimeline = ({
       }
 
       let drep;
-      drepId.includes('drep')
+      String(drepId).includes('drep')
         ? (drep = await getSingleDRepViaVoterId(
-            drepId,
+            drepId as string,
             null,
             newEndTime,
             newStartTime,
@@ -212,9 +213,7 @@ const DrepTimeline = ({
           <Link href={`/dreps/workflow/notes/new`}>Add a note</Link>
         </Button>
       )}
-      {drepId && (drepId).includes('drep') && (
-        <ProfileClaimedChip claimedAddress={drepId} />
-      )}
+      {claimingDrepId && <ProfileClaimedChip claimedAddress={claimingDrepId} />}
       <div
         id="drep-timeline"
         ref={ref as any}

@@ -14,7 +14,7 @@ import {
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Button from '../atoms/Button';
 
-export default function DRepListSort() {
+export default function DRepListFilters() {
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const [isFiltering, setIsFiltering] = useState(false);
 
@@ -23,22 +23,26 @@ export default function DRepListSort() {
   const { replace } = useRouter();
 
   useEffect(() => {
-    const value = sortValue();
+    const value = filtersValue(['on_chain', 'campaign']);
     if (value) setIsFiltering(true);
   }, []);
 
-  const setSorts = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    filter: string,
+  ) => {
     const value = event.target.value;
+    updateFilters(filter, value);
+  };
+
+  const updateFilters = (filter: string, value: string) => {
     const params = new URLSearchParams(searchParams);
 
-    if (value) {
-      const [sort, order] = value.split('-');
-      params.set('sort', sort);
-      params.set('order', order);
+    if (filter && value) {
+      params.set(filter, value);
       params.set('page', '1');
     } else {
-      params.delete('sort');
-      params.delete('order');
+      params.delete(filter);
     }
     setIsFiltering(true);
     replace(`${pathName}?${params.toString()}`);
@@ -52,27 +56,30 @@ export default function DRepListSort() {
     setAnchorEl(null);
   };
 
-  const sortValue = () => {
-    let sort = searchParams.get('sort')?.toString();
-    let order = searchParams.get('order')?.toString();
-
-    if (sort && order) {
-      return `${sort}-${order}`;
-    } else {
-      return null;
+  const filtersValue = (filters?: string[]) => {
+    for (const filter of filters) {
+      const value = searchParams.get(filter)?.toString();
+      if (value) {
+        return value;
+      }
     }
+    return null;
   };
 
-  const resetSort = () => {
+  const resetFilters = (filters?: string[]) => {
     const params = new URLSearchParams(searchParams);
-    params.delete('sort');
-    params.delete('order');
+    for (const filter of filters) {
+      const value = searchParams.get(filter)?.toString();
+      if (value) {
+        params.delete(filter);
+      }
+    }
     setIsFiltering(false);
     replace(`${pathName}?${params.toString()}`);
   };
 
   const open = Boolean(anchorEl);
-  const id = open ? 'sort-popover' : undefined;
+  const id = open ? 'filters-popover' : undefined;
 
   return (
     <Box>
@@ -82,10 +89,10 @@ export default function DRepListSort() {
         aria-describedby={id}
         onClick={handleShow}
       >
-        <img src="/svgs/arrows-sort.svg" alt="Arrows Sort" />
         <Grow in={isFiltering}>
-          <div className="h-2.5 w-2.5 rounded-full bg-blue-800"></div>
+          <div className="h-2.5 w-2.5 rounded-full bg-primary-300"></div>
         </Grow>
+        <img src="/svgs/filter.svg" alt="Filter Icon" />
       </Box>
       <Popover
         id={id}
@@ -110,23 +117,25 @@ export default function DRepListSort() {
           <Box className="flex flex-col space-y-4">
             <FormControl>
               <span className="text-xs font-semibold">
-                Sort DReps by Voting Power
+                Filter DReps by on-chain status
               </span>
               <RadioGroup
                 aria-labelledby="demo-controlled-radio-buttons-group"
                 name="controlled-radio-buttons-group"
-                value={sortValue()}
-                onChange={setSorts}
+                value={filtersValue(['on_chain'])}
+                onChange={(e) => {
+                  handleChange(e, 'on_chain');
+                }}
               >
                 <FormControlLabel
-                  value="power-desc"
+                  value="active"
                   control={<Radio />}
-                  label="Highest to Lowest"
+                  label="Active"
                 />
                 <FormControlLabel
-                  value="power-asc"
+                  value="inactive"
                   control={<Radio />}
-                  label="Lowest to Highest"
+                  label="Inactive"
                 />
               </RadioGroup>
             </FormControl>
@@ -135,23 +144,25 @@ export default function DRepListSort() {
 
             <FormControl>
               <span className="text-xs font-semibold">
-                Sort DReps by Delegators count
+                Filter DReps by campaign status
               </span>
               <RadioGroup
                 aria-labelledby="demo-controlled-radio-buttons-group"
                 name="controlled-radio-buttons-group"
-                value={sortValue()}
-                onChange={setSorts}
+                value={filtersValue(['campaign'])}
+                onChange={(e) => {
+                  handleChange(e, 'campaign');
+                }}
               >
                 <FormControlLabel
-                  value="delegators-desc"
+                  value="claimed"
                   control={<Radio />}
-                  label="Highest to Lowest"
+                  label="Claimed"
                 />
                 <FormControlLabel
-                  value="delegators-asc"
+                  value="unclaimed"
                   control={<Radio />}
-                  label="Lowest to Highest"
+                  label="Unclaimed"
                 />
               </RadioGroup>
             </FormControl>
@@ -163,7 +174,7 @@ export default function DRepListSort() {
                   backgroundColor: '#1f2937',
                 }}
                 size="extraSmall"
-                handleClick={resetSort}
+                handleClick={() => resetFilters(['on_chain', 'campaign'])}
               >
                 <span>Reset</span>
               </Button>

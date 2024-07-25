@@ -11,16 +11,27 @@ import Link from 'next/link';
 import HoverText from '../atoms/HoverText';
 import Pagination from './Pagination';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import CopyToClipBoard from '../atoms/svgs/CopyToClipBoard';
+import CopyToClipBoard from '../atoms/svgs/CopyToClipBoardIcon';
+import ArrowDownIcon from '../atoms/svgs/ArrowDownIcon';
+import ArrowUpIcon from '../atoms/svgs/ArrowUpIcon';
 
 type DRepsTableProps = {
   query?: string;
   page?: number;
-  sortBy?: string;
+  sort?: string;
   order?: string;
+  onChainStatus?: string;
+  campaignStatus?: string;
 };
 
-const DRepsTable = ({ query, page, sortBy, order }: DRepsTableProps) => {
+const DRepsTable = ({
+  query,
+  page,
+  sort,
+  order,
+  onChainStatus,
+  campaignStatus,
+}: DRepsTableProps) => {
   const searchParams = useSearchParams();
   const pathName = usePathname();
   const { replace } = useRouter();
@@ -29,12 +40,21 @@ const DRepsTable = ({ query, page, sortBy, order }: DRepsTableProps) => {
   const { DReps, isDRepsLoading } = useGetDRepsQuery(
     query,
     page,
-    sortBy,
+    sort,
     order,
+    onChainStatus,
+    campaignStatus,
   );
 
-  function isActive(epoch_no: number, active_until: number) {
-    return active_until > epoch_no;
+  function isActive(latest_epoch_no: number, active_until: number) {
+    if (
+      typeof latest_epoch_no !== 'number' ||
+      typeof active_until !== 'number' ||
+      active_until === null
+    ) {
+      return false;
+    }
+    return active_until > latest_epoch_no;
   }
 
   const handleCopy = (text: string) => {
@@ -49,6 +69,7 @@ const DRepsTable = ({ query, page, sortBy, order }: DRepsTableProps) => {
       params.set('page', targetPage.toString());
     }
     replace(`${pathName}?${params.toString()}`);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function moveToFirstPage(firstPage: number) {
@@ -73,25 +94,24 @@ const DRepsTable = ({ query, page, sortBy, order }: DRepsTableProps) => {
         <thead className="mb-2">
           <tr className="overflow-x-auto text-nowrap bg-white text-left text-xl font-black">
             <th className="px-4 py-2">Campaign</th>
-
             <th className="px-4 py-2">Drep Id</th>
-            {/*<th className="px-4 py-2">Epoch</th>*/}
-
-            <th className="px-4 py-2">Live Power</th>
-            {/*<th className="px-4 py-2">Live Power</th>*/}
-            <th className="px-4 py-2 text-center">Delegators</th>
+            <th className="flex items-center px-4 py-2">
+              <>
+                <span>Live Power</span>
+                {order === 'desc' && <ArrowDownIcon color="black" />}{' '}
+                {order === 'asc' && <ArrowUpIcon color="black" />}
+              </>
+            </th>
+            <th className="px-4 py-2">Delegators</th>
             <th className="px-4 py-2 text-center">Status</th>
-            {/*<th colSpan={3} className="px-4 py-2">*/}
-            {/*  Actions*/}
-            {/*</th>*/}
           </tr>
         </thead>
         <tbody>
           {isDRepsLoading ? (
             <tr>
-              <td colSpan={24} className="text-center">
+              <td colSpan={24} className="px-4 py-2 text-center">
                 {Array.from({ length: 24 }).map((_, index) => (
-                  <Skeleton height={40} key={index} />
+                  <Skeleton height={45} key={index} />
                 ))}
               </td>
             </tr>
@@ -124,33 +144,22 @@ const DRepsTable = ({ query, page, sortBy, order }: DRepsTableProps) => {
                   )}
                 </td>
 
-                <td className="flex items-center justify-between px-4 py-2">
+                <td className="flex items-center px-4 py-2">
+                  <Tooltip title="Copy DRep ID">
+                    <IconButton
+                      size="small"
+                      onClick={() => handleCopy(drep.view)}
+                    >
+                      <CopyToClipBoard width={18} height={18} />
+                    </IconButton>
+                  </Tooltip>
                   <Link href={`/dreps/${drep.view}`}>
                     <p className="hover:font-semibold">
                       {convertString(drep.view, isMobile)}
                     </p>
                   </Link>
-                  <Box className="flex w-full justify-end pr-6">
-                    <Tooltip title="Copy DRep ID">
-                      <IconButton
-                        size="small"
-                        onClick={() => handleCopy(drep.view)}
-                      >
-                        <CopyToClipBoard width={22} height={22} />
-                      </IconButton>
-                    </Tooltip>
-                  </Box>
                 </td>
 
-                {/*epoch_no*/}
-                {/*<td className="px-4 py-2">{drep.epoch_no}</td>*/}
-
-                {/*Campaign Status*/}
-                {/*<td className="px-4 py-2">*/}
-                {/*  <StatusChip status={statusChecker(drep.deposit)} />*/}
-                {/*</td>*/}
-
-                {/*active voting power*/}
                 <td className="max-w-11 overflow-auto px-4 py-2">
                   <HoverText
                     shortText={shortNumber(drep.amount, 2)}
@@ -158,51 +167,19 @@ const DRepsTable = ({ query, page, sortBy, order }: DRepsTableProps) => {
                   />
                 </td>
 
-                {/*upcoming voting power*/}
-                {/*<td className="px-4 py-2">₳ {drep.amount}</td>*/}
-
-                {/*delegators*/}
                 <td className="px-4 py-2">
                   <p className="text-center">{drep.delegation_vote_count}</p>
                 </td>
 
-                {/*Drep status*/}
                 <td className="px-4 py-2">
                   <StatusChip
                     status={
-                      isActive(drep.epoch_no, drep.active_until)
+                      isActive(drep.latest_epoch_no, drep.active_until)
                         ? 'Active'
                         : 'Inactive'
                     }
                   />
                 </td>
-
-                {/*actions*/}
-                {/*<td className="px-4 py-2">*/}
-                {/*  <div className="flex space-x-2">*/}
-                {/*    <HoverChip*/}
-                {/*      text="View Profile"*/}
-                {/*      handleClick={() => router.push(`/dreps/${drep.view}`)}*/}
-                {/*    >*/}
-                {/*      <img src="/svgs/link.svg" alt="" />*/}
-                {/*    </HoverChip>*/}
-                {/*    <HoverChip*/}
-                {/*      text="Link DRep"*/}
-                {/*      handleClick={*/}
-                {/*        () => console.log('linking drep', drep.view)*/}
-                {/*        // router.push(`/drep/${drep.id}`)*/}
-                {/*      }*/}
-                {/*    >*/}
-                {/*      <img src="/svgs/user-circle.svg" alt="" />*/}
-                {/*    </HoverChip>*/}
-                {/*    <HoverChip*/}
-                {/*      text="Claim DRep Profile"*/}
-                {/*      handleClick={() => router.push(`/dreps/${drep.view}`)}*/}
-                {/*    >*/}
-                {/*      <img src="/svgs/medal.svg" alt="" />*/}
-                {/*    </HoverChip>*/}
-                {/*  </div>*/}
-                {/*</td>*/}
               </tr>
             ))
           ) : (
