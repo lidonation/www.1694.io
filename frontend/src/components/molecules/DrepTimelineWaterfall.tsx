@@ -36,11 +36,10 @@ export default function DrepTimelineWaterfall({
       {activity &&
         activity.length > 0 &&
         activity.map((item, epochIndex) => (
-          <>
+          <div key={epochIndex}>
             {item.type === 'note' && (
               <div
                 className="flex w-full flex-col items-center space-y-2"
-                key={epochIndex}
               >
                 <TimelineSeparator>
                   <TimelineDot />
@@ -62,7 +61,6 @@ export default function DrepTimelineWaterfall({
             {item.type === 'epoch' && (
               <div
                 className="flex w-full flex-col items-center space-y-2"
-                key={epochIndex}
               >
                 <TimelineSeparator>
                   <TimelineDot />
@@ -90,7 +88,7 @@ export default function DrepTimelineWaterfall({
               </div>
             )}
             {item.type === 'voting_activity' && (
-              <TimelineItem key={epochIndex}>
+              <TimelineItem>
                 <TimelineSeparator>
                   <TimelineDot />
                   <TimelineConnector
@@ -103,7 +101,7 @@ export default function DrepTimelineWaterfall({
                 </TimelineContent>
               </TimelineItem>
             )}
-          </>
+          </div>
         ))}
     </Timeline>
   );
