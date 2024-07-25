@@ -31,7 +31,7 @@ const DrepTimeline = ({
   cexplorerDetails,
   activity,
 }: {
-  drepId: string;
+  drepId: string | number;
   latestEpoch: number;
   cexplorerDetails: any;
   activity: any[];
@@ -85,9 +85,9 @@ const DrepTimeline = ({
       const newEndTime = oldestActivityTimestamp;
       const newStartTime = newEndTime - 30 * 24 * 60 * 60 * 1000; // Fetch 30 more days
       let drep;
-      drepId.includes('drep')
+      String(drepId).includes('drep')
         ? (drep = await getSingleDRepViaVoterId(
-            drepId,
+            drepId as string,
             null,
             newEndTime,
             newStartTime,
@@ -139,7 +139,7 @@ const DrepTimeline = ({
         </Button>
       )}
 
-      {drepId && !drepId.includes('drep') && <ProfileClaimedChip claimedAddress={drepId} />}
+      {drepId && !String(drepId).includes('drep') && <ProfileClaimedChip claimedAddress={drepId} />}
       {allActivities && allActivities.length > 0 && (
         <InfiniteScroll
           onScroll={updateDominantActivity}
