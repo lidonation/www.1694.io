@@ -13,6 +13,7 @@ import {
 } from '@mui/material';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Button from '../atoms/Button';
+import DotIcon from '../atoms/svgs/DotIcon';
 
 export default function DRepListFilters() {
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
@@ -85,14 +86,21 @@ export default function DRepListFilters() {
     <Box>
       <Box
         component="button"
-        className="flex items-center gap-2"
+        className="relative flex w-6 justify-start"
         aria-describedby={id}
         onClick={handleShow}
       >
+        <img
+          src="/svgs/filter.svg"
+          className="mt-1 h-5 w-5"
+          alt="Filter Sort"
+        />
+
         <Grow in={isFiltering}>
-          <div className="h-2.5 w-2.5 rounded-full bg-primary-300"></div>
+          <div className="absolute right-0 top-0">
+            <DotIcon color="#f97316" width={17} height={17} />
+          </div>
         </Grow>
-        <img src="/svgs/filter.svg" alt="Filter Icon" />
       </Box>
       <Popover
         id={id}

@@ -95,14 +95,32 @@ const DRepsTable = ({
           <tr className="overflow-x-auto text-nowrap bg-white text-left text-xl font-black">
             <th className="px-4 py-2">Campaign</th>
             <th className="px-4 py-2">Drep Id</th>
-            <th className="flex items-center px-4 py-2">
-              <>
+            <th className="px-4 py-2">
+              <div className="flex items-center">
                 <span>Live Power</span>
-                {order === 'desc' && <ArrowDownIcon color="black" />}{' '}
-                {order === 'asc' && <ArrowUpIcon color="black" />}
-              </>
+                {sort === 'power' &&
+                  (order === 'desc' ? (
+                    <ArrowDownIcon width={20} height={20} color="black" />
+                  ) : (
+                    order === 'asc' && (
+                      <ArrowUpIcon width={20} height={20} color="black" />
+                    )
+                  ))}
+              </div>
             </th>
-            <th className="px-4 py-2">Delegators</th>
+            <th className="px-4 py-2">
+              <div className="flex items-center">
+                <span>Delegators</span>
+                {sort === 'delegators' &&
+                  (order === 'desc' ? (
+                    <ArrowDownIcon width={20} height={20} color="black" />
+                  ) : (
+                    order === 'asc' && (
+                      <ArrowUpIcon width={20} height={20} color="black" />
+                    )
+                  ))}
+              </div>
+            </th>
             <th className="px-4 py-2 text-center">Status</th>
           </tr>
         </thead>

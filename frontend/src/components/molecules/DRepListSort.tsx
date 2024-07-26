@@ -13,6 +13,7 @@ import {
 } from '@mui/material';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Button from '../atoms/Button';
+import DotIcon from '../atoms/svgs/DotIcon';
 
 export default function DRepListSort() {
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
@@ -78,13 +79,20 @@ export default function DRepListSort() {
     <Box>
       <Box
         component="button"
-        className="flex items-center gap-2"
+        className="relative flex justify-start w-6"
         aria-describedby={id}
         onClick={handleShow}
       >
-        <img src="/svgs/arrows-sort.svg" alt="Arrows Sort" />
+        <img
+          src="/svgs/arrows-sort.svg"
+          className="h-5 w-5 mt-1"
+          alt="Arrows Sort"
+        />
+
         <Grow in={isFiltering}>
-          <div className="h-2.5 w-2.5 rounded-full bg-blue-800"></div>
+          <div className="absolute right-0 top-0">
+            <DotIcon color="#f97316" width={17} height={17} />
+          </div>
         </Grow>
       </Box>
       <Popover
