@@ -31,10 +31,20 @@ export class DrepController {
     page: number,
     @Query('perPage', new DefaultValuePipe(24), ParseIntPipe)
     perPage: number,
-    @Query('sortBy') sortBy?: string,
+    @Query('sort') sort?: string,
     @Query('order') order?: string,
+    @Query('onChainStatus') onChainStatus?: 'active' | 'inactive',
+    @Query('campaignStatus') campaignStatus?: 'claimed' | 'unclaimed',
   ) {
-    return this.drepService.getAllDReps(s, page, perPage, sortBy, order);
+    return this.drepService.getAllDReps(
+      s,
+      page,
+      perPage,
+      sort,
+      order,
+      onChainStatus,
+      campaignStatus,
+    );
   }
   @Get('epochs/latest/parameters')
   getEpochParams() {

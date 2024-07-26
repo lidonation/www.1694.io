@@ -53,6 +53,7 @@
     "framer-motion": "^11.1.7",
     "js-cookie": "^3.0.5",
     "jwt-decode": "^4.0.0",
+    "lodash": "^4.17.21",
     "marked": "^13.0.2",
     "next": "^14.1.0",
     "next-intl": "^3.5.4",

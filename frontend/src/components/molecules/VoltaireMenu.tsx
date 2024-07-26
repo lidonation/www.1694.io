@@ -107,7 +107,6 @@ export default function VoltaireMenu() {
               <a key={index + item.label} href={item?.href} target="_blank">
                 <MenuItem
                   onClick={handleClose}
-                  key={index}
                   sx={{
                     '&:hover': {
                       backgroundColor: '#FFC19D',

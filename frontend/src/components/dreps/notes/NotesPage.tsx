@@ -7,6 +7,7 @@ import { CircularProgress, List, Skeleton } from '@mui/material';
 import { useCardano } from '@/context/walletContext';
 import { useDRepContext } from '@/context/drepContext';
 import { useGetNotesQuery } from '@/hooks/useGetNotesQuery';
+import _ from 'lodash';
 import useInfiniteScroll from 'react-easy-infinite-scroll-hook';
 const LoaderComponent = () => {
   return Array.from({ length: 4 }).map((_, index) => (
@@ -37,14 +38,17 @@ function NotesPage() {
   const [prevScrollTop, setPrevScrollTop] = useState(0);
   const [scrollDirection, setScrollDirection] = useState(null);
   const [allNotes, setAllNotes] = useState<any[]>([]);
+  const [isPreviousDataUp, setIsPreviousDataUp] = useState(false);
+  const [isPreviousDataDown, setIsPreviousDataDown] = useState(false);
+  const [lastBatchUp, setlastBatchUp] = useState([]);
+  const [lastBatchDown, setlastBatchDown] = useState([]);
   const noteRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
   const [hasMoreBelow, setHasMoreBelow] = useState(true);
   const [hasMoreAbove, setHasMoreAbove] = useState(true);
-  const { Notes, isNotesLoading, isNotesFetching, isPreviousData } =
-    useGetNotesQuery({
-      currentNote: currentNoteId,
-      request: request,
-    });
+  const { Notes, isNotesLoading, isNotesFetching } = useGetNotesQuery({
+    currentNote: currentNoteId,
+    request: request,
+  });
   useEffect(() => {
     if (allNotes && allNotes.length > 0) {
       const topMostNote = allNotes[0];
@@ -56,7 +60,7 @@ function NotesPage() {
   }, [allNotes, dominantNoteId]);
 
   useEffect(() => {
-    if (Notes && !isPreviousData) {
+    if (Notes) {
       setAllNotes((prevNotes) => {
         // Create a Map to store unique notes, with note_id as the key
         const uniqueNotesMap = new Map(
@@ -69,13 +73,18 @@ function NotesPage() {
         // Sort notes by note_id in descending order (assuming higher IDs are more recent)
         return uniqueNotes;
       });
+
       if (scrollDirection === 'down') {
+        setlastBatchDown(Notes);
+        setIsPreviousDataDown(_.isEqual(Notes, lastBatchDown));
         setHasMoreBelow(Notes.length > 1);
       } else if (scrollDirection === 'up') {
+        setlastBatchUp(Notes);
+        setIsPreviousDataUp(_.isEqual(Notes, lastBatchUp));
         setHasMoreAbove(Notes.length > 1);
       }
     }
-  }, [Notes, isPreviousData]);
+  }, [Notes]);
   const ref = useInfiniteScroll({
     next: async (scrollDirection) => fetchMoreData(),
     rowCount: allNotes.length,
@@ -132,14 +141,14 @@ function NotesPage() {
     router.replace(`?${params.toString()}`, { scroll: false });
   };
   const fetchMoreDataDown = useCallback(() => {
-    if (!isNotesFetching && !isPreviousData && allNotes.length > 0) {
+    if (!isNotesFetching && !isPreviousDataDown && allNotes.length > 0) {
       setCurrentNoteId(allNotes[allNotes.length - 1].note_id);
       setRequest('before');
     }
   }, [isNotesFetching, allNotes]);
 
   const fetchMoreDataUp = useCallback(() => {
-    if (!isNotesFetching && !isPreviousData) {
+    if (!isNotesFetching && !isPreviousDataUp) {
       setCurrentNoteId(allNotes[0].note_id);
       setRequest('after');
     }
@@ -158,7 +167,7 @@ function NotesPage() {
         id="scrollableDiv"
         ref={ref as any}
         style={{
-          height: 1000,
+          height: 2000,
           overflow: 'auto',
           display: 'flex',
           flexDirection: 'column',
