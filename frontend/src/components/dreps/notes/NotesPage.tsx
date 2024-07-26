@@ -100,31 +100,38 @@ function NotesPage() {
       setCurrentNoteId(Number(urlNote));
     }
   }, []);
-  const updateDominantNote = useCallback(() => {
-    if (allNotes && allNotes.length > 0) {
-      const windowHeight = window.innerHeight;
-      let maxVisibleArea = 0;
-      let dominantNote = allNotes[0];
+  const updateDominantNote = useCallback(
+    _.debounce(
+      () => {
+        if (allNotes && allNotes.length > 0) {
+          const windowHeight = window.innerHeight;
+          let maxVisibleArea = 0;
+          let dominantNote = allNotes[0];
 
-      allNotes.forEach((note) => {
-        const element = noteRefs.current[note.note_id];
-        if (element) {
-          const rect = element.getBoundingClientRect();
-          const visibleHeight =
-            Math.min(rect.bottom, windowHeight) - Math.max(rect.top, 0);
-          if (visibleHeight > maxVisibleArea) {
-            maxVisibleArea = visibleHeight;
-            dominantNote = note;
+          allNotes.forEach((note) => {
+            const element = noteRefs.current[note.note_id];
+            if (element) {
+              const rect = element.getBoundingClientRect();
+              const visibleHeight =
+                Math.min(rect.bottom, windowHeight) - Math.max(rect.top, 0);
+              if (visibleHeight > maxVisibleArea) {
+                maxVisibleArea = visibleHeight;
+                dominantNote = note;
+              }
+            }
+          });
+
+          if (dominantNote.note_id !== dominantNoteId) {
+            setDominantNoteId(dominantNote.note_id);
+            updateURL(dominantNote.note_id.toString());
           }
         }
-      });
-
-      if (dominantNote.note_id !== dominantNoteId) {
-        setDominantNoteId(dominantNote.note_id);
-        updateURL(dominantNote.note_id.toString());
-      }
-    }
-  }, [allNotes, dominantNoteId]);
+      },
+      100,
+      { leading: true, trailing: false }
+    ),
+    [allNotes, dominantNoteId]
+  );
   const handleScroll = useCallback(
     (event) => {
       const currentScrollTop = event.scrollTop;

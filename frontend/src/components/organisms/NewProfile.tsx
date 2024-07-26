@@ -67,7 +67,7 @@ const NewProfile = () => {
       addSuccessAlert('DRep Profile Created Successfully!');
       setItemToLocalStorage('token', token);
       setIsLoggedIn(true);
-      router.push(`/dreps/workflow/profile/update/step1`);
+      router.push(`/dreps/workflow/profile/update/step2`);
     } catch (error) {
       addErrorAlert('Error Creating DRep Profile!');
       console.log(error);

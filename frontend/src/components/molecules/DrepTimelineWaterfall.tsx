@@ -11,12 +11,23 @@ import { useCardano } from '@/context/walletContext';
 import { useDRepContext } from '@/context/drepContext';
 import EpochTimelineCard from '../atoms/EpochTimelineCard';
 import DrepVoteTimelineCard from '../atoms/DrepVoteTimelineCard';
-
-export default function DrepTimelineWaterfall({
-  activity = [],
-}: {
-  activity: any[];
-}) {
+const ProfileClaimedChip = ({ claimedAddress }) => {
+  return (
+    <div className="flex w-full flex-col gap-1 rounded-xl bg-yellow-500 px-3 py-2">
+      <div className="flex flex-row items-center justify-between">
+        <div className="flex max-w-fit items-center gap-2 rounded-full bg-black px-3 py-1 text-sm text-white">
+          <img src="/svgs/user-circle-filled-yellow.svg" alt="" />
+          <p>Profile Claimed</p>
+        </div>
+        <p>{new Date().toDateString()}</p>
+      </div>
+      <p className="overflow-x-scroll text-nowrap">
+        Profile claimed by: {claimedAddress}
+      </p>
+    </div>
+  );
+};
+const DrepTimelineWaterfall = ({ activity = [] }: { activity: any[] }) => {
   const { isMobile, screenWidth } = useScreenDimension();
   const { stakeKeyBech32, isEnabled } = useCardano();
   const { isLoggedIn } = useDRepContext();
@@ -38,9 +49,7 @@ export default function DrepTimelineWaterfall({
         activity.map((item, epochIndex) => (
           <div key={epochIndex}>
             {item.type === 'note' && (
-              <div
-                className="flex w-full flex-col items-center space-y-2"
-              >
+              <div className="flex w-full flex-col items-center space-y-2">
                 <TimelineSeparator>
                   <TimelineDot />
                   <TimelineConnector
@@ -59,9 +68,7 @@ export default function DrepTimelineWaterfall({
               </div>
             )}
             {item.type === 'epoch' && (
-              <div
-                className="flex w-full flex-col items-center space-y-2"
-              >
+              <div className="flex w-full flex-col items-center space-y-2">
                 <TimelineSeparator>
                   <TimelineDot />
                   <TimelineConnector
@@ -87,6 +94,18 @@ export default function DrepTimelineWaterfall({
                 </div>
               </div>
             )}
+            {item.type === 'claimed_profile' && (
+              <div className="flex w-full flex-col items-center space-y-2">
+                <TimelineSeparator>
+                  <TimelineDot />
+                  <TimelineConnector
+                    className="h-10 border-2 border-dotted border-gray-300"
+                    sx={{ backgroundColor: 'white' }}
+                  />
+                </TimelineSeparator>
+                <ProfileClaimedChip claimedAddress={item.claimingId} />
+              </div>
+            )}
             {item.type === 'voting_activity' && (
               <TimelineItem>
                 <TimelineSeparator>
@@ -105,4 +124,5 @@ export default function DrepTimelineWaterfall({
         ))}
     </Timeline>
   );
-}
+};
+export default React.memo(DrepTimelineWaterfall);

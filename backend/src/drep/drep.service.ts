@@ -58,7 +58,6 @@ export class DrepService {
     if (campaignStatus) {
       const voltaireDReps = (await this.getAllDRepsVoltaire()) ?? [];
       dRepViews = voltaireDReps.map((drep) => drep.signature_drepVoterId);
-      console.log(dRepViews);
     }
 
     const drepList = await this.getAllDRepsCexplorer(
@@ -285,7 +284,7 @@ export class DrepService {
       .getRawMany();
     const drepCexplorer = await this.getDrepCexplorerDetails(drepVoterId);
     const drepVotingHistory = await this.getDrepTimeline(
-      drep[0]?.drep_id,
+      drep[0],
       drepVoterId,
       stakeKeyBech32,
       delegation,
@@ -430,7 +429,7 @@ export class DrepService {
     return drepRegistrationData[0];
   }
   async getDrepTimeline(
-    drepId: number,
+    drep: any,
     drepVoterId: string,
     stakeKeyBech32?: string,
     delegation?: Delegation,
@@ -443,6 +442,7 @@ export class DrepService {
     //get voting activity
     //get notes
     // TODO: get delegating activity across a certain epoch
+    const drepId=drep?.drep_id
     const startingTime = beforeDate ? new Date(Number(beforeDate)) : new Date();
     const endingTime = tillDate
       ? new Date(Number(tillDate))
@@ -451,6 +451,7 @@ export class DrepService {
     const epochs = await this.getEpochs(startingTime, endingTime);
     const drepRegData = await this.getDrepDateofRegistration(drepVoterId);
     const regDate = new Date(drepRegData?.date_of_registration).getTime();
+    const claimDate = new Date(drep?.drep_createdAt).getTime();
     const drepVotingHistory = await this.getDrepVotingActivity(
       drepVoterId,
       startingTime,
@@ -491,6 +492,14 @@ export class DrepService {
         type: 'registration',
         timestamp: drepRegData.date_of_registration,
         epoch_no: drepRegData.epoch_of_registration,
+      });
+    }
+    // Add claimed event if drepId is pesent if it falls within the time range
+    if (drepId && startingTime.getTime() > claimDate && endingTime.getTime() < claimDate) {
+      drepActivity.push({
+        type: 'claimed_profile',
+        timestamp: drep.drep_createdAt,
+        claimingId: drepId,
       });
     }
     // Sort the combined array by timestamp from latest to earliest

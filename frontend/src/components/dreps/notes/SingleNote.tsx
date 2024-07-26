@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { memo, useEffect, useMemo, useState } from 'react';
 import { Chip, Typography } from '@mui/material';
 import Button from '@/components/atoms/Button';
 import { postAddReaction } from '@/services/requests/postAddReaction';
@@ -292,4 +292,4 @@ const SingleNote = ({
   );
 };
 
-export default SingleNote;
+export default memo(SingleNote);

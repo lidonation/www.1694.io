@@ -2,78 +2,48 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import DrepTimelineWaterfall from './DrepTimelineWaterfall';
 import Link from 'next/link';
-import useInfiniteScroll from 'react-easy-infinite-scroll-hook';
-import _ from 'lodash';
+import InfiniteScroll from 'react-infinite-scroll-component';
 import Button from '../atoms/Button';
 import { useCardano } from '@/context/walletContext';
 import { useRouter, useSearchParams } from 'next/navigation';
+import _ from 'lodash';
 import { getSingleDRep } from '@/services/requests/getSingleDrep';
 import { getSingleDRepViaVoterId } from '@/services/requests/getSingleDrepViaVoterId';
-import { CircularProgress } from '@mui/material';
-const ProfileClaimedChip = ({ claimedAddress }) => {
-  return (
-    <div className="flex flex-col gap-1 rounded-xl bg-yellow-500 px-3 py-2 ">
-      <div className="flex flex-row items-center justify-between">
-        <div className="flex max-w-fit items-center gap-2 rounded-full bg-black px-3 py-1 text-sm text-white">
-          <img src="/svgs/user-circle-filled-yellow.svg" alt="" />
-          <p>Profile Claimed</p>
-        </div>
-        <p>{new Date().toDateString()}</p>
-      </div>
-      <p className="overflow-x-scroll text-nowrap">
-        Profile claimed by: {claimedAddress}
-      </p>
-    </div>
-  );
-};
-
 const DrepTimeline = ({
-  claimingDrepId,
   drepId,
   cexplorerDetails,
   activity,
 }: {
-  claimingDrepId: number;
   drepId: string;
   cexplorerDetails: any;
   activity: any[];
 }) => {
   const [searchText, setSearchText] = useState('');
   const [allActivities, setAllActivities] = useState(activity || []);
-  const [hasMoreBelow, setHasMoreBelow] = useState(true);
   const [hasMoreAbove, setHasMoreAbove] = useState(true);
+  const [hasMoreBelow, setHasMoreBelow] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isPreviousData, setIsPreviousData] = useState(false);
   const [lastBatch, setlastBatch] = useState([]);
-  const [prevScrollTop, setPrevScrollTop] = useState(0);
- const [scrollDirection, setScrollDirection] = useState(null);
   const router = useRouter();
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [scrollDirection, setScrollDirection] = useState('down');
+  const [prevScrollTop, setPrevScrollTop] = useState(0);
   const [endTime, setEndTime] = useState(() => Date.now());
   const [startTime, setStartTime] = useState(
     () => endTime - 5 * 24 * 60 * 60 * 1000,
-  ); // 5 days for now
+  ); // 30 days for now
   const searchParams = useSearchParams();
   const { dRepIDBech32 } = useCardano();
-  const updateURL = (startTime?: number, endTime?: number) => {
-    const params = new URLSearchParams(searchParams);
-    if (startTime) {
-      params.set('startTime', new Date(startTime).toISOString());
-    }
-    if (endTime) {
-      params.set('endTime', new Date(endTime).toISOString());
-    }
-    router.replace(`?${params.toString()}`, { scroll: false });
+  const handleScroll = (event) => {
+    const currentScrollTop = event.target.scrollTop;
+    const isScrollingDown = currentScrollTop > prevScrollTop;
+    setScrollDirection(isScrollingDown ? 'down' : 'up');
+    setPrevScrollTop(currentScrollTop);
+    currentScrollTop === 0 &&
+      scrollDirection === 'up' &&
+      !isPreviousData &&
+      fetchMoreData();
   };
-  const ref = useInfiniteScroll({
-    next: (scrollDirection) => fetchMoreData(),
-    rowCount: allActivities.length,
-    hasMore: { down: hasMoreBelow, up: hasMoreAbove },
-    onScroll: (event) => {
-      handleScroll(event);
-      updateDominantActivity();
-    },
-    initialScroll: { top: 0 },
-  });
   useEffect(() => {
     let startTime, endTime;
     if (searchParams) {
@@ -126,15 +96,44 @@ const DrepTimeline = ({
     };
     if (drepId) initialFetch(startTime, endTime);
   }, [drepId]);
-  const updateDominantActivity = () => {
-    updateURL(startTime, endTime);
+  const updateURL = (startTime?: number, endTime?: number) => {
+    const params = new URLSearchParams(searchParams);
+    if (startTime) {
+      params.set('startTime', new Date(startTime).toISOString());
+    }
+    if (endTime) {
+      params.set('endTime', new Date(endTime).toISOString());
+    }
+    router.replace(`?${params.toString()}`, { scroll: false });
   };
-  const handleScroll = (event) => {
-    const currentScrollTop = event.scrollTop;
-    const isScrollingDown = currentScrollTop > prevScrollTop;
-    setScrollDirection(isScrollingDown ? 'down' : 'up');
-    setPrevScrollTop(currentScrollTop);
-  };
+  useEffect(() => {
+    if (activity) {
+      setAllActivities((prevActivities) => {
+        const uniqueActivitiesMap = new Map(
+          [...prevActivities, ...activity].map((activity) => [
+            activity.timestamp,
+            activity,
+          ]),
+        );
+        return Array.from(uniqueActivitiesMap.values()).sort(
+          (a, b) => b.timestamp - a.timestamp,
+        );
+      });
+      setHasMoreBelow(activity.length > 0);
+    }
+  }, [activity]);
+
+  const updateDominantActivity = useCallback(
+    _.debounce(
+      () => {
+        updateURL(startTime, endTime);
+      },
+      400,
+      { leading: true, trailing: false },
+    ),
+    [startTime, endTime],
+  );
+
   const fetchMoreData = useCallback(async () => {
     if (allActivities && allActivities.length > 0 && !isPreviousData) {
       setIsLoadingMore(true);
@@ -184,12 +183,17 @@ const DrepTimeline = ({
         });
         if (scrollDirection === 'up') {
           setHasMoreAbove(drep.activity.length > 1);
+          // Maintain scroll position
+          setTimeout(() => {
+            const scrollableDiv = document.getElementById('scrollableDiv');
+            if (scrollableDiv) {
+              scrollableDiv.scrollTop += drep.activity.length * 100; // Adjust this value based on your item height
+            }
+          }, 0);
         }
         if (scrollDirection === 'down') {
           setHasMoreBelow(drep.activity.length > 1);
         }
-        //check if data is simlar to preiovus
-
         // Update time states
         setEndTime(newEndTime);
         setIsPreviousData(_.isEqual(drep.activity, lastBatch));
@@ -202,7 +206,6 @@ const DrepTimeline = ({
       }
     }
   }, [drepId, allActivities, scrollDirection]);
-
   return (
     <div className="flex h-full w-full flex-col gap-5 bg-white px-5 py-3">
       <div className="flex flex-col items-center gap-2 sm:flex-row sm:justify-between">
@@ -221,31 +224,32 @@ const DrepTimeline = ({
           <Link href={`/dreps/workflow/notes/new`}>Add a note</Link>
         </Button>
       )}
-      {claimingDrepId && <ProfileClaimedChip claimedAddress={claimingDrepId} />}
       <div
-        id="drep-timeline"
-        ref={ref as any}
+        id="scrollableDiv"
         style={{
           height: 1000,
           overflow: 'auto',
           display: 'flex',
           flexDirection: 'column',
+          gap: '2rem',
         }}
+        onScroll={handleScroll}
       >
-        {isLoadingMore && scrollDirection === 'up' && (
-          <div className="flex items-center justify-center">
-            <CircularProgress size={40} />
-          </div>
-        )}
         {allActivities && allActivities.length > 0 && (
-          <div className="flex flex-col gap-5 pt-5">
+          <InfiniteScroll
+            onScroll={updateDominantActivity}
+            dataLength={allActivities.length}
+            next={fetchMoreData}
+            hasMore={scrollDirection === 'down' ? hasMoreBelow : hasMoreAbove}
+            loader={<p className="text-center">Loading...</p>}
+            endMessage={<p className="text-center">You've caught up!</p>}
+            scrollThreshold="200px"
+            scrollableTarget="scrollableDiv"
+            className="flex flex-col gap-5 pt-5"
+            inverse={scrollDirection === 'up'} // Enable reverse scrolling
+          >
             <DrepTimelineWaterfall activity={allActivities} />
-          </div>
-        )}
-        {isLoadingMore && scrollDirection === 'down' && (
-          <div className="flex items-center justify-center">
-            <CircularProgress size={40} />
-          </div>
+          </InfiniteScroll>
         )}
       </div>
     </div>
