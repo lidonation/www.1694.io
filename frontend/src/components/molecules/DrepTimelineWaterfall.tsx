@@ -11,7 +11,7 @@ import { useCardano } from '@/context/walletContext';
 import { useDRepContext } from '@/context/drepContext';
 import EpochTimelineCard from '../atoms/EpochTimelineCard';
 import DrepVoteTimelineCard from '../atoms/DrepVoteTimelineCard';
-const ProfileClaimedChip = ({ claimedAddress }) => {
+const ProfileClaimedChip = ({ claimedAddress, dateOfClaim }) => {
   return (
     <div className="flex w-full flex-col gap-1 rounded-xl bg-yellow-500 px-3 py-2">
       <div className="flex flex-row items-center justify-between">
@@ -19,7 +19,7 @@ const ProfileClaimedChip = ({ claimedAddress }) => {
           <img src="/svgs/user-circle-filled-yellow.svg" alt="" />
           <p>Profile Claimed</p>
         </div>
-        <p>{new Date().toDateString()}</p>
+        <p>{new Date(dateOfClaim).toDateString()}</p>
       </div>
       <p className="overflow-x-scroll text-nowrap">
         Profile claimed by: {claimedAddress}
@@ -103,7 +103,7 @@ const DrepTimelineWaterfall = ({ activity = [] }: { activity: any[] }) => {
                     sx={{ backgroundColor: 'white' }}
                   />
                 </TimelineSeparator>
-                <ProfileClaimedChip claimedAddress={item.claimingId} />
+                <ProfileClaimedChip claimedAddress={item.claimingId} dateOfClaim={item.timestamp} />
               </div>
             )}
             {item.type === 'voting_activity' && (
