@@ -323,6 +323,6 @@ ui-chrome-tests:
   artifacts:
     when: on_failure
     paths:
-      - ${PWD}/src/www.lidonation.com/var/www/tests/cypress/videos/**/*.mp4
-      - ${PWD}/src/www.lidonation.com/var/www/tests/cypress/screenshots/**/*.png
+      - ${PWD}/frontend/cypress/videos/**/*.mp4
+      - ${PWD}/frontend/cypress/screenshots/**/*.png
     expire_in: 1 day
