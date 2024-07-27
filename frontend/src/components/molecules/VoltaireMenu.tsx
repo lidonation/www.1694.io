@@ -96,8 +96,6 @@ export default function VoltaireMenu() {
               borderRadius: '0 0 1rem 1rem',
               boxShadow: '1px 2px 11px 0 rgba(0, 18, 61, 0.37)',
               bgcolor: '#F3F5FF',
-              paddingX: '0.75rem',
-              paddingY: '0.5rem',
             },
             '.MuiMenu-list': { padding: 0 },
           }}

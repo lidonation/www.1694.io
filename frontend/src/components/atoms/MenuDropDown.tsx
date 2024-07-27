@@ -75,8 +75,6 @@ export default function MenuDropDown({ title, menuItems }: MenuDropDownProps) {
               borderRadius: '0 0 1rem 1rem',
               boxShadow: '1px 2px 11px 0 rgba(0, 18, 61, 0.37)',
               bgcolor: '#F3F5FF',
-              paddingX: '0.75rem',
-              paddingY: '0.5rem',
             },
             '.MuiMenu-list': { padding: 0 },
           }}
@@ -85,7 +83,7 @@ export default function MenuDropDown({ title, menuItems }: MenuDropDownProps) {
             {menuItems.map((item, index) => (
               <div key={index + item.label}>
                 {!!item.to && (
-                  <Link  href={item?.to}>
+                  <Link href={item?.to}>
                     <MenuItem
                       onClick={handleClose}
                       sx={{
@@ -94,10 +92,7 @@ export default function MenuDropDown({ title, menuItems }: MenuDropDownProps) {
                         },
                       }}
                     >
-                      <Box
-
-                        className="flex max-w-64 flex-col items-start text-wrap text-complementary-500"
-                      >
+                      <Box className="flex max-w-64 flex-col items-start text-wrap text-complementary-500">
                         <p className="text-base font-normal">{item.label}</p>
                         <p className="text-xs font-normal leading-4">
                           {item.text}
@@ -116,9 +111,7 @@ export default function MenuDropDown({ title, menuItems }: MenuDropDownProps) {
                         },
                       }}
                     >
-                      <Box
-                        className="flex max-w-64 flex-col items-start text-wrap text-complementary-500"
-                      >
+                      <Box className="flex max-w-64 flex-col items-start text-wrap text-complementary-500">
                         <p className="text-base font-normal">{item.label}</p>
                         <p className="text-xs font-normal leading-4">
                           {item.text}
