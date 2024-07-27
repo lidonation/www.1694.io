@@ -320,3 +320,9 @@ ui-chrome-tests:
     - yarn run start &
     # run Cypress tests in parallel
     - npx cypress run --browser chrome --config video=false || true
+  artifacts:
+    when: on_failure
+    paths:
+      - ${PWD}/src/www.lidonation.com/var/www/tests/cypress/videos/**/*.mp4
+      - ${PWD}/src/www.lidonation.com/var/www/tests/cypress/screenshots/**/*.png
+    expire_in: 1 day
