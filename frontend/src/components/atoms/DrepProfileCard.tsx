@@ -138,16 +138,16 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
         </CopyToClipboard>
       </div>
       <div className="flex flex-row gap-2">
-        <Link href={drep ? drep?.drep_social?.github || '#' : '#'}>
+        <Link href={drep ? drep?.drep_social?.github || '#' : '#'}  target='_blank'>
           <img className="w-full" src="/svgs/github-dark.svg" alt="" />
         </Link>
-        <Link href={drep ? drep?.drep_social?.x || '#' : '#'}>
+        <Link href={drep ? drep?.drep_social?.x || '#' : '#'} target='_blank'>
           <img className="w-full" src="/svgs/twitter.svg" alt="" />
         </Link>
-        <Link href={drep ? drep?.drep_social?.facebook || '#' : '#'}>
+        <Link href={drep ? drep?.drep_social?.facebook || '#' : '#'} target='_blank'>
           <img className="w-full" src="/svgs/fb-dark.svg" alt="" />
         </Link>
-        <Link href={drep ? drep?.drep_social?.instagram || '#' : '#'}>
+        <Link href={drep ? drep?.drep_social?.instagram || '#' : '#'} target='_blank'>
           <img className="w-full" src="/svgs/ig-dark.svg" alt="" />
         </Link>
       </div>
