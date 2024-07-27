@@ -11,9 +11,11 @@ import { useCardano } from '@/context/walletContext';
 import { useDRepContext } from '@/context/drepContext';
 import EpochTimelineCard from '../atoms/EpochTimelineCard';
 import DrepVoteTimelineCard from '../atoms/DrepVoteTimelineCard';
+import Link from 'next/link';
+import { urls } from '@/constants';
 const ProfileClaimedChip = ({ claimedAddress, dateOfClaim }) => {
   return (
-    <div className="flex w-full flex-col gap-1 rounded-xl bg-yellow-500 px-3 py-2">
+    <div className="flex w-full flex-col gap-1 rounded-xl bg-yellow-500 px-3 py-4">
       <div className="flex flex-row items-center justify-between">
         <div className="flex max-w-fit items-center gap-2 rounded-full bg-black px-3 py-1 text-sm text-white">
           <img src="/svgs/user-circle-filled-yellow.svg" alt="" />
@@ -21,9 +23,6 @@ const ProfileClaimedChip = ({ claimedAddress, dateOfClaim }) => {
         </div>
         <p>{new Date(dateOfClaim).toDateString()}</p>
       </div>
-      <p className="overflow-x-scroll text-nowrap">
-        Profile claimed by: {claimedAddress}
-      </p>
     </div>
   );
 };
@@ -88,10 +87,15 @@ const DrepTimelineWaterfall = ({ activity = [] }: { activity: any[] }) => {
                     sx={{ backgroundColor: 'white' }}
                   />
                 </TimelineSeparator>
-                <div className="flex flex-row items-center justify-center gap-2 text-nowrap text-gray-500">
-                  <img src="/svgs/loader.svg" alt="" />
-                  <p>Registered, Epoch {item?.epoch_no}</p>
-                </div>
+                <Link
+                  href={`${urls.sanchoCexplorerUrl}tx/${item?.tx_hash}`}
+                  target="_blank"
+                >
+                  <div className="flex flex-row items-center justify-center gap-2 text-nowrap text-gray-500 hover:cursor-pointer hover:text-gray-900">
+                    <img src="/svgs/external-link.svg" alt="" />
+                    <p>Registered, Epoch {item?.epoch_no}</p>
+                  </div>
+                </Link>
               </div>
             )}
             {item.type === 'claimed_profile' && (
@@ -103,7 +107,10 @@ const DrepTimelineWaterfall = ({ activity = [] }: { activity: any[] }) => {
                     sx={{ backgroundColor: 'white' }}
                   />
                 </TimelineSeparator>
-                <ProfileClaimedChip claimedAddress={item.claimingId} dateOfClaim={item.timestamp} />
+                <ProfileClaimedChip
+                  claimedAddress={item.claimingId}
+                  dateOfClaim={item.timestamp}
+                />
               </div>
             )}
             {item.type === 'voting_activity' && (
