@@ -13,17 +13,12 @@ type DelegatedToProps = {
   className?: string;
 };
 
-export const DelegatedTo = memo(({ className }: DelegatedToProps) => {
+export const DelegatedTo = ({ className }: DelegatedToProps) => {
   const { stakeKey } = useCardano();
   const { currentDelegation } = useGetAdaHolderCurrentDelegationQuery(stakeKey);
   const { DRep } = useGetSingleDRepViaVoterIdQuery(
     currentDelegation?.drep_view,
   );
-
-  const router = useRouter();
-  const navToDRepList = () => {
-    router.push('/dreps/list');
-  };
 
   return (
     <Box
@@ -32,7 +27,7 @@ export const DelegatedTo = memo(({ className }: DelegatedToProps) => {
       <Box className="flex w-full justify-start">
         <Typography
           fontSize="0.85rem"
-          fontWeight={600}
+          fontWeight={500}
           className="w-auto rounded-3xl bg-gray-800 px-2 py-1"
         >
           {!!currentDelegation?.drep_view ? 'Delegating' : 'Not Delegating'}
@@ -100,4 +95,4 @@ export const DelegatedTo = memo(({ className }: DelegatedToProps) => {
       )}
     </Box>
   );
-});
+};
