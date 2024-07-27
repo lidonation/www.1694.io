@@ -8,7 +8,7 @@ const HoverText = ({ shortText, longText }) => {
   if (isSameNumber) {
     return (
       <div className="w-full cursor-pointer">
-        <Typography className="inline-block w-full px-1">
+        <Typography className="inline-block w-auto px-1">
           ₳ {shortText}
         </Typography>
       </div>
@@ -23,13 +23,13 @@ const HoverText = ({ shortText, longText }) => {
     >
       {!!hover && (
         <Grow in={hover}>
-          <Typography className="inline-block w-full rounded bg-gray-50 px-1">
+          <Typography className="inline-block w-auto rounded bg-gray-50 px-1">
             ₳ {longText}
           </Typography>
         </Grow>
       )}
       {!hover && (
-        <Typography className="inline-block w-full px-1">
+        <Typography className="inline-block w-auto px-1">
           ₳ {shortText}
         </Typography>
       )}

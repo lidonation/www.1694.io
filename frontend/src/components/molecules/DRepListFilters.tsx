@@ -13,6 +13,7 @@ import {
 } from '@mui/material';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Button from '../atoms/Button';
+import DotIcon from '../atoms/svgs/DotIcon';
 
 export default function DRepListFilters() {
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
@@ -85,14 +86,21 @@ export default function DRepListFilters() {
     <Box>
       <Box
         component="button"
-        className="flex items-center gap-2"
+        className="relative flex w-6 justify-start"
         aria-describedby={id}
         onClick={handleShow}
       >
+        <img
+          src="/svgs/filter.svg"
+          className="mt-1 h-5 w-5"
+          alt="Filter Sort"
+        />
+
         <Grow in={isFiltering}>
-          <div className="h-2.5 w-2.5 rounded-full bg-primary-300"></div>
+          <div className="absolute right-0 top-0">
+            <DotIcon color="#f97316" width={17} height={17} />
+          </div>
         </Grow>
-        <img src="/svgs/filter.svg" alt="Filter Icon" />
       </Box>
       <Popover
         id={id}
@@ -101,7 +109,9 @@ export default function DRepListFilters() {
         onClose={handleClose}
         sx={{
           '.MuiPaper-root': {
-            borderRadius: ' 0.375rem',
+            borderRadius: '0 0 1rem 1rem',
+            boxShadow: '1px 2px 11px 0 rgba(0, 18, 61, 0.37)',
+            bgcolor: '#F3F5FF',
           },
         }}
         anchorOrigin={{
@@ -114,7 +124,7 @@ export default function DRepListFilters() {
         }}
       >
         <Box className="bg-extra_gray px-4 py-2">
-          <Box className="flex flex-col space-y-4">
+          <Box className="flex flex-col">
             <FormControl>
               <span className="text-xs font-semibold">
                 Filter DReps by on-chain status
@@ -129,12 +139,28 @@ export default function DRepListFilters() {
               >
                 <FormControlLabel
                   value="active"
-                  control={<Radio />}
+                  control={
+                    <Radio
+                      sx={{
+                        '&.Mui-checked': {
+                          color: '#f97316',
+                        },
+                      }}
+                    />
+                  }
                   label="Active"
                 />
                 <FormControlLabel
                   value="inactive"
-                  control={<Radio />}
+                  control={
+                    <Radio
+                      sx={{
+                        '&.Mui-checked': {
+                          color: '#f97316',
+                        },
+                      }}
+                    />
+                  }
                   label="Inactive"
                 />
               </RadioGroup>
@@ -143,7 +169,7 @@ export default function DRepListFilters() {
             <Divider />
 
             <FormControl>
-              <span className="text-xs font-semibold">
+              <span className="mt-2 text-xs font-semibold">
                 Filter DReps by campaign status
               </span>
               <RadioGroup
@@ -156,12 +182,28 @@ export default function DRepListFilters() {
               >
                 <FormControlLabel
                   value="claimed"
-                  control={<Radio />}
+                  control={
+                    <Radio
+                      sx={{
+                        '&.Mui-checked': {
+                          color: '#f97316',
+                        },
+                      }}
+                    />
+                  }
                   label="Claimed"
                 />
                 <FormControlLabel
                   value="unclaimed"
-                  control={<Radio />}
+                  control={
+                    <Radio
+                      sx={{
+                        '&.Mui-checked': {
+                          color: '#f97316',
+                        },
+                      }}
+                    />
+                  }
                   label="Unclaimed"
                 />
               </RadioGroup>

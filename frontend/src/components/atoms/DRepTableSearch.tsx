@@ -33,7 +33,7 @@ const DRepTableSearch = () => {
           defaultValue={searchParams.get('s')?.toString()}
           onChange={(e) => handleSearch(e.target.value)}
           data-test-id="drep-search-input"
-          className="h-full w-full rounded-full bg-transparent py-2 pl-14 placeholder:font-black focus:border-none"
+          className="h-full w-full rounded-full bg-transparent py-3 pl-14 placeholder:font-black focus:border-none"
           placeholder="Search..."
         />
       </div>
