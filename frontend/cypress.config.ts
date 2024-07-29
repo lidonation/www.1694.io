@@ -23,7 +23,7 @@ export default defineConfig({
   component: {
     devServer: {
       framework: 'next',
-      bundler: 'vite',
+      bundler: 'webpack',
     },
     
   },
