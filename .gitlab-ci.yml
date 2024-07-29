@@ -317,9 +317,9 @@ ui-chrome-tests:
     - yarn install --frozen-lockfile
     # start the server in the background
     - yarn run build
-    - yarn run start &
+    - yarn run start 
     # run Cypress tests in parallel
-    - npx cypress run --browser chrome --config video=false || true
+    - npx cypress run 
   artifacts:
     when: on_failure
     paths:

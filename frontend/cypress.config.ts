@@ -3,18 +3,18 @@ import { defineConfig } from 'cypress';
 export default defineConfig({
   chromeWebSecurity: false,
   retries: 2,
-  defaultCommandTimeout: 20000,
+  defaultCommandTimeout: 2000,
   watchForFileChanges: false,
   video: true,
   screenshots: false,
-  videosFolder: 'frontend/cypress/videos',
-  screenshotsFolder: 'frontend/cypress/screenshots',
-  fixturesFolder: 'frontend/cypress/fixture',
+  videosFolder: './cypress/videos',
+  screenshotsFolder: './cypress/screenshots',
+  fixturesFolder: './cypress/fixture',
   e2e: {
     setupNodeEvents(on, config) {
       // implement node event listeners here
     },
-    baseUrl: 'http://localhost:3000',
+    baseUrl: 'http://frontend:3000',
     env: {
       backendUrl: 'https://sancho.1694.io/api',
     }
@@ -23,7 +23,7 @@ export default defineConfig({
   component: {
     devServer: {
       framework: 'next',
-      bundler: 'webpack',
+      bundler: 'vite',
     },
     
   },
