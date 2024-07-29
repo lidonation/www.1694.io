@@ -392,38 +392,21 @@ export class DrepService {
   async getDrepDateofRegistration(drepVoterId: string) {
     const viewParam = drepVoterId;
     const drepRegistrationData = await this.cexplorerService.manager.query(
-      `WITH RankedRows AS (
-          SELECT 
+      `SELECT 
               dh.id AS drep_hash_id, 
+              encode(reg_tx.hash, 'hex') AS reg_tx_hash,
               reg_tx_bk.time AS date_of_registration,
-              reg_tx_bk.epoch_no AS epoch_of_registration,
-              ROW_NUMBER() OVER (PARTITION BY dh.id ORDER BY dd.epoch_no DESC) AS RowNum
+              reg_tx_bk.epoch_no AS epoch_of_registration
           FROM 
               drep_hash AS dh
           LEFT JOIN 
-              drep_distr AS dd ON dh.id = dd.hash_id
-          LEFT JOIN 
               drep_registration AS dr ON dh.id = dr.drep_hash_id
-          LEFT JOIN 
-              voting_anchor AS va ON dr.voting_anchor_id = va.id
-          LEFT JOIN 
-              delegation_vote AS dv ON dh.id = dv.drep_hash_id 
           LEFT JOIN 
               tx AS reg_tx ON dr.tx_id = reg_tx.id 
           LEFT JOIN 
               block AS reg_tx_bk ON reg_tx.block_id = reg_tx_bk.id 
-          LEFT JOIN
-              stake_address AS sa ON dv.addr_id = sa.id 
           WHERE 
-              dh.view = $1
-      )
-      SELECT 
-          date_of_registration,
-          epoch_of_registration
-      FROM 
-          RankedRows
-      WHERE 
-          RowNum = 1`,
+              dh.view = $1`,
       [viewParam],
     );
     return drepRegistrationData[0];
@@ -447,7 +430,6 @@ export class DrepService {
     const endingTime = tillDate
       ? new Date(Number(tillDate))
       : new Date(new Date(startingTime).getTime() - 432000000); // 5 days ago
-      console.log(startingTime, endingTime)
     const epochs = await this.getEpochs(startingTime, endingTime);
     const drepRegData = await this.getDrepDateofRegistration(drepVoterId);
     const regDate = new Date(drepRegData?.date_of_registration).getTime();
@@ -491,6 +473,7 @@ export class DrepService {
       drepActivity.push({
         type: 'registration',
         timestamp: drepRegData.date_of_registration,
+        tx_hash: drepRegData.reg_tx_hash,
         epoch_no: drepRegData.epoch_of_registration,
       });
     }

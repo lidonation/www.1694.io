@@ -76,7 +76,6 @@ const DrepGovActionSubmitCard = ({
             actionName:actionType
           };
           // Handle other cases
-          console.log('Default case');
           break;
       }
 

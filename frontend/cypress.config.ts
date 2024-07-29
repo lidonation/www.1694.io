@@ -6,7 +6,7 @@ export default defineConfig({
   defaultCommandTimeout: 2000,
   watchForFileChanges: false,
   video: true,
-  screenshots: true,
+  screenshotOnRunFailure:true,
   videosFolder: './cypress/videos',
   screenshotsFolder: './cypress/screenshots',
   fixturesFolder: './cypress/fixture',

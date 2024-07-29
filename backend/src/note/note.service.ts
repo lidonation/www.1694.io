@@ -115,7 +115,6 @@ export class NoteService {
       everyone: 'everyone',
     });
     if (currentNote) {
-      console.log(request);
       if (request === 'before') {
         queryBuilder.where('note.id <= :currentNote', { currentNote: Number(currentNote) });
       } else if (request === 'after') {
