@@ -169,7 +169,7 @@ services:
     working_dir: /e2e
     networks:
       - io-1694
-    command: ["npx", "cypress", "open",  "--browser", "electron", "--config","video=false"]
+    command: ["npx", "cypress", "open",]
     restart: unless-stopped
     # share the current folder as volume to avoid copying
     volumes:

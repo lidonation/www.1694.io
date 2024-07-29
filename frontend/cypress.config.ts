@@ -2,11 +2,11 @@ import { defineConfig } from 'cypress';
 
 export default defineConfig({
   chromeWebSecurity: false,
-  retries: 2,
+  retries: 1,
   defaultCommandTimeout: 2000,
   watchForFileChanges: false,
   video: true,
-  screenshots: false,
+  screenshots: true,
   videosFolder: './cypress/videos',
   screenshotsFolder: './cypress/screenshots',
   fixturesFolder: './cypress/fixture',
