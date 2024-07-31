@@ -21,9 +21,8 @@ export const useGetSingleDRepQuery = (
       drepId.includes('drep')
         ? await getSingleDRepViaVoterId(drepId, stakeKeys, startTime, endTime)
         : await getSingleDRep(drepId, stakeKeys, startTime, endTime),
-    
+
     refetchOnWindowFocus: false,
-    keepPreviousData: true,
   });
 
   const updateTimeRange = (newStartTime: number, newEndTime: number) => {

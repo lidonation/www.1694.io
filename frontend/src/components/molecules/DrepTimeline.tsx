@@ -9,6 +9,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import _ from 'lodash';
 import { getSingleDRep } from '@/services/requests/getSingleDrep';
 import { getSingleDRepViaVoterId } from '@/services/requests/getSingleDrepViaVoterId';
+import { StakeKeys } from '../../../types/commonTypes';
 const DrepTimeline = ({
   drepId,
   cexplorerDetails,
@@ -33,7 +34,7 @@ const DrepTimeline = ({
     () => endTime - 5 * 24 * 60 * 60 * 1000,
   ); // 30 days for now
   const searchParams = useSearchParams();
-  const { dRepIDBech32 } = useCardano();
+  const { dRepIDBech32, stakeKey, stakeKeyBech32 } = useCardano();
   const handleScroll = (event) => {
     const currentScrollTop = event.target.scrollTop;
     const isScrollingDown = currentScrollTop > prevScrollTop;
@@ -44,6 +45,8 @@ const DrepTimeline = ({
       !isPreviousData &&
       fetchMoreData();
   };
+  const stakeKeys: StakeKeys = { stakeKey, stakeKeyBech32 };
+
   useEffect(() => {
     let startTime, endTime;
     if (searchParams) {
@@ -64,13 +67,13 @@ const DrepTimeline = ({
       String(drepId).includes('drep')
         ? (drep = await getSingleDRepViaVoterId(
             drepId as string,
-            null,
+            stakeKeys,
             newEndTime,
             newStartTime,
           ))
         : (drep = await getSingleDRep(
             Number(drepId),
-            null,
+            stakeKeys,
             newEndTime,
             newStartTime,
           ));
@@ -157,13 +160,13 @@ const DrepTimeline = ({
       String(drepId).includes('drep')
         ? (drep = await getSingleDRepViaVoterId(
             drepId as string,
-            null,
+            stakeKeys,
             newEndTime,
             newStartTime,
           ))
         : (drep = await getSingleDRep(
             Number(drepId),
-            null,
+            stakeKeys,
             newEndTime,
             newStartTime,
           ));

@@ -10,7 +10,13 @@ import { ReactionsService } from 'src/reactions/reactions.service';
 import { CommentsService } from 'src/comments/comments.service';
 import { Delegation } from 'src/common/types';
 import { AuthService } from 'src/auth/auth.service';
-import { getAllDRepsQuery, getTotalResultsQuery } from 'src/queries/drep.queries';
+import { getAllDRepsQuery, getTotalResultsQuery } from 'src/queries/getDReps';
+import {
+  getDRepDelegatorsCountQuery,
+  getDRepVotesCountQuery,
+  getDRepVotingPowerQuery,
+} from 'src/queries/drepStats';
+
 @Injectable()
 export class DrepService {
   constructor(
@@ -96,7 +102,7 @@ export class DrepService {
       totalPages,
     };
   }
-  
+
   async getAllDRepsCexplorer(
     query?: string,
     currentPage?: number,
@@ -425,7 +431,7 @@ export class DrepService {
     //get voting activity
     //get notes
     // TODO: get delegating activity across a certain epoch
-    const drepId=drep?.drep_id
+    const drepId = drep?.drep_id;
     const startingTime = beforeDate ? new Date(Number(beforeDate)) : new Date();
     const endingTime = tillDate
       ? new Date(Number(tillDate))
@@ -478,11 +484,16 @@ export class DrepService {
       });
     }
     // Add claimed event if drepId is pesent if it falls within the time range
-    if (drepId && startingTime.getTime() > claimDate && endingTime.getTime() < claimDate) {
+    if (
+      drepId &&
+      startingTime.getTime() > claimDate &&
+      endingTime.getTime() < claimDate
+    ) {
       drepActivity.push({
         type: 'claimed_profile',
         timestamp: drep.drep_createdAt,
         claimingId: drepId,
+        claimedDRepId: drepVoterId,
       });
     }
     // Sort the combined array by timestamp from latest to earliest
@@ -580,32 +591,42 @@ export class DrepService {
         },
       );
 
-    // Basic query for notes with visibility 'everyone'
-    queryBuilder.andWhere('note.note_visibility = :everyone', {
+    // Prepare visibility conditions
+    const visibilityConditions = ['note.note_visibility = :everyone'];
+
+    const visibilityParams: {
+      everyone: string;
+      delegators?: string;
+      drepVoterId?: string;
+      myself?: string;
+      stakeKeyBech32?: string;
+    } = {
       everyone: 'everyone',
-    });
+    };
 
     // 'delegators' visibility
     if (delegation) {
-      queryBuilder.orWhere(
+      visibilityConditions.push(
         'note.note_visibility = :delegators AND signature.drepVoterId = :drepVoterId',
-        {
-          delegators: 'delegators',
-          drepVoterId: delegation.drep_view,
-        },
       );
+      visibilityParams.delegators = 'delegators';
+      visibilityParams.drepVoterId = delegation.drep_view;
     }
 
     // 'myself' visibility
     if (stakeKeyBech32) {
-      queryBuilder.orWhere(
+      visibilityConditions.push(
         'note.note_visibility = :myself AND signature.drepStakeKey = :stakeKeyBech32',
-        {
-          myself: 'myself',
-          stakeKeyBech32: stakeKeyBech32,
-        },
       );
+      visibilityParams.myself = 'myself';
+      visibilityParams.stakeKeyBech32 = stakeKeyBech32;
     }
+
+    // Combine visibility conditions with OR logic
+    queryBuilder.andWhere(
+      `(${visibilityConditions.join(' OR ')})`,
+      visibilityParams,
+    );
 
     let allNotes = await queryBuilder.getRawMany();
 
@@ -828,5 +849,37 @@ export class DrepService {
     return await this.voltaireService
       .getRepository('Drep')
       .update(drepId, updatedDrep);
+  }
+
+  async getStats(drepVoterId: string) {
+    const drepDelegatorsCountResult = await this.cexplorerService.manager.query(
+      getDRepDelegatorsCountQuery,
+      [drepVoterId],
+    );
+    const drepDelegatorsCount = Number(
+      drepDelegatorsCountResult[0]?.delegators_count || 0,
+    );
+
+    const drepVotesCountResult = await this.cexplorerService.manager.query(
+      getDRepVotesCountQuery,
+      [drepVoterId],
+    );
+    const drepVotesCount = Number(drepVotesCountResult[0]?.vote_count || 0);
+
+    const drepVotingPowerResult = await this.cexplorerService.manager.query(
+      getDRepVotingPowerQuery,
+      [drepVoterId],
+    );
+
+    const drepVotingPower =
+      Number(drepVotingPowerResult[0].voting_power) || null;
+
+    const drepStats = {
+      delegators: drepDelegatorsCount,
+      votes: drepVotesCount,
+      votingPower: drepVotingPower,
+    };
+
+    return drepStats;
   }
 }

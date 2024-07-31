@@ -13,7 +13,6 @@ export const useGetSingleDRepViaVoterIdQuery = (
     queryFn: async () => await getSingleDRepViaVoterId(voterId,null, startTimeCursor, endTimeCursor),
     enabled: !!voterId,
     refetchOnWindowFocus: false,
-    keepPreviousData: true,
   });
 
   return { DRep: data, isDRepLoading: isLoading };

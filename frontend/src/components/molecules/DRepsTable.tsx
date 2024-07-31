@@ -3,7 +3,7 @@
 import React from 'react';
 import StatusChip from '../atoms/StatusChip';
 import { useGetDRepsQuery } from '@/hooks/useGetDRepsQuery';
-import { convertString, formatAsCurrency, shortNumber } from '@/lib';
+import { convertString, formatAsCurrency, handleCopyText, shortNumber } from '@/lib';
 import { useScreenDimension } from '@/hooks';
 import { Box, IconButton, Skeleton, Tooltip } from '@mui/material';
 import Button from '../atoms/Button';
@@ -56,10 +56,6 @@ const DRepsTable = ({
     }
     return active_until > latest_epoch_no;
   }
-
-  const handleCopy = (text: string) => {
-    navigator.clipboard.writeText(text);
-  };
 
   // Handle table pagination
   function moveToPage(targetPage: number) {
@@ -166,7 +162,7 @@ const DRepsTable = ({
                   <Tooltip title="Copy DRep ID">
                     <IconButton
                       size="small"
-                      onClick={() => handleCopy(drep.view)}
+                      onClick={() => handleCopyText(drep.view)}
                     >
                       <CopyToClipBoard width={18} height={18} />
                     </IconButton>
