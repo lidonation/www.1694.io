@@ -1,13 +1,12 @@
 import { useCardano } from '@/context/walletContext';
 import { useGetAdaHolderCurrentDelegationQuery } from '@/hooks/useGetAdaHolderCurrentDelegationQuery';
 import { useGetSingleDRepViaVoterIdQuery } from '@/hooks/useGetSingleDRepViaVoterIdQuery';
-import { formattedAda, shortenAddress } from '@/lib';
-import { Box, Typography } from '@mui/material';
-import { memo } from 'react';
+import { formattedAda, handleCopyText, shortenAddress } from '@/lib';
+import { Box, IconButton, Tooltip, Typography } from '@mui/material';
 import ViewDRepTableBtn from './ViewDRepTableButton';
-import { useRouter } from 'next/navigation';
 import Button from '../atoms/Button';
 import Link from 'next/link';
+import CopyToClipBoardIcon from '../atoms/svgs/CopyToClipBoardIcon';
 
 type DelegatedToProps = {
   className?: string;
@@ -38,14 +37,26 @@ export const DelegatedTo = ({ className }: DelegatedToProps) => {
           <>
             <Box>
               <Typography fontSize="0.85rem" fontWeight={600}>
-                Delegated to:
+                Delegated to: {DRep?.drep_name ? `(${DRep.drep_name})` : ''}
               </Typography>
               <Typography
                 fontSize="0.75rem"
                 fontWeight={600}
-                className="overflow-hidden text-gray-300"
+                className="flex items-center overflow-hidden text-gray-300"
               >
                 {shortenAddress(currentDelegation?.drep_view, 12)}
+                <Tooltip title="Copy DRep ID">
+                  <IconButton
+                    size="small"
+                    onClick={() => handleCopyText(currentDelegation?.drep_view)}
+                  >
+                    <CopyToClipBoardIcon
+                      color="#d1d5db"
+                      width={14}
+                      height={14}
+                    />
+                  </IconButton>
+                </Tooltip>
               </Typography>
             </Box>
             <Box>
@@ -75,9 +86,11 @@ export const DelegatedTo = ({ className }: DelegatedToProps) => {
                 the GovTool website.
               </Typography>
             </Box>
-            <Link href="/dreps/list">
-              <ViewDRepTableBtn size="small"></ViewDRepTableBtn>
-            </Link>
+            <Box className="flex justify-end">
+              <Link href="/dreps/list">
+                <ViewDRepTableBtn size="small"></ViewDRepTableBtn>
+              </Link>
+            </Box>
           </Box>
         )}
       </Box>

@@ -13,19 +13,8 @@ import EpochTimelineCard from '../atoms/EpochTimelineCard';
 import DrepVoteTimelineCard from '../atoms/DrepVoteTimelineCard';
 import Link from 'next/link';
 import { urls } from '@/constants';
-const ProfileClaimedChip = ({ claimedAddress, dateOfClaim }) => {
-  return (
-    <div className="flex w-full flex-col gap-1 rounded-xl bg-yellow-500 px-3 py-4">
-      <div className="flex flex-row items-center justify-between">
-        <div className="flex max-w-fit items-center gap-2 rounded-full bg-black px-3 py-1 text-sm text-white">
-          <img src="/svgs/user-circle-filled-yellow.svg" alt="" />
-          <p>Profile Claimed</p>
-        </div>
-        <p>{new Date(dateOfClaim).toDateString()}</p>
-      </div>
-    </div>
-  );
-};
+import { ProfileClaimedChip } from './ProfileClaimedChip';
+
 const DrepTimelineWaterfall = ({ activity = [] }: { activity: any[] }) => {
   const { isMobile, screenWidth } = useScreenDimension();
   const { stakeKeyBech32, isEnabled } = useCardano();
@@ -91,7 +80,7 @@ const DrepTimelineWaterfall = ({ activity = [] }: { activity: any[] }) => {
                   href={`${urls.sanchoCexplorerUrl}tx/${item?.tx_hash}`}
                   target="_blank"
                 >
-                  <div className="flex flex-row items-center justify-center gap-2 text-nowrap text-gray-500 hover:cursor-pointer hover:text-gray-900">
+                  <div className="flex flex-row items-center justify-center gap-2 text-nowrap text-gray-500 hover:cursor-pointer hover:text-gray-800">
                     <img src="/svgs/external-link.svg" alt="" />
                     <p>Registered, Epoch {item?.epoch_no}</p>
                   </div>
@@ -108,7 +97,7 @@ const DrepTimelineWaterfall = ({ activity = [] }: { activity: any[] }) => {
                   />
                 </TimelineSeparator>
                 <ProfileClaimedChip
-                  claimedAddress={item.claimingId}
+                  claimedAddress={item.claimedDRepId}
                   dateOfClaim={item.timestamp}
                 />
               </div>

@@ -63,3 +63,7 @@ export function formatAsCurrency(amount: number | string) {
   let numberAmount = Number(amount);
   return numberAmount.toLocaleString('en-US');
 }
+
+export const handleCopyText = (text: string) => {
+  navigator.clipboard.writeText(text);
+};

@@ -107,4 +107,9 @@ export class DrepController {
   ) {
     return this.drepService.updateDrepInfo(drepId, drep, profileUrl);
   }
+
+  @Get(':voterId/stats')
+  getStats(@Param('voterId') voterId: string) {
+    return this.drepService.getStats(voterId);
+  }
 }

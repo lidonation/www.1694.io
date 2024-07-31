@@ -2,7 +2,6 @@ import { useCardano } from '@/context/walletContext';
 import { useScreenDimension } from '@/hooks';
 import { formattedAda, shortenAddress } from '@/lib';
 import { Box, Typography } from '@mui/material';
-import { memo } from 'react';
 
 export const ConnectedWalletCard = () => {
   const { address, walletState } = useCardano();
