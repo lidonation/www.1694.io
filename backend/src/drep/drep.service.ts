@@ -591,32 +591,42 @@ export class DrepService {
         },
       );
 
-    // Basic query for notes with visibility 'everyone'
-    queryBuilder.andWhere('note.note_visibility = :everyone', {
+    // Prepare visibility conditions
+    const visibilityConditions = ['note.note_visibility = :everyone'];
+
+    const visibilityParams: {
+      everyone: string;
+      delegators?: string;
+      drepVoterId?: string;
+      myself?: string;
+      stakeKeyBech32?: string;
+    } = {
       everyone: 'everyone',
-    });
+    };
 
     // 'delegators' visibility
     if (delegation) {
-      queryBuilder.orWhere(
+      visibilityConditions.push(
         'note.note_visibility = :delegators AND signature.drepVoterId = :drepVoterId',
-        {
-          delegators: 'delegators',
-          drepVoterId: delegation.drep_view,
-        },
       );
+      visibilityParams.delegators = 'delegators';
+      visibilityParams.drepVoterId = delegation.drep_view;
     }
 
     // 'myself' visibility
     if (stakeKeyBech32) {
-      queryBuilder.orWhere(
+      visibilityConditions.push(
         'note.note_visibility = :myself AND signature.drepStakeKey = :stakeKeyBech32',
-        {
-          myself: 'myself',
-          stakeKeyBech32: stakeKeyBech32,
-        },
       );
+      visibilityParams.myself = 'myself';
+      visibilityParams.stakeKeyBech32 = stakeKeyBech32;
     }
+
+    // Combine visibility conditions with OR logic
+    queryBuilder.andWhere(
+      `(${visibilityConditions.join(' OR ')})`,
+      visibilityParams,
+    );
 
     let allNotes = await queryBuilder.getRawMany();
 
@@ -869,7 +879,7 @@ export class DrepService {
       votes: drepVotesCount,
       votingPower: drepVotingPower,
     };
-    
+
     return drepStats;
   }
 }
