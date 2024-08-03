@@ -1,12 +1,17 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Button from './Button';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { Typography, Skeleton } from '@mui/material';
 import Link from 'next/link';
-import { convertString } from '@/lib';
+import { convertString, formattedAda } from '@/lib';
 import { useScreenDimension } from '@/hooks';
 import { useRouter } from 'next/navigation';
 import { useCardano } from '@/context/walletContext';
+import MetadataViewer from './MetadataViewer';
+import MetadataEditor from './MetadataEditor';
+import axios from 'axios';
+import { v4 as uuidv4 } from 'uuid';
+import { isActive } from '../molecules/DRepsTable';
 
 interface StatusProps {
   status:
@@ -54,7 +59,60 @@ const StatusChip = ({ status }: StatusProps) => {
 const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
   const { isMobile } = useScreenDimension();
   const { dRepIDBech32 } = useCardano();
-  const router = useRouter()
+  const [edit, setEdit] = useState(false);
+  const [status, setStatus] = useState<any>('Inactive');
+  const [isMetadataLoading, setIsMetadataLoading] = useState(false);
+  const [metadataError, setMetadataError] = useState<string | null>(null);
+  const [metadataJson, setMetadataJson] = useState<any>(null);
+  const [metadata, setMetadata] = useState<any>(null);
+  useEffect(() => {
+    const fetchData = async () => {
+      const metadataUrl = drep?.cexplorerDetails.metadata_url;
+      if (!metadataUrl) return;
+
+      try {
+        setIsMetadataLoading(true);
+        setMetadataError(null);
+        const response = await axios.get(metadataUrl);
+        const jsonLdData = response.data;
+        const renderValue = (value: any) => {
+          if (typeof value === 'object' && value['@value']) {
+            return value['@value'];
+          }
+          return JSON.stringify(value);
+        };
+        const modifiedJson = Object.entries(jsonLdData.body).map(
+          ([key, value]: any[]) => {
+            const valueString = renderValue(value);
+            return { id: uuidv4(), key: key, value: valueString };
+          },
+        );
+        setMetadataJson(modifiedJson);
+        setMetadata(jsonLdData);
+      } catch (error) {
+        console.log(error);
+        setMetadata(null);
+        setMetadataError('Metadata Unprocessable');
+      } finally {
+        setIsMetadataLoading(false);
+      }
+    };
+    const checkStatus = () => {
+      let status;
+      if (drep?.type !== 'voting_option') {
+        status = isActive(
+          drep?.cexplorerDetails?.epoch_no,
+          drep?.cexplorerDetails?.active_until,
+        )
+          ? 'Active'
+          : 'Inactive';
+        setStatus(status);
+      }
+    };
+    checkStatus();
+    fetchData();
+  }, []);
+  const router = useRouter();
   return (
     <div className="flex w-full flex-col gap-5 bg-white bg-opacity-50 px-5 py-10">
       <div className="flex max-w-52 items-center justify-center rounded-md">
@@ -92,7 +150,7 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
         </Typography>
       </div>
       <div className="flex flex-row gap-2">
-        <StatusChip status="Active" />
+        <StatusChip status={status} />
         <StatusChip status="Verified" />
       </div>
       <div>
@@ -102,7 +160,7 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
           {state ? (
             <Skeleton animation={'wave'} width={50} height={20} />
           ) : (
-            drep?.cexplorerDetails?.amount || 0
+            formattedAda(drep?.cexplorerDetails?.amount, 2) || 0
           )}
         </p>
       </div>
@@ -138,16 +196,25 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
         </CopyToClipboard>
       </div>
       <div className="flex flex-row gap-2">
-        <Link href={drep ? drep?.drep_social?.github || '#' : '#'}  target='_blank'>
+        <Link
+          href={drep ? drep?.drep_social?.github || '#' : '#'}
+          target="_blank"
+        >
           <img className="w-full" src="/svgs/github-dark.svg" alt="" />
         </Link>
-        <Link href={drep ? drep?.drep_social?.x || '#' : '#'} target='_blank'>
+        <Link href={drep ? drep?.drep_social?.x || '#' : '#'} target="_blank">
           <img className="w-full" src="/svgs/twitter.svg" alt="" />
         </Link>
-        <Link href={drep ? drep?.drep_social?.facebook || '#' : '#'} target='_blank'>
+        <Link
+          href={drep ? drep?.drep_social?.facebook || '#' : '#'}
+          target="_blank"
+        >
           <img className="w-full" src="/svgs/fb-dark.svg" alt="" />
         </Link>
-        <Link href={drep ? drep?.drep_social?.instagram || '#' : '#'} target='_blank'>
+        <Link
+          href={drep ? drep?.drep_social?.instagram || '#' : '#'}
+          target="_blank"
+        >
           <img className="w-full" src="/svgs/ig-dark.svg" alt="" />
         </Link>
       </div>
@@ -175,12 +242,18 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
       </div>
       <div>
         <Typography variant="h6">Metadata</Typography>
-        <p>None</p>
+        <MetadataViewer
+          metadata={metadata}
+          isMetadataLoading={isMetadataLoading}
+          metadataError={metadataError}
+        />
       </div>
       {(drep?.cexplorerDetails?.view == dRepIDBech32 ||
         drep?.signature_drepVoterId == dRepIDBech32) && (
         <div className="flex max-w-prose flex-col gap-2">
-          <Button>Set up Metadata</Button>
+          <Button handleClick={() => setEdit(true)}>
+            {metadata ? 'Edit' : 'Set up'} Metadata
+          </Button>
           <Button
             variant="outlined"
             bgColor="transparent"
@@ -190,6 +263,14 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
           >
             Edit Profile
           </Button>
+          {edit && (
+            <MetadataEditor
+            drepId={drep?.drep_id}
+              onClose={() => setEdit(false)}
+              initialMetadata={metadataJson}
+              setFinalMetadata={setMetadata}
+            />
+          )}
         </div>
       )}
     </div>

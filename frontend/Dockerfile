@@ -7,7 +7,7 @@ WORKDIR /app
 COPY frontend/package.json frontend/yarn.lock* frontend/package-lock.json* frontend/pnpm-lock.yaml* ./
 
 RUN \
-  if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
+  if [ -f yarn.lock ]; then yarn --frozen-lockfile && yarn add @emurgo/cardano-serialization-lib-asmjs@12.0.0-beta.1; \
   elif [ -f package-lock.json ]; then npm ci; \
   elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --frozen-lockfile; \
   else echo "Lockfile not found." && exit 1; \

@@ -3,7 +3,12 @@
 import React from 'react';
 import StatusChip from '../atoms/StatusChip';
 import { useGetDRepsQuery } from '@/hooks/useGetDRepsQuery';
-import { convertString, formatAsCurrency, handleCopyText, shortNumber } from '@/lib';
+import {
+  convertString,
+  formatAsCurrency,
+  handleCopyText,
+  shortNumber,
+} from '@/lib';
 import { useScreenDimension } from '@/hooks';
 import { Box, IconButton, Skeleton, Tooltip } from '@mui/material';
 import Button from '../atoms/Button';
@@ -23,7 +28,16 @@ type DRepsTableProps = {
   onChainStatus?: string;
   campaignStatus?: string;
 };
-
+export function isActive(latest_epoch_no: number, active_until: number) {
+  if (
+    typeof latest_epoch_no !== 'number' ||
+    typeof active_until !== 'number' ||
+    active_until === null
+  ) {
+    return false;
+  }
+  return active_until > latest_epoch_no;
+}
 const DRepsTable = ({
   query,
   page,
@@ -45,18 +59,6 @@ const DRepsTable = ({
     onChainStatus,
     campaignStatus,
   );
-
-  function isActive(latest_epoch_no: number, active_until: number) {
-    if (
-      typeof latest_epoch_no !== 'number' ||
-      typeof active_until !== 'number' ||
-      active_until === null
-    ) {
-      return false;
-    }
-    return active_until > latest_epoch_no;
-  }
-
   // Handle table pagination
   function moveToPage(targetPage: number) {
     const params = new URLSearchParams(searchParams);
@@ -137,14 +139,23 @@ const DRepsTable = ({
                 className="text-nowrap text-left text-sm"
               >
                 <td className="px-4 py-2">
-                  {!!drep.drep_id ? (
+                  {drep?.type === 'voting_option' ? (
                     <Box className="flex items-center gap-4">
-                      <Link href={`/dreps/${drep.view}`}>
+                      <Link href={`/dreps/${drep?.view}`}>
                         <Button size="extraSmall" width={4}>
                           View
                         </Button>
                       </Link>
-                      <p className="font-medium">{drep.drep_name}</p>
+                      <p className="font-medium">{drep?.view}</p>
+                    </Box>
+                  ) : !!drep.drep_id ? (
+                    <Box className="flex items-center gap-4">
+                      <Link href={`/dreps/${drep?.view}`}>
+                        <Button size="extraSmall" width={4}>
+                          View
+                        </Button>
+                      </Link>
+                      <p className="font-medium">{drep?.drep_name}</p>
                     </Box>
                   ) : (
                     <Box className="flex items-center gap-4">
