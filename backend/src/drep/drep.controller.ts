@@ -12,7 +12,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 
-import { createDrepDto } from 'src/dto';
+import { createDrepDto, ValidateMetadataDTO } from 'src/dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { DrepService } from './drep.service';
 import { VoterService } from 'src/voter/voter.service';
@@ -106,6 +106,10 @@ export class DrepController {
     @Body() drep: createDrepDto,
   ) {
     return this.drepService.updateDrepInfo(drepId, drep, profileUrl);
+  }
+  @Post('metadata/validate')
+  validateMetadata(@Body() metadataBody: ValidateMetadataDTO) {
+    return this.drepService.validateMetadata(metadataBody);
   }
 
   @Get(':voterId/stats')

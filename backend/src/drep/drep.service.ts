@@ -1,14 +1,24 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { createDrepDto } from 'src/dto';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { createDrepDto, ValidateMetadataDTO } from 'src/dto';
 import { faker } from '@faker-js/faker';
+import * as blake from 'blakejs';
+import { HttpService } from '@nestjs/axios';
 import { AttachmentService } from 'src/attachment/attachment.service';
+import { Observable } from 'rxjs';
+import { AxiosResponse } from 'axios';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 import { ReactionsService } from 'src/reactions/reactions.service';
 import { CommentsService } from 'src/comments/comments.service';
-import { Delegation } from 'src/common/types';
+import {
+  Delegation,
+  LoggerMessage,
+  MetadataStandard,
+  MetadataValidationStatus,
+  ValidateMetadataResult,
+} from 'src/common/types';
 import { AuthService } from 'src/auth/auth.service';
 import { getAllDRepsQuery, getTotalResultsQuery } from 'src/queries/getDReps';
 import {
@@ -16,6 +26,9 @@ import {
   getDRepVotesCountQuery,
   getDRepVotingPowerQuery,
 } from 'src/queries/drepStats';
+import { validateMetadataStandard } from 'src/common/validateMetadataStandard';
+import { catchError, firstValueFrom } from 'rxjs';
+import { parseMetadata } from 'src/common/parseMetadata';
 
 @Injectable()
 export class DrepService {
@@ -29,6 +42,7 @@ export class DrepService {
     private reactionsService: ReactionsService,
     private commentsService: CommentsService,
     private authService: AuthService,
+    private readonly httpService: HttpService,
   ) {}
   async getAllDReps(
     query?: string,
@@ -88,6 +102,16 @@ export class DrepService {
       const voltaireDrep = voltaireDReps.find(
         (voltaireDrep) => voltaireDrep.signature_drepVoterId === drep.view,
       );
+      //account for voting options
+      if (
+        drep?.view &&
+        (drep?.view.includes('drep_always_abstain') ||
+          drep?.view.includes('drep_always_no_confidence'))
+      ) {
+        drep['type'] = 'voting_option';
+      } else {
+        drep['type'] = 'drep';
+      }
       return {
         ...drep,
         ...(voltaireDrep ? voltaireDrep : {}),
@@ -266,6 +290,15 @@ export class DrepService {
           combinedResult.attachment_attachmentType,
         );
     }
+    //account for voting options
+    if (
+      combinedResult.cexplorerDetails.view.includes('drep_always_abstain') ||
+      combinedResult.cexplorerDetails.view.includes('drep_always_no_confidence')
+    ) {
+      combinedResult['type'] = 'voting_option';
+    } else {
+      combinedResult['type'] = 'drep';
+    }
 
     return combinedResult;
   }
@@ -318,6 +351,15 @@ export class DrepService {
           combinedResult.attachment_attachmentType,
         );
     }
+    //account for voting options
+    if (
+      combinedResult.cexplorerDetails.view.includes('drep_always_abstain') ||
+      combinedResult.cexplorerDetails.view.includes('drep_always_no_confidence')
+    ) {
+      combinedResult['type'] = 'voting_option';
+    } else {
+      combinedResult['type'] = 'drep';
+    }
 
     return combinedResult;
   }
@@ -343,11 +385,10 @@ export class DrepService {
                   dr.drep_hash_id AS reg_drep_hash_id, 
                   dr.voting_anchor_id AS reg_voting_anchor_id,  
                   va.id AS voting_anchor_id, 
-                  va.url, 
+                  va.url AS metadata_url, 
                   reg_tx_bk.time AS date_of_registration,
                   reg_tx_bk.epoch_no AS epoch_of_registration,
-                  va.data_hash, 
-                  va.type,
+                  va.data_hash,
                   sa.view AS stake_address,
                   (
                     SELECT COUNT(DISTINCT dv.addr_id)
@@ -385,8 +426,7 @@ export class DrepService {
               deposit,
               date_of_registration,
               epoch_of_registration,
-              url,
-              type
+              metadata_url
           FROM 
               RankedRows
           WHERE 
@@ -400,7 +440,7 @@ export class DrepService {
     const drepRegistrationData = await this.cexplorerService.manager.query(
       `SELECT 
               dh.id AS drep_hash_id, 
-              encode(reg_tx.hash, 'hex') AS reg_tx_hash,
+              CAST(reg_tx.hash AS TEXT) AS reg_tx_hash,
               reg_tx_bk.time AS date_of_registration,
               reg_tx_bk.epoch_no AS epoch_of_registration
           FROM 
@@ -415,7 +455,11 @@ export class DrepService {
               dh.view = $1`,
       [viewParam],
     );
-    return drepRegistrationData[0];
+    const modified = {
+      ...drepRegistrationData[0],
+      reg_tx_hash: String(drepRegistrationData[0].reg_tx_hash).slice(2), // remove 0x
+    };
+    return modified;
   }
   async getDrepTimeline(
     drep: any,
@@ -533,7 +577,7 @@ export class DrepService {
     const drepVotingHistory = (await this.cexplorerService.manager.query(
       `SELECT  
           dh.view, 
-          encode(prop_creation_tx.hash, 'hex') AS gov_action_proposal_id,
+          CAST(prop_creation_tx.hash AS TEXT) AS gov_action_proposal_id,
           prop_creation_bk.time AS prop_inception,
           gp.description,
           vp.vote,
@@ -566,7 +610,7 @@ export class DrepService {
       return {
         ...item,
         type: 'voting_activity',
-        gov_action_proposal_id: item.gov_action_proposal_id,
+        gov_action_proposal_id: String(item.gov_action_proposal_id).slice(2), // removes the hexadecimal prefix|x
       };
     });
   }
@@ -849,6 +893,49 @@ export class DrepService {
     return await this.voltaireService
       .getRepository('Drep')
       .update(drepId, updatedDrep);
+  }
+  async validateMetadata({
+    hash,
+    url,
+    standard = MetadataStandard.CIP100,
+  }: ValidateMetadataDTO): Promise<
+    Observable<AxiosResponse<ValidateMetadataResult, any>>
+  > {
+    let status: MetadataValidationStatus;
+    let metadata: any;
+    try {
+      const { data } = await firstValueFrom(
+        this.httpService.get(url).pipe(
+          catchError(() => {
+            throw MetadataValidationStatus.URL_NOT_FOUND;
+          }),
+        ),
+      );
+
+      Logger.debug(LoggerMessage.METADATA_DATA, data);
+
+      // if (standard) {
+      //   await validateMetadataStandard(data, standard);
+      // }
+      metadata = parseMetadata(data.body, standard);
+
+      const hashedMetadata = blake.blake2bHex(
+        !standard ? data : metadata,
+        undefined,
+        32,
+      );
+
+      if (hashedMetadata !== hash) {
+        throw MetadataValidationStatus.INVALID_HASH;
+      }
+    } catch (error) {
+      Logger.error(LoggerMessage.METADATA_VALIDATION_ERROR, error);
+      if (Object.values(MetadataValidationStatus).includes(error)) {
+        status = error;
+      }
+    }
+
+    return { status, valid: !Boolean(status), metadata } as any;
   }
 
   async getStats(drepVoterId: string) {

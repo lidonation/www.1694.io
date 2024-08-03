@@ -10,7 +10,7 @@ import { VoterModule } from './voter/voter.module';
 import { CommentsModule } from './comments/comments.module';
 import { ReactionsModule } from './reactions/reactions.module';
 import { AuthService } from './auth/auth.service';
-import { JwtService } from '@nestjs/jwt';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
@@ -18,6 +18,7 @@ import { JwtService } from '@nestjs/jwt';
       isGlobal: true,
       envFilePath: ['.env', '.env.development', '.env.production'],
     }),
+   
     DrepModule,
     DbModule,
     NoteModule,

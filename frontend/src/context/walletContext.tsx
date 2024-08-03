@@ -14,14 +14,18 @@ import {
   TransactionUnspentOutput,
   TransactionUnspentOutputs,
   Value,
-  StakeCredential,
   TransactionBuilder,
   TransactionBuilderConfigBuilder,
   LinearFee,
   BigNum,
   TransactionOutput,
   TransactionWitnessSet,
-} from "@emurgo/cardano-serialization-lib-asmjs";
+  Certificate,
+  Ed25519KeyHash,
+  DrepUpdate,
+  Credential,
+  CertificatesBuilder,
+} from '@emurgo/cardano-serialization-lib-asmjs';
 import { Buffer } from 'buffer';
 
 import {
@@ -34,6 +38,7 @@ import {
 import { CardanoApiWallet, Protocol, VoterInfo } from '@/models/wallet';
 import { useSharedContext } from './sharedContext';
 import getEpochParams from '@/services/requests/getEpochParams';
+import { generateAnchor } from '@/lib/generateAnchor';
 
 interface Props {
   children: React.ReactNode;
@@ -83,6 +88,11 @@ interface CardanoContext {
   setStakeKey: (key: string) => void;
   loginSignTransaction: () => Promise<any>;
   loginHardwareWalletTransaction: () => Promise<any>;
+  buildDRepUpdateCert: (
+    cip95MetadataURL?: string,
+    cip95MetadataHash?: string,
+  ) => Promise<Certificate>;
+  signAndSubmitTransaction: (certBuilder?: any) => Promise<any>;
   stakeKeys: string[];
   walletApi?: CardanoApiWallet;
   delegatedDRepID?: string;
@@ -343,8 +353,7 @@ function CardanoProvider(props: Props) {
           if (registeredStakeKeysList.length > 0) {
             stakeKeysList = registeredStakeKeysList.map((stakeKey) => {
               const stakeKeyHash = PublicKey.from_hex(stakeKey).hash();
-              const stakeCredential =
-                StakeCredential.from_keyhash(stakeKeyHash);
+              const stakeCredential = Credential.from_keyhash(stakeKeyHash);
               if (network === 1)
                 return RewardAddress.new(1, stakeCredential)
                   .to_address()
@@ -358,8 +367,7 @@ function CardanoProvider(props: Props) {
             console.warn('warnings.usingUnregisteredStakeKeys');
             stakeKeysList = unregisteredStakeKeysList.map((stakeKey) => {
               const stakeKeyHash = PublicKey.from_hex(stakeKey).hash();
-              const stakeCredential =
-                StakeCredential.from_keyhash(stakeKeyHash);
+              const stakeCredential = Credential.from_keyhash(stakeKeyHash);
               if (network === 1)
                 return RewardAddress.new(1, stakeCredential)
                   .to_address()
@@ -544,7 +552,100 @@ function CardanoProvider(props: Props) {
       throw new Error(error);
     }
   };
-  //for hardware wallets, an expired txn is signed to get signature
+  const signAndSubmitTransaction = async (certBuilder?: any) => {
+    if (!walletApi) throw new Error('Wallet not connected');
+    try {
+      const txBuilder = await initTransactionBuilder();
+      if (certBuilder) {
+        if (certBuilder instanceof Certificate) {
+          const builder = CertificatesBuilder.new();
+          builder.add(certBuilder);
+          txBuilder.set_certs_builder(builder);
+        } else {
+          txBuilder.set_certs_builder(certBuilder);
+        }
+      }
+      //sample recipient address
+      const shelleyOutputAddress = Address.from_bech32(walletState.usedAddress);
+      const shelleyChangeAddress = Address.from_bech32(
+        walletState.changeAddress,
+      );
+
+      // 1 million lovelace/ 1ADA
+      txBuilder.add_output(
+        TransactionOutput.new(
+          shelleyOutputAddress,
+          Value.new(BigNum.from_str('1000000')),
+        ),
+      );
+
+      // Find the available UTXOs in the wallet and
+      // use them as Inputs
+      const utxos = await getUtxos(walletApi);
+      const txUnspentOutputs = await getTxUnspentOutputs(utxos);
+      txBuilder.add_inputs_from(txUnspentOutputs, 1);
+      // calculate the min fee required and send any change to an address
+      txBuilder.add_change_if_needed(shelleyChangeAddress);
+      //expiry of 1 minute
+      //txBuilder.set_ttl_bignum(BigNum.from_str((1.5 * 60).toString()));
+      // once the transaction is ready, we build it to get the tx body without witnesses
+      const txBody = txBuilder.build();
+      // Tx witness
+      const transactionWitnessSet = TransactionWitnessSet.new();
+      const tx = Transaction.new(
+        txBody,
+        TransactionWitnessSet.from_bytes(transactionWitnessSet.to_bytes()),
+      );
+
+      let txVkeyWitnesses = await walletApi.signTx(
+        Buffer.from(tx.to_bytes() as any, 'utf8').toString('hex'),
+        true,
+      );
+      txVkeyWitnesses = TransactionWitnessSet.from_bytes(
+        Buffer.from(txVkeyWitnesses, 'hex'),
+      );
+      transactionWitnessSet.set_vkeys(txVkeyWitnesses.vkeys());
+      const signedTx = Transaction.new(tx.body(), transactionWitnessSet);
+      // Submit built signed transaction to chain, via wallet's submit transaction endpoint
+      const result = await walletApi.submitTx(signedTx.to_hex());
+      // Set results so they can be rendered
+      const resultHash = result;
+      const { signature, vkey } = JSON.parse(
+        signedTx.witness_set().vkeys().get(0).to_json(),
+      );
+      console.log(signedTx.to_hex(), 'signed tx cbor');
+      return { resultHash, signature, vkey };
+    } catch (error) {
+      throw new Error(error);
+    }
+  };
+  const buildDRepUpdateCert = useCallback(
+    async (
+      cip95MetadataURL?: string,
+      cip95MetadataHash?: string,
+    ): Promise<Certificate> => {
+      try {
+        // Get wallet's DRep key
+        const dRepKeyHash = Ed25519KeyHash.from_hex(dRepID);
+        const dRepCred = Credential.from_keyhash(dRepKeyHash);
+
+        let dRepUpdateCert;
+        // If there is an anchor
+        if (cip95MetadataURL && cip95MetadataHash) {
+          const anchor = generateAnchor(cip95MetadataURL, cip95MetadataHash);
+          // Create cert object using one Ada as the deposit
+          dRepUpdateCert = DrepUpdate.new_with_anchor(dRepCred, anchor);
+        } else {
+          dRepUpdateCert = DrepUpdate.new(dRepCred);
+        }
+        return Certificate.new_drep_update(dRepUpdateCert);
+      } catch (e) {
+        console.error(e);
+        throw e;
+      }
+    },
+    [dRepID],
+  );
   const disconnectWallet = useCallback(async () => {
     removeItemFromLocalStorage(`${WALLET_LS_KEY}_name`);
     removeItemFromLocalStorage(`${WALLET_LS_KEY}_stake_key`);
@@ -572,6 +673,8 @@ function CardanoProvider(props: Props) {
       disconnectWallet,
       loginSignTransaction,
       loginHardwareWalletTransaction,
+      buildDRepUpdateCert,
+      signAndSubmitTransaction,
       loginCredentials,
       dRepID,
       dRepIDBech32,

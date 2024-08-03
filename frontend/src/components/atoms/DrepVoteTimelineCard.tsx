@@ -16,7 +16,10 @@ const VoteStatusChip = ({ date }: { date: string }) => {
 };
 const DrepVoteTimelineCard = ({ item }: { item: any }) => {
   return (
-    <div id='epoch-card' className="flex max-w-md flex-col gap-3 rounded-xl bg-white p-3 shadow-lg">
+    <div
+      id="epoch-card"
+      className="flex max-w-md flex-col gap-3 rounded-xl bg-white p-3 shadow-lg"
+    >
       <VoteStatusChip date={item.time_voted} />
       <hr />
       <div className="flex max-w-52 flex-col gap-1">
@@ -24,8 +27,10 @@ const DrepVoteTimelineCard = ({ item }: { item: any }) => {
           For {item?.description?.tag || null}
         </p>
         <p className="text-sm">Governance Action ID:</p>
-        <div className="flex gap-1 w-fit items-center rounded-full border px-3 py-1 text-sm">
-          <p>{convertString(item?.gov_action_proposal_id, true) || null}</p>
+        <div className="flex w-fit items-center gap-1 rounded-full border px-3 py-1 text-sm">
+          <p>
+            {convertString(item?.gov_action_proposal_id + '#0', true) || null}
+          </p>
           <CopyToClipboard
             text={item?.gov_action_proposal_id}
             onCopy={() => {
@@ -38,7 +43,7 @@ const DrepVoteTimelineCard = ({ item }: { item: any }) => {
         </div>
       </div>
       <Link
-        href={`${urls.govToolUrl}/governance_actions/${item?.gov_action_proposal_id}`}
+        href={`${urls.govToolUrl}/governance_actions/${item?.gov_action_proposal_id}#0`}
         target="_blank"
         className="text-blue-800"
       >
