@@ -265,7 +265,6 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
           </Button>
           {edit && (
             <MetadataEditor
-            drepId={drep?.drep_id}
               onClose={() => setEdit(false)}
               initialMetadata={metadataJson}
               setFinalMetadata={setMetadata}

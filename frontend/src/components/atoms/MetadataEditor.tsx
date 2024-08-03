@@ -15,7 +15,6 @@ import { useCardano } from '@/context/walletContext';
 import { CircularProgress } from '@mui/material';
 
 const MetadataEditor = ({
-  drepId,
   onClose,
   initialMetadata = [],
   setFinalMetadata,
@@ -205,7 +204,7 @@ const MetadataEditor = ({
             </div>
           ))}
         </div>
-        <div className="flex w-full mb-2">
+        <div className="mb-2 flex w-full">
           <Button
             handleClick={handleAddNew}
             aria-valuetext="add"
@@ -219,14 +218,14 @@ const MetadataEditor = ({
           </Button>
         </div>
         <div className="flex flex-row justify-between gap-2">
-          {/* <div>
-            <Button
+          <div>
+            {/* <Button
               handleClick={() => setValidationStart(false)}
               disabled={!validationStart}
             >
               Edit
-            </Button>
-          </div> */}
+            </Button> */}
+          </div>
           <div className="flex justify-end gap-2">
             <Button handleClick={onClose} disabled={validationStart}>
               Cancel
