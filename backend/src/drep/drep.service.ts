@@ -914,16 +914,11 @@ export class DrepService {
 
       Logger.debug(LoggerMessage.METADATA_DATA, data);
 
-      // if (standard) {
-      //   await validateMetadataStandard(data, standard);
-      // }
-      metadata = parseMetadata(data.body, standard);
-
-      const hashedMetadata = blake.blake2bHex(
-        !standard ? data : metadata,
-        undefined,
-        32,
-      );
+      if (standard) {
+        await validateMetadataStandard(data, standard);
+        metadata = parseMetadata(data.body, standard);
+      }
+      const hashedMetadata = blake.blake2bHex(JSON.stringify(data), undefined, 32);
 
       if (hashedMetadata !== hash) {
         throw MetadataValidationStatus.INVALID_HASH;

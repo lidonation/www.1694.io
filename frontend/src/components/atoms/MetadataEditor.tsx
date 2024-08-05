@@ -20,7 +20,11 @@ const MetadataEditor = ({
   setFinalMetadata,
 }) => {
   const [metadata, setMetadata] = useState(initialMetadata);
-  const { signAndSubmitTransaction, buildDRepUpdateCert } = useCardano();
+  const {
+    signAndSubmitTransaction,
+    buildDRepUpdateCert,
+    loginSignTransaction,
+  } = useCardano();
   const [isValidatingSubmission, setIsValidatingSubmission] = useState(false);
   const [isSigningData, setIsSigningData] = useState(false);
   const [errors, setErrors] = useState<any>({});
@@ -93,7 +97,7 @@ const MetadataEditor = ({
         });
         // sign metadata tx
         setIsSigningData(true);
-        const { signature, vkey } = await signAndSubmitTransaction();
+        const { signature, key:vkey } = await loginSignTransaction();
         const vkeys = {
           vkey,
           signature,
@@ -104,6 +108,7 @@ const MetadataEditor = ({
           CIP_100,
           vkeys,
         );
+        //hasing the raw kay value pairs to be validated
         const jsonHash = blake2bHex(JSON.stringify(jsonld), undefined, 32);
         setJsonld(jsonld);
         setJsonHash(jsonHash);
@@ -140,7 +145,7 @@ const MetadataEditor = ({
             jsonHash,
           );
           const result = await signAndSubmitTransaction(updateDRepMetadataCert);
-          addSuccessAlert('Metadata updated successfully');
+          addSuccessAlert('Metadata updated successfully, It will probably take few minutes to reflect');
           onClose();
         }
       }
