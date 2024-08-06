@@ -8,11 +8,12 @@ export const parseMetadata = (
 ) => {
   const parsedMetadata = {};
   for (const [key, value] of Object.entries(metadata)) {
-    if (key === 'references') {
-      parsedMetadata[key] = (Array.isArray(value) ? value : [])?.map(
-        (reference) => reference?.uri['@value'],
-      );
-    }
+    //will parse refrences with upcoming versions
+    // if (key === 'references') {
+    //   parsedMetadata[key] = (Array.isArray(value) ? value : [])?.map(
+    //     (reference) => reference?.uri['@value'],
+    //   );
+    // }
     parsedMetadata[key] = value['@value'];
   }
   Logger.debug(LoggerMessage.PARSED_METADATA_BODY, parsedMetadata, {

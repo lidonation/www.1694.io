@@ -19,33 +19,7 @@ export const cipStandardSchema: StandardSpecification = {
     authors: Joi.array(),
     hashAlgorithm: Joi.object({
       '@value': Joi.string().valid('blake2b-256').required(),
-    }),
-    body: Joi.object({
-      title: Joi.object({
-        '@value': Joi.string().max(80).required(),
-      }).required(),
-      abstract: Joi.object({
-        '@value': Joi.string().max(2500).required(),
-      }).required(),
-      motivation: Joi.object({ '@value': Joi.string().required() }).required(),
-      rationale: Joi.object({ '@value': Joi.string().required() }).required(),
-      references: Joi.array()
-        .items(
-          Joi.object({
-            '@type': Joi.string().required(),
-            label: Joi.object({
-              '@value': Joi.string().required(),
-            }).required(),
-            uri: Joi.object({
-              '@value': Joi.string().required(),
-            }).required(),
-            referenceHash: Joi.object({
-              hashDigest: Joi.string().required(),
-              hashAlgorithm: Joi.string().required(),
-            }),
-          }),
-        )
-        .required(),
-    }),
+    }).required(),
+    body: Joi.object().required(),
   })
 };
