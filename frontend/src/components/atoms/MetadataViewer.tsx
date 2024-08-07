@@ -23,7 +23,7 @@ const MetadataViewer = ({ isMetadataLoading, metadataError, metadata, metadataUr
     }
 
     if (!metadata || !metadata.body) {
-      return <p className='text-sm'>{metadataUrl}</p>;
+      return <p className='text-sm'>No metadata found</p>;
     }
 
     return Object.entries(metadata.body).map(([key, value]: any[]) => {
