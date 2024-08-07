@@ -117,7 +117,6 @@ const MetadataEditor = ({
           vkey,
           signature,
         };
-        console.log(vkeys)
         const jsonld = await generateJsonld(
           jsonLdData,
           dynamicDREPContext,
