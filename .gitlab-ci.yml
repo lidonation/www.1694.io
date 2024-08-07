@@ -145,6 +145,9 @@ build_backend:
       cat $ENV_FILE_BACKEND > backend/.env.production
       cat $ENV_FILE_FRONTEND > frontend/.env.production
       cp backend/.env.production ./chart/backend_env
+      
+      cat ./chart/backend_env
+      
       docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
       echo "Building Dockerfile with tags $CI_APPLICATION_REPOSITORY/1694.io-backend:$CI_APPLICATION_TAG and $CI_APPLICATION_REPOSITORY/www.1694.io-backend:latest ..."
       
@@ -176,7 +179,6 @@ postgres-app-sancho:
   needs: []
   environment:
     name: sancho
-
 
 postgres-dbsync-sancho:
   <<: *deploy_postgres_dbsync
@@ -248,14 +250,12 @@ app-sancho:
   only:
     - branches
 
-
 postgres-app-preview:
   <<: *deploy_postgres_web
   stage: preview
   needs: []
   environment:
     name: preview
-
 
 postgres-dbsync-preview:
   <<: *deploy_postgres_dbsync
@@ -282,6 +282,8 @@ app-preview:
       cat $ENV_FILE_FRONTEND > frontend/.env.production
       cp backend/.env.production ./chart/backend_env
       
+      cat ./chart/backend_env
+      
       cp $ENV_FILE frontend/.env.production
       cat $ENV_FILE_FRONTEND > frontend/.env.production
       cp frontend/.env.production ./chart/frontend_env
@@ -295,16 +297,7 @@ app-preview:
         --docker-server=registry.lidonation.com \
         --docker-username=$CI_REGISTRY_USER \
         --docker-password=$CI_REGISTRY_PASSWORD \
-        --docker-email=$REGISTRY_EMAIL      
-      
-       helm template ./chart --debug \
-        -f ./chart/values.yaml \
-        --set image.repository=$CI_APPLICATION_REPOSITORY/www.1694.io \
-        --set secrets.NEXT_PUBLIC_GOOGLE_API="$NEXT_PUBLIC_GOOGLE_API" \
-        --set services.ingress.hosts[0]="$AUTO_DEVOPS_WEB_DOMAIN" \
-        --set image.tag=$CI_APPLICATION_TAG \
-        --namespace="$KUBE_NAMESPACE" \
-        --create-namespace    
+        --docker-email=$REGISTRY_EMAIL
       
       helm upgrade $DEPLOYMENT_NAME ./chart --install \
         -f ./chart/values.yaml \
@@ -329,7 +322,6 @@ app-preview:
     - if: $CI_COMMIT_BRANCH != 'main'
       when: manual
 
-
 postgres-app-production:
   <<: *deploy_postgres_web
   stage: production
@@ -340,7 +332,6 @@ postgres-app-production:
       when: manual
   environment:
     name: production
-
 
 postgres-dbsync-production:
   <<: *deploy_postgres_dbsync
