@@ -21,7 +21,8 @@ variables:
 
 stages:
   - build
-  - staging
+  - sancho
+  - preview
   - production
   - test
 
@@ -85,6 +86,7 @@ services:
           --set global.postgresql.auth.password="$POSTGRESQL_WEB_PASSWORD" \
           --set global.postgresql.auth.postgresPassword="$POSTGRESQL_WEB_POSTGRES_PASSWORD" \
           --set primary.persistence.size="$POSTGRESQL_WEB_SIZE" \
+          --set namespace=$KUBE_NAMESPACE \
           $DEPLOYMENT_NAME-web-db \
           bitnami/postgresql
 
@@ -107,6 +109,7 @@ services:
           --set global.postgresql.auth.password="$POSTGRESQL_DBSYNC_PASSWORD" \
           --set global.postgresql.auth.postgresPassword="$POSTGRESQL_DBSYNC_POSTGRES_PASSWORD" \
           --set primary.persistence.size="$POSTGRESQL_DBSYNC_SIZE" \
+          --set namespace=$KUBE_NAMESPACE \
           $DEPLOYMENT_NAME-dbsync-db \
           bitnami/postgresql
 
@@ -167,24 +170,24 @@ build_backend:
     - *deploy_postgres_dbsync_script
   rules: *infra_rules
 
-postgres-web-staging:
+postgres-app-sancho:
   <<: *deploy_postgres_web
-  stage: staging
+  stage: sancho
   needs: []
   environment:
-    name: staging
+    name: sancho
 
 
-postgres-dbsync-staging:
+postgres-dbsync-sancho:
   <<: *deploy_postgres_dbsync
-  stage: staging
+  stage: sancho
   needs: []
   environment:
-    name: staging
+    name: sancho
 
-staging:
+app-sancho:
   image: "${CI_TEMPLATE_REGISTRY_HOST}/gitlab-org/cluster-integration/auto-deploy-image:${AUTO_DEPLOY_IMAGE_VERSION}"
-  stage: staging
+  stage: sancho
   script:
     - *setup
     - auto-deploy check_kube_domain
@@ -241,16 +244,97 @@ staging:
     - job: build_frontend
     - job: build_backend
   environment:
-    name: staging
+    name: sancho
   only:
     - branches
 
 
-postgres-web-production:
+postgres-app-preview:
+  <<: *deploy_postgres_web
+  stage: preview
+  needs: []
+  environment:
+    name: preview
+
+
+postgres-dbsync-preview:
+  <<: *deploy_postgres_dbsync
+  stage: preview
+  needs: []
+  environment:
+    name: preview
+
+app-preview:
+  image: "${CI_TEMPLATE_REGISTRY_HOST}/gitlab-org/cluster-integration/auto-deploy-image:${AUTO_DEPLOY_IMAGE_VERSION}"
+  stage: preview
+  script:
+    - *setup
+    - auto-deploy check_kube_domain
+    - auto-deploy download_chart
+    - auto-deploy create_secret
+    # - auto-deploy ensure_namespace
+    - |
+      set -xev
+      
+      DEPLOYMENT_NAME="www-1694.$CI_ENVIRONMENT_SLUG"    
+      cp $ENV_FILE backend/.env.production
+      cat $ENV_FILE_BACKEND > backend/.env.production
+      cat $ENV_FILE_FRONTEND > frontend/.env.production
+      cp backend/.env.production ./chart/backend_env
+      
+      cp $ENV_FILE frontend/.env.production
+      cat $ENV_FILE_FRONTEND > frontend/.env.production
+      cp frontend/.env.production ./chart/frontend_env
+      
+      cp $ENV_FILE_FRONTEND ./chart/frontend_env
+      
+      kubectl delete secret 1694-registry-deploy-token --ignore-not-found --namespace="$KUBE_NAMESPACE"
+      
+      kubectl create secret docker-registry 1694-registry-deploy-token \
+        --namespace="$KUBE_NAMESPACE" \
+        --docker-server=registry.lidonation.com \
+        --docker-username=$CI_REGISTRY_USER \
+        --docker-password=$CI_REGISTRY_PASSWORD \
+        --docker-email=$REGISTRY_EMAIL      
+      
+       helm template ./chart --debug \
+        -f ./chart/values.yaml \
+        --set image.repository=$CI_APPLICATION_REPOSITORY/www.1694.io \
+        --set secrets.NEXT_PUBLIC_GOOGLE_API="$NEXT_PUBLIC_GOOGLE_API" \
+        --set services.ingress.hosts[0]="$AUTO_DEVOPS_WEB_DOMAIN" \
+        --set image.tag=$CI_APPLICATION_TAG \
+        --namespace="$KUBE_NAMESPACE" \
+        --create-namespace    
+      
+      helm upgrade $DEPLOYMENT_NAME ./chart --install \
+        -f ./chart/values.yaml \
+        --timeout 300s \
+        --wait \
+        --atomic \
+        --set image.tag=$CI_APPLICATION_TAG \
+        --set secrets.NEXT_PUBLIC_GOOGLE_API="$NEXT_PUBLIC_GOOGLE_API" \
+        --set services.ingress.hosts[0]="$AUTO_DEVOPS_WEB_DOMAIN" \
+        --set namespace=$KUBE_NAMESPACE \
+        --namespace="$KUBE_NAMESPACE" \
+        --create-namespace
+    - auto-deploy persist_environment_url
+  artifacts:
+    paths: [ environment_url.txt ]
+  needs:
+    - job: build_frontend
+    - job: build_backend
+  environment:
+    name: preview
+  rules:
+    - if: $CI_COMMIT_BRANCH != 'main'
+      when: manual
+
+
+postgres-app-production:
   <<: *deploy_postgres_web
   stage: production
   needs:
-    - job: staging
+    - job: postgres-app-preview
   rules:
     - if: $CI_COMMIT_BRANCH == 'main'
       when: manual
@@ -264,7 +348,7 @@ postgres-dbsync-production:
   environment:
     name: production
   needs:
-    - job: staging
+    - job: postgres-dbsync-preview
   rules:
     - if: $CI_COMMIT_BRANCH == 'main'
       when: manual
@@ -297,7 +381,7 @@ production:
   artifacts:
     paths: [ environment_url.txt ]
   needs:
-    - job: staging
+    - job: app-preview
   rules:
     - if: $CI_COMMIT_BRANCH == 'main'
       when: manual
