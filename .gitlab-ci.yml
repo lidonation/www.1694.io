@@ -223,7 +223,7 @@ app-sancho:
         -f ./chart/values.yaml \
         --set image.repository=$CI_APPLICATION_REPOSITORY/www.1694.io \
         --set secrets.NEXT_PUBLIC_GOOGLE_API="$NEXT_PUBLIC_GOOGLE_API" \
-        --set services.ingress.hosts[0]="$AUTO_DEVOPS_WEB_DOMAIN" \
+        --set ingress.hosts[0]="$AUTO_DEVOPS_WEB_DOMAIN" \
         --set image.tag=$CI_APPLICATION_TAG \
         --namespace="$KUBE_NAMESPACE" \
         --create-namespace    
@@ -236,7 +236,7 @@ app-sancho:
         --namespace="$KUBE_NAMESPACE" \
         --set image.tag=$CI_APPLICATION_TAG \
         --set secrets.NEXT_PUBLIC_GOOGLE_API="$NEXT_PUBLIC_GOOGLE_API" \
-        --set services.ingress.hosts[0]="$AUTO_DEVOPS_WEB_DOMAIN" \
+        --set ingress.hosts[0]="$AUTO_DEVOPS_WEB_DOMAIN" \
         --namespace="$KUBE_NAMESPACE" \
         --create-namespace
     - auto-deploy persist_environment_url
@@ -306,7 +306,7 @@ app-preview:
         --namespace="$KUBE_NAMESPACE" \
         --set image.tag=$CI_APPLICATION_TAG \
         --set secrets.NEXT_PUBLIC_GOOGLE_API="$NEXT_PUBLIC_GOOGLE_API" \
-        --set services.ingress.hosts[0]="$AUTO_DEVOPS_WEB_DOMAIN" \
+        --set ingress.hosts[0]="$AUTO_DEVOPS_WEB_DOMAIN" \
         --set namespace=$KUBE_NAMESPACE \
         --namespace="$KUBE_NAMESPACE" \
         --create-namespace
