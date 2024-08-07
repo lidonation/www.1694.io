@@ -96,7 +96,7 @@ const MetadataEditor = ({
 
       setErrors(newErrors);
       if (!hasErrors) {
-        setFinalMetadata(metadata);
+        
         const modifiedMetadata = metadata.map((item) => ({
           [item.key]: item.value,
         }));
@@ -177,10 +177,11 @@ const MetadataEditor = ({
         metadataUrl,
         jsonHash,
       );
-      const result = await signAndSubmitTransaction(updateDRepMetadataCert);
+      await signAndSubmitTransaction(updateDRepMetadataCert);
       addSuccessAlert(
-        'Metadata updated successfully, It will probably take few minutes to reflect',
+        'Metadata updated successfully. It will probably take few minutes to reflect',
       );
+      setFinalMetadata(metadata);
       onClose();
     } catch (error) {
       console.log(error);

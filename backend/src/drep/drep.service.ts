@@ -373,22 +373,15 @@ export class DrepService {
                   dh.id AS drep_hash_id, 
                   dh.raw, 
                   dh.view, 
-                  dh.has_script,
                   dd.id AS drep_distr_id, 
-                  dd.hash_id, 
                   dd.amount, 
                   dd.epoch_no, 
                   dd.active_until,
-                  dr.id AS drep_registration_id, 
-                  dr.tx_id, 
-                  dr.cert_index, 
                   dr.deposit, 
                   dr.drep_hash_id AS reg_drep_hash_id, 
                   dr.voting_anchor_id AS reg_voting_anchor_id,  
                   va.id AS voting_anchor_id, 
                   va.url AS metadata_url, 
-                  reg_tx_bk.time AS date_of_registration,
-                  reg_tx_bk.epoch_no AS epoch_of_registration,
                   va.data_hash,
                   sa.view AS stake_address,
                   (
@@ -396,7 +389,7 @@ export class DrepService {
                     FROM delegation_vote dv
                     WHERE dv.drep_hash_id = dh.id
                   ) AS delegation_vote_count,
-                  ROW_NUMBER() OVER (PARTITION BY dh.id ORDER BY dd.epoch_no DESC) AS RowNum
+                  ROW_NUMBER() OVER (PARTITION BY dh.id ORDER BY reg_tx_bk.epoch_no DESC) AS RowNum
               FROM 
                   drep_hash AS dh
               LEFT JOIN 
@@ -425,8 +418,6 @@ export class DrepService {
               epoch_no,
               active_until,
               deposit,
-              date_of_registration,
-              epoch_of_registration,
               metadata_url
           FROM 
               RankedRows
