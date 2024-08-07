@@ -62,12 +62,14 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
   const [edit, setEdit] = useState(false);
   const [status, setStatus] = useState<any>('Inactive');
   const [isMetadataLoading, setIsMetadataLoading] = useState(false);
+  const [metadataUrl, setMetadataUrl] = useState<string | null>(null);
   const [metadataError, setMetadataError] = useState<string | null>(null);
   const [metadataJson, setMetadataJson] = useState<any>(null);
   const [metadata, setMetadata] = useState<any>(null);
   useEffect(() => {
     const fetchData = async () => {
       const metadataUrl = drep?.cexplorerDetails.metadata_url;
+      setMetadataUrl(metadataUrl);
       if (!metadataUrl) return;
 
       try {
@@ -246,6 +248,7 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
           metadata={metadata}
           isMetadataLoading={isMetadataLoading}
           metadataError={metadataError}
+          metadataUrl={metadataUrl}
         />
       </div>
       {(drep?.cexplorerDetails?.view == dRepIDBech32 ||
@@ -265,6 +268,7 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
           </Button>
           {edit && (
             <MetadataEditor
+            drepId={drep?.drep_id}
               onClose={() => setEdit(false)}
               initialMetadata={metadataJson}
               setFinalMetadata={setMetadata}

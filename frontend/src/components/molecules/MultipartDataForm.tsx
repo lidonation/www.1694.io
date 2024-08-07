@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Button from '../atoms/Button';
-import { useScreenDimension } from '@/hooks';
 import { HtmlTooltip } from '../atoms/HoverChip';
 import { urls } from '@/constants';
 import axiosInstance from '@/services/axiosInstance';
@@ -123,7 +122,7 @@ const MultipartDataForm = ({
           formData.append('parentId', null);
           const mimeType = file.type;
           const res = await axiosInstance.post(
-            `${urls.baseServerUrl}/api/attachments/add`,
+            `/api/attachments/add`,
             formData,
           );
           return { name: res.data.name, type: mimeType };

@@ -51,7 +51,12 @@ export class DrepController {
     return this.drepService.getEpochParams();
   }
   @Get(':id/drep')
-  async getSingle(@Param('id') drepId: number, @Query('stakeKeys') stakeKeys?: StakeKeys, @Query('startTimeCursor') startTimeCursor?: number, @Query('endTimeCursor') endTimeCursor?: number) {
+  async getSingle(
+    @Param('id') drepId: number,
+    @Query('stakeKeys') stakeKeys?: StakeKeys,
+    @Query('startTimeCursor') startTimeCursor?: number,
+    @Query('endTimeCursor') endTimeCursor?: number,
+  ) {
     const { stakeKey, stakeKeyBech32 } = stakeKeys || {};
     let delegation: Delegation = null;
 
@@ -64,7 +69,7 @@ export class DrepController {
       stakeKeyBech32,
       delegation,
       startTimeCursor,
-      endTimeCursor
+      endTimeCursor,
     );
   }
   @Get(':voterId/voter')
@@ -87,7 +92,7 @@ export class DrepController {
       stakeKeyBech32,
       delegation,
       startTimeCursor,
-      endTimeCursor
+      endTimeCursor,
     );
   }
   @Post('new')
@@ -107,9 +112,23 @@ export class DrepController {
   ) {
     return this.drepService.updateDrepInfo(drepId, drep, profileUrl);
   }
+  @Get(':drepId/metadata/:hash')
+  getMetadata(@Param('drepId') drepId: number, @Param('hash') hash: string) {
+    return this.drepService.getMetadata(drepId, hash);
+  }
   @Post('metadata/validate')
   validateMetadata(@Body() metadataBody: ValidateMetadataDTO) {
     return this.drepService.validateMetadata(metadataBody);
+  }
+
+  @Post('metadata/save')
+  saveMetadata(
+    @Body('metadata') metadata: any,
+    @Body('hash') hash: string,
+    @Body('drepId') drepId: number,
+    @Body('name') name: string,
+  ) {
+    return this.drepService.saveMetadata(metadata, hash, drepId, name);
   }
 
   @Get(':voterId/stats')

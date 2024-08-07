@@ -29,6 +29,7 @@ import {
 import { validateMetadataStandard } from 'src/common/validateMetadataStandard';
 import { catchError, firstValueFrom } from 'rxjs';
 import { parseMetadata } from 'src/common/parseMetadata';
+import { Metadata } from 'src/entities/metadata.entity';
 
 @Injectable()
 export class DrepService {
@@ -894,6 +895,17 @@ export class DrepService {
       .getRepository('Drep')
       .update(drepId, updatedDrep);
   }
+  async getMetadata(drepId: number, hash: string) {
+    if (!drepId || !hash) throw new Error('Inadequate parameters');
+    const foundMetadata = await this.voltaireService
+      .getRepository('Metadata')
+      .createQueryBuilder('metadata')
+      .where('metadata.drep = :drepId', { drepId })
+      .andWhere('metadata.hash = :hash', { hash })
+      .getOne();
+
+    return foundMetadata ? foundMetadata?.content : 'Not found';
+  }
   async validateMetadata({
     hash,
     url,
@@ -918,7 +930,11 @@ export class DrepService {
         await validateMetadataStandard(data, standard);
         metadata = parseMetadata(data.body, standard);
       }
-      const hashedMetadata = blake.blake2bHex(JSON.stringify(data), undefined, 32);
+      const hashedMetadata = blake.blake2bHex(
+        JSON.stringify(data),
+        undefined,
+        32,
+      );
 
       if (hashedMetadata !== hash) {
         throw MetadataValidationStatus.INVALID_HASH;
@@ -931,6 +947,43 @@ export class DrepService {
     }
 
     return { status, valid: !Boolean(status), metadata } as any;
+  }
+  async saveMetadata(
+    metadata: any,
+    hash: string,
+    drepId: number,
+    fileName: string,
+  ) {
+    const metadataRepo = await this.voltaireService.getRepository('Metadata');
+
+    // Check if a record with the same drepId already exists
+    const existingMetadata = await metadataRepo
+      .createQueryBuilder('metadata')
+      .where('metadata.drep = :drepId', { drepId })
+      .andWhere('metadata.hash = :hash', { hash: hash })
+      .getOne();
+    if (existingMetadata) {
+      const updateMetadata = {
+        name: fileName + '.jsonld',
+        hash: hash,
+        content: metadata,
+        drep: drepId,
+      };
+
+      await metadataRepo.update(existingMetadata.id, updateMetadata);
+      return existingMetadata;
+    }
+
+    const newMetadata = {
+      name: fileName + '.jsonld',
+      hash: hash,
+      content: metadata,
+      drep: drepId,
+    };
+
+    const createdMetadata = metadataRepo.create(newMetadata);
+    const res = (await metadataRepo.save(createdMetadata)) as Metadata;
+    return res;
   }
 
   async getStats(drepVoterId: string) {

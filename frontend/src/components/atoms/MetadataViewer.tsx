@@ -1,6 +1,6 @@
 import React from 'react';
 
-const MetadataViewer = ({ isMetadataLoading, metadataError, metadata }: { isMetadataLoading: boolean, metadataError: any, metadata: any }) => {
+const MetadataViewer = ({ isMetadataLoading, metadataError, metadata, metadataUrl }: { isMetadataLoading: boolean, metadataError: any, metadata: any, metadataUrl: string }) => {
 
   const renderValue = (value: any) => {
     if (typeof value === 'object' && value['@value']) {
@@ -19,11 +19,11 @@ const MetadataViewer = ({ isMetadataLoading, metadataError, metadata }: { isMeta
     }
 
     if (metadataError) {
-      return  <p className='text-sm'>{metadataError}</p>;
+      return <p className='text-sm'>{metadataError + '\n' + metadataUrl}</p>;
     }
 
     if (!metadata || !metadata.body) {
-      return  <p className='text-sm'>Empty</p>;
+      return <p className='text-sm'>{metadataUrl}</p>;
     }
 
     return Object.entries(metadata.body).map(([key, value]: any[]) => {

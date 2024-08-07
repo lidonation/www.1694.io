@@ -13,8 +13,11 @@ import { MetadataStandard } from '../../../types/commonTypes';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { useCardano } from '@/context/walletContext';
 import { CircularProgress } from '@mui/material';
+import { postAddMetadataAttachment } from '@/services/requests/postAttachment';
+import { urls } from '@/constants';
 
 const MetadataEditor = ({
+  drepId,
   onClose,
   initialMetadata = [],
   setFinalMetadata,
@@ -48,7 +51,11 @@ const MetadataEditor = ({
 
   const handleAddNew = () => {
     const newItem = { id: uuidv4(), key: '', value: '' };
-    setMetadata([...metadata, newItem]);
+    if (!metadata || metadata.length === 0) {
+      setMetadata([newItem]);
+    } else {
+      setMetadata([...metadata, newItem]);
+    }
   };
 
   const handleDelete = (id) => {
@@ -69,15 +76,23 @@ const MetadataEditor = ({
 
       metadata.forEach((item) => {
         newErrors[item.id] = {};
+      
+        // Check if the key is empty or contains spaces
         if (!item.key.trim()) {
           newErrors[item.id].key = 'Key cannot be empty';
           hasErrors = true;
+        } else if (/\s/.test(item.key)) {
+          newErrors[item.id].key = 'Key cannot contain spaces';
+          hasErrors = true;
         }
+      
+        // Check if the value is empty
         if (!item.value.trim()) {
           newErrors[item.id].value = 'Value cannot be empty';
           hasErrors = true;
         }
       });
+      
 
       setErrors(newErrors);
       if (!hasErrors) {
@@ -97,11 +112,12 @@ const MetadataEditor = ({
         });
         // sign metadata tx
         setIsSigningData(true);
-        const { signature, key:vkey } = await loginSignTransaction();
+        const { signature, key: vkey } = await loginSignTransaction();
         const vkeys = {
           vkey,
           signature,
         };
+        console.log(vkeys)
         const jsonld = await generateJsonld(
           jsonLdData,
           dynamicDREPContext,
@@ -112,9 +128,16 @@ const MetadataEditor = ({
         const jsonHash = blake2bHex(JSON.stringify(jsonld), undefined, 32);
         setJsonld(jsonld);
         setJsonHash(jsonHash);
-        //setValidationStart(true);
-        onClose();
+        setValidationStart(true);
         setIsSigningData(false);
+        //upload metadata to db
+        await postAddMetadataAttachment({
+          metadata: jsonld,
+          hash: jsonHash,
+          drepId,
+          name: jsonHash.slice(0, 10),
+        });
+        setMetadataUrl(`${urls.baseServerUrl}/api/dreps/${drepId}/metadata/${jsonHash}`);
       }
     } catch (error) {
       console.log(error);
@@ -139,14 +162,7 @@ const MetadataEditor = ({
         }
         setIsValidatingSubmission(false);
         if (valid && metadataUrl) {
-          //save new url on chain
-          const updateDRepMetadataCert = await buildDRepUpdateCert(
-            metadataUrl,
-            jsonHash,
-          );
-          const result = await signAndSubmitTransaction(updateDRepMetadataCert);
-          addSuccessAlert('Metadata updated successfully, It will probably take few minutes to reflect');
-          onClose();
+          addSuccessAlert('Metadata Valid');
         }
       }
     } catch (error) {
@@ -155,59 +171,81 @@ const MetadataEditor = ({
       console.log(error);
     }
   };
+  const onSubmit = async () => {
+    try {
+      //save new url on chain
+      const updateDRepMetadataCert = await buildDRepUpdateCert(
+        metadataUrl,
+        jsonHash,
+      );
+      const result = await signAndSubmitTransaction(updateDRepMetadataCert);
+      addSuccessAlert(
+        'Metadata updated successfully, It will probably take few minutes to reflect',
+      );
+      onClose();
+    } catch (error) {
+      console.log(error);
+      addErrorAlert(String(error));
+    }
+  };
   const modalContent = (
     <div className="flex flex-col gap-2">
-      <div className="flex flex-col gap-4 overflow-y-auto">
+      <div className="flex flex-col gap-4 ">
         <h2 className="text-xl font-bold">Edit Metadata</h2>
-        <div>
-          {metadata.map(({ id, key, value }) => (
-            <div key={id} className="mb-4">
-              <div className="my-2 flex items-center gap-2">
-                <input
-                  type="text"
-                  value={key}
-                  onChange={(e) => handleChange(id, 'key', e.target.value)}
-                  placeholder="Key"
-                  disabled={validationStart}
-                  className="flex-grow rounded border p-2"
-                />
-                <input
-                  type="text"
-                  value={value}
-                  onChange={(e) => handleChange(id, 'value', e.target.value)}
-                  placeholder="Value"
-                  disabled={validationStart}
-                  className="flex-grow rounded border p-2"
-                />
-                <button
-                  onClick={() => handleDelete(id)}
-                  className="opacity-50 hover:opacity-100"
-                  aria-label="delete"
-                  disabled={validationStart}
-                >
-                  <img src="/svgs/trash.svg" alt="delete" className="h-5 w-5" />
-                </button>
-                {errors[id] && (errors[id].key || errors[id].value) && (
-                  <HtmlTooltip
-                    title={
-                      <div className="text-sm text-red-500">
-                        {errors[id].key && <p>{errors[id].key}</p>}
-                        {errors[id].value && <p>{errors[id].value}</p>}
-                      </div>
-                    }
-                    arrow
-                    placement="top"
+        <div className='overflow-y-auto max-h-72'>
+          {metadata &&
+            metadata.length > 0 &&
+            metadata.map(({ id, key, value }) => (
+              <div key={id} className="mb-4">
+                <div className="my-2 flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={key}
+                    onChange={(e) => handleChange(id, 'key', e.target.value)}
+                    placeholder="Key"
+                    disabled={validationStart}
+                    className="flex-grow rounded border p-2"
+                  />
+                  <input
+                    type="text"
+                    value={value}
+                    onChange={(e) => handleChange(id, 'value', e.target.value)}
+                    placeholder="Value"
+                    disabled={validationStart}
+                    className="flex-grow rounded border p-2"
+                  />
+                  <div
+                    onClick={() => handleDelete(id)}
+                    aria-label="delete"
+                    className={`h-5 w-5 ${validationStart ? 'pointer-events-none' : 'cursor-pointer'}`}
                   >
                     <img
-                      src="/svgs/alert-circle.svg"
+                      src="/svgs/trash.svg"
                       alt="delete"
                       className="h-5 w-5"
                     />
-                  </HtmlTooltip>
-                )}
+                  </div>
+                  {errors[id] && (errors[id].key || errors[id].value) && (
+                    <HtmlTooltip
+                      title={
+                        <div className="text-sm text-red-500">
+                          {errors[id].key && <p>{errors[id].key}</p>}
+                          {errors[id].value && <p>{errors[id].value}</p>}
+                        </div>
+                      }
+                      arrow
+                      placement="top"
+                    >
+                      <img
+                        src="/svgs/alert-circle.svg"
+                        alt="delete"
+                        className="h-5 w-5"
+                      />
+                    </HtmlTooltip>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
         <div className="mb-2 flex w-full">
           <Button
@@ -223,13 +261,29 @@ const MetadataEditor = ({
           </Button>
         </div>
         <div className="flex flex-row justify-between gap-2">
-          <div>
-            {/* <Button
-              handleClick={() => setValidationStart(false)}
-              disabled={!validationStart}
-            >
-              Edit
-            </Button> */}
+          <div className="flex gap-2">
+            <div>
+              <Button
+                handleClick={() => setValidationStart(false)}
+                disabled={!validationStart}
+              >
+                Edit
+              </Button>
+            </div>
+            <div>
+              <Button
+                handleClick={() => {
+                  downloadJsonFile();
+                }}
+                disabled={!validationStart}
+              >
+                <img
+                  src="/svgs/download.svg"
+                  alt="download"
+                  className="h-5 w-5"
+                />
+              </Button>
+            </div>
           </div>
           <div className="flex justify-end gap-2">
             <Button handleClick={onClose} disabled={validationStart}>
@@ -246,12 +300,13 @@ const MetadataEditor = ({
       </div>
       {validationStart && (
         <div className="flex flex-col gap-2">
-          <p>
+          <p className="text-sm">
             Download the json and host it in a platform of your choice, then
-            paste the platform URL here:
+            paste the platform URL here, or leave us the work of hosting your
+            metadata and leave this field as is:
           </p>
-          <div className="flex items-center gap-1">
-            <div className="flex w-[90%] flex-col gap-1">
+          <div className="flex items-center gap-2">
+            <div className="flex w-[80%] flex-col gap-1">
               <input
                 type="text"
                 value={metadataUrl}
@@ -265,17 +320,13 @@ const MetadataEditor = ({
                 </div>
               )}
             </div>
-            <div className="w-[10%]">
+            <div className="w-[20%]">
               <Button
                 handleClick={() => {
-                  downloadJsonFile();
+                  onSubmit();
                 }}
               >
-                <img
-                  src="/svgs/download.svg"
-                  alt="download"
-                  className="h-5 w-5"
-                />
+                Submit
               </Button>
             </div>
           </div>
