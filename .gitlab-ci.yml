@@ -296,6 +296,8 @@ app-preview:
         --docker-password=$CI_REGISTRY_PASSWORD \
         --docker-email=$REGISTRY_EMAIL
       
+      echo "AUTO_DEVOPS_WEB_DOMAIN: $AUTO_DEVOPS_WEB_DOMAIN"
+      
       helm upgrade $DEPLOYMENT_NAME ./chart --install \
         -f ./chart/values.yaml \
         --timeout 300s \
