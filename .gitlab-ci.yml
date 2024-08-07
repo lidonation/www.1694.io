@@ -168,7 +168,7 @@ build_backend:
     - *deploy_postgres_dbsync_script
   rules: *infra_rules
 
-postgres-web-sancho:
+postgres-app-sancho:
   <<: *deploy_postgres_web
   stage: sancho
   needs: []
@@ -247,7 +247,7 @@ app-sancho:
     - branches
 
 
-postgres-web-preview:
+postgres-app-preview:
   <<: *deploy_postgres_web
   stage: preview
   needs: []
@@ -327,11 +327,11 @@ app-preview:
       when: manual
 
 
-postgres-web-production:
+postgres-app-production:
   <<: *deploy_postgres_web
   stage: production
   needs:
-    - job: app-preview
+    - job: postgres-app-preview
   rules:
     - if: $CI_COMMIT_BRANCH == 'main'
       when: manual
@@ -345,7 +345,7 @@ postgres-dbsync-production:
   environment:
     name: production
   needs:
-    - job: app-preview
+    - job: postgres-dbsync-preview
   rules:
     - if: $CI_COMMIT_BRANCH == 'main'
       when: manual
@@ -378,7 +378,7 @@ production:
   artifacts:
     paths: [ environment_url.txt ]
   needs:
-    - job: staging
+    - job: app-preview
   rules:
     - if: $CI_COMMIT_BRANCH == 'main'
       when: manual
