@@ -86,6 +86,7 @@ services:
           --set global.postgresql.auth.password="$POSTGRESQL_WEB_PASSWORD" \
           --set global.postgresql.auth.postgresPassword="$POSTGRESQL_WEB_POSTGRES_PASSWORD" \
           --set primary.persistence.size="$POSTGRESQL_WEB_SIZE" \
+          --set namespace=$KUBE_NAMESPACE \
           $DEPLOYMENT_NAME-web-db \
           bitnami/postgresql
 
@@ -108,6 +109,7 @@ services:
           --set global.postgresql.auth.password="$POSTGRESQL_DBSYNC_PASSWORD" \
           --set global.postgresql.auth.postgresPassword="$POSTGRESQL_DBSYNC_POSTGRES_PASSWORD" \
           --set primary.persistence.size="$POSTGRESQL_DBSYNC_SIZE" \
+          --set namespace=$KUBE_NAMESPACE \
           $DEPLOYMENT_NAME-dbsync-db \
           bitnami/postgresql
 
@@ -312,6 +314,7 @@ app-preview:
         --set image.tag=$CI_APPLICATION_TAG \
         --set secrets.NEXT_PUBLIC_GOOGLE_API="$NEXT_PUBLIC_GOOGLE_API" \
         --set services.ingress.hosts[0]="$AUTO_DEVOPS_WEB_DOMAIN" \
+        --set namespace=$KUBE_NAMESPACE \
         --namespace="$KUBE_NAMESPACE" \
         --create-namespace
     - auto-deploy persist_environment_url
