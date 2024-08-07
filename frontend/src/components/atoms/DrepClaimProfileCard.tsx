@@ -19,10 +19,12 @@ const DrepClaimProfileCard = ({
   const [isMetadataLoading, setIsMetadataLoading] = useState(false);
   const [metadataError, setMetadataError] = useState<string | null>(null);
   const [metadata, setMetadata] = useState<any>(null);
+  const [metadataUrl, setMetadataUrl] = useState<string | null>(null);
   const [status, setStatus] = useState<any>('Inactive');
   useEffect(() => {
     const fetchData = async () => {
       const metadataUrl = drep?.cexplorerDetails?.metadata_url;
+      setMetadataUrl(metadataUrl);
       if (!metadataUrl) return;
       try {
         setIsMetadataLoading(true);
@@ -165,6 +167,7 @@ const DrepClaimProfileCard = ({
             <Skeleton animation={'wave'} width={150} height={20} />
           ) : (
             <MetadataViewer
+              metadataUrl={metadataUrl} 
               metadata={metadata}
               isMetadataLoading={isMetadataLoading}
               metadataError={metadataError}
