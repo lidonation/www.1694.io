@@ -173,7 +173,7 @@ postgres-app-sancho:
   stage: sancho
   needs: []
   environment:
-    name: staging
+    name: sancho
 
 
 postgres-dbsync-sancho:
@@ -181,7 +181,7 @@ postgres-dbsync-sancho:
   stage: sancho
   needs: []
   environment:
-    name: staging
+    name: sancho
 
 app-sancho:
   image: "${CI_TEMPLATE_REGISTRY_HOST}/gitlab-org/cluster-integration/auto-deploy-image:${AUTO_DEPLOY_IMAGE_VERSION}"
