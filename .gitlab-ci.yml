@@ -331,7 +331,7 @@ postgres-web-production:
   <<: *deploy_postgres_web
   stage: production
   needs:
-    - job: staging
+    - job: preview
   rules:
     - if: $CI_COMMIT_BRANCH == 'main'
       when: manual
@@ -345,7 +345,7 @@ postgres-dbsync-production:
   environment:
     name: production
   needs:
-    - job: staging
+    - job: preview
   rules:
     - if: $CI_COMMIT_BRANCH == 'main'
       when: manual
