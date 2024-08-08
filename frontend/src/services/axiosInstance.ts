@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { PATHS, urls } from '../constants';
+import { urls } from '@/constants';
 
 const baseURL = urls.baseServerUrl;
 
