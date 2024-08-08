@@ -135,10 +135,10 @@ const MetadataEditor = ({
         });
         // sign metadata tx
         setIsSigningData(true);
-        //const { signature, key: vkey } = await loginSignTransaction();
+        const { signature, key: vkey } = await loginSignTransaction();
         const vkeys = {
-          vkey: '1',
-          signature: '1',
+          vkey,
+          signature,
         };
         const jsonld = await generateJsonld(
           jsonLdData,
@@ -149,7 +149,6 @@ const MetadataEditor = ({
         );
         //hasing the raw kay value pairs to be validated
         const jsonHash = blake2bHex(JSON.stringify(jsonld), undefined, 32);
-        console.log(jsonld, jsonHash)
         setJsonld(jsonld);
         setJsonHash(jsonHash);
         setValidationStart(true);
