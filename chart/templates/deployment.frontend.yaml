@@ -36,7 +36,7 @@ spec:
             - secretRef:
                 name: "{{ $.Chart.Name }}-global-secrets"
             - secretRef:
-                name: "{{ $.Chart.Name }}-backend-secrets"
+                name: "{{ $.Chart.Name }}-frontend-secrets"
           livenessProbe:
             httpGet:
               path: /
