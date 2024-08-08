@@ -112,6 +112,10 @@ export class DrepController {
   ) {
     return this.drepService.updateDrepInfo(drepId, drep, profileUrl);
   }
+  @Get('/metadata/external')
+  getExternalMetadata(@Query('metadataUrl') metadataUrl: string) {
+    return this.drepService.getMetadataFromExternalLink(metadataUrl);
+  }
   @Get(':drepId/metadata/:hash')
   getMetadata(@Param('drepId') drepId: number, @Param('hash') hash: string) {
     return this.drepService.getMetadata(drepId, hash);

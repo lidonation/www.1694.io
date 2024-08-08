@@ -30,6 +30,7 @@ import { validateMetadataStandard } from 'src/common/validateMetadataStandard';
 import { catchError, firstValueFrom } from 'rxjs';
 import { parseMetadata } from 'src/common/parseMetadata';
 import { Metadata } from 'src/entities/metadata.entity';
+import { getEpochParams } from 'src/queries/getEpochParams';
 
 @Injectable()
 export class DrepService {
@@ -749,10 +750,28 @@ export class DrepService {
       });
       return response.data;
     } catch (error) {
-      console.log(error);
-      throw new Error(error);
+      console.error('Blockfrost API call failed:', error);
+
+      try {
+        // Fallback to cexplorerService
+        const fallbackResponse =
+          await this.cexplorerService.manager.query(getEpochParams);
+        if (fallbackResponse) {
+          const modifiedRes = {
+            ...fallbackResponse[0],
+            nonce: String(fallbackResponse[0]?.nonce).slice(2),
+            hash: String(fallbackResponse[0]?.hash).slice(2),
+          };
+          return modifiedRes;
+        }
+        return null;
+      } catch (fallbackError) {
+        console.error('Fallback to cexplorerService failed:', fallbackError);
+        throw fallbackError; // Throw the fallback error if both attempts fail
+      }
     }
   }
+
   async getDrepDelegatorsWithVotingPower(drepVoterId: string) {
     // Step 1: Get the delegators and their delegation epoch
     const drepDelegators = await this.cexplorerService.manager.query(
@@ -896,6 +915,20 @@ export class DrepService {
       .getOne();
 
     return foundMetadata ? foundMetadata?.content : 'Not found';
+  }
+  async getMetadataFromExternalLink(metadataUrl: string) {
+    if (!metadataUrl) throw new Error('Inadequate parameters');
+    console.log(metadataUrl);
+    const { data } = await firstValueFrom(
+      this.httpService.get(metadataUrl).pipe(
+        catchError((err) => {
+          console.log(err);
+          throw new Error('Metadata not found');
+        }),
+      ),
+    );
+
+    return data;
   }
   async validateMetadata({
     hash,

@@ -6,8 +6,8 @@ import Link from 'next/link';
 import { Skeleton } from '@mui/material';
 import { convertString, formattedAda } from '@/lib';
 import MetadataViewer from './MetadataViewer';
-import axios from 'axios';
 import { isActive } from '../molecules/DRepsTable';
+import { getExternalMetadata } from '@/services/requests/postExternalMetadataUrl';
 
 const DrepClaimProfileCard = ({
   drep,
@@ -29,8 +29,8 @@ const DrepClaimProfileCard = ({
       try {
         setIsMetadataLoading(true);
         setMetadataError(null);
-        const response = await axios.get(metadataUrl);
-        const jsonLdData = response.data;
+        const response = await getExternalMetadata({ metadataUrl });
+        const jsonLdData = response;
         setMetadata(jsonLdData);
       } catch (error) {
         setMetadata(null);
@@ -167,7 +167,7 @@ const DrepClaimProfileCard = ({
             <Skeleton animation={'wave'} width={150} height={20} />
           ) : (
             <MetadataViewer
-              metadataUrl={metadataUrl} 
+              metadataUrl={metadataUrl}
               metadata={metadata}
               isMetadataLoading={isMetadataLoading}
               metadataError={metadataError}
