@@ -39,6 +39,7 @@ import { CardanoApiWallet, Protocol, VoterInfo } from '@/models/wallet';
 import { useSharedContext } from './sharedContext';
 import getEpochParams from '@/services/requests/getEpochParams';
 import { generateAnchor } from '@/lib/generateAnchor';
+import { CONFIGURED_NETWORK_ID } from '@/constants';
 
 interface Props {
   children: React.ReactNode;
@@ -49,14 +50,6 @@ interface EnableResponse {
   stakeKey?: boolean;
   error?: string;
 }
-const TIME_TO_EXPIRE_TRANSACTION = 3 * 60 * 1000; // 3 MINUTES
-const REFRESH_TIME = 15 * 1000; // 15 SECONDS
-
-type TransactionHistoryItem = {
-  transactionHash: string;
-  time?: Date;
-};
-
 interface CardanoContext {
   address?: string;
   latestEpoch?: number;
@@ -110,6 +103,8 @@ type Utxos = {
 
 const CardanoContext = createContext<CardanoContext>({} as CardanoContext);
 CardanoContext.displayName = 'CardanoContext';
+
+const ALLOWED_NET = CONFIGURED_NETWORK_ID
 
 function CardanoProvider(props: Props) {
   const { sharedState, updateSharedState } = useSharedContext();
@@ -327,7 +322,13 @@ function CardanoProvider(props: Props) {
             throw new Error('errors.walletNoCIP95FunctionsEnabled');
           }
           const network = await enabledApi.getNetworkId();
-          setIsMainnet(network == 1);
+          console.log(network)
+          if (network !== ALLOWED_NET) {
+            throw new Error(
+              'Currently supported networks are preview and Sancho testnet',
+            );
+          }
+          setIsMainnet(network === 1);
           //Check and set wallet balance
           await getBalance(enabledApi);
           // Check and set wallet address
@@ -426,14 +427,14 @@ function CardanoProvider(props: Props) {
           setIsEnabling(false);
           throw {
             status: 'ERROR',
-            error: `${e == undefined ? 'errors.somethingWentWrong' : e}`,
+            error: `${e == undefined ? 'Something went wrong' : e}`,
           };
         } finally {
           setIsEnableLoading(null);
         }
       }
       setIsEnabling(false);
-      throw { status: 'ERROR', error: 'errors.somethingWentWrong' };
+      throw { status: 'ERROR', error: 'Something went wrong' };
     },
     [isEnabled, stakeKeys],
   );

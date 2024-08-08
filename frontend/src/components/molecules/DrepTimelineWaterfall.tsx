@@ -77,7 +77,7 @@ const DrepTimelineWaterfall = ({ activity = [] }: { activity: any[] }) => {
                   />
                 </TimelineSeparator>
                 <Link
-                  href={`${urls.sanchoCexplorerUrl}tx/${item?.tx_hash}`}
+                  href={`${urls.cexplorerUrl}tx/${item?.tx_hash}`}
                   target="_blank"
                 >
                   <div className="flex flex-row items-center justify-center gap-2 text-nowrap text-gray-500 hover:cursor-pointer hover:text-gray-800">
