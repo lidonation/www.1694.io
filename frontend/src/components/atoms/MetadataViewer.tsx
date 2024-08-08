@@ -39,11 +39,13 @@ const MetadataViewer = ({
       const valueString = renderValue(value);
       return (
         <div key={key} className="flex items-center gap-1 text-sm">
-          <p className="font-semibold">{capitalizeFirstLetter(key)}</p>........
+          <p className="font-semibold">{capitalizeFirstLetter(key)}</p>
+          <span className="flex-grow border-t border-dotted border-gray-400 mx-2"></span>
           <p>{valueString}</p>
         </div>
       );
     });
+    
   };
 
   return <div className='flex flex-col gap-2'>{renderContent()}</div>;
