@@ -8,6 +8,7 @@ metadata:
     release: "{{ $.Release.Name }}"
     service: "{{ .Values.backend.labels.service }}"
   annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: "traefik-redirect-http-to-https@kubernetescrd,traefik-default-headers@kubernetescrd,traefik-strip-prefix@kubernetescrd"
     {{- range $key, $value := .Values.ingress.annotations }}
       {{ $key }}: {{ $value | quote }}
     {{- end }}
@@ -25,7 +26,7 @@ spec:
     - host: {{ . }}
       http:
         paths:
-          - path: /
+          - path: /api
             pathType: Prefix
             backend:
               service:
