@@ -1,4 +1,5 @@
 #!/bin/bash
+
 envFilename='/app/.env.production'
 nextFolder='/app/.next/'
 
@@ -23,4 +24,5 @@ while read -r line; do
 done <$envFilename
 
 echo "Starting Nextjs"
+
 exec "$@"
