@@ -1,31 +1,13 @@
-#!/bin/bash
+#!/bin/sh
+set -e
 
-set -xev
+# Replace env variable placeholders with real values
+printenv | grep NEXT_PUBLIC_ | while read -r line ; do
+  key=$(echo $line | cut -d "=" -f1)
+  value=$(echo $line | cut -d "=" -f2)
 
-envFilename='/app/.env.production'
-nextFolder='/app/.next/'
+  find /usr/src/app/.next/ -type f -exec sed -i "s|$key|$value|g" {} \;
+done
 
-while read -r line; do
-    # no comment or not empty
-    if [ "${line:0:1}" == "#" ] || [ "${line}" == "" ]; then
-        continue
-    fi
-
-    # split
-    configName="$(cut -d'=' -f1 <<<"$line")"
-    configValue="$(cut -d'=' -f2 <<<"$line")"
-
-    # get system env
-    envValue=$(env | grep "^$configName=" | grep -oe '[^=]*$')
-
-    # if config found && configName starts with NEXT_PUBLIC
-    if [ -n "$configValue" ] && [ -n "$envValue" ]; then
-        # replace all
-        echo "Replace: ${configValue} with ${envValue}"
-        find $nextFolder \( -type d -name .git -prune \) -o -type f -print0 | xargs -0 sed -i "s#$configValue#$envValue#g"
-    fi
-done <$envFilename
-
-echo "Starting Nextjs"
-
+# Execute the container's main process (CMD in Dockerfile)
 exec "$@"
