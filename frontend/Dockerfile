@@ -58,6 +58,6 @@ ENV HOSTNAME "0.0.0.0"
 
 ENV PORT 3000
 
-ENTRYPOINT [ "./scripts/entrypoint.sh" ]
+#ENTRYPOINT [ "./scripts/entrypoint.sh" ]
 
 CMD ["node", "server.js"]
