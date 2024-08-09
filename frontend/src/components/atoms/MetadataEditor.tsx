@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { ModalWrapper } from './modal/ModalWrapper';
 import { HtmlTooltip } from './HoverChip';
 import Button from './Button';
 import { generateMetadataBody } from '@/lib/metadataProcessor';
-import { CIP_100, createDREPContext } from '@/lib/drepActions/jsonContext';
+import { CIP_100, CIP_QQQ, createDREPContext } from '@/lib/drepActions/jsonContext';
 import { generateJsonld } from '@/lib/generateJSONLD';
 import { blake2bHex } from 'blakejs';
 import { downloadJson } from '@/lib/jsonutils';
@@ -16,13 +16,15 @@ import { CircularProgress } from '@mui/material';
 import { postAddMetadataAttachment } from '@/services/requests/postAttachment';
 import { urls } from '@/constants';
 
+const IMMUTABLE_KEYS = ['dRepName', 'bio', 'email'];
+
 const MetadataEditor = ({
   drepId,
   onClose,
-  initialMetadata = [],
+  initialMetadata = null,
   setFinalMetadata,
 }) => {
-  const [metadata, setMetadata] = useState(initialMetadata);
+  const [metadata, setMetadata] = useState([]);
   const {
     signAndSubmitTransaction,
     buildDRepUpdateCert,
@@ -36,6 +38,20 @@ const MetadataEditor = ({
   const { addErrorAlert, addSuccessAlert } = useGlobalNotifications();
   const [validationStart, setValidationStart] = useState(false);
   const [metadataUrl, setMetadataUrl] = useState('');
+
+  useEffect(() => {
+    if (initialMetadata === null) {
+      const defaultMetadata = IMMUTABLE_KEYS.reduce((acc, key) => {
+        acc.push({ id: uuidv4(), key, value: '' });
+        return acc;
+      }, []);
+      defaultMetadata.push({ id: uuidv4(), key: 'references', value: '[]' });
+      setMetadata(defaultMetadata);
+    } else {
+      setMetadata(initialMetadata);
+    }
+  }, [initialMetadata]);
+
   const handleChange = (id, field, value) => {
     setMetadata(
       metadata.map((item) =>
@@ -51,24 +67,26 @@ const MetadataEditor = ({
 
   const handleAddNew = () => {
     const newItem = { id: uuidv4(), key: '', value: '' };
-    if (!metadata || metadata.length === 0) {
-      setMetadata([newItem]);
-    } else {
-      setMetadata([...metadata, newItem]);
-    }
+    setMetadata([...metadata, newItem]);
   };
 
   const handleDelete = (id) => {
+    const itemToDelete = metadata.find((item) => item.id === id);
+    if (IMMUTABLE_KEYS.includes(itemToDelete.key)) {
+      return;
+    }
     setMetadata(metadata.filter((item) => item.id !== id));
     // Remove any errors for this item
     const { [id]: _, ...restErrors } = errors;
     setErrors(restErrors);
   };
+
   const downloadJsonFile = () => {
     if (jsonld) {
       downloadJson(jsonld, 'metadata');
     }
   };
+
   const validateAndSave = async () => {
     try {
       const newErrors = {};
@@ -76,7 +94,7 @@ const MetadataEditor = ({
 
       metadata.forEach((item) => {
         newErrors[item.id] = {};
-      
+
         // Check if the key is empty or contains spaces
         if (!item.key.trim()) {
           newErrors[item.id].key = 'Key cannot be empty';
@@ -85,30 +103,35 @@ const MetadataEditor = ({
           newErrors[item.id].key = 'Key cannot contain spaces';
           hasErrors = true;
         }
-      
+
         // Check if the value is empty
         if (!item.value.trim()) {
           newErrors[item.id].value = 'Value cannot be empty';
           hasErrors = true;
         }
       });
-      
 
       setErrors(newErrors);
       if (!hasErrors) {
-        
-        const modifiedMetadata = metadata.map((item) => ({
-          [item.key]: item.value,
-        }));
+        const modifiedMetadata = metadata.reduce((acc, item) => {
+          const value =
+            typeof item.value === 'object' &&
+            item.value !== null &&
+            '@value' in item.value
+              ? item.value['@value']
+              : item.value;
+
+          acc[item.key] = value;
+
+          return acc;
+        }, {});
         // Extract keys from the metadata
         const metadataKeys = metadata.map((item) => item.key);
-
         // Create the dynamic DREP_CONTEXT
         const dynamicDREPContext = createDREPContext(metadataKeys);
-
         const jsonLdData = await generateMetadataBody({
           data: modifiedMetadata as any,
-          standardReference: CIP_100,
+          standardReference: CIP_QQQ,
         });
         // sign metadata tx
         setIsSigningData(true);
@@ -119,8 +142,9 @@ const MetadataEditor = ({
         };
         const jsonld = await generateJsonld(
           jsonLdData,
+          JSON.parse(modifiedMetadata['references']),
           dynamicDREPContext,
-          CIP_100,
+          CIP_QQQ,
           vkeys,
         );
         //hasing the raw kay value pairs to be validated
@@ -136,7 +160,9 @@ const MetadataEditor = ({
           drepId,
           name: jsonHash.slice(0, 10),
         });
-        setMetadataUrl(`${urls.baseServerUrl}/api/dreps/${drepId}/metadata/${jsonHash}`);
+        setMetadataUrl(
+          `${urls.baseServerUrl}/api/dreps/${drepId}/metadata/${jsonHash}`,
+        );
       }
     } catch (error) {
       console.log(error);
@@ -144,6 +170,7 @@ const MetadataEditor = ({
       addErrorAlert(String(error));
     }
   };
+
   const handleValidation = async (e: any) => {
     try {
       setIsValidatingSubmission(true);
@@ -170,6 +197,7 @@ const MetadataEditor = ({
       console.log(error);
     }
   };
+
   const onSubmit = async () => {
     try {
       //save new url on chain
@@ -188,11 +216,12 @@ const MetadataEditor = ({
       addErrorAlert(String(error));
     }
   };
+
   const modalContent = (
     <div className="flex flex-col gap-2">
       <div className="flex flex-col gap-4 ">
         <h2 className="text-xl font-bold">Edit Metadata</h2>
-        <div className='overflow-y-auto max-h-72'>
+        <div className="max-h-72 overflow-y-auto">
           {metadata &&
             metadata.length > 0 &&
             metadata.map(({ id, key, value }) => (
@@ -203,7 +232,7 @@ const MetadataEditor = ({
                     value={key}
                     onChange={(e) => handleChange(id, 'key', e.target.value)}
                     placeholder="Key"
-                    disabled={validationStart}
+                    disabled={IMMUTABLE_KEYS.includes(key) || validationStart}
                     className="flex-grow rounded border p-2"
                   />
                   <input
@@ -217,7 +246,7 @@ const MetadataEditor = ({
                   <div
                     onClick={() => handleDelete(id)}
                     aria-label="delete"
-                    className={`h-5 w-5 ${validationStart ? 'pointer-events-none' : 'cursor-pointer'}`}
+                    className={`h-5 w-5 ${IMMUTABLE_KEYS.includes(key) || validationStart ? 'pointer-events-none' : 'cursor-pointer'}`}
                   >
                     <img
                       src="/svgs/trash.svg"

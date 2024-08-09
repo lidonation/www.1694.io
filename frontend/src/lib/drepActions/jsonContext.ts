@@ -1,36 +1,45 @@
-export const CIP_100 = 'https://github.com/cardano-foundation/CIPs/blob/master/CIP-0100/README.md#';
-export const CIP_108 = 'https://github.com/cardano-foundation/CIPs/blob/master/CIP-0108/README.md#';
+export const CIP_100 =
+  'https://github.com/cardano-foundation/CIPs/blob/master/CIP-0100/README.md#';
+export const CIP_108 =
+  'https://github.com/cardano-foundation/CIPs/blob/master/CIP-0108/README.md#';
+export const CIP_QQQ =
+  'https://github.com/cardano-foundation/CIPs/blob/master/CIP-QQQ/README.md#';
 
 export function createDREPContext(metadataKeys: string[]) {
-  const bodyContext = metadataKeys.reduce((acc, key) => {
-    acc[key] = `CIP100:${key}`;
-    return acc;
-  }, {} as Record<string, any>);
+  const bodyContext = metadataKeys.reduce(
+    (acc, key) => {
+      acc[key] = `CIPQQQ:${key}`;
+      return acc;
+    },
+    {} as Record<string, any>,
+  );
 
-  if (metadataKeys.includes('references')) {
-    bodyContext.references = {
-      '@id': 'CIP100:references',
-      '@container': '@set' as const,
-      '@context': {
-        label: 'CIP100:reference-label',
-        uri: 'CIP100:reference-uri',
-        referenceHash: {
-          '@id': 'CIP100:referenceHash',
-          '@context': {
-            hashDigest: 'CIP100:hashDigest',
-            hashAlgorithm: 'CIP100:hashAlgorithm',
-          },
+  bodyContext.references = {
+    '@id': 'CIPQQQ:references',
+    '@container': '@set',
+    '@context': {
+      GovernanceMetadata: 'CIP100:GovernanceMetadataReference',
+      Other: 'CIP100:OtherReference',
+      label: 'CIP100:reference-label',
+      uri: 'CIP100:reference-uri',
+      referenceHash: {
+        '@id': 'CIPQQQ:referenceHash',
+        '@context': {
+          hashDigest: 'CIPQQQ:hashDigest',
+          hashAlgorithm: 'CIP100:hashAlgorithm',
         },
       },
-    };
-  }
+    },
+  };
 
   return {
     '@language': 'en-us',
-    CIP100: 'https://github.com/cardano-foundation/CIPs/blob/master/CIP-0100/README.md#',
+    CIP100:
+      'https://github.com/cardano-foundation/CIPs/blob/master/CIP-0100/README.md#',
+    CIPQQQ: CIP_QQQ,
     hashAlgorithm: 'CIP100:hashAlgorithm',
     body: {
-      '@id': 'CIP100:body',
+      '@id': 'CIPQQQ:body',
       '@context': bodyContext,
     },
     authors: {
