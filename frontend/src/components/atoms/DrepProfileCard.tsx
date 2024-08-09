@@ -9,9 +9,9 @@ import { useRouter } from 'next/navigation';
 import { useCardano } from '@/context/walletContext';
 import MetadataViewer from './MetadataViewer';
 import MetadataEditor from './MetadataEditor';
-import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import { isActive } from '../molecules/DRepsTable';
+import { getExternalMetadata } from '@/services/requests/postExternalMetadataUrl';
 
 interface StatusProps {
   status:
@@ -71,12 +71,12 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
       const metadataUrl = drep?.cexplorerDetails.metadata_url;
       setMetadataUrl(metadataUrl);
       if (!metadataUrl) return;
-
       try {
         setIsMetadataLoading(true);
         setMetadataError(null);
-        const response = await axios.get(metadataUrl);
-        const jsonLdData = response.data;
+        const response = await getExternalMetadata({ metadataUrl });
+        const jsonLdData = response;
+        setMetadata(jsonLdData);
         const renderValue = (value: any) => {
           if (typeof value === 'object' && value['@value']) {
             return value['@value'];
@@ -90,7 +90,6 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
           },
         );
         setMetadataJson(modifiedJson);
-        setMetadata(jsonLdData);
       } catch (error) {
         console.log(error);
         setMetadata(null);
@@ -268,7 +267,7 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
           </Button>
           {edit && (
             <MetadataEditor
-            drepId={drep?.drep_id}
+              drepId={drep?.drep_id}
               onClose={() => setEdit(false)}
               initialMetadata={metadataJson}
               setFinalMetadata={setMetadata}
