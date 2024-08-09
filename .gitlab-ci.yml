@@ -123,11 +123,13 @@ build_frontend:
       set -xev
       cp $ENV_FILE frontend/.env.production
       cat $ENV_FILE_FRONTEND > frontend/.env.production
+      
       docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
       echo "Building Dockerfile with tags $CI_APPLICATION_REPOSITORY/1694.io-frontend:$CI_APPLICATION_TAG and $CI_APPLICATION_REPOSITORY/www.1694.io-frontend:latest ..."
       docker build --network host -f frontend/Dockerfile \
         -t "$CI_APPLICATION_REPOSITORY/1694.io-frontend:$CI_APPLICATION_TAG" \
         -t "$CI_APPLICATION_REPOSITORY/1694.io-frontend:latest" .
+      
       docker push "$CI_APPLICATION_REPOSITORY/1694.io-frontend:$CI_APPLICATION_TAG"
       docker push "$CI_APPLICATION_REPOSITORY/1694.io-frontend:latest"
   only:
@@ -194,7 +196,6 @@ app-sancho:
     - auto-deploy check_kube_domain
     - auto-deploy download_chart
     - auto-deploy create_secret
-    # - auto-deploy ensure_namespace
     - |
       set -xev
       

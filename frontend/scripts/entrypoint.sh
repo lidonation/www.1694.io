@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -xev
+
 envFilename='/app/.env.production'
 nextFolder='/app/.next/'
 
