@@ -75,8 +75,8 @@ services:
       context: ./frontend
       dockerfile: Dockerfile.dev
     restart: unless-stopped
-    environment:
-      NEXT_PUBLIC_BASE_SERVER_URL: http://localhost:8000 # Environment variable for the API URL
+    env_file:
+      - ./frontend/.env
     ports:
       - 3000:3000 # Expose port 3000 to the host
     networks:
