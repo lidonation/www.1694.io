@@ -51,6 +51,8 @@ COPY --from=builder /app/scripts ./scripts
 RUN chmod +x ./scripts/entrypoint.sh
 RUN apk add --no-cache bash
 
+USER nextjs
+
 EXPOSE 3000
 
 ENV HOSTNAME "0.0.0.0"
@@ -58,7 +60,5 @@ ENV HOSTNAME "0.0.0.0"
 ENV PORT 3000
 
 ENTRYPOINT [ "./scripts/entrypoint.sh" ]
-
-USER nextjs
 
 CMD ["node", "server.js"]
