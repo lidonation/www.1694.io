@@ -5,7 +5,7 @@ export const getExternalMetadata = async ({
 }: {
   metadataUrl: string;
 }) => {
-  const response = await axiosInstance.get(`/api/dreps/metadata/external`, {
+  const response = await axiosInstance.get(`/dreps/metadata/external`, {
     params: {
       metadataUrl: metadataUrl,
     },

@@ -8,7 +8,7 @@ export const getDReps = async (
   onChainStatus?: string,
   campaignStatus?: string,
 ) => {
-  const response = await axiosInstance.get(`/api/dreps`, {
+  const response = await axiosInstance.get(`/dreps`, {
     params: { s, page, sort, order, onChainStatus, campaignStatus },
   });
 

@@ -161,7 +161,7 @@ const MetadataEditor = ({
           name: jsonHash.slice(0, 10),
         });
         setMetadataUrl(
-          `${urls.baseServerUrl}/api/dreps/${drepId}/metadata/${jsonHash}`,
+          `${urls.baseServerUrl}/dreps/${drepId}/metadata/${jsonHash}`,
         );
       }
     } catch (error) {

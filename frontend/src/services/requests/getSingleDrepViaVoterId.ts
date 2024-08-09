@@ -8,7 +8,7 @@ export const getSingleDRepViaVoterId = async (
   startTimeCursor?: number,
   endTimeCursor?: number
 ) => {
-  const response = await axiosInstance.get(`/api/dreps/${voterid}/voter`, {
+  const response = await axiosInstance.get(`/dreps/${voterid}/voter`, {
     params: {
       stakeKeys:stakeKeys,
       startTimeCursor: startTimeCursor,

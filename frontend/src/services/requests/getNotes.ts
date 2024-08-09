@@ -6,7 +6,7 @@ export const getNotes = async (
   currentNote?: number,
   request?: string,
 ) => {
-  const response = await axiosInstance.get(`/api/notes/all`, {
+  const response = await axiosInstance.get(`/notes/all`, {
     params: {
       stakeKeys: stakeKeys,
       currentNoteCursor: currentNote,

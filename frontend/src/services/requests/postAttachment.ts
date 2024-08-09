@@ -12,7 +12,7 @@ export const postAddMetadataAttachment = async ({
   drepId: number;
   name: string;
 }) => {
-  const res = await axiosInstance.post(`/api/dreps/metadata/save`, {
+  const res = await axiosInstance.post(`/dreps/metadata/save`, {
     metadata,
     hash,
     drepId,

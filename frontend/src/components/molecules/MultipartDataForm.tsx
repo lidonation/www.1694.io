@@ -122,7 +122,7 @@ const MultipartDataForm = ({
           formData.append('parentId', null);
           const mimeType = file.type;
           const res = await axiosInstance.post(
-            `/api/attachments/add`,
+            `/attachments/add`,
             formData,
           );
           return { name: res.data.name, type: mimeType };
@@ -132,8 +132,8 @@ const MultipartDataForm = ({
       insertedFiles.forEach((file) => {
         const encodedFileName = encodeURIComponent(file.name);
         const markdown = file.type.includes('pdf')
-          ? `[pdf](${urls.baseServerUrl}/api/attachments/${encodedFileName})`
-          : `![image](${urls.baseServerUrl}/api/attachments/${encodedFileName})`;
+          ? `[pdf](${urls.baseServerUrl}/attachments/${encodedFileName})`
+          : `![image](${urls.baseServerUrl}/attachments/${encodedFileName})`;
         if (editor)
           editor.focus(
             () => {

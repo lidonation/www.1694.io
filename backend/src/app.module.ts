@@ -18,7 +18,7 @@ import { HttpModule } from '@nestjs/axios';
       isGlobal: true,
       envFilePath: ['.env', '.env.development', '.env.production'],
     }),
-   
+
     DrepModule,
     DbModule,
     NoteModule,
