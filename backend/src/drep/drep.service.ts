@@ -31,6 +31,7 @@ import { catchError, firstValueFrom } from 'rxjs';
 import { parseMetadata } from 'src/common/parseMetadata';
 import { Metadata } from 'src/entities/metadata.entity';
 import { getEpochParams } from 'src/queries/getEpochParams';
+import { getDRepDelegatorsHistory } from 'src/queries/drepDelegatorsHistory';
 
 @Injectable()
 export class DrepService {
@@ -482,6 +483,11 @@ export class DrepService {
       startingTime,
       endingTime,
     );
+    const drepDelegatorsHistory = await this.getDrepDelegators(
+      drepVoterId,
+      startingTime,
+      endingTime,
+    );
     let drepNotes = [];
 
     // Retrieve notes if drepId is defined
@@ -510,6 +516,7 @@ export class DrepService {
         type: 'note',
         timestamp: note.note_createdAt,
       })),
+      ...drepDelegatorsHistory,
     ];
     // Add the registration event if it falls within the time range
     if (startingTime.getTime() > regDate && endingTime.getTime() < regDate) {
@@ -918,7 +925,6 @@ export class DrepService {
   }
   async getMetadataFromExternalLink(metadataUrl: string) {
     if (!metadataUrl) throw new Error('Inadequate parameters');
-    console.log(metadataUrl);
     const { data } = await firstValueFrom(
       this.httpService.get(metadataUrl).pipe(
         catchError((err) => {
@@ -947,7 +953,7 @@ export class DrepService {
           }),
         ),
       );
-      
+
       Logger.debug(LoggerMessage.METADATA_DATA, data);
       //buggy
       // if (standard) {
@@ -1039,5 +1045,41 @@ export class DrepService {
     };
 
     return drepStats;
+  }
+
+  async getDrepDelegators(
+    drepVoterId: string,
+    beforeDate: Date,
+    tillDate: Date,
+  ) {
+    const drepHashQuery = `
+      SELECT id, view FROM drep_hash WHERE view = $1
+    `;
+    const drepHashResult = await this.cexplorerService.manager.query(
+      drepHashQuery,
+      [drepVoterId],
+    );
+    const drepHashId = drepHashResult[0]?.id;
+
+    if (!drepHashId) {
+      throw new Error(`No DRep found with the view: ${drepVoterId}`);
+    }
+
+    const addrIdsQuery = `
+      SELECT DISTINCT addr_id FROM delegation_vote WHERE drep_hash_id = $1
+    `;
+    const addrIdsResult = await this.cexplorerService.manager.query(
+      addrIdsQuery,
+      [drepHashId],
+    );
+    const addrIds = addrIdsResult.map((row) => row.addr_id);
+
+    const drepDelegations = await this.cexplorerService.manager.query(getDRepDelegatorsHistory(addrIds), [
+      drepHashId,
+      drepVoterId,
+      beforeDate,
+      tillDate,
+    ]);
+    return drepDelegations;
   }
 }

@@ -30,7 +30,7 @@ export function decodeToken(token: string) {
 }
 
 export function shortenAddress(address: string, length: number) {
-  // get five characters from the start and end of the address
+  // get [length] characters from the start and end of the address
   return address.slice(0, length) + '...' + address.slice(-length);
 }
 

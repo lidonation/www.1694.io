@@ -14,6 +14,7 @@ import DrepVoteTimelineCard from '../atoms/DrepVoteTimelineCard';
 import Link from 'next/link';
 import { urls } from '@/constants';
 import { ProfileClaimedChip } from './ProfileClaimedChip';
+import DrepDelegatorCard from '../atoms/DrepDelegatorCard';
 
 const DrepTimelineWaterfall = ({ activity = [] }: { activity: any[] }) => {
   const { isMobile, screenWidth } = useScreenDimension();
@@ -35,7 +36,7 @@ const DrepTimelineWaterfall = ({ activity = [] }: { activity: any[] }) => {
       {activity &&
         activity.length > 0 &&
         activity.map((item, epochIndex) => (
-          <div key={epochIndex}>
+          <React.Fragment key={epochIndex}>
             {item.type === 'note' && (
               <div className="flex w-full flex-col items-center space-y-2">
                 <TimelineSeparator>
@@ -53,6 +54,12 @@ const DrepTimelineWaterfall = ({ activity = [] }: { activity: any[] }) => {
                     isLoggedIn={isLoggedIn}
                   />
                 </div>
+                <TimelineSeparator>
+                  <TimelineConnector
+                    className="h-10 border-2 border-dotted border-gray-300"
+                    sx={{ backgroundColor: 'white' }}
+                  />
+                </TimelineSeparator>
               </div>
             )}
             {item.type === 'epoch' && (
@@ -65,6 +72,12 @@ const DrepTimelineWaterfall = ({ activity = [] }: { activity: any[] }) => {
                   />
                 </TimelineSeparator>
                 <EpochTimelineCard epoch={item} />
+                <TimelineSeparator>
+                  <TimelineConnector
+                    className="h-10 border-2 border-dotted border-gray-300"
+                    sx={{ backgroundColor: 'white' }}
+                  />
+                </TimelineSeparator>
               </div>
             )}
             {item.type === 'registration' && (
@@ -116,7 +129,21 @@ const DrepTimelineWaterfall = ({ activity = [] }: { activity: any[] }) => {
                 </TimelineContent>
               </TimelineItem>
             )}
-          </div>
+            {item.type === 'delegation' && (
+              <TimelineItem>
+                <TimelineSeparator>
+                  <TimelineDot />
+                  <TimelineConnector
+                    className="h-10 border-2 border-dotted border-gray-300"
+                    sx={{ backgroundColor: 'white' }}
+                  />
+                </TimelineSeparator>
+                <TimelineContent>
+                  <DrepDelegatorCard item={item} />
+                </TimelineContent>
+              </TimelineItem>
+            )}
+          </React.Fragment>
         ))}
     </Timeline>
   );

@@ -139,4 +139,5 @@ export class DrepController {
   getStats(@Param('voterId') voterId: string) {
     return this.drepService.getStats(voterId);
   }
+
 }
