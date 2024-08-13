@@ -40,10 +40,18 @@ const DrepTimeline = ({
     const isScrollingDown = currentScrollTop > prevScrollTop;
     setScrollDirection(isScrollingDown ? 'down' : 'up');
     setPrevScrollTop(currentScrollTop);
-    currentScrollTop === 0 &&
-      scrollDirection === 'up' &&
-      !isPreviousData &&
+    if (currentScrollTop === 0 && scrollDirection === 'up' && !isPreviousData) {
       fetchMoreData();
+    } else if (
+      currentScrollTop === 0 &&
+      scrollDirection === 'up' &&
+      !!isPreviousData
+    ) {
+      const params = new URLSearchParams(searchParams);
+      params.delete('startTime');
+      params.delete('endTime');
+      router.replace(`?${params.toString()}`, { scroll: false });
+    }
   };
   const stakeKeys: StakeKeys = { stakeKey, stakeKeyBech32 };
 
@@ -82,7 +90,7 @@ const DrepTimeline = ({
         setAllActivities((prevActivities) => {
           const uniqueActivitiesMap = new Map(
             [...drep.activity].map((activity) => [
-              activity.timestamp,
+              `${activity.timestamp}-${activity.type}`,
               activity,
             ]),
           );
@@ -114,12 +122,13 @@ const DrepTimeline = ({
       setAllActivities((prevActivities) => {
         const uniqueActivitiesMap = new Map(
           [...prevActivities, ...activity].map((activity) => [
-            activity.timestamp,
+            `${activity.timestamp}-${activity.type}`,
             activity,
           ]),
         );
         return Array.from(uniqueActivitiesMap.values()).sort(
-          (a, b) => b.timestamp - a.timestamp,
+          (a, b) =>
+            new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
         );
       });
       setHasMoreBelow(activity.length > 0);
@@ -172,10 +181,11 @@ const DrepTimeline = ({
           ));
       if (drep.activity && drep.activity.length > 0) {
         setlastBatch(drep.activity);
+
         setAllActivities((prevActivities) => {
           const uniqueActivitiesMap = new Map(
             [...prevActivities, ...drep.activity].map((activity) => [
-              activity.timestamp,
+              `${activity.timestamp}-${activity.type}`,
               activity,
             ]),
           );
@@ -184,6 +194,7 @@ const DrepTimeline = ({
               new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
           );
         });
+
         if (scrollDirection === 'up') {
           setHasMoreAbove(drep.activity.length > 1);
           // Maintain scroll position

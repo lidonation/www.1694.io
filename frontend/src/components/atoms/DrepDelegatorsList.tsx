@@ -38,12 +38,12 @@ const DrepDelegatorslist = ({ delegators }: { delegators: any[] }) => {
 
                   <div className="flex min-w-40 flex-col items-center justify-start">
                     <p className="font-bold">Voting Power</p>
-                    <p>
+                    <div>
                       <HoverText
                         shortText={shortNumber(delegator.votingPower, 2)}
                         longText={formatAsCurrency(delegator.votingPower)}
                       />
-                    </p>
+                    </div>
                   </div>
 
                   <div className="flex min-w-40 flex-col items-center justify-start">
