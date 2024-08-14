@@ -1,11 +1,13 @@
 export const getDRepDelegatorsHistory = (addrIds: []) => `
 SELECT 
     sa.view AS stake_address,
-    drep.view AS drep,
+    $2::TEXT AS target_drep,
+    current_drep.view AS current_drep,
     previous_drep.view AS previous_drep,
     b.time AS timestamp,
-    'delegation' AS type,
     b.epoch_no AS delegation_epoch,
+    SUBSTRING(CAST(tx.hash AS TEXT) FROM 3) AS tx_hash,
+    'delegation' AS type,
     (
         (
             SELECT COALESCE(SUM(txo.value), 0)
@@ -55,7 +57,7 @@ SELECT
         )
     )::TEXT AS total_stake,
     CASE 
-        WHEN drep.view = $2 THEN true
+        WHEN current_drep.view = $2 THEN true
         ELSE false
     END AS added_power
 FROM 
@@ -83,16 +85,16 @@ LEFT JOIN
 ON 
     tx.block_id = b.id
 LEFT JOIN 
-    drep_hash drep 
+    drep_hash current_drep 
 ON 
-    dva.drep_hash_id = drep.id
+    dva.drep_hash_id = current_drep.id
 LEFT JOIN 
     drep_hash previous_drep 
 ON 
     dvb.drep_hash_id = previous_drep.id
 WHERE  
     dva.addr_id IN (${addrIds.join(',')}) 
-    AND (drep.id = $1 OR previous_drep.id = $1)
+    AND (current_drep.id = $1 OR previous_drep.id = $1)
     AND b.time::DATE BETWEEN $4::DATE AND $3::DATE
 ORDER BY 
     b.time DESC;`;

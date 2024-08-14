@@ -65,3 +65,16 @@ export type DRepStats = {
   votes: number;
   votingPower: number;
 };
+
+export type DelegationData = {
+  stake_address: string;
+  target_drep: string;
+  current_drep: string;
+  previous_drep: string | null;
+  timestamp: string;
+  delegation_epoch: number;
+  tx_hash: string;
+  type: string;
+  total_stake: string;
+  added_power: boolean;
+};
