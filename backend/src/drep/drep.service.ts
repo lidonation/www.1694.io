@@ -58,12 +58,13 @@ export class DrepService {
   ) {
     let nameFilteredDRepViews: string[];
 
-    if (query) {
-      const nameFilteredDReps = query ? await this.getDRepsByName(query) : [];
-      nameFilteredDRepViews = nameFilteredDReps.map(
-        (drep) => drep.signature_drepVoterId,
-      );
-    }
+    // disabled temporarily due to model changes
+    // if (query) {
+    //   const nameFilteredDReps = query ? await this.getDRepsByName(query) : [];
+    //   nameFilteredDRepViews = nameFilteredDReps.map(
+    //     (drep) => drep.signature_drepVoterId,
+    //   );
+    // }
 
     let sortColumn = null;
     let sortOrder = null;

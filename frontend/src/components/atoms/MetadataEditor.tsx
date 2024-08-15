@@ -3,42 +3,23 @@ import { v4 as uuidv4 } from 'uuid';
 import { ModalWrapper } from './modal/ModalWrapper';
 import { HtmlTooltip } from './HoverChip';
 import Button from './Button';
-import { generateMetadataBody } from '@/lib/metadataProcessor';
-import { CIP_100, CIP_QQQ, createDREPContext } from '@/lib/drepActions/jsonContext';
-import { generateJsonld } from '@/lib/generateJSONLD';
-import { blake2bHex } from 'blakejs';
+import { generateMetadataBody, submitMetadata } from '@/lib/metadataProcessor';
 import { downloadJson } from '@/lib/jsonutils';
 import { postMetadata } from '@/services/requests/postMetadata';
 import { MetadataStandard } from '../../../types/commonTypes';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { useCardano } from '@/context/walletContext';
 import { CircularProgress } from '@mui/material';
-import { postAddMetadataAttachment } from '@/services/requests/postAttachment';
-import { urls } from '@/constants';
+import { setItemToLocalStorage } from '@/lib';
 
-const IMMUTABLE_KEYS = ['dRepName', 'bio', 'email'];
+const IMMUTABLE_KEYS = ['dRepName', 'bio', 'email', 'references'];
 
-const MetadataEditor = ({
-  drepId,
-  onClose,
-  initialMetadata = null,
-  setFinalMetadata,
-}) => {
+const MetadataEditor = ({ drepId, onClose, initialMetadata = null, onSuccessfulSubmit }) => {
   const [metadata, setMetadata] = useState([]);
-  const {
-    signAndSubmitTransaction,
-    buildDRepUpdateCert,
-    loginSignTransaction,
-  } = useCardano();
-  const [isValidatingSubmission, setIsValidatingSubmission] = useState(false);
+  const { loginSignTransaction } = useCardano();
   const [isSigningData, setIsSigningData] = useState(false);
   const [errors, setErrors] = useState<any>({});
-  const [jsonld, setJsonld] = useState<any>(null);
-  const [jsonHash, setJsonHash] = useState(null);
   const { addErrorAlert, addSuccessAlert } = useGlobalNotifications();
-  const [validationStart, setValidationStart] = useState(false);
-  const [metadataUrl, setMetadataUrl] = useState('');
-
   useEffect(() => {
     if (initialMetadata === null) {
       const defaultMetadata = IMMUTABLE_KEYS.reduce((acc, key) => {
@@ -81,12 +62,6 @@ const MetadataEditor = ({
     setErrors(restErrors);
   };
 
-  const downloadJsonFile = () => {
-    if (jsonld) {
-      downloadJson(jsonld, 'metadata');
-    }
-  };
-
   const validateAndSave = async () => {
     try {
       const newErrors = {};
@@ -127,92 +102,25 @@ const MetadataEditor = ({
         }, {});
         // Extract keys from the metadata
         const metadataKeys = metadata.map((item) => item.key);
-        // Create the dynamic DREP_CONTEXT
-        const dynamicDREPContext = createDREPContext(metadataKeys);
-        const jsonLdData = await generateMetadataBody({
-          data: modifiedMetadata as any,
-          standardReference: CIP_QQQ,
-        });
         // sign metadata tx
         setIsSigningData(true);
-        const { signature, key: vkey } = await loginSignTransaction();
-        const vkeys = {
-          vkey,
-          signature,
-        };
-        const jsonld = await generateJsonld(
-          jsonLdData,
-          JSON.parse(modifiedMetadata['references']),
-          dynamicDREPContext,
-          CIP_QQQ,
-          vkeys,
+        const { jsonld, jsonHash } = await submitMetadata(
+          metadataKeys,
+          modifiedMetadata,
+          loginSignTransaction,
         );
-        //hasing the raw kay value pairs to be validated
-        const jsonHash = blake2bHex(JSON.stringify(jsonld), undefined, 32);
-        setJsonld(jsonld);
-        setJsonHash(jsonHash);
-        setValidationStart(true);
+        setItemToLocalStorage('isUpdating', 'true');
+        setItemToLocalStorage('metadataJson', metadata);
+        setItemToLocalStorage('metadataJsonLd', jsonld);
+        setItemToLocalStorage('metadataJsonHash', jsonHash);
         setIsSigningData(false);
-        //upload metadata to db
-        await postAddMetadataAttachment({
-          metadata: jsonld,
-          hash: jsonHash,
-          drepId,
-          name: jsonHash.slice(0, 10),
-        });
-        setMetadataUrl(
-          `${urls.baseServerUrl}/dreps/${drepId}/metadata/${jsonHash}`,
-        );
+        addSuccessAlert('Metadata updated!');
+        onSuccessfulSubmit();
+        onClose()
       }
     } catch (error) {
       console.log(error);
       setIsSigningData(false);
-      addErrorAlert(String(error));
-    }
-  };
-
-  const handleValidation = async (e: any) => {
-    try {
-      setIsValidatingSubmission(true);
-      setMetadataUrl(e.target.value);
-      if (e.target.value) {
-        const { status, valid } = await postMetadata({
-          hash: jsonHash,
-          url: e.target.value,
-          standard: MetadataStandard.CIP100,
-        });
-        if (status) {
-          addErrorAlert(status);
-          setIsValidatingSubmission(false);
-          return;
-        }
-        setIsValidatingSubmission(false);
-        if (valid && metadataUrl) {
-          addSuccessAlert('Metadata Valid');
-        }
-      }
-    } catch (error) {
-      setIsValidatingSubmission(false);
-      addErrorAlert(String(error));
-      console.log(error);
-    }
-  };
-
-  const onSubmit = async () => {
-    try {
-      //save new url on chain
-      const updateDRepMetadataCert = await buildDRepUpdateCert(
-        metadataUrl,
-        jsonHash,
-      );
-      await signAndSubmitTransaction(updateDRepMetadataCert);
-      addSuccessAlert(
-        'Metadata updated successfully. It will probably take few minutes to reflect',
-      );
-      setFinalMetadata(metadata);
-      onClose();
-    } catch (error) {
-      console.log(error);
       addErrorAlert(String(error));
     }
   };
@@ -232,7 +140,7 @@ const MetadataEditor = ({
                     value={key}
                     onChange={(e) => handleChange(id, 'key', e.target.value)}
                     placeholder="Key"
-                    disabled={IMMUTABLE_KEYS.includes(key) || validationStart}
+                    disabled={IMMUTABLE_KEYS.includes(key)}
                     className="flex-grow rounded border p-2"
                   />
                   <input
@@ -240,13 +148,12 @@ const MetadataEditor = ({
                     value={value}
                     onChange={(e) => handleChange(id, 'value', e.target.value)}
                     placeholder="Value"
-                    disabled={validationStart}
                     className="flex-grow rounded border p-2"
                   />
                   <div
                     onClick={() => handleDelete(id)}
                     aria-label="delete"
-                    className={`h-5 w-5 ${IMMUTABLE_KEYS.includes(key) || validationStart ? 'pointer-events-none' : 'cursor-pointer'}`}
+                    className={`h-5 w-5 ${IMMUTABLE_KEYS.includes(key) ? 'pointer-events-none' : 'cursor-pointer'}`}
                   >
                     <img
                       src="/svgs/trash.svg"
@@ -280,7 +187,6 @@ const MetadataEditor = ({
           <Button
             handleClick={handleAddNew}
             aria-valuetext="add"
-            disabled={validationStart}
             className="flex w-full items-center gap-3 rounded-xl border border-dotted shadow-md"
             bgColor="transparent"
             variant="outlined"
@@ -289,78 +195,15 @@ const MetadataEditor = ({
             <p>Add another</p>
           </Button>
         </div>
-        <div className="flex flex-row justify-between gap-2">
-          <div className="flex gap-2">
-            <div>
-              <Button
-                handleClick={() => setValidationStart(false)}
-                disabled={!validationStart}
-              >
-                Edit
-              </Button>
-            </div>
-            <div>
-              <Button
-                handleClick={() => {
-                  downloadJsonFile();
-                }}
-                disabled={!validationStart}
-              >
-                <img
-                  src="/svgs/download.svg"
-                  alt="download"
-                  className="h-5 w-5"
-                />
-              </Button>
-            </div>
-          </div>
+        <div className="flex flex-row justify-end gap-2">
           <div className="flex justify-end gap-2">
-            <Button handleClick={onClose} disabled={validationStart}>
-              Cancel
-            </Button>
-            <Button
-              handleClick={validateAndSave}
-              disabled={validationStart || isSigningData}
-            >
+            <Button handleClick={onClose}>Cancel</Button>
+            <Button handleClick={validateAndSave} disabled={isSigningData}>
               {isSigningData ? <CircularProgress size={20} /> : 'Save'}
             </Button>
           </div>
         </div>
       </div>
-      {validationStart && (
-        <div className="flex flex-col gap-2">
-          <p className="text-sm">
-            Download the json and host it in a platform of your choice, then
-            paste the platform URL here, or leave us the work of hosting your
-            metadata and leave this field as is:
-          </p>
-          <div className="flex items-center gap-2">
-            <div className="flex w-[80%] flex-col gap-1">
-              <input
-                type="text"
-                value={metadataUrl}
-                onChange={handleValidation}
-                placeholder="Metadata URL"
-                className="w-full rounded border p-2"
-              />
-              {isValidatingSubmission && (
-                <div className="w-full text-center">
-                  <CircularProgress size={20} />
-                </div>
-              )}
-            </div>
-            <div className="w-[20%]">
-              <Button
-                handleClick={() => {
-                  onSubmit();
-                }}
-              >
-                Submit
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 

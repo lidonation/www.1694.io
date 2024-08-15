@@ -1,20 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import { useCardano } from '@/context/walletContext';
 import { useDRepContext } from '@/context/drepContext';
-import { Address } from '@emurgo/cardano-serialization-lib-asmjs';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { SubmitHandler, useForm } from 'react-hook-form';
-import { useRouter } from 'next/navigation';
 import UpdateProfileForm from '../molecules/UpdateProfileForm';
 import { getSingleDRep } from '@/services/requests/getSingleDrep';
 import { usePostUpdateDrepMutation } from '@/hooks/usePostUpdateDRepMutation';
 import { drepInput } from '@/models/drep';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { getSingleDRepViaVoterId } from '@/services/requests/getSingleDrepViaVoterId';
+import { v4 as uuidv4 } from 'uuid';
+import { renderJsonldValue } from '../atoms/MetadataViewer';
+import { getItemFromLocalStorage, setItemToLocalStorage } from '@/lib';
+import {
+  processExternalMetadata,
+  submitMetadata,
+} from '@/lib/metadataProcessor';
 const FormSchema = z.object({
   profileName: z.string().min(1, { message: 'Profile name is required' }),
+  profileEmail: z.string().min(1, { message: 'Email is required' }),
+  profileBio: z.string().min(1, { message: 'You need to fill in your bio' }),
   profileUrl: z.any(),
 });
 type InputType = z.infer<typeof FormSchema>;
@@ -27,42 +34,125 @@ const UpdateProfile = () => {
     formState: { errors },
     setValue,
   } = useForm<InputType>({
-    resolver: zodResolver(FormSchema)    
+    resolver: zodResolver(FormSchema),
   });
-  const { dRepIDBech32, stakeKey } = useCardano();
+  const { dRepIDBech32, loginSignTransaction } = useCardano();
   const [currentProfileUrl, setCurrentProfileUrl] = useState<string | null>(
     null,
   );
-  const { setIsNotDRepErrorModalOpen, drepId, setStep1Status, setNewDrepId } = useDRepContext();
-  const { addChangesSavedAlert } = useGlobalNotifications();
+  const [metadataUrl, setMetadataUrl] = useState<string | null>(null);
+  const [currentMetadata, setCurrentMetadata] = useState({
+    dRepName: '',
+    bio: '',
+    email: '',
+    references: '',
+  });
+  const { setIsNotDRepErrorModalOpen, drepId, setStep1Status, setNewDrepId, setCurrentRegistrationStep } =
+    useDRepContext();
+  const { addSuccessAlert } = useGlobalNotifications();
   const updateDrepMutation = usePostUpdateDrepMutation();
   useEffect(() => {
+    setCurrentRegistrationStep(1);
     const getDRep = async () => {
       try {
         let drep;
         if (drepId) {
           drep = await getSingleDRep(drepId);
-        }else if(dRepIDBech32){
+        } else if (dRepIDBech32) {
           drep = await getSingleDRepViaVoterId(dRepIDBech32);
         }
-        setValue('profileName', drep.drep_name);
-        setNewDrepId(drep.drep_id);
-        setCurrentProfileUrl(drep.attachment_url);
+        if (drep?.cexplorerDetails?.metadata_url) {
+          setMetadataUrl(drep.cexplorerDetails.metadata_url);
+        }
+        setNewDrepId(drep?.drep_id);
+        setCurrentProfileUrl(drep?.attachment_url);
       } catch (error) {
         console.log(error);
       }
     };
     getDRep();
-    return () => {setStep1Status('success')}
+    return () => {
+      setStep1Status('success');
+    };
   }, [dRepIDBech32]);
+  useEffect(() => {
+    const restoreDraftIfAny = async () => {
+      try {
+        //before fetching try to get from local storage, and if isUpdating is true, preventing unnecessary fetch and later, txs
+        const isUpdating = getItemFromLocalStorage('isUpdating');
+        if (isUpdating) {
+          const locallySavedJsonld = getItemFromLocalStorage('metadataJsonLd');
+          const metadataBody = locallySavedJsonld?.body;
+          setValue('profileName', renderJsonldValue(metadataBody?.dRepName));
+          setValue('profileBio', renderJsonldValue(metadataBody?.bio));
+          setValue('profileEmail', renderJsonldValue(metadataBody?.email));
+          setCurrentMetadata({
+            dRepName: renderJsonldValue(metadataBody?.dRepName),
+            bio: renderJsonldValue(metadataBody?.bio),
+            email: renderJsonldValue(metadataBody?.email),
+            references: metadataBody?.references,
+          });
+          addSuccessAlert('Draft restored!');
+          return;
+        }
+        if (!metadataUrl) return;
+        //else fetch metadata
+        const { jsonLdData } = await processExternalMetadata({
+          metadataUrl,
+        });
+        const jsonLdDataBody = jsonLdData?.body;
+        setValue('profileName', renderJsonldValue(jsonLdDataBody?.dRepName));
+        setValue('profileBio', renderJsonldValue(jsonLdDataBody?.bio));
+        setValue('profileEmail', renderJsonldValue(jsonLdDataBody?.email));
+        setCurrentMetadata({
+          dRepName: renderJsonldValue(jsonLdDataBody?.dRepName),
+          bio: renderJsonldValue(jsonLdDataBody?.bio),
+          email: renderJsonldValue(jsonLdDataBody?.email),
+          references: jsonLdDataBody?.references,
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    restoreDraftIfAny();
+  }, [metadataUrl]);
+
   const saveProfile: SubmitHandler<InputType> = async (data) => {
     try {
       if (!dRepIDBech32 || dRepIDBech32 == '') {
         setIsNotDRepErrorModalOpen(true);
         return;
       }
+      //if previous data doesnt match with current data, set isUpdating to true
+      if (
+        currentMetadata?.dRepName !== data.profileName ||
+        currentMetadata?.bio !== data.profileBio ||
+        currentMetadata?.email !== data.profileEmail
+      ) {
+        const metadataJson = {
+          dRepName: data.profileName,
+          bio: data.profileBio,
+          email: data.profileEmail,
+          references: JSON.stringify(currentMetadata?.references),
+        };
+        const modifiedJson = Object.entries(metadataJson).map(
+          ([key, value]: any[]) => {
+            return { id: uuidv4(), key: key, value: value };
+          },
+        );
+        const metadataKeys = Object.keys(metadataJson);
+        //submit the metadata
+        const { jsonHash, jsonld } = await submitMetadata(
+          metadataKeys,
+          metadataJson as any,
+          loginSignTransaction,
+        );
+        setItemToLocalStorage('metadataJson', modifiedJson);
+        setItemToLocalStorage('metadataJsonLd', jsonld);
+        setItemToLocalStorage('metadataJsonHash', jsonHash);
+        setItemToLocalStorage('isUpdating', 'true');
+      }
       const formData = new FormData();
-      formData.append('name', data.profileName);
       if (data.profileUrl) {
         formData.append('profileUrl', data?.profileUrl[0] as string);
       }
@@ -70,7 +160,7 @@ const UpdateProfile = () => {
         drepId: drepId,
         drep: formData as drepInput,
       });
-      addChangesSavedAlert();
+      addSuccessAlert('Draft saved!');
     } catch (error) {
       console.log(error);
     }

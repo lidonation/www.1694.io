@@ -3,6 +3,7 @@ import { useCardano } from '@/context/walletContext';
 import { useDRepContext } from '@/context/drepContext';
 import { Address } from '@emurgo/cardano-serialization-lib-asmjs';
 import { z } from 'zod';
+import { v4 as uuidv4 } from 'uuid';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { SubmitHandler, useForm } from 'react-hook-form';
@@ -12,8 +13,14 @@ import { usePostNewDrepMutation } from '@/hooks/usePostNewDRepMutation';
 import { drepInput } from '@/models/drep';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { setItemToLocalStorage } from '@/lib';
+import { getSingleDRepViaVoterId } from '@/services/requests/getSingleDrepViaVoterId';
+import { getExternalMetadata } from '@/services/requests/postExternalMetadataUrl';
+import { renderJsonldValue } from '../atoms/MetadataViewer';
+import { submitMetadata } from '@/lib/metadataProcessor';
 const FormSchema = z.object({
   profileName: z.string().min(1, { message: 'Profile name is required' }),
+  profileEmail: z.string().min(1, { message: 'Profile email is required' }),
+  profileBio: z.string().min(1, { message: 'Profile bio is required' }),
   profileUrl: z.any(),
 });
 type InputType = z.infer<typeof FormSchema>;
@@ -30,6 +37,12 @@ const NewProfile = () => {
   });
   const { dRepIDBech32, stakeKey, loginSignTransaction } = useCardano();
   const { addSuccessAlert, addErrorAlert } = useGlobalNotifications();
+  const [currentMetadata, setCurrentMetadata] = useState({
+    dRepName: '',
+    bio: '',
+    email: '',
+    references: '',
+  });
   const router = useRouter();
   const newDRepMutation = usePostNewDrepMutation();
   const {
@@ -38,6 +51,37 @@ const NewProfile = () => {
     setCurrentRegistrationStep,
     setIsLoggedIn
   } = useDRepContext();
+  useEffect(() => {
+    // Get DRep details from the blockchain, and set the profile name if it exists
+    const getDRep = async () => {
+      try {
+        if(!dRepIDBech32) return;
+        let drep= await getSingleDRepViaVoterId(dRepIDBech32);
+        if (drep?.cexplorerDetails?.metadata_url) {
+          try {
+            const res = await getExternalMetadata({
+              metadataUrl: drep.cexplorerDetails.metadata_url,
+            });
+            const metadataBody = res?.body;
+            setValue('profileName', renderJsonldValue(metadataBody?.dRepName));
+            setValue('profileEmail', renderJsonldValue(metadataBody?.email));
+            setValue('profileBio', renderJsonldValue(metadataBody?.bio));
+            setCurrentMetadata({
+              dRepName: renderJsonldValue(metadataBody?.dRepName),
+              bio: renderJsonldValue(metadataBody?.bio),
+              email: renderJsonldValue(metadataBody?.email),
+              references: metadataBody?.references || [],
+            });
+          } catch (error) {
+            console.log(error);
+          }
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    getDRep();
+  }, [dRepIDBech32]);
   const saveProfile: SubmitHandler<InputType> = async (data) => {
     try {
       if (!dRepIDBech32 || dRepIDBech32 == '') {
@@ -45,12 +89,43 @@ const NewProfile = () => {
         return;
       }
       const { signature, key } = await loginSignTransaction();
-
+      if (
+        currentMetadata?.dRepName !== data.profileName ||
+        currentMetadata?.bio !== data.profileBio ||
+        currentMetadata?.email !== data.profileEmail
+      ) {
+        const metadataJson = {
+          dRepName: data.profileName,
+          bio: data.profileBio,
+          email: data.profileEmail,
+          references: JSON.stringify(currentMetadata?.references),
+        };
+        const modifiedJson = Object.entries(metadataJson).map(
+          ([key, value]: any[]) => {
+            return { id: uuidv4(), key: key, value: value };
+          },
+        );
+        const metadataKeys = Object.keys(metadataJson);
+        const vkeys={
+          signature,
+          vkey: key
+        }
+        //submit the metadata
+        const { jsonHash, jsonld } = await submitMetadata(
+          metadataKeys,
+          metadataJson as any,
+          loginSignTransaction,
+          vkeys
+        );
+        setItemToLocalStorage('metadataJson', modifiedJson);
+        setItemToLocalStorage('metadataJsonLd', jsonld);
+        setItemToLocalStorage('metadataJsonHash', jsonHash);
+        setItemToLocalStorage('isUpdating', 'true');
+      }
       const stakeAddress = Address.from_bytes(
         Buffer.from(stakeKey, 'hex'),
       ).to_bech32();
       const formData = new FormData();
-      formData.append('name', data.profileName);
       formData.append('stake_addr', stakeAddress);
       formData.append('voter_id', dRepIDBech32);
       formData.append('signature', signature);
@@ -63,7 +138,7 @@ const NewProfile = () => {
       });
       const { insertedDrep, token } = res;
       setNewDrepId(insertedDrep.raw[0].id);
-      setCurrentRegistrationStep(1);
+      setCurrentRegistrationStep(2);
       addSuccessAlert('DRep Profile Created Successfully!');
       setItemToLocalStorage('token', token);
       setIsLoggedIn(true);

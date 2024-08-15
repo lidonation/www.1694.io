@@ -138,7 +138,8 @@ const UpdateProfileStep2 = () => {
         )}
         <p className="text-base font-normal text-gray-800">
           Verify your profile so as to track your connected wallets across the
-          same drep profile. Multiple signatures will be supported in future releases
+          same drep profile. Multiple signatures will be supported in future
+          releases.
         </p>
       </div>
       <form id="profile_form" onSubmit={handleSubmit(saveProfile, onError)}>
@@ -151,12 +152,12 @@ const UpdateProfileStep2 = () => {
                 Connected Wallet: {address && convertString(address, false)}
               </Typography>
               {!signature.signature ? (
-                <div className='flex flex-col items-center justify-center'>
+                <div className="flex flex-col items-center justify-center">
                   <SwitchWithTextTrack
                     checked={!isHardware}
                     onChange={handleChange}
                   />
-                  <LoginButton isHardware={isHardware}/>
+                  <LoginButton isHardware={isHardware} />
                 </div>
               ) : (
                 <Typography className="" variant="body2" color="textSecondary">

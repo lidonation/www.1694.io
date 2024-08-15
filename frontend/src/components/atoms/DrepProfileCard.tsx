@@ -5,13 +5,10 @@ import { Typography, Skeleton } from '@mui/material';
 import Link from 'next/link';
 import { convertString, formattedAda } from '@/lib';
 import { useScreenDimension } from '@/hooks';
-import { useRouter } from 'next/navigation';
 import { useCardano } from '@/context/walletContext';
 import MetadataViewer from './MetadataViewer';
-import MetadataEditor from './MetadataEditor';
-import { v4 as uuidv4 } from 'uuid';
 import { isActive } from '../molecules/DRepsTable';
-import { getExternalMetadata } from '@/services/requests/postExternalMetadataUrl';
+import { processExternalMetadata } from '@/lib/metadataProcessor';
 
 interface StatusProps {
   status:
@@ -59,37 +56,28 @@ const StatusChip = ({ status }: StatusProps) => {
 const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
   const { isMobile } = useScreenDimension();
   const { dRepIDBech32 } = useCardano();
-  const [edit, setEdit] = useState(false);
   const [status, setStatus] = useState<any>('Inactive');
   const [isMetadataLoading, setIsMetadataLoading] = useState(false);
   const [metadataUrl, setMetadataUrl] = useState<string | null>(null);
   const [metadataError, setMetadataError] = useState<string | null>(null);
-  const [metadataJson, setMetadataJson] = useState<any>(null);
   const [metadata, setMetadata] = useState<any>(null);
+  const [name, setName] = useState<string | null>(null);
   useEffect(() => {
     const fetchData = async () => {
-      const metadataUrl = drep?.cexplorerDetails.metadata_url;
+      const metadataUrl = drep?.cexplorerDetails?.metadata_url;
       setMetadataUrl(metadataUrl);
       if (!metadataUrl) return;
       try {
         setIsMetadataLoading(true);
         setMetadataError(null);
-        const response = await getExternalMetadata({ metadataUrl });
-        const jsonLdData = response;
+        const { jsonLdData, modifiedJson } = await processExternalMetadata({
+          metadataUrl,
+        });
         setMetadata(jsonLdData);
-        const renderValue = (value: any) => {
-          if (typeof value === 'object' && value['@value']) {
-            return value['@value'];
-          }
-          return JSON.stringify(value);
-        };
-        const modifiedJson = Object.entries(jsonLdData.body).map(
-          ([key, value]: any[]) => {
-            const valueString = renderValue(value);
-            return { id: uuidv4(), key: key, value: valueString };
-          },
-        );
-        setMetadataJson(modifiedJson);
+        const name = modifiedJson.filter(
+          (item: any) => item.key === 'dRepName',
+        )[0]?.value;
+        setName(name);
       } catch (error) {
         console.log(error);
         setMetadata(null);
@@ -113,7 +101,6 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
     checkStatus();
     fetchData();
   }, []);
-  const router = useRouter();
   return (
     <div className="flex w-full flex-col gap-5 bg-white bg-opacity-50 px-5 py-10">
       <div className="flex max-w-52 items-center justify-center rounded-md">
@@ -143,8 +130,8 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
             />
           ) : (
             drep &&
-            (drep?.drep_name
-              ? drep.drep_name
+            (name
+              ? name
               : drep?.cexplorerDetails?.view &&
                 convertString(drep?.cexplorerDetails?.view, isMobile))
           )}
@@ -220,19 +207,20 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
         </Link>
       </div>
       <div>
-        <Typography variant="h6">Bio</Typography>
-        <p>
-          {' '}
-          {state ? (
-            <Skeleton animation={'wave'} width={150} height={20} />
-          ) : (
-            drep?.drep_bio || 'Empty'
-          )}
-        </p>
+        {state ? (
+          <Skeleton animation={'wave'} width={150} height={20} />
+        ) : (
+          <MetadataViewer
+            metadata={metadata}
+            isMetadataLoading={isMetadataLoading}
+            metadataError={metadataError}
+            metadataUrl={metadataUrl}
+          />
+        )}
       </div>
       <div>
         <Typography variant="h6">Statement</Typography>
-        <p>
+        <p className="text-sm">
           {' '}
           {state ? (
             <Skeleton animation={'wave'} width={150} height={20} />
@@ -241,38 +229,19 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
           )}
         </p>
       </div>
-      <div>
-        <Typography variant="h6">Metadata</Typography>
-        <MetadataViewer
-          metadata={metadata}
-          isMetadataLoading={isMetadataLoading}
-          metadataError={metadataError}
-          metadataUrl={metadataUrl}
-        />
-      </div>
       {(drep?.cexplorerDetails?.view == dRepIDBech32 ||
         drep?.signature_drepVoterId == dRepIDBech32) && (
         <div className="flex max-w-prose flex-col gap-2">
-          <Button handleClick={() => setEdit(true)}>
-            {metadata ? 'Edit' : 'Set up'} Metadata
-          </Button>
-          <Button
-            variant="outlined"
-            bgColor="transparent"
-            handleClick={() => {
-              router.push(`/dreps/workflow/profile/update/step1`);
-            }}
-          >
-            Edit Profile
-          </Button>
-          {edit && (
-            <MetadataEditor
-              drepId={drep?.drep_id}
-              onClose={() => setEdit(false)}
-              initialMetadata={metadataJson}
-              setFinalMetadata={setMetadata}
-            />
-          )}
+          <Link href={`/dreps/workflow/profile/update/step5`}>
+            <Button className="w-full">
+              {metadata ? 'Edit' : 'Set up'} Metadata
+            </Button>
+          </Link>
+          <Link href={`/dreps/workflow/profile/update/step1`}>
+            <Button className="w-full" variant="outlined" bgColor="transparent">
+              Edit Profile
+            </Button>
+          </Link>
         </div>
       )}
     </div>

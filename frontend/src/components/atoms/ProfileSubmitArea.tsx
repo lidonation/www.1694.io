@@ -53,7 +53,6 @@ const ProfileSubmitArea = ({ isUpdate, isDisabled=false }: ProfileSubmitAreaProp
       router.push(`/dreps/workflow/profile/update/step${currentRegistrationStep + 1}`)
     } else if (currentRegistrationStep === 5) {
       setStep5Status('success');
-      router.push('/dreps/workflow/profile/success')
     }
   };
   return (
