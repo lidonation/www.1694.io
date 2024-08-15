@@ -52,9 +52,9 @@ export const generateMetadataBody = ({
   return body;
 };
 
-export const processExternalMetadata=async ({metadataUrl})=>{
+export const processExternalMetadata = async ({ metadataUrl }) => {
   const res = await getExternalMetadata({
-    metadataUrl
+    metadataUrl,
   });
   const jsonLdData = res;
   const renderValue = (value: any) => {
@@ -71,32 +71,37 @@ export const processExternalMetadata=async ({metadataUrl})=>{
   );
   return {
     jsonLdData,
-    modifiedJson
-  }
-}
+    modifiedJson,
+  };
+};
 export const submitMetadata = async (
   metadataKeys: string[],
   data: any[],
   loginSignTransaction: () => Promise<any>,
+  vkeys?: any,
 ) => {
   try {
+    let currentVKeys = vkeys;
     const dynamicDREPContext = createDREPContext(metadataKeys);
     const jsonLdData = await generateMetadataBody({
       data: data as any,
       standardReference: CIP_QQQ,
     });
     // sign metadata tx
-    const { signature, key: vkey } = await loginSignTransaction();
-    const vkeys = {
-      vkey,
-      signature,
-    };
+    if (!currentVKeys) {
+      const { signature, key: vkey } = await loginSignTransaction();
+      const vkeys = {
+        vkey,
+        signature,
+      };
+      currentVKeys = vkeys;
+    }
     const jsonld = await generateJsonld(
       jsonLdData,
       JSON.parse(data['references']),
       dynamicDREPContext,
       CIP_QQQ,
-      vkeys,
+      currentVKeys
     );
     //hasing the raw kay value pairs to be validated
     const jsonHash = blake2bHex(JSON.stringify(jsonld), undefined, 32);
