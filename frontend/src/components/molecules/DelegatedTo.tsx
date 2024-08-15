@@ -36,8 +36,12 @@ export const DelegatedTo = ({ className }: DelegatedToProps) => {
         {currentDelegation && DRep && (
           <>
             <Box>
-              <Typography fontSize="0.85rem" fontWeight={600}>
+              {/* Disabled due to model changes */}
+              {/* <Typography fontSize="0.85rem" fontWeight={600}>
                 Delegated to: {DRep?.drep_name ? `(${DRep.drep_name})` : ''}
+              </Typography> */}
+              <Typography fontSize="0.85rem" fontWeight={600}>
+                Delegated 
               </Typography>
               <Typography
                 fontSize="0.75rem"

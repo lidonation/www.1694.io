@@ -1,11 +1,21 @@
 import { ChooseWalletModal } from '@/components/organisms';
 import { NotDRepErrorModal } from '@/components/organisms/NotDRepErrorModal';
-import { createContext, useContext, useMemo, useState, useEffect, useCallback } from 'react';
+import {
+  createContext,
+  useContext,
+  useMemo,
+  useState,
+  useEffect,
+  useCallback,
+} from 'react';
 import { useSharedContext } from './sharedContext';
 import { SliderMenu } from '@/components/organisms/SliderMenu';
 import { UserLoginModal } from '@/components/organisms/UserLoginModal';
-import { decodeToken, getItemFromLocalStorage, removeItemFromLocalStorage } from '@/lib';
-import Cookies from 'js-cookie';
+import {
+  decodeToken,
+  getItemFromLocalStorage,
+  removeItemFromLocalStorage,
+} from '@/lib';
 
 interface DRepContext {
   step1Status: stepStatus['status'];
@@ -78,21 +88,19 @@ function DRepProvider(props: Props) {
       isNotDRepErrorModalOpen,
       isMobileDrawerOpen,
     });
-  }, [
-    isWalletListModalOpen,
-    isNotDRepErrorModalOpen,
-    isMobileDrawerOpen,
-  ]);
+  }, [isWalletListModalOpen, isNotDRepErrorModalOpen, isMobileDrawerOpen]);
   useEffect(() => {
-   persistLogin() 
-  }, [])
+    persistLogin();
+  }, []);
   const persistLogin = () => {
     const token = getItemFromLocalStorage('token');
     if (token) {
-      const {decoded:{ exp, ...rest }} = decodeToken(token);
+      const {
+        decoded: { exp, ...rest },
+      } = decodeToken(token);
       const { signature, key } = rest as any;
       //check if token is expired
-      if (exp < (Date.now() / 1000)) {
+      if (exp < Date.now() / 1000) {
         setIsLoggedIn(false);
         removeItemFromLocalStorage('token');
         return;
@@ -100,8 +108,7 @@ function DRepProvider(props: Props) {
       setIsLoggedIn(true);
       updateSharedState({ loginCredentials: { signature, key } });
     }
-  };
-
+  }
   const logout = useCallback(async () => {
     removeItemFromLocalStorage('token');
     setIsLoggedIn(false);
@@ -191,7 +198,7 @@ function useDRepContext() {
     throw new Error('useDRepContext must be used within a DRepProvider');
   }
 
-  const logout = useCallback( async () => {
+  const logout = useCallback(async () => {
     await context.logout();
   }, [context]);
 

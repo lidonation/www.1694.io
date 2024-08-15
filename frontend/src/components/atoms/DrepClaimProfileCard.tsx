@@ -3,7 +3,7 @@ import Button from './Button';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import StatusChip from './StatusChip';
 import Link from 'next/link';
-import { Skeleton } from '@mui/material';
+import { Skeleton, Typography } from '@mui/material';
 import { convertString, formattedAda } from '@/lib';
 import MetadataViewer from './MetadataViewer';
 import { isActive } from '../molecules/DRepsTable';
@@ -141,39 +141,27 @@ const DrepClaimProfileCard = ({
         </Link>
       </div>
       <div>
-        <p className="font-bold">Bio</p>
-        <p className="text-sm">
-          {state ? (
-            <Skeleton animation={'wave'} width={150} height={20} />
-          ) : (
-            drep?.drep_bio || 'Empty'
-          )}
-        </p>
+        {state ? (
+          <Skeleton animation={'wave'} width={150} height={20} />
+        ) : (
+          <MetadataViewer
+            metadata={metadata}
+            isMetadataLoading={isMetadataLoading}
+            metadataError={metadataError}
+            metadataUrl={metadataUrl}
+          />
+        )}
       </div>
       <div>
-        <p className="font-bold">Statement</p>
+        <Typography variant="h6">Statement</Typography>
         <p className="text-sm">
+          {' '}
           {state ? (
             <Skeleton animation={'wave'} width={150} height={20} />
           ) : (
             drep?.drep_platform_statement || 'Empty'
           )}
         </p>
-      </div>
-      <div>
-        <p className="font-bold">Metadata</p>
-        <div>
-          {state ? (
-            <Skeleton animation={'wave'} width={150} height={20} />
-          ) : (
-            <MetadataViewer
-              metadataUrl={metadataUrl}
-              metadata={metadata}
-              isMetadataLoading={isMetadataLoading}
-              metadataError={metadataError}
-            />
-          )}
-        </div>
       </div>
       <div className="flex flex-col gap-2">
         <Button disabled>Set up Metadata</Button>

@@ -155,7 +155,8 @@ const DRepsTable = ({
                           View
                         </Button>
                       </Link>
-                      <p className="font-medium">{drep?.drep_name}</p>
+                      {/* Disabled due to model changes */}
+                      {/* <p className="font-medium">{drep?.drep_name}</p> */}
                     </Box>
                   ) : (
                     <Box className="flex items-center gap-4">

@@ -1,6 +1,12 @@
+import { Typography } from '@mui/material';
 import Link from 'next/link';
 import React from 'react';
-
+export const renderJsonldValue = (value: any) => {
+  if (typeof value === 'object') {
+    return value['@value'] ? value['@value'] : 'Empty';
+  }
+  return JSON.stringify(value);
+};
 const MetadataViewer = ({
   isMetadataLoading,
   metadataError,
@@ -10,15 +16,8 @@ const MetadataViewer = ({
   isMetadataLoading: boolean;
   metadataError: any;
   metadata: any;
-  metadataUrl: string;
+  metadataUrl?: string;
 }) => {
-  const renderValue = (value: any) => {
-    if (typeof value === 'object') {
-      return value['@value'] ? value['@value'] : 'Empty';
-    }
-    return JSON.stringify(value);
-  };
-
   const capitalizeFirstLetter = (str: string) => {
     return str.charAt(0).toUpperCase() + str.slice(1);
   };
@@ -37,7 +36,7 @@ const MetadataViewer = ({
     }
 
     return Object.entries(metadata.body).map(([key, value]: any[]) => {
-      const valueString = renderValue(value);
+      const valueString = renderJsonldValue(value);
       if (key === 'references') {
         const linksArr = value as any[];
         const links = linksArr.map((link, index) => {
@@ -45,7 +44,12 @@ const MetadataViewer = ({
             <div key={index} className="flex items-center gap-1 text-sm">
               <p className="font-semibold">{link?.label?.['@value']}</p>
               <span className="mx-2 flex-grow border-t border-dotted border-gray-400"></span>
-              <Link href={link?.uri?.['@value']} target="_blank">
+              <Link
+                href={
+                  link?.uri?.['@value'] ? link?.uri?.['@value'] || '#' : '#'
+                }
+                target="_blank"
+              >
                 {link?.uri?.['@value']}
               </Link>
             </div>
@@ -56,7 +60,7 @@ const MetadataViewer = ({
             key={key}
             className="flex flex-col items-start justify-center gap-1 text-sm"
           >
-            <p className="font-semibold">References</p>
+            <Typography variant="h6">References</Typography>
             <div className="pl-2">{links.length > 0 ? links : 'Empty'}</div>
           </div>
         );
@@ -66,7 +70,7 @@ const MetadataViewer = ({
           key={key}
           className="flex flex-col items-start justify-center gap-1 text-sm"
         >
-          <p className="font-semibold">{capitalizeFirstLetter(key)}</p>
+          <Typography variant="h6">{capitalizeFirstLetter(key)}</Typography>
           <p className="pl-2">{valueString}</p>
         </div>
       );

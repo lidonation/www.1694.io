@@ -12,6 +12,9 @@ import { usePostNewDrepMutation } from '@/hooks/usePostNewDRepMutation';
 import { drepInput } from '@/models/drep';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { setItemToLocalStorage } from '@/lib';
+import { getSingleDRepViaVoterId } from '@/services/requests/getSingleDrepViaVoterId';
+import { getExternalMetadata } from '@/services/requests/postExternalMetadataUrl';
+import { renderJsonldValue } from '../atoms/MetadataViewer';
 const FormSchema = z.object({
   profileName: z.string().min(1, { message: 'Profile name is required' }),
   profileUrl: z.any(),
@@ -38,6 +41,29 @@ const NewProfile = () => {
     setCurrentRegistrationStep,
     setIsLoggedIn
   } = useDRepContext();
+  useEffect(() => {
+    // Get DRep details from the blockchain, and set the profile name if it exists
+    const getDRep = async () => {
+      try {
+        if(!dRepIDBech32) return;
+        let drep= await getSingleDRepViaVoterId(dRepIDBech32);
+        if (drep?.cexplorerDetails?.metadata_url) {
+          try {
+            const res = await getExternalMetadata({
+              metadataUrl: drep.cexplorerDetails.metadata_url,
+            });
+            const metadataBody = res?.body;
+            setValue('profileName', renderJsonldValue(metadataBody?.dRepName));
+          } catch (error) {
+            console.log(error);
+          }
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    getDRep();
+  }, [dRepIDBech32]);
   const saveProfile: SubmitHandler<InputType> = async (data) => {
     try {
       if (!dRepIDBech32 || dRepIDBech32 == '') {
@@ -50,7 +76,6 @@ const NewProfile = () => {
         Buffer.from(stakeKey, 'hex'),
       ).to_bech32();
       const formData = new FormData();
-      formData.append('name', data.profileName);
       formData.append('stake_addr', stakeAddress);
       formData.append('voter_id', dRepIDBech32);
       formData.append('signature', signature);
@@ -63,7 +88,7 @@ const NewProfile = () => {
       });
       const { insertedDrep, token } = res;
       setNewDrepId(insertedDrep.raw[0].id);
-      setCurrentRegistrationStep(1);
+      setCurrentRegistrationStep(2);
       addSuccessAlert('DRep Profile Created Successfully!');
       setItemToLocalStorage('token', token);
       setIsLoggedIn(true);

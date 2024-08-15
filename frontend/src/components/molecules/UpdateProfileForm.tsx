@@ -21,6 +21,22 @@ const UpdateProfileForm = ({ register, control, errors, setProfileUrl , currentP
         errors={errors}
         dataTestId={'profile-name-input'}
       />
+      <PostInput
+        inputName={'Bio'}
+        id={'profileBio'}
+        placeholder={'Bio'}
+        registerValue={register}
+        errors={errors}
+        dataTestId={'profile-bio-input'}
+      />
+      <PostInput
+        inputName={'Email'}
+        id={'profileEmail'}
+        placeholder={'Email'}
+        registerValue={register}
+        errors={errors}
+        dataTestId={'profile-email-input'}
+      />
       <ProfileUploadCard registerUrl={register} control={control} setProfileUrl={setProfileUrl} isUpdate={isUpdate} currentProfileUrl={currentProfileUrl}/>
       <ProfileSubmitArea isUpdate={isUpdate}/>
     </div>
