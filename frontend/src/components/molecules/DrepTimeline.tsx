@@ -241,7 +241,7 @@ const DrepTimeline = ({
       <div
         id="scrollableDiv"
         style={{
-          height: 1000,
+          height: 1600,
           overflow: 'auto',
           display: 'flex',
           flexDirection: 'column',

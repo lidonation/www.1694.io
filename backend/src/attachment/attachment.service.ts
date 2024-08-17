@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import Jimp from 'jimp';
 import {
   Attachment,
@@ -7,12 +7,19 @@ import {
 } from 'src/entities/attachment.entity';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
+import { lastValueFrom } from 'rxjs';
+import { IPFSResponse } from 'src/common/types';
+import { HttpService } from '@nestjs/axios';
+import { ConfigService } from '@nestjs/config';
+import { Response } from 'express';
 
 @Injectable()
 export class AttachmentService {
   constructor(
     @InjectDataSource('default')
     private voltaireService: DataSource,
+    private httpService: HttpService,
+    private configService: ConfigService,
   ) {}
   async parseMimeType(mimeType: string) {
     switch (mimeType) {
@@ -179,6 +186,53 @@ export class AttachmentService {
       return true;
     } catch (error) {
       console.log(error);
+    }
+  }
+  async uploadAttachmentToIPFS(attachment:Express.Multer.File | Buffer | Uint8Array | Blob | FormData ): Promise<IPFSResponse> {
+    try {
+      const res = await lastValueFrom(
+        this.httpService.post(
+          'https://ipfs.blockfrost.io/api/v0/ipfs/add',
+          attachment,
+          {
+            headers: {
+              project_id: this.configService.get<string>(
+                'BLOCKFROST_IPFS_PROJECT_ID',
+              )
+            },
+          },
+        ),
+      );
+      console.log(res.data);
+      return res.data;
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(error.response.data, error.response.status);
+    }
+  }
+  async getAttachmentFromIPFS(hash: string, res:Response): Promise<any> {
+    try {
+      const response = await lastValueFrom(
+        this.httpService.get(`https://ipfs.blockfrost.io/api/v0/ipfs/gateway/${hash}`, {
+          headers: {
+            project_id: this.configService.get<string>(
+              'BLOCKFROST_IPFS_PROJECT_ID',
+            ),
+          },
+          responseType: 'stream', // Used stream to handle large files or non-JSON data
+        },
+      ),
+    );
+    for (const [key, value] of Object.entries(response.headers)) {
+      res.setHeader(key, value as string);
+    }
+
+    // Stream the data directly to the client
+    response.data.pipe(res);
+      //return response.data;
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(error.response.data, error.response.status);
     }
   }
 }

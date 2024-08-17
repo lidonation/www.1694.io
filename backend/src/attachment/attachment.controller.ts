@@ -59,4 +59,15 @@ export class AttachmentController {
       parentEntity,
     );
   }
+  @Get('ipfs/:IpfsHash')
+  async getAttachmentByIpfsHash(@Param('IpfsHash') IpfsHash: string, @Res() res: Response) {
+    return this.attachmentService.getAttachmentFromIPFS(IpfsHash, res);
+  }
+  @Post('ipfs/add')
+  async uploadAttachmentToIpfs(
+    @Body('attachment')
+    attachment: Express.Multer.File | Buffer | Uint8Array | Blob,
+  ) {
+    return this.attachmentService.uploadAttachmentToIPFS(attachment);
+  }
 }

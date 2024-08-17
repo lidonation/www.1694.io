@@ -9,8 +9,8 @@ export class Metadata extends BaseEntity {
   @Column({ nullable: false })
   hash: string;
 
-  @Column({ type: 'json', nullable: false })
-  content: Record<string, any>;
+  @Column({ nullable: false })
+  content: string;
 
   @ManyToOne(() => Drep, (drep) => drep.id)
   drep: Drep;
