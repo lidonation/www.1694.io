@@ -18,30 +18,31 @@ const ProposalActionForm = ({
   editor,
 }: ProposalActionFormProps) => {
   const [proposals, setProposals] = useState(null);
-  const [hasSearched, setHasSearched] = useState(false);
+  const [error, setError] = useState('');
   const [fetchedProposals, setFetchedProposals] = useState(null);
   const [currentHash, setCurrentHash] = useState('');
   const formRef = useRef<HTMLDivElement>(null);
 
-  const { Proposals, isProposalsLoading, isProposalsFetching } =
-    useGetProposalsQuery({
-      hashQueryString: currentHash,
-    });
+  const {
+    Proposals,
+    isProposalsFetching,
+    proposalFetchError,
+  } = useGetProposalsQuery({
+    hashQueryString: currentHash,
+  });
 
   useEffect(() => {
     if (Proposals && Proposals.length > 0) {
       setFetchedProposals(Proposals);
-      setHasSearched(true);
+      setError('');
+    }
+    if (proposalFetchError) {
+      setFetchedProposals([]);
+      setError(proposalFetchError?.response?.data?.message as string || 'Error');
     }
   }, [Proposals]);
-  const handleInputChange = useDebouncedCallback(async (value) => {
-    if (value === '') {
-      setCurrentHash('');
-      setFetchedProposals(null);
-      setHasSearched(false);
-      setProposals(null);
-      return;
-    }
+
+  const handleInputChange = useDebouncedCallback((value) => {
     setCurrentHash(value);
   }, 300);
 
@@ -90,7 +91,7 @@ const ProposalActionForm = ({
       <div className="flex w-full flex-col gap-1">
         <input
           type="text"
-          value={currentHash}
+          defaultValue={currentHash}
           onChange={(e) => handleInputChange(e.target.value)}
           className={`w-full rounded-full border border-zinc-100 py-3 pl-5`}
           placeholder={'Paste proposal hash here...'}
@@ -117,9 +118,9 @@ const ProposalActionForm = ({
                 />
               </div>
             ))
-          ) : hasSearched && currentHash ? (
-            <p>No proposals found</p>
-          ) : null
+          ) : (
+            <p>{error}</p>
+          )
         ) : (
           <div className="flex items-center justify-center">
             <CircularProgress size={20} />

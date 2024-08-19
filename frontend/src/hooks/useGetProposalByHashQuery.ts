@@ -6,7 +6,7 @@ export type getProposalByHashQueryStringProps = {
 export const useGetProposalsQuery = ({
   hashQueryString,
 }: getProposalByHashQueryStringProps) => {
-  const { data, isLoading, isFetching } = useQuery({
+  const { data, isLoading, isFetching, error } = useQuery({
     queryKey: ['getProposalByHashQueryString', hashQueryString],
     queryFn: async () => await getProposalByHashQueryString(hashQueryString),
     enabled: !!hashQueryString,
@@ -15,5 +15,6 @@ export const useGetProposalsQuery = ({
     Proposals: data,
     isProposalsLoading: isLoading,
     isProposalsFetching: isFetching,
+    proposalFetchError: error as any,
   };
 };
