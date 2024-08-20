@@ -121,10 +121,7 @@ const MultipartDataForm = ({
           formData.append('parentEntity', 'note');
           formData.append('parentId', null);
           const mimeType = file.type;
-          const res = await axiosInstance.post(
-            `/attachments/add`,
-            formData,
-          );
+          const res = await axiosInstance.post(`/attachments/add`, formData);
           return { name: res.data.name, type: mimeType };
         }),
       );
