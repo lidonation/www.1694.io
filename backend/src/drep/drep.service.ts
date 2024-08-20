@@ -1,10 +1,16 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { createDrepDto, ValidateMetadataDTO } from 'src/dto';
 import { faker } from '@faker-js/faker';
 import * as blake from 'blakejs';
 import { HttpService } from '@nestjs/axios';
 import { AttachmentService } from 'src/attachment/attachment.service';
-import { Observable } from 'rxjs';
+import { lastValueFrom, Observable } from 'rxjs';
 import { AxiosResponse } from 'axios';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
@@ -14,6 +20,7 @@ import { ReactionsService } from 'src/reactions/reactions.service';
 import { CommentsService } from 'src/comments/comments.service';
 import {
   Delegation,
+  IPFSResponse,
   LoggerMessage,
   MetadataStandard,
   MetadataValidationStatus,
@@ -32,6 +39,8 @@ import { parseMetadata } from 'src/common/parseMetadata';
 import { Metadata } from 'src/entities/metadata.entity';
 import { getEpochParams } from 'src/queries/getEpochParams';
 import { getDRepDelegatorsHistory } from 'src/queries/drepDelegatorsHistory';
+import { JsonLd } from 'jsonld/jsonld-spec';
+import { Response } from 'express';
 
 @Injectable()
 export class DrepService {
@@ -913,7 +922,7 @@ export class DrepService {
       .getRepository('Drep')
       .update(drepId, updatedDrep);
   }
-  async getMetadata(drepId: number, hash: string) {
+  async getMetadata(drepId: number, hash: string, res: Response) {
     if (!drepId || !hash) throw new Error('Inadequate parameters');
     const foundMetadata = await this.voltaireService
       .getRepository('Metadata')
@@ -921,8 +930,9 @@ export class DrepService {
       .where('metadata.drep = :drepId', { drepId })
       .andWhere('metadata.hash = :hash', { hash })
       .getOne();
-
-    return foundMetadata ? foundMetadata?.content : 'Not found';
+    if (!foundMetadata) throw new NotFoundException('Metadata not found');
+    const cid = foundMetadata.content;
+    return await this.getMetadataFromIPFS(cid, res);
   }
   async getMetadataFromExternalLink(metadataUrl: string) {
     if (!metadataUrl) throw new Error('Inadequate parameters');
@@ -993,21 +1003,14 @@ export class DrepService {
       .andWhere('metadata.hash = :hash', { hash: hash })
       .getOne();
     if (existingMetadata) {
-      const updateMetadata = {
-        name: fileName + '.jsonld',
-        hash: hash,
-        content: metadata,
-        drep: drepId,
-      };
-
-      await metadataRepo.update(existingMetadata.id, updateMetadata);
       return existingMetadata;
     }
-
+    // Create a new metadata record in IPFS
+    const { ipfs_hash } = await this.saveMetadataToIPFS(metadata);
     const newMetadata = {
       name: fileName + '.jsonld',
       hash: hash,
-      content: metadata,
+      content: ipfs_hash,
       drep: drepId,
     };
 
@@ -1015,7 +1018,34 @@ export class DrepService {
     const res = (await metadataRepo.save(createdMetadata)) as Metadata;
     return res;
   }
+  async saveMetadataToIPFS(metadata: JsonLd): Promise<IPFSResponse> {
+    try {
+      //save to IPFS via blockfrost
+      const metadataStr = JSON.stringify(metadata);
+      const binary = Buffer.from(metadataStr);
 
+      // Prepare the FormData
+      const formData = new FormData();
+      formData.append('file', binary as any);
+      const res = await this.attachmentService.uploadAttachmentToIPFS(formData);
+      return res;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+  async getMetadataFromIPFS(hash: string, res: Response): Promise<JsonLd> {
+    try {
+      const response = await this.attachmentService.getAttachmentFromIPFS(
+        hash,
+        res,
+      );
+      return response;
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
   async getStats(drepVoterId: string) {
     const drepDelegatorsCountResult = await this.cexplorerService.manager.query(
       getDRepDelegatorsCountQuery,
@@ -1075,12 +1105,10 @@ export class DrepService {
     );
     const addrIds = addrIdsResult.map((row) => row.addr_id);
 
-    const drepDelegations = await this.cexplorerService.manager.query(getDRepDelegatorsHistory(addrIds), [
-      drepHashId,
-      drepVoterId,
-      beforeDate,
-      tillDate,
-    ]);
+    const drepDelegations = await this.cexplorerService.manager.query(
+      getDRepDelegatorsHistory(addrIds),
+      [drepHashId, drepVoterId, beforeDate, tillDate],
+    );
     return drepDelegations;
   }
 }

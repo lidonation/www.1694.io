@@ -33,3 +33,8 @@ export type ValidateMetadataResult = {
   valid: boolean;
   metadata?: any;
 };
+export type IPFSResponse = {
+  name: string;
+  ipfs_hash: string;
+  size: number; 
+};

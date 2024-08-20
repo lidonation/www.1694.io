@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Post,
   Query,
+  Res,
   Search,
   UploadedFile,
   UseInterceptors,
@@ -17,6 +18,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { DrepService } from './drep.service';
 import { VoterService } from 'src/voter/voter.service';
 import { Delegation, StakeKeys } from 'src/common/types';
+import { Response } from 'express';
 
 @Controller('dreps')
 export class DrepController {
@@ -117,8 +119,8 @@ export class DrepController {
     return this.drepService.getMetadataFromExternalLink(metadataUrl);
   }
   @Get(':drepId/metadata/:hash')
-  getMetadata(@Param('drepId') drepId: number, @Param('hash') hash: string) {
-    return this.drepService.getMetadata(drepId, hash);
+  getMetadata(@Param('drepId') drepId: number, @Param('hash') hash: string,  @Res() res: Response,) {
+    return this.drepService.getMetadata(drepId, hash, res);
   }
   @Post('metadata/validate')
   validateMetadata(@Body() metadataBody: ValidateMetadataDTO) {
@@ -134,7 +136,6 @@ export class DrepController {
   ) {
     return this.drepService.saveMetadata(metadata, hash, drepId, name);
   }
-
   @Get(':voterId/stats')
   getStats(@Param('voterId') voterId: string) {
     return this.drepService.getStats(voterId);
