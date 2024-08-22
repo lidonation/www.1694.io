@@ -10,7 +10,7 @@ export const useGetSingleDRepViaVoterIdQuery = (
 ) => {
   const { data, isLoading } = useQuery<SingleDRep>({
     queryKey: [QUERY_KEYS.getSingleDRepViaVoterIdKey, voterId, startTimeCursor, endTimeCursor],
-    queryFn: async () => await getSingleDRepViaVoterId(voterId,null, startTimeCursor, endTimeCursor),
+    queryFn: async () => await getSingleDRepViaVoterId(voterId),
     enabled: !!voterId,
     refetchOnWindowFocus: false,
   });
