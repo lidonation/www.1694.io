@@ -4,36 +4,52 @@ import { getDRepTimeline } from '@/services/requests/getDRepTimeline';
 import { useCardano } from '@/context/walletContext';
 import { StakeKeys } from '../../types/commonTypes';
 import { useState } from 'react';
+import { useGlobalNotifications } from '@/context/globalNotificationContext';
+import { formatNumberTimeToReadable } from '@/lib';
 
 export const useGetDRepTimelineQuery = (
   idOrVoterId: string | string[] | undefined,
-  startTimeCursor?: number,
   endTimeCursor?: number,
+  startTimeCursor?: number,
 ) => {
-  const { stakeKey, stakeKeyBech32 } = useCardano();
-  const stakeKeys: StakeKeys = { stakeKey, stakeKeyBech32 };
-
   const [timeLineData, setTimeLineData] = useState([]);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const { stakeKey, stakeKeyBech32 } = useCardano();
+  const { addWarningAlert } = useGlobalNotifications();
+  const stakeKeys: StakeKeys = { stakeKey, stakeKeyBech32 };
 
   const { isLoading } = useQuery({
     queryKey: [
       QUERY_KEYS.getDRepTimelineKey,
       idOrVoterId,
-      startTimeCursor,
       endTimeCursor,
+      startTimeCursor,
     ],
     queryFn: async () =>
       await getDRepTimeline(
         String(idOrVoterId),
         stakeKeys,
-        startTimeCursor,
         endTimeCursor,
+        startTimeCursor,
       ),
-    enabled: true,
+    enabled:
+      !!idOrVoterId &&
+      !!endTimeCursor &&
+      !!startTimeCursor &&
+      stakeKey !== null &&
+      stakeKeyBech32 !== null,
     refetchOnWindowFocus: false,
     onSuccess: (newData) => {
-      if (newData.length === 0) return;
+      if (newData.length === 0) {
+        addWarningAlert(
+          `No results found for period between ${formatNumberTimeToReadable(startTimeCursor)} and ${formatNumberTimeToReadable(endTimeCursor)}`,
+        );
+        return;
+      }
       setTimeLineData((prevData) => {
+        if (prevData.length < 1) {
+          setIsInitialLoad(false);
+        }
         const isNewer =
           newData?.[newData.length - 1]?.timestamp > prevData?.[0]?.timestamp;
         if (isNewer) {
@@ -45,5 +61,9 @@ export const useGetDRepTimelineQuery = (
     },
   });
 
-  return { DRepActivity: timeLineData, isDRepActivityLoading: isLoading };
+  return {
+    DRepActivity: timeLineData,
+    isDRepActivityLoading: isLoading,
+    isInitialLoad: isInitialLoad,
+  };
 };

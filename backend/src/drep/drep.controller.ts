@@ -53,49 +53,12 @@ export class DrepController {
     return this.drepService.getEpochParams();
   }
   @Get(':id/drep')
-  async getSingle(
-    @Param('id') drepId: number,
-    @Query('stakeKeys') stakeKeys?: StakeKeys,
-    @Query('startTimeCursor') startTimeCursor?: number,
-    @Query('endTimeCursor') endTimeCursor?: number,
-  ) {
-    const { stakeKey, stakeKeyBech32 } = stakeKeys || {};
-    let delegation: Delegation = null;
-
-    if (stakeKey) {
-      delegation =
-        await this.voterService.getAdaHolderCurrentDelegation(stakeKey);
-    }
-    return this.drepService.getSingleDrepViaID(
-      drepId,
-      stakeKeyBech32,
-      delegation,
-      startTimeCursor,
-      endTimeCursor,
-    );
+  async getSingle(@Param('id') drepId: number) {
+    return this.drepService.getSingleDrepViaID(drepId);
   }
   @Get(':voterId/voter')
-  async getSingleViaVoterId(
-    @Param('voterId') voterId: string,
-    @Query('stakeKeys') stakeKeys?: StakeKeys,
-    @Query('startTimeCursor') startTimeCursor?: number,
-    @Query('endTimeCursor') endTimeCursor?: number,
-  ) {
-    const { stakeKey, stakeKeyBech32 } = stakeKeys || {};
-
-    let delegation: Delegation = null;
-
-    if (stakeKey) {
-      delegation =
-        await this.voterService.getAdaHolderCurrentDelegation(stakeKey);
-    }
-    return this.drepService.getSingleDrepViaVoterID(
-      voterId,
-      stakeKeyBech32,
-      delegation,
-      startTimeCursor,
-      endTimeCursor,
-    );
+  async getSingleViaVoterId(@Param('voterId') voterId: string) {
+    return this.drepService.getSingleDrepViaVoterID(voterId);
   }
 
   @Get(':idOrVoterId/activity')
@@ -120,7 +83,7 @@ export class DrepController {
 
     if (drepId) {
       drep = await this.drepService.getSingleDrepViaID(drepId);
-      drepVoterId = drep.signature_drepVoterId
+      drepVoterId = drep.signature_drepVoterId;
     } else if (drepVoterId) {
       drep = await this.drepService.getSingleDrepViaVoterID(drepVoterId);
     }

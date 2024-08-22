@@ -12,7 +12,7 @@ const page = () => {
 
   return (
     <div className="flex flex-col lg:flex-row">
-      <div className="lg:sticky lg:top-10 lg:w-[30%] lg:self-start">
+      <div className="lg:sticky lg:top-10 lg:w-[30%] lg:self-start lg:!scroll-smooth">
         {dRep?.drep_id ? (
           <DrepProfileCard drep={dRep} state={isDRepLoading} />
         ) : (

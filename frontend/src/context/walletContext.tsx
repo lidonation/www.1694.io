@@ -75,8 +75,8 @@ interface CardanoContext {
   dRepIDBech32: string;
   isGettingSignatures: boolean;
   isMainnet: boolean;
-  stakeKey?: string;
-  stakeKeyBech32?: string;
+  stakeKey?: string | undefined;
+  stakeKeyBech32?: string | undefined;
   setVoter: (key: undefined | VoterInfo) => void;
   setStakeKey: (key: string) => void;
   loginSignTransaction: () => Promise<any>;
@@ -104,7 +104,7 @@ type Utxos = {
 const CardanoContext = createContext<CardanoContext>({} as CardanoContext);
 CardanoContext.displayName = 'CardanoContext';
 
-const ALLOWED_NET = CONFIGURED_NETWORK_ID
+const ALLOWED_NET = CONFIGURED_NETWORK_ID;
 
 function CardanoProvider(props: Props) {
   const { sharedState, updateSharedState } = useSharedContext();
@@ -119,9 +119,9 @@ function CardanoProvider(props: Props) {
   const [pubDRepKey, setPubDRepKey] = useState<string>('');
   const [dRepID, setDRepID] = useState<string>('');
   const [dRepIDBech32, setDRepIDBech32] = useState<string>('');
-  const [stakeKey, setStakeKey] = useState<string | undefined>(undefined);
+  const [stakeKey, setStakeKey] = useState<string | undefined>(null);
   const [stakeKeyBech32, setStakeKeyBech32] = useState<string | undefined>(
-    undefined,
+    null,
   );
   const [stakeKeys, setStakeKeys] = useState<string[]>([]);
   const [isMainnet, setIsMainnet] = useState<boolean>(false);

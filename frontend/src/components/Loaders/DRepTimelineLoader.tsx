@@ -4,12 +4,14 @@ import TimelineContent from '@mui/lab/TimelineContent';
 import TimelineDot from '@mui/lab/TimelineDot';
 import TimelineItem from '@mui/lab/TimelineItem';
 import TimelineSeparator from '@mui/lab/TimelineSeparator';
-import { Skeleton } from '@mui/material';
+import { Box, Skeleton } from '@mui/material';
 import React from 'react';
+import GovActionLoader from './GovActionLoader';
+import DelegationItemLoader from './DelegationItemLoader';
 
 function DRepTimelineLoader() {
   return (
-    <div className="h-screen">
+    <div>
       <Timeline position="alternate-reverse">
         <div className="flex w-full flex-col items-center space-y-2">
           <TimelineSeparator>
@@ -19,63 +21,46 @@ function DRepTimelineLoader() {
               sx={{ backgroundColor: 'white' }}
             />
           </TimelineSeparator>
-          <Skeleton variant="rounded" className="w-full" height={150} />
+          <Box
+            sx={{
+              width: '100%',
+              height: 70,
+              bgcolor: 'rgba(0, 0, 0, 0.11)',
+              borderRadius: '10px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'top',
+              padding: '12px',
+            }}
+          >
+            <div className="flex flex-col gap-2">
+              <Skeleton
+                variant="rectangular"
+                width={140}
+                height={20}
+                className="rounded-xl"
+              />
+              <Skeleton
+                variant="rectangular"
+                width={100}
+                height={20}
+                className="rounded-xl"
+              />
+            </div>
+            <Skeleton
+              variant="rectangular"
+              width={140}
+              height={20}
+              className="rounded-xl"
+            />
+          </Box>
           <TimelineSeparator>
-            <TimelineDot />
             <TimelineConnector
               className="h-10 border-2 border-dotted border-gray-300"
               sx={{ backgroundColor: 'white' }}
             />
           </TimelineSeparator>
         </div>
-        <TimelineItem>
-          <TimelineSeparator>
-            <TimelineDot />
-            <TimelineConnector
-              className="h-10 border-2 border-dotted border-gray-300"
-              sx={{ backgroundColor: 'white' }}
-            />
-          </TimelineSeparator>
-          <TimelineContent>
-            <Skeleton variant="rounded" className="w-full" height={120} />
-          </TimelineContent>
-        </TimelineItem>
-        <TimelineItem>
-          <TimelineSeparator>
-            <TimelineDot />
-            <TimelineConnector
-              className="h-10 border-2 border-dotted border-gray-300"
-              sx={{ backgroundColor: 'white' }}
-            />
-          </TimelineSeparator>
-          <TimelineContent>
-            <Skeleton variant="rounded" className="w-full" height={120} />
-          </TimelineContent>
-        </TimelineItem>
-        <TimelineItem>
-          <TimelineSeparator>
-            <TimelineDot />
-            <TimelineConnector
-              className="h-10 border-2 border-dotted border-gray-300"
-              sx={{ backgroundColor: 'white' }}
-            />
-          </TimelineSeparator>
-          <TimelineContent>
-            <Skeleton variant="rounded" className="w-full" height={120} />
-          </TimelineContent>
-        </TimelineItem>
-        <TimelineItem>
-          <TimelineSeparator>
-            <TimelineDot />
-            <TimelineConnector
-              className="h-10 border-2 border-dotted border-gray-300"
-              sx={{ backgroundColor: 'white' }}
-            />
-          </TimelineSeparator>
-          <TimelineContent>
-            <Skeleton variant="rounded" className="w-full" height={120} />
-          </TimelineContent>
-        </TimelineItem>
         <div className="flex w-full flex-col items-center space-y-2">
           <TimelineSeparator>
             <TimelineDot />
@@ -84,8 +69,95 @@ function DRepTimelineLoader() {
               sx={{ backgroundColor: 'white' }}
             />
           </TimelineSeparator>
-          <Skeleton variant="rounded" className="w-full" height={76} />
+          <Box
+            sx={{
+              width: '100%',
+              height: 70,
+              bgcolor: 'rgba(0, 0, 0, 0.11)',
+              borderRadius: '10px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'top',
+              padding: '12px',
+            }}
+          >
+            <div className="flex flex-col gap-2">
+              <Skeleton
+                variant="rectangular"
+                width={140}
+                height={20}
+                className="rounded-xl"
+              />
+              <Skeleton
+                variant="rectangular"
+                width={100}
+                height={20}
+                className="rounded-xl"
+              />
+            </div>
+            <Skeleton
+              variant="rectangular"
+              width={140}
+              height={20}
+              className="rounded-xl"
+            />
+          </Box>
+          <TimelineSeparator>
+            <TimelineDot />
+            <TimelineConnector
+              className="h-10 border-2 border-dotted border-gray-300"
+              sx={{ backgroundColor: 'white' }}
+            />
+          </TimelineSeparator>
         </div>
+        <TimelineItem>
+          <TimelineSeparator>
+            <TimelineDot />
+            <TimelineConnector
+              className="h-10 border-2 border-dotted border-gray-300"
+              sx={{ backgroundColor: 'white' }}
+            />
+          </TimelineSeparator>
+          <TimelineContent>
+            <GovActionLoader />
+          </TimelineContent>
+        </TimelineItem>
+        <TimelineItem>
+          <TimelineSeparator>
+            <TimelineDot />
+            <TimelineConnector
+              className="h-10 border-2 border-dotted border-gray-300"
+              sx={{ backgroundColor: 'white' }}
+            />
+          </TimelineSeparator>
+          <TimelineContent>
+            <GovActionLoader />
+          </TimelineContent>
+        </TimelineItem>
+        <TimelineItem>
+          <TimelineSeparator>
+            <TimelineDot />
+            <TimelineConnector
+              className="h-10 border-2 border-dotted border-gray-300"
+              sx={{ backgroundColor: 'white' }}
+            />
+          </TimelineSeparator>
+          <TimelineContent>
+            <DelegationItemLoader />
+          </TimelineContent>
+        </TimelineItem>
+        <TimelineItem>
+          <TimelineSeparator>
+            <TimelineDot />
+            <TimelineConnector
+              className="h-10 border-2 border-dotted border-gray-300"
+              sx={{ backgroundColor: 'white' }}
+            />
+          </TimelineSeparator>
+          <TimelineContent>
+            <DelegationItemLoader />
+          </TimelineContent>
+        </TimelineItem>
       </Timeline>
     </div>
   );

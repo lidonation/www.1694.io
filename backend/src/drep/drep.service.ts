@@ -252,13 +252,7 @@ export class DrepService {
       .where('drep.name ILIKE :name', { name: `%${name}%` })
       .getRawMany();
   }
-  async getSingleDrepViaID(
-    drepId: number,
-    stakeKeyBech32?: string,
-    delegation?: Delegation,
-    startDateCursor?: number,
-    endDateCursor?: number,
-  ) {
+  async getSingleDrepViaID(drepId: number) {
     const drep = await this.voltaireService
       .getRepository('Drep')
       .createQueryBuilder('drep')
@@ -274,20 +268,12 @@ export class DrepService {
     let drepVoterId;
     if (drep.length > 0) drepVoterId = drep[0].signature_drepVoterId;
     const drepCexplorer = await this.getDrepCexplorerDetails(drepVoterId);
-    const drepVotingHistory = await this.getDrepTimeline(
-      drep[0],
-      drepVoterId,
-      stakeKeyBech32,
-      delegation,
-      startDateCursor,
-      endDateCursor,
-    );
+
     const drepDelegators =
       await this.getDrepDelegatorsWithVotingPower(drepVoterId);
     const combinedResult = {
       ...drep[0],
       cexplorerDetails: drepCexplorer,
-      activity: drepVotingHistory,
       delegators: drepDelegators,
     };
     if (
@@ -315,13 +301,7 @@ export class DrepService {
 
     return combinedResult;
   }
-  async getSingleDrepViaVoterID(
-    drepVoterId: string,
-    stakeKeyBech32?: string,
-    delegation?: Delegation,
-    startDateCursor?: number,
-    endDateCursor?: number,
-  ) {
+  async getSingleDrepViaVoterID(drepVoterId: string) {
     const drep = await this.voltaireService
       .getRepository('Drep')
       .createQueryBuilder('drep')
@@ -335,20 +315,11 @@ export class DrepService {
       .where('signature.drepVoterId = :drepVoterId', { drepVoterId })
       .getRawMany();
     const drepCexplorer = await this.getDrepCexplorerDetails(drepVoterId);
-    const drepVotingHistory = await this.getDrepTimeline(
-      drep[0],
-      drepVoterId,
-      stakeKeyBech32,
-      delegation,
-      startDateCursor,
-      endDateCursor,
-    );
     const drepDelegators =
       await this.getDrepDelegatorsWithVotingPower(drepVoterId);
     const combinedResult = {
       ...drep[0],
       cexplorerDetails: drepCexplorer,
-      activity: drepVotingHistory,
       delegators: drepDelegators,
     };
     if (
@@ -484,7 +455,7 @@ export class DrepService {
     const endingTime = tillDate
       ? new Date(Number(tillDate))
       : new Date(new Date(startingTime).getTime() - 432000000); // 5 days ago
-      
+
     const epochs = await this.getEpochs(startingTime, endingTime);
     const drepRegData = await this.getDrepDateofRegistration(drepVoterId);
     const regDate = new Date(drepRegData?.date_of_registration).getTime();
