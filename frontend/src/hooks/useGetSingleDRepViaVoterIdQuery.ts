@@ -5,11 +5,9 @@ import { useQuery } from 'react-query';
 
 export const useGetSingleDRepViaVoterIdQuery = (
   voterId: string | undefined,
-  startTimeCursor?: number ,
-  endTimeCursor?: number
 ) => {
   const { data, isLoading } = useQuery<SingleDRep>({
-    queryKey: [QUERY_KEYS.getSingleDRepViaVoterIdKey, voterId, startTimeCursor, endTimeCursor],
+    queryKey: [QUERY_KEYS.getSingleDRepViaVoterIdKey, voterId],
     queryFn: async () => await getSingleDRepViaVoterId(voterId),
     enabled: !!voterId,
     refetchOnWindowFocus: false,
