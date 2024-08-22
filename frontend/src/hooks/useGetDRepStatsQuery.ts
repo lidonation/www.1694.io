@@ -5,7 +5,7 @@ import { DRepStats } from '../../types/api';
 
 export const useGetDRepStatsQuery = (voterId: string) => {
   const { data, isLoading } = useQuery<DRepStats>({
-    queryKey: [QUERY_KEYS.getDRepStats, voterId],
+    queryKey: [QUERY_KEYS.getDRepStatsKey, voterId],
     queryFn: async () => await getDRepStats(voterId),
     enabled: !!voterId,
     refetchOnWindowFocus: false,

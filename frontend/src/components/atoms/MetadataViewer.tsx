@@ -41,10 +41,13 @@ const MetadataViewer = ({
         const linksArr = value as any[];
         const links = linksArr.map((link, index) => {
           return (
-            <div key={index} className="flex items-center gap-1 text-sm">
+            <div
+              key={index}
+              className="flex w-full flex-col items-start gap-1 text-sm"
+            >
               <p className="font-semibold">{link?.label?.['@value']}</p>
-              <span className="mx-2 flex-grow border-t border-dotted border-gray-400"></span>
               <Link
+                className="w-full break-words"
                 href={
                   link?.uri?.['@value'] ? link?.uri?.['@value'] || '#' : '#'
                 }
@@ -61,7 +64,9 @@ const MetadataViewer = ({
             className="flex flex-col items-start justify-center gap-1 text-sm"
           >
             <Typography variant="h6">References</Typography>
-            <div className="pl-2">{links.length > 0 ? links : 'Empty'}</div>
+            <div className="w-full pl-2">
+              {links.length > 0 ? links : 'Empty'}
+            </div>
           </div>
         );
       }

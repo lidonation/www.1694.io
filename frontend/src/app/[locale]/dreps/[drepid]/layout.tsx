@@ -11,7 +11,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const { dRepIDBech32 } = useCardano();
   const [isOpen, setIsOpen] = useState(false);
   const { drepid } = useParams();
-  const { dRep, isDRepLoading } = useGetSingleDRepQuery(drepid);
+  const { dRep } = useGetSingleDRepQuery(drepid);
 
   return (
     <div className="flex">
@@ -21,7 +21,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       )}
       <div className="base_container w-full">
         <div className="flex h-full w-full flex-col">
-          <div className="flex items-center justify-start">
+          <div className="flex items-center justify-start sticky top-0 bg-blue-50 z-10">
             <div className="w-[30%]">
               {dRep?.drep_id &&
                 dRep?.cexplorerDetails?.view == dRepIDBech32 && (

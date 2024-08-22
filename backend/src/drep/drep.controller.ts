@@ -53,50 +53,58 @@ export class DrepController {
     return this.drepService.getEpochParams();
   }
   @Get(':id/drep')
-  async getSingle(
-    @Param('id') drepId: number,
-    @Query('stakeKeys') stakeKeys?: StakeKeys,
-    @Query('startTimeCursor') startTimeCursor?: number,
-    @Query('endTimeCursor') endTimeCursor?: number,
-  ) {
-    const { stakeKey, stakeKeyBech32 } = stakeKeys || {};
-    let delegation: Delegation = null;
-
-    if (stakeKey) {
-      delegation =
-        await this.voterService.getAdaHolderCurrentDelegation(stakeKey);
-    }
-    return this.drepService.getSingleDrepViaID(
-      drepId,
-      stakeKeyBech32,
-      delegation,
-      startTimeCursor,
-      endTimeCursor,
-    );
+  async getSingle(@Param('id') drepId: number) {
+    return this.drepService.getSingleDrepViaID(drepId);
   }
   @Get(':voterId/voter')
-  async getSingleViaVoterId(
-    @Param('voterId') voterId: string,
+  async getSingleViaVoterId(@Param('voterId') voterId: string) {
+    return this.drepService.getSingleDrepViaVoterID(voterId);
+  }
+
+  @Get(':idOrVoterId/activity')
+  async getDrepActivity(
+    @Param('idOrVoterId') idOrVoterId: string,
     @Query('stakeKeys') stakeKeys?: StakeKeys,
     @Query('startTimeCursor') startTimeCursor?: number,
     @Query('endTimeCursor') endTimeCursor?: number,
   ) {
+    let drepId: number | undefined;
+    let drepVoterId: string | undefined;
+    let drep = null;
+    let delegation: Delegation = null;
+
     const { stakeKey, stakeKeyBech32 } = stakeKeys || {};
 
-    let delegation: Delegation = null;
+    if (!isNaN(Number(idOrVoterId))) {
+      drepId = Number(idOrVoterId);
+    } else {
+      drepVoterId = idOrVoterId;
+    }
+
+    if (drepId) {
+      drep = await this.drepService.getSingleDrepViaID(drepId);
+      drepVoterId = drep.signature_drepVoterId;
+    } else if (drepVoterId) {
+      drep = await this.drepService.getSingleDrepViaVoterID(drepVoterId);
+    }
 
     if (stakeKey) {
       delegation =
         await this.voterService.getAdaHolderCurrentDelegation(stakeKey);
     }
-    return this.drepService.getSingleDrepViaVoterID(
-      voterId,
+
+    const drepTimeline = await this.drepService.getDrepTimeline(
+      drep,
+      drepVoterId,
       stakeKeyBech32,
       delegation,
       startTimeCursor,
       endTimeCursor,
     );
+
+    return drepTimeline;
   }
+
   @Post('new')
   @UseInterceptors(FileInterceptor('profileUrl'))
   create(
@@ -140,5 +148,4 @@ export class DrepController {
   getStats(@Param('voterId') voterId: string) {
     return this.drepService.getStats(voterId);
   }
-
 }

@@ -3,6 +3,7 @@ export const QUERY_KEYS = {
   getSingleDRepViaVoterIdKey: 'getSingleDRepViaVoterIdKey',
   getNotesKey: 'getAllNotesKey',
   getSingleDRepKey: 'getSingleDRepKey',
-  getAllDReps: 'getAllDRepsKey',
-  getDRepStats: 'getDRepStatsKey',
+  getAllDRepsKey: 'getAllDRepsKey',
+  getDRepStatsKey: 'getDRepStatsKey',
+  getDRepTimelineKey: 'getDRepTimelineKey'
 };

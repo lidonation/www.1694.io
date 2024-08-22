@@ -67,3 +67,14 @@ export function formatAsCurrency(amount: number | string) {
 export const handleCopyText = (text: string) => {
   navigator.clipboard.writeText(text);
 };
+
+export const formatNumberTimeToReadable = (time: number) => {
+  const options: Intl.DateTimeFormatOptions = {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  };
+
+  const startTimeFormatted = new Date(time).toLocaleString(undefined, options);
+  return startTimeFormatted;
+};

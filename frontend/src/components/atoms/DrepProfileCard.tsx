@@ -119,8 +119,14 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
           />
         )}
       </div>
-      <div>
-        <Typography variant="h4">
+      <div className="w-full">
+        <Typography
+          variant="h4"
+          sx={{
+            whiteSpace: 'normal',
+            wordBreak: 'break-word',
+          }}
+        >
           {state ? (
             <Skeleton
               animation={'wave'}
