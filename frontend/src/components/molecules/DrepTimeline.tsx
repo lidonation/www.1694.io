@@ -9,7 +9,6 @@ import _ from 'lodash';
 import { useGetDRepTimelineQuery } from '@/hooks/useGetDRepTimelineQuery';
 import DRepTimelineLoader from '../Loaders/DRepTimelineLoader';
 import ReloadIcon from '../atoms/svgs/ReloadIcon';
-import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { formatNumberTimeToReadable } from '@/lib';
 import { Fade, Grow } from '@mui/material';
 
@@ -30,7 +29,6 @@ const DrepTimeline = ({ cexplorerDetails }: { cexplorerDetails: any }) => {
 
   const searchParams = useSearchParams();
   const { dRepIDBech32, latestEpoch } = useCardano();
-  const { addWarningAlert } = useGlobalNotifications();
   const { drepid } = useParams();
   const { DRepActivity, isDRepActivityLoading, isInitialLoad } =
     useGetDRepTimelineQuery(drepid, queryEndTime, queryStartTime);

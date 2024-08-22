@@ -46,7 +46,6 @@ const MetadataViewer = ({
               className="flex w-full flex-col items-start gap-1 text-sm"
             >
               <p className="font-semibold">{link?.label?.['@value']}</p>
-              {/* <span className="mx-2 flex-grow border-t border-dotted border-gray-400"></span> */}
               <Link
                 className="w-full break-words"
                 href={
