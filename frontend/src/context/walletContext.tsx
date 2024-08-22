@@ -156,6 +156,9 @@ function CardanoProvider(props: Props) {
       if (existingWalletAPI && currentWalletEnabled) {
         setWalletApi(existingWalletAPI);
         await enable(currentWalletEnabled);
+      } else {
+        setStakeKey(undefined);
+        setStakeKeyBech32(undefined);
       }
     };
     enableCurrentWallet();

@@ -13,34 +13,45 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const { drepid } = useParams();
   const { dRep } = useGetSingleDRepQuery(drepid);
 
+  const currentUserIsDrep =
+    dRep?.drep_id && dRep?.cexplorerDetails?.view == dRepIDBech32;
   return (
     <div className="flex">
       {/* If current user is a drep, the drawer will be available for use */}
-      {dRep?.drep_id && dRep?.cexplorerDetails?.view == dRepIDBech32 && (
+      {currentUserIsDrep && (
         <DRepProfileBar isOpen={isOpen} setIsOpen={setIsOpen} />
       )}
       <div className="base_container w-full">
         <div className="flex h-full w-full flex-col">
-          <div className="flex items-center justify-start sticky top-0 bg-blue-50 z-10">
-            <div className="w-[30%]">
-              {dRep?.drep_id &&
-                dRep?.cexplorerDetails?.view == dRepIDBech32 && (
-                  <IconButton
-                    data-testid="close-drawer-button"
-                    onClick={() => {
-                      setIsOpen(!isOpen);
-                    }}
-                  >
-                    <img
-                      width={'50%'}
-                      className="shrink-0"
-                      src={'/svgs/menu.svg'}
-                    />
-                  </IconButton>
-                )}
-            </div>
-            <div className="w-[70%]">
-              <DrepTabGroup drepId={drepid as string}/>
+          <div className={`sticky top-0 z-10 flex items-center justify-start bg-blue-50 ${currentUserIsDrep && 'justify-between'}`}>
+            {currentUserIsDrep && (
+              <div className="lg:w-[30%] shrink-0">
+                <IconButton
+                  data-testid="close-drawer-button"
+                  onClick={() => {
+                    setIsOpen(!isOpen);
+                  }}
+                >
+                  <img
+                    width={'50%'}
+                    className="shrink-0"
+                    src={'/svgs/menu.svg'}
+                  />
+                </IconButton>
+              </div>
+            )}
+            <div
+              className={
+                currentUserIsDrep
+                  ? 'lg:w-[70%] overflow-auto'
+                  : 'lg:w:[70%] w-full lg:flex lg:justify-end'
+              }
+            >
+              <div
+                className={`flex justify-start ${!currentUserIsDrep && 'lg:w-[70%]'}`}
+              >
+                <DrepTabGroup drepId={drepid as string} />
+              </div>
             </div>
           </div>
           {children}
