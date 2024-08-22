@@ -275,7 +275,7 @@ export class DrepService {
     if (drep.length > 0) drepVoterId = drep[0].signature_drepVoterId;
     const drepCexplorer = await this.getDrepCexplorerDetails(drepVoterId);
     const drepVotingHistory = await this.getDrepTimeline(
-      drep[0].drep_id,
+      drep[0],
       drepVoterId,
       stakeKeyBech32,
       delegation,
@@ -440,7 +440,6 @@ export class DrepService {
     return drepCexplorer[0];
   }
   async getDrepDateofRegistration(drepVoterId: string) {
-    const viewParam = drepVoterId;
     const drepRegistrationData = await this.cexplorerService.manager.query(
       `SELECT 
               dh.id AS drep_hash_id, 
@@ -457,7 +456,7 @@ export class DrepService {
               block AS reg_tx_bk ON reg_tx.block_id = reg_tx_bk.id 
           WHERE 
               dh.view = $1`,
-      [viewParam],
+      [drepVoterId],
     );
     const modified = {
       ...drepRegistrationData[0],
@@ -473,6 +472,7 @@ export class DrepService {
     beforeDate?: number,
     tillDate?: number,
   ) {
+    // return drep
     //get current time in timestamp form then backtrack till the time the drep is registered
     //limit activity to three epochs or five days=>432000seconds
     //get epochs
@@ -484,6 +484,7 @@ export class DrepService {
     const endingTime = tillDate
       ? new Date(Number(tillDate))
       : new Date(new Date(startingTime).getTime() - 432000000); // 5 days ago
+      
     const epochs = await this.getEpochs(startingTime, endingTime);
     const drepRegData = await this.getDrepDateofRegistration(drepVoterId);
     const regDate = new Date(drepRegData?.date_of_registration).getTime();

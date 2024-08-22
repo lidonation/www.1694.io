@@ -12,7 +12,7 @@ export const useGetDRepsQuery = (
 ) => {
   const { data, isLoading } = useQuery({
     queryKey: [
-      QUERY_KEYS.getAllDReps,
+      QUERY_KEYS.getAllDRepsKey,
       s,
       page,
       sort,

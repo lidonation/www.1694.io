@@ -12,7 +12,7 @@ const page = () => {
 
   return (
     <div className="flex flex-col lg:flex-row">
-      <div className="lg:w-[30%]">
+      <div className="lg:sticky lg:top-10 lg:w-[30%] lg:self-start">
         {dRep?.drep_id ? (
           <DrepProfileCard drep={dRep} state={isDRepLoading} />
         ) : (
@@ -21,11 +21,7 @@ const page = () => {
       </div>
       <div className="lg:w-[70%]">
         <Suspense>
-          <DrepTimeline
-            drepId={dRep?.cexplorerDetails?.view}
-            cexplorerDetails={dRep?.cexplorerDetails}
-            activity={dRep?.activity}
-          />
+          <DrepTimeline cexplorerDetails={dRep?.cexplorerDetails} />
         </Suspense>
       </div>
     </div>

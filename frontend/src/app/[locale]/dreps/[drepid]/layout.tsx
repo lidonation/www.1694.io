@@ -21,7 +21,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       )}
       <div className="base_container w-full">
         <div className="flex h-full w-full flex-col">
-          <div className="flex items-center justify-start">
+          <div className="flex items-center justify-start lg:sticky lg:top-0 bg-blue-50 lg:z-10">
             <div className="w-[30%]">
               {dRep?.drep_id &&
                 dRep?.cexplorerDetails?.view == dRepIDBech32 && (

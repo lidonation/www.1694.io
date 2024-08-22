@@ -8,7 +8,7 @@ const DrepTabGroup = ({ drepId }: { drepId: string }) => {
   const activeClasses =
     'bg-white border-b-2 border-b-blue-800 rounded-t-lg text-blue-800 ';
   const inactiveClasses =
-    'bg-white bg-opacity-40 rounded-t-lg text-gray-400 hover:text-gray-800 cursor-pointer';
+    'bg-white rounded-t-lg text-gray-500 hover:text-gray-800 cursor-pointer';
 
   const handleClick = (id) => {
     if (id === 'profile') {
