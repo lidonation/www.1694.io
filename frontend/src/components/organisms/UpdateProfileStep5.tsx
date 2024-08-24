@@ -5,17 +5,18 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { SubmitHandler, useForm } from 'react-hook-form';
-import { getSingleDRep } from '@/services/requests/getSingleDrep';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import ProfileSubmitArea from '../atoms/ProfileSubmitArea';
-import { getSingleDRepViaVoterId } from '@/services/requests/getSingleDrepViaVoterId';
 import { getItemFromLocalStorage, removeItemFromLocalStorage } from '@/lib';
 import MetadataEditor from '../atoms/MetadataEditor';
 import MetadataViewer from '../atoms/MetadataViewer';
 import Button from '../atoms/Button';
 import SubmitMetadataModal from '../atoms/SubmitMetadataModal';
 import { useRouter } from 'next/navigation';
-import { processExternalMetadata } from '@/lib/metadataProcessor';
+import {
+  renderJSONLDToJSONArr,
+} from '@/lib/metadataProcessor';
+import { deleteItemFromIndexedDB } from '@/lib/indexedDb';
 const FormSchema = z.object({
   metadata: z.string().optional(),
 });
@@ -26,13 +27,12 @@ const UpdateProfileStep5 = () => {
     useForm<InputType>({
       resolver: zodResolver(FormSchema),
     });
-  const { dRepIDBech32, stakeKey } = useCardano();
+  const { dRepIDBech32 } = useCardano();
   const {
     setIsNotDRepErrorModalOpen,
-    drepId,
     setStep5Status,
-    setNewDrepId,
-    setCurrentRegistrationStep,
+    metadataJsonLd,
+    metadataJsonHash,
   } = useDRepContext();
   const router = useRouter();
   const [canEdit, setCanEdit] = useState(false);
@@ -40,26 +40,27 @@ const UpdateProfileStep5 = () => {
   const [isAwaitingSubmission, setIsAwaitingSubmission] = useState(false);
   const { addChangesSavedAlert, addSuccessAlert } = useGlobalNotifications();
   const [isMetadataLoading, setIsMetadataLoading] = useState(false);
-  const [metadataUrl, setMetadataUrl] = useState<string | null>(null);
   const [metadataJson, setMetadataJson] = useState(null);
   const [metadataError, setMetadataError] = useState<string | null>(null);
   const [metadata, setMetadata] = useState<any>(null);
   const [isSubmittingMetadata, setIsSubmittingMetadata] = useState(false);
   const [refresh, setRefresh] = useState(false);
   useEffect(() => {
-    setCurrentRegistrationStep(5);
-    const getDRep = async () => {
+    const processMetadata = async () => {
       try {
-        let drep;
-        if (drepId) {
-          drep = await getSingleDRep(drepId);
-        } else if (dRepIDBech32) {
-          drep = await getSingleDRepViaVoterId(dRepIDBech32);
-        }
-        if (drep?.cexplorerDetails?.metadata_url) {
-          setMetadataUrl(drep.cexplorerDetails.metadata_url);
-        }
-        setNewDrepId(drep?.drep_id);
+        if (!metadataJsonLd) return;
+        setIsMetadataLoading(true);
+        const convertedMetadata = renderJSONLDToJSONArr(metadataJsonLd);
+        setMetadataJson(convertedMetadata);
+        setMetadata(metadataJsonLd);
+        setJsonHash(metadataJsonHash);
+        setValue('metadata', JSON.stringify(convertedMetadata));
+        setIsMetadataLoading(false);
+        if (metadataJsonLd) {
+          setStep5Status('update');
+        } else setStep5Status('active');
+        setIsMetadataLoading(false);
+        return;
       } catch (error) {
         console.log(error);
         setMetadata(null);
@@ -68,58 +69,14 @@ const UpdateProfileStep5 = () => {
         setIsMetadataLoading(false);
       }
     };
-    getDRep();
-    return () => {
-      if (Boolean(getValues('metadata'))) {
-        setStep5Status('success');
-      } else setStep5Status('pending');
-    };
-  }, [dRepIDBech32]);
-
-  useEffect(() => {
-    const processMetadata = async () => {
-      try {
-        setIsMetadataLoading(true);
-        //before fetching try to get from local storage, and if isUpdating is true, preventing unnecessary fetch and later, txs
-        const isUpdating = getItemFromLocalStorage('isUpdating');
-        if (isUpdating) {
-          const locallySavedMetadata = getItemFromLocalStorage('metadataJson');
-          const locallySavedJsonld = getItemFromLocalStorage('metadataJsonLd');
-          const locallySavedHash = getItemFromLocalStorage('metadataJsonHash');
-          setMetadataJson(locallySavedMetadata);
-          setMetadata(locallySavedJsonld);
-          setJsonHash(locallySavedHash);
-          setValue('metadata', JSON.stringify(locallySavedMetadata));
-          setIsMetadataLoading(false);
-          return;
-        }
-        if (!metadataUrl) {
-          setIsMetadataLoading(false);
-          return;
-        }
-        //else fetch metadata
-        const { jsonLdData, modifiedJson } = await processExternalMetadata({
-          metadataUrl,
-        });
-        setMetadataJson(modifiedJson);
-        setMetadata(jsonLdData);
-        setValue('metadata', JSON.stringify(modifiedJson));
-        if (jsonLdData) {
-          setStep5Status('update');
-        } else setStep5Status('active');
-        setIsMetadataLoading(false);
-      } catch (error) {
-        console.log(error);
-      }
-    };
     processMetadata();
-  }, [metadataUrl, refresh]);
-  const resetDraft=()=>{
+  }, [metadataJsonLd, refresh]);
+
+  const resetDraft = async () => {
     removeItemFromLocalStorage('isUpdating');
-    removeItemFromLocalStorage('metadataJson');
-    removeItemFromLocalStorage('metadataJsonLd');
-    removeItemFromLocalStorage('metadataJsonHash');
-  }
+    await deleteItemFromIndexedDB('metadataJsonLd');
+    await deleteItemFromIndexedDB('metadataJsonHash');
+  };
   const saveProfile: SubmitHandler<InputType> = async (data) => {
     try {
       if (!dRepIDBech32 || dRepIDBech32 == '') {
@@ -130,7 +87,7 @@ const UpdateProfileStep5 = () => {
       if (getItemFromLocalStorage('isUpdating')) {
         setIsSubmittingMetadata(true);
         setIsAwaitingSubmission(true);
-      }else{
+      } else {
         //just redirect to success page
         router.push('/dreps/workflow/profile/success');
       }
@@ -181,7 +138,6 @@ const UpdateProfileStep5 = () => {
         <div className="flex flex-col gap-1">
           {canEdit && (
             <MetadataEditor
-              drepId={drepId}
               onClose={() => {
                 setCanEdit(false);
               }}
@@ -201,7 +157,6 @@ const UpdateProfileStep5 = () => {
                   );
                   resetDraft();
                   router.push('/dreps/workflow/profile/success');
-
                 }
               }}
             />

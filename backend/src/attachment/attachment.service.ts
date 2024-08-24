@@ -203,10 +203,9 @@ export class AttachmentService {
           },
         ),
       );
-      console.log(res.data);
       return res.data;
     } catch (error) {
-      console.error(error);
+      console.error(error.response.data || error.response || error);
       throw new HttpException(error.response.data, error.response.status);
     }
   }

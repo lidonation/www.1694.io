@@ -10,6 +10,7 @@ export const useGetProposalsQuery = ({
     queryKey: ['getProposalByHashQueryString', hashQueryString],
     queryFn: async () => await getProposalByHashQueryString(hashQueryString),
     enabled: !!hashQueryString,
+    refetchOnWindowFocus: false,
   });
   return {
     Proposals: data,

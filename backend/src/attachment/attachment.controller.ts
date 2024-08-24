@@ -59,15 +59,31 @@ export class AttachmentController {
       parentEntity,
     );
   }
-  @Get('ipfs/:IpfsHash')
-  async getAttachmentByIpfsHash(@Param('IpfsHash') IpfsHash: string, @Res() res: Response) {
-    return this.attachmentService.getAttachmentFromIPFS(IpfsHash, res);
+  @Get('ipfs/:ipfsHash')
+  async getAttachmentByIpfsHash(
+    @Param('ipfsHash') ipfsHash: string,
+    @Res() res: Response,
+  ) {
+    return this.attachmentService.getAttachmentFromIPFS(ipfsHash, res);
   }
   @Post('ipfs/add')
+  @UseInterceptors(FileInterceptor('attachment'))
   async uploadAttachmentToIpfs(
-    @Body('attachment')
-    attachment: Express.Multer.File | Buffer | Uint8Array | Blob,
+    @UploadedFile()
+    attachment: Express.Multer.File,
   ) {
-    return this.attachmentService.uploadAttachmentToIPFS(attachment);
+    const attachmentFormData = new FormData();
+    // Check if attachment is a File or has a buffer
+    if (attachment instanceof File) {
+      attachmentFormData.append('attachment', attachment, attachment.name);
+    } else if (attachment.buffer) {
+      // Convert buffer to Blob
+      const blob = new Blob([attachment.buffer], { type: attachment.mimetype });
+      attachmentFormData.append('attachment', blob, attachment.originalname);
+    } else {
+      throw new Error('Invalid attachment format');
+    }
+    console.log(attachmentFormData);
+    return this.attachmentService.uploadAttachmentToIPFS(attachmentFormData);
   }
 }

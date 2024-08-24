@@ -9,6 +9,7 @@ import { useCardano } from '@/context/walletContext';
 import MetadataViewer from './MetadataViewer';
 import { isActive } from '../molecules/DRepsTable';
 import { processExternalMetadata } from '@/lib/metadataProcessor';
+import DRepSocialLinks from './DRepSocialLinks';
 
 interface StatusProps {
   status:
@@ -61,7 +62,9 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
   const [metadataUrl, setMetadataUrl] = useState<string | null>(null);
   const [metadataError, setMetadataError] = useState<string | null>(null);
   const [metadata, setMetadata] = useState<any>(null);
+  const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [name, setName] = useState<string | null>(null);
+  const [socialLinks, setSocialLinks] = useState<any>(null);
   useEffect(() => {
     const fetchData = async () => {
       const metadataUrl = drep?.cexplorerDetails?.metadata_url;
@@ -74,8 +77,19 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
           metadataUrl,
         });
         setMetadata(jsonLdData);
+        const imageUrl = jsonLdData?.body?.image?.contentUrl;
+        if (imageUrl) {
+          setImageSrc(imageUrl);
+        }
+        if (
+          jsonLdData?.body?.references &&
+          Array.isArray(jsonLdData?.body?.references) &&
+          jsonLdData?.body?.references.length > 0
+        ) {
+          setSocialLinks(jsonLdData?.body?.references);
+        }
         const name = modifiedJson.filter(
-          (item: any) => item.key === 'dRepName',
+          (item: any) => item.key === 'givenName',
         )[0]?.value;
         setName(name);
       } catch (error) {
@@ -114,7 +128,7 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
         ) : (
           <img
             className="w-full"
-            src={`${drep?.attachment_url ? drep.attachment_url : '/svgs/user-circle.svg'}`}
+            src={`${imageSrc ? imageSrc : '/svgs/user-circle.svg'}`}
             alt=""
           />
         )}
@@ -189,29 +203,7 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
           <img src="/svgs/copy.svg" alt="copy" />
         </CopyToClipboard>
       </div>
-      <div className="flex flex-row gap-2">
-        <Link
-          href={drep ? drep?.drep_social?.github || '#' : '#'}
-          target="_blank"
-        >
-          <img className="w-full" src="/svgs/github-dark.svg" alt="" />
-        </Link>
-        <Link href={drep ? drep?.drep_social?.x || '#' : '#'} target="_blank">
-          <img className="w-full" src="/svgs/twitter.svg" alt="" />
-        </Link>
-        <Link
-          href={drep ? drep?.drep_social?.facebook || '#' : '#'}
-          target="_blank"
-        >
-          <img className="w-full" src="/svgs/fb-dark.svg" alt="" />
-        </Link>
-        <Link
-          href={drep ? drep?.drep_social?.instagram || '#' : '#'}
-          target="_blank"
-        >
-          <img className="w-full" src="/svgs/ig-dark.svg" alt="" />
-        </Link>
-      </div>
+      <DRepSocialLinks links={socialLinks} />
       <div>
         {state ? (
           <Skeleton animation={'wave'} width={150} height={20} />

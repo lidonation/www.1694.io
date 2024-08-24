@@ -35,7 +35,7 @@ import {
   setItemToLocalStorage,
   removeItemFromLocalStorage,
 } from '@/lib';
-import { CardanoApiWallet, Protocol, VoterInfo } from '@/models/wallet';
+import { CardanoApiWallet, Protocol } from '@/models/wallet';
 import { useSharedContext } from './sharedContext';
 import getEpochParams from '@/services/requests/getEpochParams';
 import { generateAnchor } from '@/lib/generateAnchor';
@@ -59,7 +59,6 @@ interface CardanoContext {
   isEnableLoading: string | null;
   isEnabling: boolean;
   error?: string;
-  voter: VoterInfo | undefined;
   isEnabled: boolean;
   pubDRepKey: string;
   dRepID: string;
@@ -77,7 +76,6 @@ interface CardanoContext {
   isMainnet: boolean;
   stakeKey?: string | undefined;
   stakeKeyBech32?: string | undefined;
-  setVoter: (key: undefined | VoterInfo) => void;
   setStakeKey: (key: string) => void;
   loginSignTransaction: () => Promise<any>;
   loginHardwareWalletTransaction: () => Promise<any>;
@@ -110,7 +108,6 @@ function CardanoProvider(props: Props) {
   const { sharedState, updateSharedState } = useSharedContext();
   const [isEnabled, setIsEnabled] = useState(false);
   const [isEnableLoading, setIsEnableLoading] = useState<string | null>(null);
-  const [voter, setVoter] = useState<VoterInfo | undefined>(undefined);
   const [walletApi, setWalletApi] = useState<CardanoApiWallet | undefined>(
     undefined,
   );
@@ -415,7 +412,7 @@ function CardanoProvider(props: Props) {
           setItemToLocalStorage(`${WALLET_LS_KEY}_name`, walletName);
           setItemToLocalStorage(`${WALLET_LS_KEY}_api`, enabledApi);
           setIsEnabling(false);
-          updateSharedState({ isWalletListModalOpen: false });
+          updateSharedState({ isWalletListModalOpen: false, dRepIDBech32: dRepIDs?.dRepIDBech32 || '' });
           return { status: 'ok', stakeKey: stakeKeySet };
         } catch (e) {
           console.error(e);
@@ -657,7 +654,6 @@ function CardanoProvider(props: Props) {
     setAddress(undefined);
     setStakeKey(undefined);
     setStakeKeyBech32(undefined);
-    setVoter(undefined);
     setDelegatedDRepID(undefined);
     setPubDRepKey(undefined);
     setDRepID(undefined);
@@ -670,7 +666,6 @@ function CardanoProvider(props: Props) {
       address,
       walletState,
       enable,
-      voter,
       isEnabled,
       isMainnet,
       disconnectWallet,
@@ -685,7 +680,6 @@ function CardanoProvider(props: Props) {
       stakeKey,
       stakeKeyBech32,
       isGettingSignatures,
-      setVoter,
       latestEpoch,
       setStakeKey,
       stakeKeys,
@@ -702,7 +696,6 @@ function CardanoProvider(props: Props) {
       enable,
       isEnabling,
       walletState,
-      voter,
       isEnabled,
       isMainnet,
       disconnectWallet,
@@ -713,7 +706,6 @@ function CardanoProvider(props: Props) {
       isGettingSignatures,
       stakeKey,
       stakeKeyBech32,
-      setVoter,
       setStakeKey,
       stakeKeys,
       walletApi,

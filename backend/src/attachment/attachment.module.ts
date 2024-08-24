@@ -10,7 +10,7 @@ import { ConfigService } from '@nestjs/config';
   imports: [
     TypeOrmModule.forFeature([Attachment]),
     HttpModule.register({
-      timeout: 5000,
+      timeout: 30000,
       maxRedirects: 5,
     }),
   ],

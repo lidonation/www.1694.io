@@ -2,20 +2,28 @@ export const CIP_100 =
   'https://github.com/cardano-foundation/CIPs/blob/master/CIP-0100/README.md#';
 export const CIP_108 =
   'https://github.com/cardano-foundation/CIPs/blob/master/CIP-0108/README.md#';
-export const CIP_QQQ =
-  'https://github.com/cardano-foundation/CIPs/blob/master/CIP-QQQ/README.md#';
+export const CIP_119 =
+  'https://github.com/cardano-foundation/CIPs/blob/master/CIP-0119/README.md#';
 
 export function createDREPContext(metadataKeys: string[]) {
-  const bodyContext = metadataKeys.reduce(
-    (acc, key) => {
-      acc[key] = `CIPQQQ:${key}`;
-      return acc;
+  const specialKeys = ['references', 'image'];
+  const bodyContext = metadataKeys
+    .filter((key) => !specialKeys.includes(key))
+    .reduce(
+      (acc, key) => {
+        acc[key] = `CIP119:${key}`;
+        return acc;
+      },
+      {} as Record<string, any>,
+    );
+  bodyContext.image = {
+    '@id': 'CIP119:image',
+    '@context': {
+      ImageObject: 'https://schema.org/ImageObject',
     },
-    {} as Record<string, any>,
-  );
-
+  };
   bodyContext.references = {
-    '@id': 'CIPQQQ:references',
+    '@id': 'CIP119:references',
     '@container': '@set',
     '@context': {
       GovernanceMetadata: 'CIP100:GovernanceMetadataReference',
@@ -23,23 +31,22 @@ export function createDREPContext(metadataKeys: string[]) {
       label: 'CIP100:reference-label',
       uri: 'CIP100:reference-uri',
       referenceHash: {
-        '@id': 'CIPQQQ:referenceHash',
+        '@id': 'CIP119:referenceHash',
         '@context': {
-          hashDigest: 'CIPQQQ:hashDigest',
+          hashDigest: 'CIP119:hashDigest',
           hashAlgorithm: 'CIP100:hashAlgorithm',
         },
       },
     },
   };
-
   return {
     '@language': 'en-us',
     CIP100:
       'https://github.com/cardano-foundation/CIPs/blob/master/CIP-0100/README.md#',
-    CIPQQQ: CIP_QQQ,
+    CIP119: CIP_119,
     hashAlgorithm: 'CIP100:hashAlgorithm',
     body: {
-      '@id': 'CIPQQQ:body',
+      '@id': 'CIP119:body',
       '@context': bodyContext,
     },
     authors: {

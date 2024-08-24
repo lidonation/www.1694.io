@@ -26,10 +26,9 @@ const SkeletonLoader = () => (
     <div className="h-4 w-1/3 rounded bg-gray-200"></div>
   </div>
 );
-const NotFoundState = ({ hash }: { hash: string }) => (
+const NotFoundState = () => (
   <div className="flex max-w-md flex-col gap-3 rounded-xl border-2 border-red-300 bg-white p-3 shadow-xl">
     <p className="text-lg font-medium text-red-500">Proposal not found</p>
-    <ViewActionLink hash={hash} />
   </div>
 );
 
@@ -133,7 +132,7 @@ const DrepGovActionSubmitCard = ({
   }
 
   if (!cardData) {
-    return <NotFoundState hash={hash} />;
+    return <NotFoundState />;
   }
 
   return (

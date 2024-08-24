@@ -7,17 +7,19 @@ import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import UpdateProfileForm from '../molecules/UpdateProfileForm';
 import { getSingleDRep } from '@/services/requests/getSingleDrep';
-import { usePostUpdateDrepMutation } from '@/hooks/usePostUpdateDRepMutation';
-import { drepInput } from '@/models/drep';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { getSingleDRepViaVoterId } from '@/services/requests/getSingleDrepViaVoterId';
-import { v4 as uuidv4 } from 'uuid';
 import { renderJsonldValue } from '../atoms/MetadataViewer';
-import { getItemFromLocalStorage, setItemToLocalStorage } from '@/lib';
+import { getItemFromLocalStorage, setItemToLocalStorage, sha256 } from '@/lib';
 import {
   processExternalMetadata,
   submitMetadata,
 } from '@/lib/metadataProcessor';
+import { DRepMetadata } from '../../../types/commonTypes';
+import { getItemFromIndexedDB, setItemToIndexedDB } from '@/lib/indexedDb';
+import { postAddAttachmentToIPFS } from '@/services/requests/postAttachmentToIPFS';
+import { urls } from '@/constants';
+import { set } from 'cypress/types/lodash';
 const FormSchema = z.object({
   profileName: z.string().min(1, { message: 'Profile name is required' }),
   profileEmail: z.string().min(1, { message: 'Email is required' }),
@@ -25,7 +27,11 @@ const FormSchema = z.object({
   profileUrl: z.any(),
 });
 type InputType = z.infer<typeof FormSchema>;
-
+export type IPFSResponse = {
+  name: string;
+  ipfs_hash: string;
+  size: number;
+};
 const UpdateProfile = () => {
   const {
     register,
@@ -36,36 +42,62 @@ const UpdateProfile = () => {
   } = useForm<InputType>({
     resolver: zodResolver(FormSchema),
   });
-  const { dRepIDBech32, loginSignTransaction } = useCardano();
+  const { dRepIDBech32, loginSignTransaction, address } = useCardano();
   const [currentProfileUrl, setCurrentProfileUrl] = useState<string | null>(
     null,
   );
-  const [metadataUrl, setMetadataUrl] = useState<string | null>(null);
-  const [currentMetadata, setCurrentMetadata] = useState({
-    dRepName: '',
-    bio: '',
-    email: '',
-    references: '',
-  });
-  const { setIsNotDRepErrorModalOpen, drepId, setStep1Status, setNewDrepId, setCurrentRegistrationStep } =
-    useDRepContext();
+  const [currentMetadata, setCurrentMetadata] = useState(null);
+  const {
+    setIsNotDRepErrorModalOpen,
+    setStep1Status,
+    metadataJsonLd,
+  } = useDRepContext();
   const { addSuccessAlert } = useGlobalNotifications();
-  const updateDrepMutation = usePostUpdateDrepMutation();
+
   useEffect(() => {
-    setCurrentRegistrationStep(1);
-    const getDRep = async () => {
+    const getDRep = () => {
       try {
-        let drep;
-        if (drepId) {
-          drep = await getSingleDRep(drepId);
-        } else if (dRepIDBech32) {
-          drep = await getSingleDRepViaVoterId(dRepIDBech32);
+        if (!metadataJsonLd) return;
+        const metadataBody = metadataJsonLd?.body;
+        setValue('profileName', renderJsonldValue(metadataBody?.givenName));
+        setValue('profileBio', renderJsonldValue(metadataBody?.bio));
+        setValue('profileEmail', renderJsonldValue(metadataBody?.email));
+        setValue(
+          'profileUrl',
+          renderJsonldValue(metadataBody?.image?.contentUrl) || '',
+        );
+        setCurrentProfileUrl(
+          renderJsonldValue(metadataBody?.image?.contentUrl),
+        );
+        //map through the metadata and set the current metadata for each exisitng field
+        for (let key in metadataBody) {
+          if (key === 'image') {
+            setCurrentMetadata((prev: any) => ({
+              ...prev,
+              [key]: {
+                contentUrl: renderJsonldValue(metadataBody[key]?.contentUrl),
+                sha256: renderJsonldValue(metadataBody[key]?.sha256),
+              },
+            }));
+            continue;
+          }
+          if (key === 'references') {
+            setCurrentMetadata((prev: any) => ({
+              ...prev,
+              [key]: metadataBody[key],
+            }));
+            continue;
+          }
+          setCurrentMetadata((prev: any) => ({
+            ...prev,
+            [key]: renderJsonldValue(metadataBody[key]),
+          }));
         }
-        if (drep?.cexplorerDetails?.metadata_url) {
-          setMetadataUrl(drep.cexplorerDetails.metadata_url);
+        const isUpdating = getItemFromLocalStorage('isUpdating');
+        if (isUpdating) {
+          addSuccessAlert('Draft restored!');
         }
-        setNewDrepId(drep?.drep_id);
-        setCurrentProfileUrl(drep?.attachment_url);
+        return;
       } catch (error) {
         console.log(error);
       }
@@ -74,48 +106,8 @@ const UpdateProfile = () => {
     return () => {
       setStep1Status('success');
     };
-  }, [dRepIDBech32]);
-  useEffect(() => {
-    const restoreDraftIfAny = async () => {
-      try {
-        //before fetching try to get from local storage, and if isUpdating is true, preventing unnecessary fetch and later, txs
-        const isUpdating = getItemFromLocalStorage('isUpdating');
-        if (isUpdating) {
-          const locallySavedJsonld = getItemFromLocalStorage('metadataJsonLd');
-          const metadataBody = locallySavedJsonld?.body;
-          setValue('profileName', renderJsonldValue(metadataBody?.dRepName));
-          setValue('profileBio', renderJsonldValue(metadataBody?.bio));
-          setValue('profileEmail', renderJsonldValue(metadataBody?.email));
-          setCurrentMetadata({
-            dRepName: renderJsonldValue(metadataBody?.dRepName),
-            bio: renderJsonldValue(metadataBody?.bio),
-            email: renderJsonldValue(metadataBody?.email),
-            references: metadataBody?.references,
-          });
-          addSuccessAlert('Draft restored!');
-          return;
-        }
-        if (!metadataUrl) return;
-        //else fetch metadata
-        const { jsonLdData } = await processExternalMetadata({
-          metadataUrl,
-        });
-        const jsonLdDataBody = jsonLdData?.body;
-        setValue('profileName', renderJsonldValue(jsonLdDataBody?.dRepName));
-        setValue('profileBio', renderJsonldValue(jsonLdDataBody?.bio));
-        setValue('profileEmail', renderJsonldValue(jsonLdDataBody?.email));
-        setCurrentMetadata({
-          dRepName: renderJsonldValue(jsonLdDataBody?.dRepName),
-          bio: renderJsonldValue(jsonLdDataBody?.bio),
-          email: renderJsonldValue(jsonLdDataBody?.email),
-          references: jsonLdDataBody?.references,
-        });
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    restoreDraftIfAny();
-  }, [metadataUrl]);
+  }, [metadataJsonLd]);
+
 
   const saveProfile: SubmitHandler<InputType> = async (data) => {
     try {
@@ -125,21 +117,83 @@ const UpdateProfile = () => {
       }
       //if previous data doesnt match with current data, set isUpdating to true
       if (
-        currentMetadata?.dRepName !== data.profileName ||
+        currentMetadata?.givenName !== data.profileName ||
         currentMetadata?.bio !== data.profileBio ||
-        currentMetadata?.email !== data.profileEmail
+        currentMetadata?.email !== data.profileEmail ||
+        currentMetadata?.image !== data.profileUrl
       ) {
-        const metadataJson = {
-          dRepName: data.profileName,
+        const PREDEFINED_KEYS = [
+          'givenName',
+          'bio',
+          'email',
+          'references',
+          'paymentAddress',
+          'image',
+        ];
+        const rest = currentMetadata
+          ? Object.keys(currentMetadata)
+              .filter((key) => !PREDEFINED_KEYS.includes(key))
+              .reduce((acc, key) => {
+                acc[key] = currentMetadata[key];
+                return acc;
+              }, {})
+          : {};
+        const metadataJson: DRepMetadata = {
+          givenName: data.profileName,
           bio: data.profileBio,
           email: data.profileEmail,
-          references: JSON.stringify(currentMetadata?.references),
+          references: currentMetadata?.references,
+          paymentAddress: address,
+          ...rest,
         };
-        const modifiedJson = Object.entries(metadataJson).map(
-          ([key, value]: any[]) => {
-            return { id: uuidv4(), key: key, value: value };
-          },
-        );
+        //add the preexisitgn image if it exists
+        if (currentMetadata?.image) {
+          metadataJson['image'] = currentMetadata.image;
+        }
+
+        if (data.profileUrl) {
+          let imageFile: File | null = null;
+
+          if (typeof data.profileUrl !== 'string') {
+            if (data.profileUrl instanceof FileList) {
+              if (data.profileUrl.length > 0) {
+                imageFile = data.profileUrl[0];
+              }
+            } else {
+              // instance of File object
+              imageFile = data.profileUrl;
+            }
+          }
+
+          if (imageFile) {
+            // upload image to ipfs first (File format)
+            const formData = new FormData();
+            formData.append('attachment', imageFile);
+            const { ipfs_hash }: IPFSResponse = await postAddAttachmentToIPFS({
+              attachment: formData,
+            });
+            const imageUrl = `${urls.baseServerUrl}/attachments/ipfs/${ipfs_hash}`;
+            // hash the image to sha256
+            const imageHash = await sha256(imageFile);
+            metadataJson['image'] = {
+              contentUrl: imageUrl,
+              sha256: imageHash,
+            };
+          } else if (typeof data.profileUrl === 'string') {
+            // If it's a string, assume it's an existing URL
+            metadataJson['image'] = {
+              contentUrl: decodeURIComponent(data?.profileUrl).replace(
+                /^"|"$/g, // sanitize the url
+                '',
+              ),
+              sha256:
+                String(currentMetadata?.image?.sha256).replace(
+                  /^"|"$/g, // sanitize the url
+                  '',
+                ) || '',
+            };
+          }
+        }
         const metadataKeys = Object.keys(metadataJson);
         //submit the metadata
         const { jsonHash, jsonld } = await submitMetadata(
@@ -147,19 +201,12 @@ const UpdateProfile = () => {
           metadataJson as any,
           loginSignTransaction,
         );
-        setItemToLocalStorage('metadataJson', modifiedJson);
-        setItemToLocalStorage('metadataJsonLd', jsonld);
-        setItemToLocalStorage('metadataJsonHash', jsonHash);
+        // after saving to blockchain, save to indexedDB in jOSN format
+        await setItemToIndexedDB('metadataJsonLd', jsonld);
+        await setItemToIndexedDB('metadataJsonHash', jsonHash);
         setItemToLocalStorage('isUpdating', 'true');
       }
-      const formData = new FormData();
-      if (data.profileUrl) {
-        formData.append('profileUrl', data?.profileUrl[0] as string);
-      }
-      await updateDrepMutation.mutateAsync({
-        drepId: drepId,
-        drep: formData as drepInput,
-      });
+
       addSuccessAlert('Draft saved!');
     } catch (error) {
       console.log(error);

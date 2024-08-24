@@ -19,8 +19,10 @@ const MetadataViewer = ({
   metadataUrl?: string;
 }) => {
   const capitalizeFirstLetter = (str: string) => {
+    if (!str) return '';
     return str.charAt(0).toUpperCase() + str.slice(1);
   };
+  const hiddenKeys = ['image', 'paymentAddress'];
 
   const renderContent = () => {
     if (isMetadataLoading) {
@@ -35,51 +37,58 @@ const MetadataViewer = ({
       return <p className="text-sm">No metadata found</p>;
     }
 
-    return Object.entries(metadata.body).map(([key, value]: any[]) => {
-      const valueString = renderJsonldValue(value);
-      if (key === 'references') {
-        const linksArr = value as any[];
-        const links = linksArr.map((link, index) => {
+    return Object.entries(metadata.body)
+      .filter(([key, value]) => !hiddenKeys.includes(key))
+      .map(([key, value]: any[]) => {
+        const valueString = renderJsonldValue(value);
+        if (key === 'references') {
+          const linksArr = value as any[];
+          const links =
+            Array.isArray(linksArr) && linksArr.length
+              ? linksArr.map((link, index) => {
+                  return (
+                    <div
+                      key={index}
+                      className="flex w-full flex-col items-start gap-1 text-sm"
+                    >
+                      <p className="font-bold ">{capitalizeFirstLetter(link?.label?.['@value'])}</p>
+                      <Link
+                        className="w-full break-words font-light"
+                        href={
+                          link?.uri?.['@value']
+                            ? link?.uri?.['@value'] || '#'
+                            : '#'
+                        }
+                        target="_blank"
+                      >
+                        {link?.uri?.['@value']}
+                      </Link>
+                    </div>
+                  );
+                })
+              : [];
           return (
             <div
-              key={index}
-              className="flex w-full flex-col items-start gap-1 text-sm"
+              key={key}
+              className="flex flex-col items-start justify-center gap-1 text-sm"
             >
-              <p className="font-semibold">{link?.label?.['@value']}</p>
-              <Link
-                className="w-full break-words"
-                href={
-                  link?.uri?.['@value'] ? link?.uri?.['@value'] || '#' : '#'
-                }
-                target="_blank"
-              >
-                {link?.uri?.['@value']}
-              </Link>
+              <Typography variant="h6">References</Typography>
+              <div className="w-full pl-2 space-y-1">
+                {links.length > 0 ? links : 'Empty'}
+              </div>
             </div>
           );
-        });
+        }
         return (
           <div
             key={key}
             className="flex flex-col items-start justify-center gap-1 text-sm"
           >
-            <Typography variant="h6">References</Typography>
-            <div className="w-full pl-2">
-              {links.length > 0 ? links : 'Empty'}
-            </div>
+            <Typography variant="h6">{capitalizeFirstLetter(key)}</Typography>
+            <p className="pl-2">{valueString}</p>
           </div>
         );
-      }
-      return (
-        <div
-          key={key}
-          className="flex flex-col items-start justify-center gap-1 text-sm"
-        >
-          <Typography variant="h6">{capitalizeFirstLetter(key)}</Typography>
-          <p className="pl-2">{valueString}</p>
-        </div>
-      );
-    });
+      });
   };
 
   return (

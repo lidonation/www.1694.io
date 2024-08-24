@@ -10,7 +10,8 @@ export function SharedProvider({ children }) {
     loginCredentials:{
       signature:null,
       key:null
-    }
+    },
+    dRepIDBech32: '',
   });
 
   const updateSharedState = useCallback((newState) => {
