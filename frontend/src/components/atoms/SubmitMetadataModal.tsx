@@ -8,9 +8,9 @@ import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { useCardano } from '@/context/walletContext';
 import { CircularProgress, Tabs, Tab } from '@mui/material';
 import { useDRepContext } from '@/context/drepContext';
-import { getItemFromLocalStorage } from '@/lib';
 import { urls } from '@/constants';
-import { postAddMetadataAttachment } from '@/services/requests/postAttachment';
+import { getItemFromIndexedDB } from '@/lib/indexedDb';
+import { postAddMetadataAttachment } from '@/services/requests/postAddMetadataAttachment';
 
 const SubmitMetadataModal = ({ onClose, onSuccessfulSubmit }) => {
   const { signAndSubmitTransaction, buildDRepUpdateCert } = useCardano();
@@ -23,10 +23,13 @@ const SubmitMetadataModal = ({ onClose, onSuccessfulSubmit }) => {
   const [metadataUrl, setMetadataUrl] = useState('');
 
   useEffect(() => {
-    const jsonld = getItemFromLocalStorage('metadataJsonLd');
-    const jsonHash = getItemFromLocalStorage('metadataJsonHash');
-    setJsonld(jsonld);
-    setJsonHash(jsonHash);
+    const initiateMetadata = async () => { 
+      const jsonld = await getItemFromIndexedDB('metadataJsonLd');
+      const jsonHash = await getItemFromIndexedDB('metadataJsonHash');
+      setJsonld(jsonld);
+      setJsonHash(jsonHash);
+    }
+    initiateMetadata();
   }, []);
 
   const downloadJsonFile = () => {
@@ -43,7 +46,7 @@ const SubmitMetadataModal = ({ onClose, onSuccessfulSubmit }) => {
         const { status, valid } = await postMetadata({
           hash: jsonHash,
           url: metadataUrl,
-          standard: MetadataStandard.CIP100,
+          standard: MetadataStandard.CIP119,
         });
         if (status) {
           setIsValidatingSubmission(false);
@@ -83,7 +86,7 @@ const SubmitMetadataModal = ({ onClose, onSuccessfulSubmit }) => {
   const onSubmit = async () => {
     try {
       let currentHostedUrl = metadataUrl;
-      if (activeTab === 'hostForMe') {
+      if (activeTab === 'hostForMeOnIPFS') {
         currentHostedUrl = await postSaveMetadata();
       }
       if (activeTab === 'selfHost') {
@@ -142,7 +145,7 @@ const SubmitMetadataModal = ({ onClose, onSuccessfulSubmit }) => {
     </div>
   );
 
-  const renderHostForMeContent = () => (
+  const renderHostForMeOnIPFSContent = () => (
     <div className="flex flex-col gap-4">
       <p>
         This is the final step. We'll host the metadata for you in IPFS.
@@ -159,11 +162,11 @@ const SubmitMetadataModal = ({ onClose, onSuccessfulSubmit }) => {
         centered
       >
         <Tab label="Self Host" value="selfHost" />
-        <Tab label="Host for Me" value="hostForMe" />
+        <Tab label="Host on IPFS" value="hostForMeOnIPFS" />
       </Tabs>
       {activeTab === 'selfHost'
         ? renderSelfHostContent()
-        : renderHostForMeContent()}
+        : renderHostForMeOnIPFSContent()}
     </div>
   );
 

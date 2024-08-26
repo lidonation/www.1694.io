@@ -12,4 +12,17 @@ export type JSONValue =
   | JSONValue[];
 export enum MetadataStandard {
   CIP100 = 'CIP100',
+  CIP119 = 'CIP119',
+}
+
+export type DRepMetadata={
+  givenName: string;
+  email: string;
+  bio: string;
+  references:any[];
+  image?:{
+    contentUrl:string;
+    sha256:string;
+  }
+  paymentAddress?:string
 }

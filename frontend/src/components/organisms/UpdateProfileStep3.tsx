@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useCardano } from '@/context/walletContext';
 import { useDRepContext } from '@/context/drepContext';
-import { Address } from '@emurgo/cardano-serialization-lib-asmjs';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
@@ -12,66 +11,83 @@ import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import ProfileSubmitArea from '../atoms/ProfileSubmitArea';
 import { getSingleDRepViaVoterId } from '@/services/requests/getSingleDrepViaVoterId';
 import { getSingleDRep } from '@/services/requests/getSingleDrep';
+import { getItemFromIndexedDB, setItemToIndexedDB } from '@/lib/indexedDb';
+import { getItemFromLocalStorage } from '@/lib';
+import { processExternalMetadata } from '@/lib/metadataProcessor';
+import { renderJsonldValue } from '../atoms/MetadataViewer';
+import { blake2bHex } from 'blakejs';
 const FormSchema = z.object({
   statement: z.string(),
 });
 type InputType = z.infer<typeof FormSchema>;
 
 const UpdateProfileStep3 = () => {
-  const {
-    register,
-    handleSubmit,
-    getValues,
-    formState: { errors },
-    setValue,
-  } = useForm<InputType>({
+  const { register, handleSubmit, getValues, setValue } = useForm<InputType>({
     resolver: zodResolver(FormSchema),
   });
-  const { isEnabled, dRepIDBech32, stakeKey } = useCardano();
-
-  const { setIsNotDRepErrorModalOpen, drepId, setStep3Status, setNewDrepId} = useDRepContext();
-  const { addChangesSavedAlert } = useGlobalNotifications();
-  const updateDrepMutation = usePostUpdateDrepMutation();
+  const { dRepIDBech32 } = useCardano();
+  const [metadataUrl, setMetadataUrl] = useState<string | null>(null);
+  const {
+    setIsNotDRepErrorModalOpen,
+    drepId,
+    setStep3Status,
+    setNewDrepId,
+    metadataJsonLd,
+    setMetadataJsonLd,
+  } = useDRepContext();
+  const { addChangesSavedAlert, addSuccessAlert } = useGlobalNotifications();
   useEffect(() => {
-    const getDRep = async () => {
+    const getDRep = () => {
       try {
-        let drep;
-        if (drepId) {
-          drep = await getSingleDRep(drepId);
-        }else if(dRepIDBech32){
-          drep = await getSingleDRepViaVoterId(dRepIDBech32);
+        if (!metadataJsonLd) return;
+        const metadataBody = metadataJsonLd?.body;
+        setValue('statement', renderJsonldValue(metadataBody?.motivations));
+        //map through the metadata and set the current metadata for each exisitng field
+        const isUpdating = getItemFromLocalStorage('isUpdating');
+        if (isUpdating) {
+          addSuccessAlert('Draft restored!');
         }
-        setValue('statement', drep.drep_platform_statement);
-        setNewDrepId(drep.drep_id);
-        if(drep.drep_platform_statement){
-          setStep3Status('update')
-        }else setStep3Status('active')
+        return;
       } catch (error) {
         console.log(error);
       }
     };
     getDRep();
     return () => {
-      if(Boolean(getValues('statement'))){
-        setStep3Status('success')
-      } else setStep3Status('pending')
-    }
-  }, [dRepIDBech32]);
+      if (Boolean(getValues('statement'))) {
+        setStep3Status('success');
+      } else setStep3Status('pending');
+    };
+  }, [metadataJsonLd]);
+
   const saveProfile: SubmitHandler<InputType> = async (data) => {
     try {
       if (!dRepIDBech32 || dRepIDBech32 == '') {
         setIsNotDRepErrorModalOpen(true);
         return;
       }
-      const stakeAddress = Address.from_bytes(
-        Buffer.from(stakeKey, 'hex'),
-      ).to_bech32();
-      const formData = new FormData();
-      formData.append('platform_statement', data.statement);
-      const res = await updateDrepMutation.mutateAsync({
-        drepId: drepId,
-        drep: formData as drepInput,
-      });
+      let submittingMetadataJsonLd = metadataJsonLd;
+      //get existing metadata
+      //update the motivations field
+      //save the metadata locally
+      const hasExistingMotivations =
+        submittingMetadataJsonLd?.body?.motivations;
+      if (hasExistingMotivations) {
+        submittingMetadataJsonLd.body.motivations['@value'] = data.statement;
+      } else {
+        submittingMetadataJsonLd.body.motivations = {
+          '@value': data.statement,
+        };
+      }
+      //since its one field, we can just hash directly
+      const jsonHash = await blake2bHex(
+        JSON.stringify(submittingMetadataJsonLd),
+        undefined,
+        32,
+      );
+      setMetadataJsonLd(submittingMetadataJsonLd);
+      await setItemToIndexedDB('metadataJsonLd', submittingMetadataJsonLd);
+      await setItemToIndexedDB('metadataJsonHash', jsonHash);
       addChangesSavedAlert();
     } catch (error) {
       console.log(error);

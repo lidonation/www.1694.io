@@ -4,7 +4,7 @@ import PostTextareaInput from '../atoms/PostTextareaInput';
 import ProfileSubmitArea from '../atoms/ProfileSubmitArea';
 import ProfileUploadCard from '../atoms/ProfileUploadCard';
 
-const NewProfileForm = ({ register, control, errors, setProfileUrl }) => {
+const NewProfileForm = ({ register, control, errors, setProfileUrl, currentProfileUrl }) => {
   return (
     <div className="mt-3 flex flex-col gap-4">
       <PostInput
@@ -31,7 +31,7 @@ const NewProfileForm = ({ register, control, errors, setProfileUrl }) => {
         errors={errors}
         dataTestId={'profile-email-input'}
       />
-      <ProfileUploadCard registerUrl={register} control={control} setProfileUrl={setProfileUrl}/>
+      <ProfileUploadCard registerUrl={register} control={control} setProfileUrl={setProfileUrl} currentProfileUrl={currentProfileUrl}/>
       <ProfileSubmitArea />
     </div>
   );

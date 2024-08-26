@@ -3,22 +3,31 @@ import { v4 as uuidv4 } from 'uuid';
 import { ModalWrapper } from './modal/ModalWrapper';
 import { HtmlTooltip } from './HoverChip';
 import Button from './Button';
-import { generateMetadataBody, submitMetadata } from '@/lib/metadataProcessor';
-import { downloadJson } from '@/lib/jsonutils';
-import { postMetadata } from '@/services/requests/postMetadata';
-import { MetadataStandard } from '../../../types/commonTypes';
+import { submitMetadata } from '@/lib/metadataProcessor';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { useCardano } from '@/context/walletContext';
-import { CircularProgress } from '@mui/material';
-import { setItemToLocalStorage } from '@/lib';
+import {
+  CircularProgress,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+} from '@mui/material';
+import { getItemFromLocalStorage, setItemToLocalStorage } from '@/lib';
+import { setItemToIndexedDB } from '@/lib/indexedDb';
 
-const IMMUTABLE_KEYS = ['dRepName', 'bio', 'email', 'references'];
-
-const MetadataEditor = ({ drepId, onClose, initialMetadata = null, onSuccessfulSubmit }) => {
+const IMMUTABLE_KEYS = ['givenName', 'bio', 'email'];
+const HIDDEN_KEYS = ['references', 'image'];
+const MetadataEditor = ({
+  onClose,
+  initialMetadata = null,
+  onSuccessfulSubmit,
+}) => {
   const [metadata, setMetadata] = useState([]);
+  const [references, setReferences] = useState([]);
   const { loginSignTransaction } = useCardano();
+  const [imageData, setImageData] = useState(null);
   const [isSigningData, setIsSigningData] = useState(false);
-  const [errors, setErrors] = useState<any>({});
+  const [errors, setErrors] = useState({});
   const { addErrorAlert, addSuccessAlert } = useGlobalNotifications();
   useEffect(() => {
     if (initialMetadata === null) {
@@ -26,10 +35,32 @@ const MetadataEditor = ({ drepId, onClose, initialMetadata = null, onSuccessfulS
         acc.push({ id: uuidv4(), key, value: '' });
         return acc;
       }, []);
-      defaultMetadata.push({ id: uuidv4(), key: 'references', value: '[]' });
       setMetadata(defaultMetadata);
+      setReferences([]);
     } else {
-      setMetadata(initialMetadata);
+      const referencesData = initialMetadata.find(
+        (item) => item.key === 'references',
+      );
+      const imageData = initialMetadata.find((item) => item.key === 'image');
+      if (referencesData) {
+        try {
+          setReferences(referencesData.value);
+        } catch (error) {
+          console.error('Error parsing references:', error);
+          setReferences([]);
+        }
+      }
+      if (imageData) {
+        try {
+          setImageData(imageData.value);
+        } catch (error) {
+          console.error('Error parsing image:', error);
+          setImageData(null);
+        }
+      }
+      setMetadata(
+        initialMetadata.filter((item) => !HIDDEN_KEYS.includes(item.key)),
+      );
     }
   }, [initialMetadata]);
 
@@ -40,7 +71,6 @@ const MetadataEditor = ({ drepId, onClose, initialMetadata = null, onSuccessfulS
       ),
     );
 
-    // Clear error for this field if it exists
     if (errors[id] && errors[id][field]) {
       setErrors({ ...errors, [id]: { ...errors[id], [field]: null } });
     }
@@ -57,9 +87,24 @@ const MetadataEditor = ({ drepId, onClose, initialMetadata = null, onSuccessfulS
       return;
     }
     setMetadata(metadata.filter((item) => item.id !== id));
-    // Remove any errors for this item
-    const { [id]: _, ...restErrors } = errors;
+    const { [id]: _, ...restErrors } = errors as any;
     setErrors(restErrors);
+  };
+
+  const handleAddReference = () => {
+    setReferences([...references, { id: uuidv4(), key: '', value: '' }]);
+  };
+
+  const handleReferenceChange = (id, field, value) => {
+    setReferences(
+      references.map((item) =>
+        item.id === id ? { ...item, [field]: value } : item,
+      ),
+    );
+  };
+
+  const handleDeleteReference = (id) => {
+    setReferences(references.filter((item) => item.id !== id));
   };
 
   const validateAndSave = async () => {
@@ -70,7 +115,6 @@ const MetadataEditor = ({ drepId, onClose, initialMetadata = null, onSuccessfulS
       metadata.forEach((item) => {
         newErrors[item.id] = {};
 
-        // Check if the key is empty or contains spaces
         if (!item.key.trim()) {
           newErrors[item.id].key = 'Key cannot be empty';
           hasErrors = true;
@@ -79,9 +123,17 @@ const MetadataEditor = ({ drepId, onClose, initialMetadata = null, onSuccessfulS
           hasErrors = true;
         }
 
-        // Check if the value is empty
         if (!item.value.trim()) {
           newErrors[item.id].value = 'Value cannot be empty';
+          hasErrors = true;
+        }
+      });
+
+      references.forEach((item) => {
+        if (!item.key.trim() || !item.value.trim()) {
+          newErrors[item.id] = {
+            key: 'Both key and value are required for references',
+          };
           hasErrors = true;
         }
       });
@@ -89,20 +141,21 @@ const MetadataEditor = ({ drepId, onClose, initialMetadata = null, onSuccessfulS
       setErrors(newErrors);
       if (!hasErrors) {
         const modifiedMetadata = metadata.reduce((acc, item) => {
-          const value =
-            typeof item.value === 'object' &&
-            item.value !== null &&
-            '@value' in item.value
-              ? item.value['@value']
-              : item.value;
-
-          acc[item.key] = value;
-
+          acc[item.key] = item.value;
           return acc;
-        }, {});
-        // Extract keys from the metadata
-        const metadataKeys = metadata.map((item) => item.key);
-        // sign metadata tx
+        }, {}); // has the key/ value metadata object
+        const modifiedReferences = references.map(({ key, value }) => {
+          return { label: key, uri: value };
+        });
+        modifiedMetadata.references = modifiedReferences;
+        const metadataKeys = [
+          ...metadata.map((item) => item.key),
+          'references', 
+        ];
+        if (imageData) {
+          modifiedMetadata.image = imageData;
+          metadataKeys.push('image');
+        }
         setIsSigningData(true);
         const { jsonld, jsonHash } = await submitMetadata(
           metadataKeys,
@@ -110,13 +163,12 @@ const MetadataEditor = ({ drepId, onClose, initialMetadata = null, onSuccessfulS
           loginSignTransaction,
         );
         setItemToLocalStorage('isUpdating', 'true');
-        setItemToLocalStorage('metadataJson', metadata);
-        setItemToLocalStorage('metadataJsonLd', jsonld);
-        setItemToLocalStorage('metadataJsonHash', jsonHash);
+        await setItemToIndexedDB('metadataJsonLd', jsonld);
+        await setItemToIndexedDB('metadataJsonHash', jsonHash);
         setIsSigningData(false);
         addSuccessAlert('Metadata updated!');
         onSuccessfulSubmit();
-        onClose()
+        onClose();
       }
     } catch (error) {
       console.log(error);
@@ -131,9 +183,8 @@ const MetadataEditor = ({ drepId, onClose, initialMetadata = null, onSuccessfulS
         <h2 className="text-xl font-bold">Edit Metadata</h2>
         <div className="max-h-72 overflow-y-auto">
           {metadata &&
-            metadata.length > 0 &&
-            metadata.map(({ id, key, value }) => (
-              <div key={id} className="mb-4">
+            metadata.map(({ id, key, value }, index) => (
+              <div key={index} className="mb-4">
                 <div className="my-2 flex items-center gap-2">
                   <input
                     type="text"
@@ -174,7 +225,7 @@ const MetadataEditor = ({ drepId, onClose, initialMetadata = null, onSuccessfulS
                     >
                       <img
                         src="/svgs/alert-circle.svg"
-                        alt="delete"
+                        alt="error"
                         className="h-5 w-5"
                       />
                     </HtmlTooltip>
@@ -182,6 +233,89 @@ const MetadataEditor = ({ drepId, onClose, initialMetadata = null, onSuccessfulS
                 </div>
               </div>
             ))}
+
+          <Accordion>
+            <AccordionSummary
+              expandIcon={
+                <img
+                  src="/svgs/chevron-down.svg"
+                  alt="expand"
+                  className="h-5 w-5"
+                />
+              }
+            >
+              <h3>References</h3>
+            </AccordionSummary>
+            <AccordionDetails>
+              {references &&
+                references.map(({ id, key, value }, index) => (
+                  <div key={index} className="mb-4">
+                    <div className="my-2 flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={key}
+                        onChange={(e) =>
+                          handleReferenceChange(id, 'key', e.target.value)
+                        }
+                        placeholder="Key (e.g., twitter)"
+                        className="flex-grow rounded border p-2"
+                      />
+                      <input
+                        type="text"
+                        value={value}
+                        onChange={(e) =>
+                          handleReferenceChange(id, 'value', e.target.value)
+                        }
+                        placeholder="Value (e.g., https://x.com/username)"
+                        className="flex-grow rounded border p-2"
+                      />
+                      <div
+                        onClick={() => handleDeleteReference(id)}
+                        aria-label="delete"
+                        className="cursor-pointer"
+                      >
+                        <img
+                          src="/svgs/trash.svg"
+                          alt="delete"
+                          className="h-5 w-5"
+                        />
+                      </div>
+                      {errors[id] && (
+                        <HtmlTooltip
+                          title={
+                            <div className="text-sm text-red-500">
+                              <p>{errors[id].key}</p>
+                            </div>
+                          }
+                          arrow
+                          placement="top"
+                        >
+                          <img
+                            src="/svgs/alert-circle.svg"
+                            alt="error"
+                            className="h-5 w-5"
+                          />
+                        </HtmlTooltip>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              <Button
+                handleClick={handleAddReference}
+                aria-valuetext="add reference"
+                className="flex w-full items-center gap-3 rounded-xl border border-dotted shadow-md"
+                bgColor="transparent"
+                variant="outlined"
+              >
+                <img
+                  src="/svgs/circle-plus.svg"
+                  alt="add"
+                  className="h-5 w-5"
+                />
+                <p>Add reference</p>
+              </Button>
+            </AccordionDetails>
+          </Accordion>
         </div>
         <div className="mb-2 flex w-full">
           <Button

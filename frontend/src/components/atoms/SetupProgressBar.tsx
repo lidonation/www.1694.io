@@ -92,6 +92,39 @@ const SetupProgressBar = () => {
       router.push(`/dreps/workflow/profile/update/step${step}`);
     }
   };
+  useEffect(() => {
+    const setStepOnPathChange = () => {
+      const match = pathname.match(
+        /\/dreps\/workflow\/profile\/update\/step(\d+)/,
+      );
+      if (match) {
+        const step = Number(match[1]);
+        switch (step) {
+          case 1:
+            setStep1Status('active');
+            setCurrentRegistrationStep(1);
+            break;
+          case 2:
+            setStep2Status('active');
+            setCurrentRegistrationStep(2);
+            break;
+          case 3:
+            setStep3Status('active');
+            setCurrentRegistrationStep(3);
+            break;
+          case 4:
+            setStep4Status('active');
+            setCurrentRegistrationStep(4);
+            break;
+          case 5:
+            setStep5Status('active');
+            setCurrentRegistrationStep(5);
+            break;
+        }
+      }
+    };
+    setStepOnPathChange();
+  }, [pathname]);
 
   useEffect(() => {
     const activeIndex = [
@@ -131,7 +164,7 @@ const SetupProgressBar = () => {
         {stepStatusChip(3, 'Platform statement', step3Status, handleNavigate)}
       </div>
       <div ref={stepRefs[3]}>
-        {stepStatusChip(4, 'Social media', step4Status, handleNavigate)}
+        {stepStatusChip(4, 'References/Links', step4Status, handleNavigate)}
       </div>
       <div ref={stepRefs[4]}>
         {stepStatusChip(5, 'Metadata setup', step5Status, handleNavigate)}

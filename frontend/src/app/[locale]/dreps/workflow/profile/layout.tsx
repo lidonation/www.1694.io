@@ -1,6 +1,6 @@
 'use client';
 import SetupProgressBar from '@/components/atoms/SetupProgressBar';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { useDRepContext } from '@/context/drepContext';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
@@ -11,13 +11,13 @@ interface Props {
 
 const Layout = ({ children }: Props) => {
   const pathname = usePathname();
-  const { currentLocale, isLoggedIn, setLoginModalOpen, loginModalOpen } =
+  const { currentLocale, isLoggedIn, setLoginModalOpen, loginModalOpen, isWalletListModalOpen } =
     useDRepContext();
-    const {addWarningAlert}=useGlobalNotifications()
+  const { addWarningAlert } = useGlobalNotifications();
 
   useEffect(() => {
     if (
-      !isLoggedIn &&
+      !isLoggedIn && !isWalletListModalOpen &&
       pathname.includes(`/${currentLocale}/dreps/workflow/profile/update`)
     ) {
       setLoginModalOpen(true);
@@ -28,7 +28,9 @@ const Layout = ({ children }: Props) => {
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
       event.preventDefault();
-      addWarningAlert("Changes made will be stored locally, until you submit onchain");
+      addWarningAlert(
+        'Changes made will be stored locally, until you submit onchain',
+      );
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);

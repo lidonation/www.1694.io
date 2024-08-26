@@ -8,6 +8,7 @@ import { convertString, formattedAda } from '@/lib';
 import MetadataViewer from './MetadataViewer';
 import { isActive } from '../molecules/DRepsTable';
 import { getExternalMetadata } from '@/services/requests/postExternalMetadataUrl';
+import DRepSocialLinks from './DRepSocialLinks';
 
 const DrepClaimProfileCard = ({
   drep,
@@ -19,8 +20,10 @@ const DrepClaimProfileCard = ({
   const [isMetadataLoading, setIsMetadataLoading] = useState(false);
   const [metadataError, setMetadataError] = useState<string | null>(null);
   const [metadata, setMetadata] = useState<any>(null);
+  const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [metadataUrl, setMetadataUrl] = useState<string | null>(null);
   const [status, setStatus] = useState<any>('Inactive');
+  const [socialLinks, setSocialLinks] = useState<any>(null);
   useEffect(() => {
     const fetchData = async () => {
       const metadataUrl = drep?.cexplorerDetails?.metadata_url;
@@ -31,6 +34,17 @@ const DrepClaimProfileCard = ({
         setMetadataError(null);
         const response = await getExternalMetadata({ metadataUrl });
         const jsonLdData = response;
+        const imageUrl = jsonLdData?.body?.image?.contentUrl;
+        if (imageUrl) {
+          setImageSrc(imageUrl);
+        }
+        if (
+          jsonLdData?.body?.references &&
+          Array.isArray(jsonLdData?.body?.references) &&
+          jsonLdData?.body?.references.length > 0
+        ) {
+          setSocialLinks(jsonLdData?.body?.references);
+        }
         setMetadata(jsonLdData);
       } catch (error) {
         setMetadata(null);
@@ -67,7 +81,7 @@ const DrepClaimProfileCard = ({
         ) : (
           <img
             className="w-full"
-            src={`${drep?.attachment_url ? drep.attachment_url : '/svgs/user-circle.svg'}`}
+            src={`${imageSrc ? imageSrc : '/svgs/user-circle.svg'}`}
             alt=""
           />
         )}
@@ -126,20 +140,7 @@ const DrepClaimProfileCard = ({
           <img src="/svgs/copy.svg" alt="copy" />
         </CopyToClipboard>
       </div>
-      <div className="flex flex-row gap-2">
-        <Link href={drep ? drep?.drep_social?.github || '#' : '#'}>
-          <img className="w-full" src="/svgs/github-dark.svg" alt="" />
-        </Link>
-        <Link href={drep ? drep?.drep_social?.x || '#' : '#'}>
-          <img className="w-full" src="/svgs/twitter.svg" alt="" />
-        </Link>
-        <Link href={drep ? drep?.drep_social?.facebook || '#' : '#'}>
-          <img className="w-full" src="/svgs/fb-dark.svg" alt="" />
-        </Link>
-        <Link href={drep ? drep?.drep_social?.instagram || '#' : '#'}>
-          <img className="w-full" src="/svgs/ig-dark.svg" alt="" />
-        </Link>
-      </div>
+      <DRepSocialLinks links={socialLinks} />
       <div>
         {state ? (
           <Skeleton animation={'wave'} width={150} height={20} />

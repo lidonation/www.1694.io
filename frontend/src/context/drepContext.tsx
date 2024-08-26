@@ -16,6 +16,9 @@ import {
   getItemFromLocalStorage,
   removeItemFromLocalStorage,
 } from '@/lib';
+import { processExternalMetadata } from '@/lib/metadataProcessor';
+import { getSingleDRepViaVoterId } from '@/services/requests/getSingleDrepViaVoterId';
+import { getItemFromIndexedDB } from '@/lib/indexedDb';
 
 interface DRepContext {
   step1Status: stepStatus['status'];
@@ -46,6 +49,10 @@ interface DRepContext {
   setCurrentLocale: React.Dispatch<React.SetStateAction<string>>;
   setNewDrepId: React.Dispatch<React.SetStateAction<number>>;
   setLoginModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  metadataJsonLd: any;
+  setMetadataJsonLd: React.Dispatch<React.SetStateAction<any>>;
+  metadataJsonHash: any;
+  setMetadataJsonHash: React.Dispatch<React.SetStateAction<any>>;
 }
 
 interface Props {
@@ -65,6 +72,8 @@ function DRepProvider(props: Props) {
   const { sharedState, updateSharedState } = useSharedContext();
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [isNotDRepErrorModalOpen, setIsNotDRepErrorModalOpen] = useState(false);
+  const [metadataJsonLd, setMetadataJsonLd] = useState(null);
+  const [metadataJsonHash, setMetadataJsonHash] = useState(null);
   const [currentRegistrationStep, setCurrentRegistrationStep] =
     useState<currentRegistrationStep['step']>(1);
   const [drepId, setNewDrepId] = useState<number | null>(null);
@@ -92,6 +101,72 @@ function DRepProvider(props: Props) {
   useEffect(() => {
     persistLogin();
   }, []);
+  useEffect(() => {
+    handleDrepProfileCreationState();
+  }, [sharedState?.dRepIDBech32]);
+  const handleDrepProfileCreationState = async () => {
+    try {
+      let metadataJsonLd = null;
+      const drepId = sharedState?.dRepIDBech32;
+      if (!drepId) return;
+      const drep = await getSingleDRepViaVoterId(drepId);
+      if (drep?.drep_id) {
+        setNewDrepId(drep?.drep_id);
+      }
+      if (drep?.signature_drepSignature) {
+        setStep2Status('success');
+      }
+      //check for metadata locally first
+      const locallySavedJsonld = await getItemFromIndexedDB('metadataJsonLd');
+      const locallySavedHash = await getItemFromIndexedDB('metadataJsonHash');
+      if (locallySavedHash) {
+        setMetadataJsonHash(locallySavedHash);
+      }
+      if (locallySavedJsonld) {
+        metadataJsonLd = locallySavedJsonld;
+        setMetadataJsonLd(locallySavedJsonld);
+      } else {
+        //else get the metadata from the blockchain
+        if (drep?.cexplorerDetails?.metadata_url) {
+          const { jsonLdData, jsonHash } = await processExternalMetadata({
+            metadataUrl: drep?.cexplorerDetails?.metadata_url,
+          });
+          if (!jsonLdData) return;
+          metadataJsonLd = jsonLdData;
+          setMetadataJsonLd(jsonLdData);
+          setMetadataJsonHash(jsonHash);
+        }
+      }
+      // if metadata is not found ignore
+      if (!metadataJsonLd) return;
+      const metadataBody = metadataJsonLd?.body;
+      // else set the metadata to the context
+      // depending on the content set the status
+
+      //set steps accordingly
+      if (metadataBody?.givenName || metadataBody?.bio || metadataBody?.email) {
+        setStep1Status('success');
+      }
+      if (metadataBody?.motivations) {
+        setStep3Status('success');
+      }
+      if (
+        metadataBody?.references &&
+        Array.isArray(metadataBody?.references) &&
+        metadataBody?.references.length > 0
+      ) {
+        const currentSocialLinks = ['x', 'github', 'instagram', 'facebook'];
+        const hasSocialLinks = metadataBody?.references.some((ref: any) =>
+          currentSocialLinks.includes(ref.label?.['@value']),
+        );
+        if (hasSocialLinks) setStep4Status('success');
+      }
+      if (metadataBody) setStep5Status('success');
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const persistLogin = () => {
     const token = getItemFromLocalStorage('token');
     if (token) {
@@ -108,7 +183,7 @@ function DRepProvider(props: Props) {
       setIsLoggedIn(true);
       updateSharedState({ loginCredentials: { signature, key } });
     }
-  }
+  };
   const logout = useCallback(async () => {
     removeItemFromLocalStorage('token');
     setIsLoggedIn(false);
@@ -126,6 +201,10 @@ function DRepProvider(props: Props) {
       step3Status,
       step4Status,
       step5Status,
+      metadataJsonLd,
+      setMetadataJsonLd,
+      metadataJsonHash,
+      setMetadataJsonHash,
       isMobileDrawerOpen,
       currentRegistrationStep,
       loginModalOpen,
@@ -160,6 +239,8 @@ function DRepProvider(props: Props) {
       step5Status,
       isMobileDrawerOpen,
       sharedState,
+      metadataJsonLd,
+      metadataJsonHash,
     ],
   );
 
