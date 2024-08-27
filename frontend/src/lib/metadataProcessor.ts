@@ -100,8 +100,8 @@ export const renderJSONLDToJSONArr = (jsonld: any) => {
     const referencesJson = jsonld.body.references.map((ref) => {
       return {
         id: uuidv4(),
-        key: ref.label?.['@value'],
-        value: ref.uri?.['@value'],
+        key: ref.label?.['@value'] || ref.label,
+        value: ref.uri?.['@value'] || ref.uri,
       };
     });
     modifiedJsonArr.map((item) => {

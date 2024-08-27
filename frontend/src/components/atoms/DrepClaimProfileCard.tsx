@@ -153,17 +153,6 @@ const DrepClaimProfileCard = ({
           />
         )}
       </div>
-      <div>
-        <Typography variant="h6">Statement</Typography>
-        <p className="text-sm">
-          {' '}
-          {state ? (
-            <Skeleton animation={'wave'} width={150} height={20} />
-          ) : (
-            drep?.drep_platform_statement || 'Empty'
-          )}
-        </p>
-      </div>
       <div className="flex flex-col gap-2">
         <Button disabled>Set up Metadata</Button>
         <Button disabled variant="outlined" bgColor="transparent">

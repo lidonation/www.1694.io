@@ -10,7 +10,7 @@ import { faker } from '@faker-js/faker';
 import * as blake from 'blakejs';
 import { HttpService } from '@nestjs/axios';
 import { AttachmentService } from 'src/attachment/attachment.service';
-import { lastValueFrom, Observable } from 'rxjs';
+import { Observable } from 'rxjs';
 import { AxiosResponse } from 'axios';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
@@ -35,7 +35,6 @@ import {
 } from 'src/queries/drepStats';
 import { validateMetadataStandard } from 'src/common/validateMetadataStandard';
 import { catchError, firstValueFrom } from 'rxjs';
-import { parseMetadata } from 'src/common/parseMetadata';
 import { Metadata } from 'src/entities/metadata.entity';
 import { getEpochParams } from 'src/queries/getEpochParams';
 import { getDRepDelegatorsHistory } from 'src/queries/drepDelegatorsHistory';
@@ -256,12 +255,6 @@ export class DrepService {
     const drep = await this.voltaireService
       .getRepository('Drep')
       .createQueryBuilder('drep')
-      .leftJoinAndSelect(
-        'attachment',
-        'attachment',
-        'attachment.parentEntity = :parentEntity AND attachment.parentId = drep.id',
-        { parentEntity: 'drep' },
-      )
       .leftJoinAndSelect('signature', 'signature', 'signature.drepId = drep.id')
       .where('drep.id = :drepId', { drepId })
       .getRawMany();
@@ -282,13 +275,6 @@ export class DrepService {
     ) {
       throw new NotFoundException('Drep not found!');
     }
-    if (combinedResult.attachment_url) {
-      combinedResult.attachment_url =
-        await this.attachmentService.parseBufferToBase64(
-          combinedResult.attachment_url,
-          combinedResult.attachment_attachmentType,
-        );
-    }
     //account for voting options
     if (
       combinedResult.cexplorerDetails.view.includes('drep_always_abstain') ||
@@ -305,12 +291,6 @@ export class DrepService {
     const drep = await this.voltaireService
       .getRepository('Drep')
       .createQueryBuilder('drep')
-      .leftJoinAndSelect(
-        'attachment',
-        'attachment',
-        'attachment.parentEntity = :parentEntity AND attachment.parentId = drep.id',
-        { parentEntity: 'drep' },
-      )
       .leftJoinAndSelect('signature', 'signature', 'signature.drepId = drep.id')
       .where('signature.drepVoterId = :drepVoterId', { drepVoterId })
       .getRawMany();
@@ -328,13 +308,6 @@ export class DrepService {
     ) {
       throw new NotFoundException('Drep not found!');
     }
-    if (combinedResult.attachment_url) {
-      combinedResult.attachment_url =
-        await this.attachmentService.parseBufferToBase64(
-          combinedResult.attachment_url,
-          combinedResult.attachment_attachmentType,
-        );
-    }
     //account for voting options
     if (
       combinedResult.cexplorerDetails.view.includes('drep_always_abstain') ||
@@ -351,61 +324,70 @@ export class DrepService {
     //also get his details from cexplorer
     const viewParam = drepVoterId;
     const drepCexplorer = await this.cexplorerService.manager.query(
-      `WITH RankedRows AS (
-              SELECT 
-                  dh.id AS drep_hash_id, 
-                  dh.raw, 
-                  dh.view, 
-                  dd.id AS drep_distr_id, 
-                  dd.amount, 
-                  dd.epoch_no, 
-                  dd.active_until,
-                  dr.deposit, 
-                  dr.drep_hash_id AS reg_drep_hash_id, 
-                  dr.voting_anchor_id AS reg_voting_anchor_id,  
-                  va.id AS voting_anchor_id, 
-                  va.url AS metadata_url, 
-                  va.data_hash,
-                  sa.view AS stake_address,
-                  (
-                    SELECT COUNT(DISTINCT dv.addr_id)
-                    FROM delegation_vote dv
-                    WHERE dv.drep_hash_id = dh.id
-                  ) AS delegation_vote_count,
-                  ROW_NUMBER() OVER (PARTITION BY dh.id ORDER BY reg_tx_bk.epoch_no DESC) AS RowNum
-              FROM 
-                  drep_hash AS dh
-              LEFT JOIN 
-                  drep_distr AS dd ON dh.id = dd.hash_id
-              LEFT JOIN 
-                  drep_registration AS dr ON dh.id = dr.drep_hash_id
-              LEFT JOIN 
-                  voting_anchor AS va ON dr.voting_anchor_id = va.id
-              LEFT JOIN 
-                  delegation_vote AS dv ON dh.id = dv.drep_hash_id 
-              LEFT JOIN 
-                  tx AS reg_tx ON dr.tx_id = reg_tx.id 
-              LEFT JOIN 
-                  block AS reg_tx_bk ON reg_tx.block_id = reg_tx_bk.id 
-              LEFT JOIN
-                  stake_address AS sa ON dv.addr_id = sa.id 
-              WHERE 
-                  dh.view = $1
-          )
-          SELECT 
-              drep_hash_id,
-              view,
-              delegation_vote_count,
-              stake_address,
-              amount,
-              epoch_no,
-              active_until,
-              deposit,
-              metadata_url
-          FROM 
-              RankedRows
-          WHERE 
-              RowNum = 1`,
+      `WITH LatestRegistration AS (
+    SELECT 
+        dr.id AS reg_id, 
+        dr.drep_hash_id, 
+        dr.voting_anchor_id, 
+        dr.deposit,
+        va.url AS metadata_url,
+        ROW_NUMBER() OVER (PARTITION BY dr.drep_hash_id ORDER BY reg_tx_bk.time DESC) AS RegRowNum
+    FROM 
+        drep_registration AS dr
+    LEFT JOIN 
+        voting_anchor AS va ON dr.voting_anchor_id = va.id
+    LEFT JOIN 
+        tx AS reg_tx ON dr.tx_id = reg_tx.id 
+    LEFT JOIN 
+        block AS reg_tx_bk ON reg_tx.block_id = reg_tx_bk.id
+)
+, RankedRows AS (
+    SELECT 
+        dh.id AS drep_hash_id, 
+        dh.raw, 
+        dh.view, 
+        dd.id AS drep_distr_id, 
+        dd.amount, 
+        dd.epoch_no, 
+        dd.active_until,
+        lr.deposit, 
+        lr.reg_id AS reg_drep_hash_id, 
+        lr.voting_anchor_id AS reg_voting_anchor_id,  
+        lr.metadata_url,
+        sa.view AS stake_address,
+        (
+            SELECT COUNT(DISTINCT dv.addr_id)
+            FROM delegation_vote dv
+            WHERE dv.drep_hash_id = dh.id
+        ) AS delegation_vote_count,
+        ROW_NUMBER() OVER (PARTITION BY dh.id ORDER BY dd.epoch_no DESC) AS RowNum
+    FROM 
+        drep_hash AS dh
+    LEFT JOIN 
+        drep_distr AS dd ON dh.id = dd.hash_id
+    LEFT JOIN 
+        LatestRegistration AS lr ON dh.id = lr.drep_hash_id AND lr.RegRowNum = 1
+    LEFT JOIN 
+        delegation_vote AS dv ON dh.id = dv.drep_hash_id 
+    LEFT JOIN 
+        stake_address AS sa ON dv.addr_id = sa.id 
+    WHERE 
+        dh.view = $1
+)
+SELECT 
+    drep_hash_id,
+    view,
+    delegation_vote_count,
+    stake_address,
+    amount,
+    epoch_no,
+    active_until,
+    deposit,
+    metadata_url
+FROM 
+    RankedRows
+WHERE 
+    RowNum = 1`,
       [viewParam],
     );
     return drepCexplorer[0];
@@ -414,7 +396,7 @@ export class DrepService {
     const drepRegistrationData = await this.cexplorerService.manager.query(
       `SELECT 
               dh.id AS drep_hash_id, 
-              CAST(reg_tx.hash AS TEXT) AS reg_tx_hash,
+              SUBSTRING(CAST(reg_tx.hash AS TEXT) FROM 3) AS reg_tx_hash,
               reg_tx_bk.time AS date_of_registration,
               reg_tx_bk.epoch_no AS epoch_of_registration
           FROM 
@@ -429,11 +411,7 @@ export class DrepService {
               dh.view = $1`,
       [drepVoterId],
     );
-    const modified = {
-      ...drepRegistrationData[0],
-      reg_tx_hash: String(drepRegistrationData[0].reg_tx_hash).slice(2), // remove 0x
-    };
-    return modified;
+    return drepRegistrationData[0];
   }
   async getDrepTimeline(
     drep: any,
@@ -559,7 +537,7 @@ export class DrepService {
     const drepVotingHistory = (await this.cexplorerService.manager.query(
       `SELECT  
           dh.view, 
-          CAST(prop_creation_tx.hash AS TEXT) AS gov_action_proposal_id,
+          SUBSTRING(CAST(prop_creation_tx.hash AS TEXT) FROM 3) AS gov_action_proposal_id,
           prop_creation_bk.time AS prop_inception,
           gp.description,
           vp.vote,
@@ -592,7 +570,6 @@ export class DrepService {
       return {
         ...item,
         type: 'voting_activity',
-        gov_action_proposal_id: String(item.gov_action_proposal_id).slice(2), // removes the hexadecimal prefix|x
       };
     });
   }
@@ -697,19 +674,6 @@ export class DrepService {
     const insertedDrep = await this.voltaireService
       .getRepository('Drep')
       .insert(drepDto);
-    if (profileUrl) {
-      const optimizedProfileImageUrl =
-        await this.attachmentService.parseImageSize(
-          profileUrl,
-          profileUrl.mimetype,
-        );
-      await this.attachmentService.insertAttachment(
-        optimizedProfileImageUrl,
-        profileUrl.mimetype,
-        insertedDrep.identifiers[0].id,
-        'drep',
-      );
-    }
     const signatureDto = {
       drep: insertedDrep.identifiers[0].id,
       drepVoterId: drepDto?.voter_id,
@@ -842,31 +806,11 @@ export class DrepService {
     const foundDrep = await this.voltaireService
       .getRepository('Drep')
       .createQueryBuilder('drep')
-      .leftJoinAndSelect(
-        'attachment',
-        'attachment',
-        'attachment.parentEntity = :parentEntity AND attachment.parentId = drep.id',
-        { parentEntity: 'drep' },
-      )
       .where('drep.id = :drepId', { drepId })
       .getRawMany();
 
     if (!foundDrep) {
       throw new NotFoundException('Drep to be updated not found!');
-    }
-    if (profileUrl) {
-      const optimizedProfileImageBuffer =
-        await this.attachmentService.parseImageSize(
-          profileUrl,
-          profileUrl.mimetype,
-        );
-      await this.attachmentService.updateAttachment(
-        optimizedProfileImageBuffer,
-        foundDrep[0].attachment_id,
-        profileUrl.mimetype,
-        drepId,
-        'drep',
-      );
     }
     if (drep.signature) {
       await this.voltaireService
@@ -1076,7 +1020,6 @@ export class DrepService {
       [drepHashId],
     );
     const addrIds = addrIdsResult.map((row) => row.addr_id);
-
     const drepDelegations = await this.cexplorerService.manager.query(
       getDRepDelegatorsHistory(addrIds),
       [drepHashId, drepVoterId, beforeDate, tillDate],

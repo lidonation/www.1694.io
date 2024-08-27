@@ -10,6 +10,9 @@ const renderValue = (value: any) => {
   if (typeof value === 'object' && value['@value']) {
     return value['@value'];
   }
+  if (typeof value === 'string'){
+    return value;
+  }
   return JSON.stringify(value);
 };
 export const validateMetadataStandard = async (

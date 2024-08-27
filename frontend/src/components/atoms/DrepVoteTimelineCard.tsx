@@ -6,11 +6,11 @@ import { CopyToClipboard } from 'react-copy-to-clipboard';
 const VoteStatusChip = ({ date }: { date: string }) => {
   return (
     <div className="flex flex-row items-center justify-between">
-      <div className="flex w-fit flex-row items-center gap-2 rounded-full bg-purple-500 px-3 py-1 text-sm">
+      <div className="flex w-fit flex-row items-center gap-1 rounded-full bg-purple-500 px-2 py-1 text-sm">
         <img src="/svgs/file-check.svg" alt="" />
-        <p>Voted</p>
+        <p className='text-sm'>Voted</p>
       </div>
-      <p>{new Date(date).toLocaleDateString('en-GB')}</p>
+      <p className='text-sm'>{new Date(date).toLocaleDateString('en-GB')}</p>
     </div>
   );
 };

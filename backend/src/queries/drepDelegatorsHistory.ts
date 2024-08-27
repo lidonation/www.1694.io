@@ -1,4 +1,15 @@
-export const getDRepDelegatorsHistory = (addrIds: []) => `
+export const getDRepDelegatorsHistory = (addrIds: []) => {
+  const addrIdsCondition =
+    addrIds.length > 0
+      ? `WHERE
+    dva.addr_id IN (${addrIds.join(',')})
+    AND (current_drep.id = $1 OR previous_drep.id = $1)
+    AND b.time::DATE BETWEEN $4::DATE AND $3::DATE`
+      : `WHERE
+    (current_drep.id = $1 OR previous_drep.id = $1)
+    AND b.time::DATE BETWEEN $4::DATE AND $3::DATE`;
+
+  const query = `
 SELECT 
     sa.view AS stake_address,
     $2::TEXT AS target_drep,
@@ -92,9 +103,9 @@ LEFT JOIN
     drep_hash previous_drep 
 ON 
     dvb.drep_hash_id = previous_drep.id
-WHERE  
-    dva.addr_id IN (${addrIds.join(',')}) 
-    AND (current_drep.id = $1 OR previous_drep.id = $1)
-    AND b.time::DATE BETWEEN $4::DATE AND $3::DATE
+
+    ${addrIdsCondition}
 ORDER BY 
     b.time DESC;`;
+  return query;
+};
