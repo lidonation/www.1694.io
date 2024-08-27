@@ -67,6 +67,7 @@ export class DrepController {
     @Query('stakeKeys') stakeKeys?: StakeKeys,
     @Query('startTimeCursor') startTimeCursor?: number,
     @Query('endTimeCursor') endTimeCursor?: number,
+    @Query('filterValues') filterValues?: string[] | undefined,
   ) {
     let drepId: number | undefined;
     let drepVoterId: string | undefined;
@@ -100,6 +101,7 @@ export class DrepController {
       delegation,
       startTimeCursor,
       endTimeCursor,
+      filterValues
     );
 
     return drepTimeline;

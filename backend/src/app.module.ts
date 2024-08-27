@@ -12,6 +12,7 @@ import { ReactionsModule } from './reactions/reactions.module';
 import { AuthService } from './auth/auth.service';
 import { HttpModule } from '@nestjs/axios';
 import { ProposalsModule } from './proposals/proposals.module';
+import { MiscellaneousModule } from './miscellaneous/miscellaneous.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { ProposalsModule } from './proposals/proposals.module';
     CommentsModule,
     ReactionsModule,
     ProposalsModule,
+    MiscellaneousModule
   ],
   controllers: [],
   providers: [AuthService],

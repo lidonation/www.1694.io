@@ -40,6 +40,7 @@ import { useSharedContext } from './sharedContext';
 import getEpochParams from '@/services/requests/getEpochParams';
 import { generateAnchor } from '@/lib/generateAnchor';
 import { CONFIGURED_NETWORK_ID } from '@/constants';
+import getFirstEpoch from '@/services/requests/getFIrstEpoch';
 
 interface Props {
   children: React.ReactNode;
@@ -53,6 +54,7 @@ interface EnableResponse {
 interface CardanoContext {
   address?: string;
   latestEpoch?: number;
+  firstEpoch?: number;
   balance?: string;
   disconnectWallet: () => Promise<void>;
   enable: (walletName: string) => Promise<EnableResponse>;
@@ -129,6 +131,7 @@ function CardanoProvider(props: Props) {
   } | null>(null);
 
   const [latestEpoch, setLatestEpoch] = useState<number>(0);
+  const [firstEpoch, setFirstEpoch] = useState<number>(0);
   const [registeredStakeKeysListState, setRegisteredPubStakeKeysState] =
     useState<string[]>([]);
   const [error, setError] = useState<string | undefined>(undefined);
@@ -160,8 +163,22 @@ function CardanoProvider(props: Props) {
     };
     enableCurrentWallet();
     const getLatestEpoch = async () => {
-      const protocol = await getEpochParams();
-      setLatestEpoch(protocol.epoch);
+      const [protocolResult, firstEpochResult] = await Promise.allSettled([
+        getEpochParams(),
+        getFirstEpoch(),
+      ]);
+
+      if (protocolResult.status === 'fulfilled') {
+        setLatestEpoch(protocolResult.value.epoch);
+      } else {
+        console.error('Failed to fetch epoch params:', protocolResult.reason);
+      }
+
+      if (firstEpochResult.status === 'fulfilled') {
+        setFirstEpoch(firstEpochResult.value.no);
+      } else {
+        console.error('Failed to fetch first epoch:', firstEpochResult.reason);
+      }
     };
     getLatestEpoch();
   }, []);
@@ -681,6 +698,7 @@ function CardanoProvider(props: Props) {
       stakeKeyBech32,
       isGettingSignatures,
       latestEpoch,
+      firstEpoch,
       setStakeKey,
       stakeKeys,
       walletApi,
@@ -702,6 +720,7 @@ function CardanoProvider(props: Props) {
       dRepID,
       dRepIDBech32,
       latestEpoch,
+      firstEpoch,
       pubDRepKey,
       isGettingSignatures,
       stakeKey,
