@@ -17,46 +17,46 @@ export default function VoltaireMenu() {
   };
   const menuItems = [
     {
-      label: 'Voltaire',
-      text: 'Explore the revised on-chain governance system for Cardano’s future.',
-      href: '#',
-      svg: '/svgs/voltaire_nav/loader.svg',
-    },
-    {
-      label: 'Sancho Gov Tool',
-      text: 'Delegate your voting power or become a DRep on SanchoNet.',
-      href: '#',
+      label: 'GovTool',
+      text: 'Register to become a DRep, delegate voting power to DReps, & review & vote on governance actions.',
+      href: '//preview.gov.tools',
       svg: '/svgs/voltaire_nav/notification.svg',
     },
     {
-      label: 'Lido Nation',
-      text: 'Discover the power of decentralization with Lido Nation.',
-      href: 'https://www.lidonation.com/',
-      svg: '/svgs/voltaire_nav/wave.svg',
-    },
-    {
       label: 'Cardano',
-      text: 'Drive global change with Cardano’s innovative blockchain technology.',
-      href: '#',
+      text: 'Learn more about Cardano proof-of-stake blockchain platform.',
+      href: '//cardano.org/',
       svg: '/svgs/voltaire_nav/search.svg',
-    },
-    {
-      label: 'Catalyst Explorer',
-      text: 'Collaborate and research for groundbreaking advancements in Cardano.',
-      href: '#',
-      svg: '/svgs/voltaire_nav/search.svg',
-    },
-    {
-      label: 'Cardano CIPs',
-      text: 'Contribute to the evolution of Cardano with Cardano Improvement Proposals.',
-      href: '#',
-      svg: '/svgs/voltaire_nav/secondary-search.svg',
     },
     {
       label: 'Proposal Discussion Forum',
-      text: 'Engage in discussions, solve doubts, and improve governance.',
-      href: '#',
+      text: 'Engage in community-driven governance conversations and decision-making.',
+      href: '//preview.gov.tools/proposal_discussion',
       svg: '/svgs/voltaire_nav/search.svg',
+    },
+    {
+      label: 'Intersect',
+      text: 'Intersect is a member-based organization for the Cardano ecosystem.',
+      href: '//www.intersectmbo.org/',
+      svg: '/svgs/voltaire_nav/loader.svg',
+    },
+    {
+      label: 'Catalyst Explorer',
+      text: 'Explore the world/’s largest decentralized innovation engine for solving real-world challenges.',
+      href: '//catalystexplorer.com/',
+      svg: '/svgs/voltaire_nav/search.svg',
+    },
+    {
+        label: 'Cardano CIPs',
+        text: 'Explore Cardano Improvement Proposals: to change the Cardano ecosystem, processes, or environment.',
+        href: '//cips.cardano.org/',
+        svg: '/svgs/voltaire_nav/secondary-search.svg',
+    },
+    {
+      label: 'Lido Nation',
+      text: 'Blockchain Education in plain English, Kiswahili, and Español.',
+      href: '//www.lidonation.com/',
+      svg: '/svgs/voltaire_nav/wave.svg',
     },
   ];
 
@@ -70,7 +70,7 @@ export default function VoltaireMenu() {
         onClick={handleClick}
         className="cursor-pointer text-gray-800"
       >
-        Voltaire
+        Ecosystem
       </p>
 
       {!!menuItems && (
