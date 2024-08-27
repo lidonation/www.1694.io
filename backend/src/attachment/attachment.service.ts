@@ -105,17 +105,19 @@ export class AttachmentService {
         parentid: !String(parentId).includes('null') ? parentId : null,
         attachmentType: await this.parseMimeType(mimeType),
       };
-  
-      const attachmentRepo = await this.voltaireService.getRepository('Attachment');
+
+      const attachmentRepo =
+        await this.voltaireService.getRepository('Attachment');
       const createdAttachment = attachmentRepo.create(newAttachment);
-      const res = await attachmentRepo.save(createdAttachment) as Attachment;
+      const res = (await attachmentRepo.save(createdAttachment)) as Attachment;
       return res;
-  
     } catch (error) {
       //duplicate key value violates unique constraint
       if (error.code === '23505') {
         try {
-          const existingAttachment =await this.voltaireService.getRepository('Attachment').findOneBy({ name: attachment.originalname });
+          const existingAttachment = await this.voltaireService
+            .getRepository('Attachment')
+            .findOneBy({ name: attachment.originalname });
           return existingAttachment;
         } catch (findError) {
           console.log('Error finding existing attachment:', findError);
@@ -127,7 +129,7 @@ export class AttachmentService {
       }
     }
   }
-  
+
   async getSingleAttachment(attachmentId: number) {
     try {
       const attachment = await this.voltaireService
@@ -188,7 +190,9 @@ export class AttachmentService {
       console.log(error);
     }
   }
-  async uploadAttachmentToIPFS(attachment:Express.Multer.File | Buffer | Uint8Array | Blob | FormData ): Promise<IPFSResponse> {
+  async uploadAttachmentToIPFS(
+    attachment: Express.Multer.File | Buffer | Uint8Array | Blob | FormData,
+  ): Promise<IPFSResponse> {
     try {
       const res = await lastValueFrom(
         this.httpService.post(
@@ -198,7 +202,7 @@ export class AttachmentService {
             headers: {
               project_id: this.configService.get<string>(
                 'BLOCKFROST_IPFS_PROJECT_ID',
-              )
+              ),
             },
           },
         ),
@@ -209,29 +213,30 @@ export class AttachmentService {
       throw new HttpException(error.response.data, error.response.status);
     }
   }
-  async getAttachmentFromIPFS(hash: string, res:Response): Promise<any> {
+  async getAttachmentFromIPFS(hash: string, res: Response): Promise<any> {
     try {
       const response = await lastValueFrom(
-        this.httpService.get(`https://ipfs.blockfrost.io/api/v0/ipfs/gateway/${hash}`, {
-          headers: {
-            project_id: this.configService.get<string>(
-              'BLOCKFROST_IPFS_PROJECT_ID',
-            ),
+        this.httpService.get(
+          `https://ipfs.blockfrost.io/api/v0/ipfs/gateway/${hash}`,
+          {
+            headers: {
+              project_id: this.configService.get<string>(
+                'BLOCKFROST_IPFS_PROJECT_ID',
+              ),
+            },
+            responseType: 'stream', // Used stream to handle large files or non-JSON data
           },
-          responseType: 'stream', // Used stream to handle large files or non-JSON data
-        },
-      ),
-    );
-    for (const [key, value] of Object.entries(response.headers)) {
-      res.setHeader(key, value as string);
-    }
+        ),
+      );
 
-    // Stream the data directly to the client
-    response.data.pipe(res);
-      //return response.data;
+      for (const [key, value] of Object.entries(response.headers)) {
+        res.setHeader(key, value as string);
+      }
+      // Stream the data directly to the client
+      return response.data.pipe(res);
     } catch (error) {
       console.error(error);
-      throw new HttpException(error.response.data, error.response.status);
+      throw new HttpException(error.response.statusText || 'An error occured', error.response.status);
     }
   }
 }

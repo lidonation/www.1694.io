@@ -216,17 +216,6 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
           />
         )}
       </div>
-      <div>
-        <Typography variant="h6">Statement</Typography>
-        <p className="text-sm">
-          {' '}
-          {state ? (
-            <Skeleton animation={'wave'} width={150} height={20} />
-          ) : (
-            drep?.drep_platform_statement || 'Empty'
-          )}
-        </p>
-      </div>
       {(drep?.cexplorerDetails?.view == dRepIDBech32 ||
         drep?.signature_drepVoterId == dRepIDBech32) && (
         <div className="flex max-w-prose flex-col gap-2">

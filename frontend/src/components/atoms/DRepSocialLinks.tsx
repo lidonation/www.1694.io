@@ -1,14 +1,19 @@
 import Link from 'next/link';
 import React from 'react';
 
-const DRepSocialLinks = ({ links }) => {
+const DRepSocialLinks = ({ links }: { links: any[] }) => {
   const retrieveLink = (link: string) => {
     if (!links) return '#';
-    return (
-      links.find((ref) => ref.label?.['@value'].includes(link))?.uri?.[
-        '@value'
-      ] || '#'
-    );
+    let uri = '#';
+
+    const matchingLink = links.find((ref) => {
+      const label = (ref.label?.['@value'] || ref?.label || "") as string;
+      return label.includes(link);
+    });
+    if (matchingLink) {
+      uri = matchingLink.uri?.['@value'] || matchingLink?.uri;
+    }
+    return uri;
   };
   return (
     <div className="flex flex-row gap-2">

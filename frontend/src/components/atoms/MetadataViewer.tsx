@@ -5,6 +5,9 @@ export const renderJsonldValue = (value: any) => {
   if (typeof value === 'object') {
     return value['@value'] ? value['@value'] : 'Empty';
   }
+  if (typeof value === 'string') {
+    return value;
+  }
   return JSON.stringify(value);
 };
 const MetadataViewer = ({
@@ -46,22 +49,24 @@ const MetadataViewer = ({
           const links =
             Array.isArray(linksArr) && linksArr.length
               ? linksArr.map((link, index) => {
+                const linkLabel = link?.label?.['@value'] || link?.label ;
+                const linkUri = link?.uri?.['@value'] || link?.uri ;
                   return (
                     <div
                       key={index}
                       className="flex w-full flex-col items-start gap-1 text-sm"
                     >
-                      <p className="font-bold ">{capitalizeFirstLetter(link?.label?.['@value'])}</p>
+                      <p className="font-bold ">{capitalizeFirstLetter(linkLabel)}</p>
                       <Link
                         className="w-full break-words font-light"
                         href={
-                          link?.uri?.['@value']
-                            ? link?.uri?.['@value'] || '#'
+                          linkUri
+                            ? linkUri || '#'
                             : '#'
                         }
                         target="_blank"
                       >
-                        {link?.uri?.['@value']}
+                        {linkUri}
                       </Link>
                     </div>
                   );
