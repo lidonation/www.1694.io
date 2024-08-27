@@ -4,22 +4,35 @@ import DrepTimelineWaterfall from './DrepTimelineWaterfall';
 import Link from 'next/link';
 import Button from '../atoms/Button';
 import { useCardano } from '@/context/walletContext';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import {
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from 'next/navigation';
 import _ from 'lodash';
 import { useGetDRepTimelineQuery } from '@/hooks/useGetDRepTimelineQuery';
 import DRepTimelineLoader from '../Loaders/DRepTimelineLoader';
 import ReloadIcon from '../atoms/svgs/ReloadIcon';
 import { formatNumberTimeToReadable } from '@/lib';
 import { Fade, Grow } from '@mui/material';
+import DRepTimeLIneFilters from './DRepTimeLineFilters';
+import DatabaseNullIcon from '../atoms/svgs/DatabaseNullIcon';
 
 const DrepTimeline = ({ cexplorerDetails }: { cexplorerDetails: any }) => {
-  const router = useRouter();
-  const [queryEndTime, setQueryEndTime] = useState(() => Date.now());
-  const [queryStartTime, setQueryStartTime] = useState(
-    () => queryEndTime - 5 * 24 * 60 * 60 * 1000,
-  );
-  const [timelineEndTime, setTimelineEndTime] = useState(queryEndTime);
-  const [timelineStartTime, setTimelineStartTime] = useState(queryStartTime);
+  const { drepid } = useParams();
+  const [filterValues, setFilterValues] = useState<string[]>(null);
+  const {
+    DRepActivity,
+    isDRepActivityLoading,
+    isInitialLoad,
+    setQueryEndTime,
+    setQueryStartTime,
+    timelineEndTime,
+    setTimelineEndTime,
+    timelineStartTime,
+    setTimelineStartTime,
+  } = useGetDRepTimelineQuery(drepid, filterValues);
 
   const [isAtLatestPoint, setIsAtLatestPoint] = useState(false);
   const [isAtOldestPoint, setIsAtOldestPoint] = useState(false);
@@ -27,14 +40,74 @@ const DrepTimeline = ({ cexplorerDetails }: { cexplorerDetails: any }) => {
   const [isLoadingNewerData, setIsLoadingNewerData] = useState(false);
   const [isLoadingOlderData, setIsLoadingOlderData] = useState(false);
 
+  const { dRepIDBech32, latestEpoch, firstEpoch } = useCardano();
   const searchParams = useSearchParams();
-  const { dRepIDBech32, latestEpoch } = useCardano();
-  const { drepid } = useParams();
-  const { DRepActivity, isDRepActivityLoading, isInitialLoad } =
-    useGetDRepTimelineQuery(drepid, queryEndTime, queryStartTime);
+  const pathName = usePathname();
+  const { replace } = useRouter();
+  const params = new URLSearchParams(searchParams);
 
   const startTimeFormatted = formatNumberTimeToReadable(timelineStartTime);
   const endTimeFormatted = formatNumberTimeToReadable(timelineEndTime);
+
+  useEffect(() => {
+    if (searchParams) {
+      if (params.get('start')) {
+        const startTime = Number(params.get('start'));
+        setQueryStartTime(startTime);
+        setTimelineStartTime(startTime);
+      }
+      if (params.get('end')) {
+        const endTime = Number(params.get('end'));
+        setQueryEndTime(endTime);
+        setTimelineEndTime(endTime);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (searchParams) {
+      if (params.get('category')) {
+        const itemFilters = params.get('category');
+        const activeItems = itemFilters.split('-');
+        setFilterValues(activeItems);
+      } else {
+        setFilterValues(undefined);
+      }
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (!isDRepActivityLoading) {
+      setIsLoadingOlderData(false);
+      setIsLoadingNewerData(false);
+    }
+  }, [isDRepActivityLoading]);
+
+  useEffect(() => {
+    if (DRepActivity.length > 0) {
+      const epochs = DRepActivity.filter((item) => item.type === 'epoch');
+
+      const timelineLatestEpoch = epochs.reduce((latest, current) => {
+        return new Date(current.timestamp) > new Date(latest.timestamp)
+          ? current
+          : latest;
+      }, epochs[0]);
+
+      const timelineOldestEpoch = epochs.reduce((oldest, current) => {
+        return new Date(current.timestamp) < new Date(oldest.timestamp)
+          ? current
+          : oldest;
+      }, epochs[0]);
+
+      !!timelineLatestEpoch && timelineLatestEpoch.no === latestEpoch
+        ? setIsAtLatestPoint(true)
+        : setIsAtLatestPoint(false);
+
+      !!timelineOldestEpoch && timelineOldestEpoch.no === firstEpoch
+        ? setIsAtOldestPoint(true)
+        : setIsAtOldestPoint(false);
+    }
+  }, [DRepActivity]);
 
   const loadMoreData = () => {
     setIsLoadingOlderData(true);
@@ -73,65 +146,15 @@ const DrepTimeline = ({ cexplorerDetails }: { cexplorerDetails: any }) => {
     updateURL(newStartTime, newEndTime);
   };
 
-  useEffect(() => {
-    if (searchParams) {
-      const params = new URLSearchParams(searchParams);
-      if (params.get('startTime')) {
-        const startTime = new Date(params.get('startTime')).getTime();
-        setQueryStartTime(startTime);
-        setTimelineStartTime(startTime);
-      }
-      if (params.get('endTime')) {
-        const endTime = new Date(params.get('endTime')).getTime();
-        setQueryEndTime(endTime);
-        setTimelineEndTime(endTime);
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!isDRepActivityLoading) {
-      setIsLoadingOlderData(false);
-      setIsLoadingNewerData(false);
-    }
-  }, [isDRepActivityLoading]);
-
-  useEffect(() => {
-    if (DRepActivity.length > 0) {
-      const epochs = DRepActivity.filter((item) => item.type === 'epoch');
-
-      const timelineLatestEpoch = epochs.reduce((latest, current) => {
-        return new Date(current.timestamp) > new Date(latest.timestamp)
-          ? current
-          : latest;
-      }, epochs[0]);
-
-      const timelineOldestEpoch = epochs.reduce((oldest, current) => {
-        return new Date(current.timestamp) < new Date(oldest.timestamp)
-          ? current
-          : oldest;
-      }, epochs[0]);
-
-      if (!!timelineLatestEpoch && timelineLatestEpoch.no === latestEpoch) {
-        setIsAtLatestPoint(true);
-      }
-
-      if (!!timelineOldestEpoch && timelineOldestEpoch.no === 0) {
-        setIsAtOldestPoint(true);
-      }
-    }
-  }, [DRepActivity]);
-
-  const updateURL = useCallback((startTime?: number, endTime?: number) => {
-    const params = new URLSearchParams(searchParams);
+  const updateURL = (startTime?: number, endTime?: number) => {
     if (startTime) {
-      params.set('startTime', new Date(startTime).toISOString());
+      params.set('start', String(startTime));
     }
     if (endTime) {
-      params.set('endTime', new Date(endTime).toISOString());
+      params.set('end', String(endTime));
     }
-    router.replace(`?${params.toString()}`, { scroll: false });
-  }, []);
+    replace(`${pathName}?${params.toString()}`, { scroll: false });
+  };
 
   return (
     <div className="flex h-full w-full flex-col gap-5 bg-white px-5 py-3">
@@ -140,11 +163,14 @@ const DrepTimeline = ({ cexplorerDetails }: { cexplorerDetails: any }) => {
           <p className="w-full text-2xl font-bold sm:w-auto lg:text-3xl">
             Timeline
           </p>
-          {cexplorerDetails?.view == dRepIDBech32 && (
-            <Button size="medium" className="flex w-fit items-center">
-              <Link href={`/dreps/workflow/notes/new`}>Add a note</Link>
-            </Button>
-          )}
+          <div className="flex items-center gap-4">
+            {cexplorerDetails?.view == dRepIDBech32 && (
+              <Button size="medium" className="flex w-fit items-center">
+                <Link href={`/dreps/workflow/notes/new`}>Add a note</Link>
+              </Button>
+            )}
+            <DRepTimeLIneFilters />
+          </div>
         </div>
       </div>
 
@@ -170,7 +196,7 @@ const DrepTimeline = ({ cexplorerDetails }: { cexplorerDetails: any }) => {
                 </div>
               )}
               <div className="flex flex-col items-center">
-                {isAtLatestPoint && (
+                {isAtLatestPoint && DRepActivity.length > 0 && (
                   <p className="text-gray-500">You're all caught up!</p>
                 )}
                 <p className="text-sm">
@@ -191,6 +217,18 @@ const DrepTimeline = ({ cexplorerDetails }: { cexplorerDetails: any }) => {
                 </div>
               </Grow>
             )}
+            {!DRepActivity ||
+              (DRepActivity.length < 1 && (
+                <div className="flex h-[50vh] flex-col items-center justify-center">
+                  <div className="my-16 flex w-full flex-col items-center rounded-lg border-2 border-dashed border-gray-300 p-12 hover:border-gray-400">
+                    <DatabaseNullIcon width={60} height={50} />
+                    <span className="mt-2 block text-sm font-semibold text-gray-500">
+                      No results found for this period try loading newer or
+                      older
+                    </span>
+                  </div>
+                </div>
+              ))}
 
             {DRepActivity && DRepActivity.length > 0 && (
               <DrepTimelineWaterfall activity={DRepActivity} />
@@ -215,7 +253,7 @@ const DrepTimeline = ({ cexplorerDetails }: { cexplorerDetails: any }) => {
                   <span className="font-semibold">{startTimeFormatted}</span> to{' '}
                   <span className="font-semibold">{endTimeFormatted}</span>
                 </p>
-                {isAtOldestPoint && (
+                {isAtOldestPoint && DRepActivity.length > 0 && (
                   <p className="text-gray-500">You're all caught up!</p>
                 )}
               </div>

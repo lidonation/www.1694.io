@@ -420,14 +420,14 @@ WHERE
     delegation?: Delegation,
     beforeDate?: number,
     tillDate?: number,
+    filterValues?: string[] | undefined,
   ) {
-    // return drep
-    //get current time in timestamp form then backtrack till the time the drep is registered
-    //limit activity to three epochs or five days=>432000seconds
-    //get epochs
-    //get voting activity
-    //get notes
-    // TODO: get delegating activity across a certain epoch
+    const includeVotingActivity = !filterValues || filterValues.includes('va');
+    const includeDelegations = !filterValues || filterValues.includes('d');
+    const includeNotes = !filterValues || filterValues.includes('n');
+    const includeClaimedProfile = !filterValues || filterValues.includes('cp');
+    const includeRegistration = !filterValues || filterValues.includes('r');
+  
     const drepId = drep?.drep_id;
     const startingTime = beforeDate ? new Date(Number(beforeDate)) : new Date();
     const endingTime = tillDate
@@ -435,23 +435,39 @@ WHERE
       : new Date(new Date(startingTime).getTime() - 432000000); // 5 days ago
 
     const epochs = await this.getEpochs(startingTime, endingTime);
-    const drepRegData = await this.getDrepDateofRegistration(drepVoterId);
-    const regDate = new Date(drepRegData?.date_of_registration).getTime();
-    const claimDate = new Date(drep?.drep_createdAt).getTime();
-    const drepVotingHistory = await this.getDrepVotingActivity(
-      drepVoterId,
-      startingTime,
-      endingTime,
-    );
-    const drepDelegatorsHistory = await this.getDrepDelegators(
-      drepVoterId,
-      startingTime,
-      endingTime,
-    );
+  
+    let drepRegData = null;
+    let regDate = null;
+    if (includeRegistration) {
+      drepRegData = await this.getDrepDateofRegistration(drepVoterId);
+      regDate = new Date(drepRegData?.date_of_registration).getTime();
+    }
+  
+    let claimDate = null;
+    if (includeClaimedProfile) {
+      claimDate = new Date(drep?.drep_createdAt).getTime();
+    }
+  
+    let drepVotingHistory = [];
+    if (includeVotingActivity) {
+      drepVotingHistory = await this.getDrepVotingActivity(
+        drepVoterId,
+        startingTime,
+        endingTime,
+      );
+    }
+  
+    let drepDelegatorsHistory = [];
+    if (includeDelegations) {
+      drepDelegatorsHistory = await this.getDrepDelegators(
+        drepVoterId,
+        startingTime,
+        endingTime,
+      );
+    }
+  
     let drepNotes = [];
-
-    // Retrieve notes if drepId is defined
-    if (drepId) {
+    if (includeNotes && drepId) {
       drepNotes = await this.getDRepNotes(
         drepId,
         startingTime,
@@ -460,6 +476,7 @@ WHERE
         delegation,
       );
     }
+  
     const drepActivity = [
       ...epochs.map((epoch) => ({
         ...epoch,
@@ -478,18 +495,12 @@ WHERE
       })),
       ...drepDelegatorsHistory,
     ];
-    // Add the registration event if it falls within the time range
-    if (startingTime.getTime() > regDate && endingTime.getTime() < regDate) {
-      drepActivity.push({
-        type: 'registration',
-        timestamp: drepRegData.date_of_registration,
-        tx_hash: drepRegData.reg_tx_hash,
-        epoch_no: drepRegData.epoch_of_registration,
-      });
-    }
-    // Add claimed event if drepId is pesent if it falls within the time range
-    if (
+
+     // Add claimed event if drepId is present and falls within the time range
+     if (
+      includeClaimedProfile &&
       drepId &&
+      claimDate &&
       startingTime.getTime() > claimDate &&
       endingTime.getTime() < claimDate
     ) {
@@ -500,14 +511,31 @@ WHERE
         claimedDRepId: drepVoterId,
       });
     }
+  
+    // Add the registration event if it falls within the time range
+    if (
+      includeRegistration &&
+      regDate &&
+      startingTime.getTime() > regDate &&
+      endingTime.getTime() < regDate
+    ) {
+      drepActivity.push({
+        type: 'registration',
+        timestamp: drepRegData.date_of_registration,
+        tx_hash: drepRegData.reg_tx_hash,
+        epoch_no: drepRegData.epoch_of_registration,
+      });
+    }
+  
     // Sort the combined array by timestamp from latest to earliest
     drepActivity.sort(
       (a, b) =>
         new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
     );
-
+  
     return drepActivity;
   }
+  
 
   async getEpochs(beforeDate: Date, tillDate: Date) {
     const epochs = (await this.cexplorerService.manager.query(
