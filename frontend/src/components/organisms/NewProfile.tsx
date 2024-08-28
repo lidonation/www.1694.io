@@ -244,8 +244,7 @@ const NewProfile = () => {
           </div>
         )}
         <p className="text-base font-normal text-gray-800">
-          Completing your profile is not mandatory, unless you want to become a
-          DRep.
+          Completing your profile will update your cip 119 on-chain DRep medata.
         </p>
       </div>
       <form
