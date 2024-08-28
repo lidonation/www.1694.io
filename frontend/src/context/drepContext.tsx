@@ -93,12 +93,13 @@ function DRepProvider(props: Props) {
       isWalletListModalOpen,
       isNotDRepErrorModalOpen,
       isMobileDrawerOpen,
+      isLoggedIn,
+      isLoginModalOpen: loginModalOpen,
     });
-  }, [isWalletListModalOpen, isNotDRepErrorModalOpen, isMobileDrawerOpen]);
+  }, [isWalletListModalOpen, isNotDRepErrorModalOpen, isMobileDrawerOpen, isLoggedIn, loginModalOpen]);
   useEffect(() => {
     persistLogin();
   }, []);
-
   useEffect(() => {
     handleDrepProfileCreationState();
   }, [sharedState?.dRepIDBech32]);

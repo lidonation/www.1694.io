@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useDRepContext } from '@/context/drepContext';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 
+
 interface Props {
   children?: React.ReactNode;
 }
@@ -14,7 +15,6 @@ const Layout = ({ children }: Props) => {
   const { currentLocale, isLoggedIn, setLoginModalOpen, loginModalOpen, isWalletListModalOpen } =
     useDRepContext();
   const { addWarningAlert } = useGlobalNotifications();
-
   useEffect(() => {
     if (
       !isLoggedIn && !isWalletListModalOpen &&
@@ -23,7 +23,7 @@ const Layout = ({ children }: Props) => {
       setLoginModalOpen(true);
     }
     if (isLoggedIn && loginModalOpen) setLoginModalOpen(false);
-  }, [loginModalOpen, isLoggedIn]);
+  }, [loginModalOpen, isLoggedIn, isWalletListModalOpen]);
 
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
