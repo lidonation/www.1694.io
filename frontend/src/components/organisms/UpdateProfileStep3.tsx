@@ -1,50 +1,43 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useCardano } from '@/context/walletContext';
 import { useDRepContext } from '@/context/drepContext';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { SubmitHandler, useForm } from 'react-hook-form';
-import { v4 as uuidv4 } from 'uuid';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import ProfileSubmitArea from '../atoms/ProfileSubmitArea';
-import { getSingleDRep } from '@/services/requests/getSingleDrep';
-import { getSingleDRepViaVoterId } from '@/services/requests/getSingleDrepViaVoterId';
 import { getItemFromLocalStorage, setItemToLocalStorage } from '@/lib';
-import {
-  processExternalMetadata,
-  renderJSONLDToJSON,
-  submitMetadata,
-} from '@/lib/metadataProcessor';
+import { renderJSONLDToJSON, submitMetadata } from '@/lib/metadataProcessor';
 import {
   FACEBOOK_REGEX,
   GITHUB_REGEX,
   INSTAGRAM_REGEX,
   TWITTER_REGEX,
 } from '@/constants';
-import { getItemFromIndexedDB, setItemToIndexedDB } from '@/lib/indexedDb';
+import { setItemToIndexedDB } from '@/lib/indexedDb';
 const FormSchema = z.object({
   github: z
     .string()
-    .nullable()
+    .optional()
     .refine((val) => val === null || val === '' || GITHUB_REGEX.test(val), {
       message: 'Invalid Github URL',
     }),
   x: z
     .string()
-    .nullable()
+    .optional()
     .refine((val) => val === null || val === '' || TWITTER_REGEX.test(val), {
       message: 'Invalid Twitter URL',
     }),
   facebook: z
     .string()
-    .nullable()
+    .optional()
     .refine((val) => val === null || val === '' || FACEBOOK_REGEX.test(val), {
       message: 'Invalid Facebook URL',
     }),
   instagram: z
     .string()
-    .nullable()
+    .optional()
     .refine((val) => val === null || val === '' || INSTAGRAM_REGEX.test(val), {
       message: 'Invalid Instagram URL',
     }),
@@ -62,14 +55,24 @@ const UpdateProfileStep3 = () => {
     resolver: zodResolver(FormSchema),
   });
   const { dRepIDBech32, loginSignTransaction } = useCardano();
-  const { setIsNotDRepErrorModalOpen, setStep3Status, metadataJsonLd, setMetadataJsonLd } =
-    useDRepContext();
+  const {
+    setIsNotDRepErrorModalOpen,
+    setStep3Status,
+    metadataJsonLd,
+    handleRefresh,
+  } = useDRepContext();
   const { addChangesSavedAlert, addSuccessAlert } = useGlobalNotifications();
   const retrieveLink = (link: string, metadataReferences: any[]) => {
-    return (
-      metadataReferences.find((ref) => ref.label?.['@value'].includes(link))
-        ?.uri?.['@value'] || ''
-    );
+    let uri = '';
+
+    const matchingLink = metadataReferences.find((ref) => {
+      const label = (ref.label?.['@value'] || ref?.label || '') as string;
+      return label.includes(link);
+    });
+    if (matchingLink) {
+      uri = matchingLink.uri?.['@value'] || matchingLink?.uri;
+    }
+    return uri;
   };
 
   useEffect(() => {
@@ -94,7 +97,7 @@ const UpdateProfileStep3 = () => {
           Boolean(getValues('instagram'))
         ) {
           setStep3Status('update');
-        }else setStep3Status('active');
+        } else setStep3Status('active');
         return;
       } catch (error) {
         console.log(error);
@@ -145,11 +148,11 @@ const UpdateProfileStep3 = () => {
           metadataKeys,
           toBeSubmittedMetadata as any,
           loginSignTransaction,
-        );
-        setMetadataJsonLd(jsonld);
+        ); 
         setItemToLocalStorage('isUpdating', 'true');
         await setItemToIndexedDB('metadataJsonLd', jsonld);
         await setItemToIndexedDB('metadataJsonHash', jsonHash);
+        await handleRefresh();
         addChangesSavedAlert();
         return;
       } else {
@@ -157,8 +160,8 @@ const UpdateProfileStep3 = () => {
           toBeSubmittedMetadataJsonLd?.body?.references || [];
         const modifiedExisting = existingMetadataReferences.map((ref) => {
           return {
-            label: ref.label?.['@value'],
-            uri: ref.uri?.['@value'],
+            label: ref.label?.['@value'] || ref.label,
+            uri: ref.uri?.['@value'] || ref.uri,
           };
         });
         //add the new references to the existing references, checking for duplicate keys
@@ -168,8 +171,14 @@ const UpdateProfileStep3 = () => {
               (existingRef) => existingRef?.label == ref.label,
             ),
         );
+        const previousReferences = references.filter(
+          (ref) =>
+            modifiedExisting.find(
+              (existingRef) => existingRef?.label == ref.label,
+            ),
+        );
         const updatedReferences = [
-          ...existingMetadataReferences,
+          ...previousReferences,
           ...newReferences,
         ];
         const metadataKeys = Object.keys(toBeSubmittedMetadataJsonLd.body);
@@ -185,6 +194,7 @@ const UpdateProfileStep3 = () => {
         setItemToLocalStorage('isUpdating', 'true');
         await setItemToIndexedDB('metadataJsonLd', jsonld);
         await setItemToIndexedDB('metadataJsonHash', jsonHash);
+        await handleRefresh();
         addChangesSavedAlert();
       }
     } catch (error) {

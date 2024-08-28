@@ -54,6 +54,7 @@ const UpdateProfile = () => {
     setIsNotDRepErrorModalOpen,
     setStep1Status,
     metadataJsonLd,
+    handleRefresh,
   } = useDRepContext();
   const { addSuccessAlert } = useGlobalNotifications();
 
@@ -130,7 +131,11 @@ const UpdateProfile = () => {
         currentMetadata?.givenName !== data.profileName ||
         currentMetadata?.bio !== data.profileBio ||
         currentMetadata?.email !== data.profileEmail ||
-        currentMetadata?.image !== data.profileUrl
+        currentMetadata?.image?.contentUrl !== data.profileUrl ||
+        currentMetadata?.paymentAddress !== data.paymentAddress ||
+        currentMetadata?.qualifications !== data.qualifications ||
+        currentMetadata?.motivations !== data.motivations ||
+        currentMetadata?.objectives !== data.objectives
       ) {
         const rest = currentMetadata
           ? Object.keys(currentMetadata)
@@ -210,6 +215,7 @@ const UpdateProfile = () => {
         await setItemToIndexedDB('metadataJsonLd', jsonld);
         await setItemToIndexedDB('metadataJsonHash', jsonHash);
         setItemToLocalStorage('isUpdating', 'true');
+        await handleRefresh();
       }
 
       addSuccessAlert('Draft saved!');

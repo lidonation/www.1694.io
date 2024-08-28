@@ -51,6 +51,7 @@ interface DRepContext {
   setMetadataJsonLd: React.Dispatch<React.SetStateAction<any>>;
   metadataJsonHash: any;
   setMetadataJsonHash: React.Dispatch<React.SetStateAction<any>>;
+  handleRefresh: () => Promise<void>;
 }
 
 interface Props {
@@ -97,9 +98,22 @@ function DRepProvider(props: Props) {
   useEffect(() => {
     persistLogin();
   }, []);
+
   useEffect(() => {
     handleDrepProfileCreationState();
   }, [sharedState?.dRepIDBech32]);
+
+  const handleRefresh = async () => {
+    const locallySavedJsonld = await getItemFromIndexedDB('metadataJsonLd');
+    const locallySavedHash = await getItemFromIndexedDB('metadataJsonHash');
+    if (locallySavedHash) {
+      setMetadataJsonHash(locallySavedHash);
+    }
+    if (locallySavedJsonld) {
+      setMetadataJsonLd(locallySavedJsonld);
+    }
+  };
+
   const handleDrepProfileCreationState = async () => {
     try {
       let metadataJsonLd = null;
@@ -150,7 +164,7 @@ function DRepProvider(props: Props) {
       ) {
         const currentSocialLinks = ['x', 'github', 'instagram', 'facebook'];
         const hasSocialLinks = metadataBody?.references.some((ref: any) =>
-          currentSocialLinks.includes(ref.label?.['@value']),
+          currentSocialLinks.includes(ref?.label?.['@value'] || ref?.label),
         );
         if (hasSocialLinks) setStep3Status('success');
       }
@@ -210,6 +224,7 @@ function DRepProvider(props: Props) {
       setCurrentLocale,
       setCurrentRegistrationStep,
       setIsMobileDrawerOpen,
+      handleRefresh,
       setNewDrepId,
       persistLogin,
       logout,

@@ -73,6 +73,7 @@ const NewProfile = () => {
     setCurrentRegistrationStep,
     setIsLoggedIn,
     metadataJsonLd,
+    handleRefresh,
   } = useDRepContext();
 
   useEffect(() => {
@@ -137,7 +138,12 @@ const NewProfile = () => {
       if (
         currentMetadata?.givenName !== data.profileName ||
         currentMetadata?.bio !== data.profileBio ||
-        currentMetadata?.email !== data.profileEmail
+        currentMetadata?.email !== data.profileEmail ||
+        currentMetadata?.image?.contentUrl !== data.profileUrl ||
+        currentMetadata?.paymentAddress !== data.paymentAddress ||
+        currentMetadata?.qualifications !== data.qualifications ||
+        currentMetadata?.motivations !== data.motivations ||
+        currentMetadata?.objectives !== data.objectives
       ) {
         const rest = currentMetadata
           ? Object.keys(currentMetadata)
@@ -209,6 +215,7 @@ const NewProfile = () => {
         await setItemToIndexedDB('metadataJsonLd', jsonld);
         await setItemToIndexedDB('metadataJsonHash', jsonHash);
         setItemToLocalStorage('isUpdating', 'true');
+        await handleRefresh();
       }
 
       const stakeAddress = Address.from_bytes(
@@ -261,7 +268,7 @@ const NewProfile = () => {
           </div>
         )}
         <p className="text-base font-normal text-gray-800">
-          Completing your profile will update your cip 119 on-chain DRep medata.
+          Completing your profile will update your cip 119 on-chain DRep metadata.
         </p>
       </div>
       <form
