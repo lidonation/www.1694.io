@@ -219,7 +219,7 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
       {(drep?.cexplorerDetails?.view == dRepIDBech32 ||
         drep?.signature_drepVoterId == dRepIDBech32) && (
         <div className="flex max-w-prose flex-col gap-2">
-          <Link href={`/dreps/workflow/profile/update/step5`}>
+          <Link href={`/dreps/workflow/profile/update/step4`}>
             <Button className="w-full">
               {metadata ? 'Edit' : 'Set up'} Metadata
             </Button>

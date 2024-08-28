@@ -45,12 +45,10 @@ const SetupProgressBar = () => {
     step2Status,
     step3Status,
     step4Status,
-    step5Status,
     setStep1Status,
     setStep2Status,
     setStep3Status,
     setStep4Status,
-    setStep5Status,
     setCurrentRegistrationStep,
     currentLocale,
   } = useDRepContext();
@@ -58,7 +56,6 @@ const SetupProgressBar = () => {
   const router = useRouter();
   const containerRef = useRef(null);
   const stepRefs = [
-    useRef(null),
     useRef(null),
     useRef(null),
     useRef(null),
@@ -77,7 +74,7 @@ const SetupProgressBar = () => {
     } else if (step === 2) {
       setStep2Status('active');
       setCurrentRegistrationStep(2);
-      router.push(`/dreps/workflow/profile/update/step${step}`);
+      router.push(`/dreps/workflow/profile/update/step${step}`)
     } else if (step === 3) {
       setStep3Status('active');
       setCurrentRegistrationStep(3);
@@ -85,10 +82,6 @@ const SetupProgressBar = () => {
     } else if (step === 4) {
       setStep4Status('active');
       setCurrentRegistrationStep(4);
-      router.push(`/dreps/workflow/profile/update/step${step}`);
-    } else if (step === 5) {
-      setStep5Status('active');
-      setCurrentRegistrationStep(5);
       router.push(`/dreps/workflow/profile/update/step${step}`);
     }
   };
@@ -116,10 +109,6 @@ const SetupProgressBar = () => {
             setStep4Status('active');
             setCurrentRegistrationStep(4);
             break;
-          case 5:
-            setStep5Status('active');
-            setCurrentRegistrationStep(5);
-            break;
         }
       }
     };
@@ -132,7 +121,6 @@ const SetupProgressBar = () => {
       step2Status,
       step3Status,
       step4Status,
-      step5Status,
     ].findIndex((status) => status === 'active');
     if (activeIndex !== -1 && stepRefs[activeIndex].current) {
       const activeStep = stepRefs[activeIndex].current;
@@ -147,7 +135,7 @@ const SetupProgressBar = () => {
         behavior: 'smooth',
       });
     }
-  }, [step1Status, step2Status, step3Status, step4Status, step5Status]);
+  }, [step1Status, step2Status, step3Status, step4Status]);
 
   return (
     <div
@@ -161,13 +149,10 @@ const SetupProgressBar = () => {
         {stepStatusChip(2, 'Verify DRep profile', step2Status, handleNavigate)}
       </div>
       <div ref={stepRefs[2]}>
-        {stepStatusChip(3, 'Platform statement', step3Status, handleNavigate)}
+        {stepStatusChip(3, 'References/Links', step3Status, handleNavigate)}
       </div>
       <div ref={stepRefs[3]}>
-        {stepStatusChip(4, 'References/Links', step4Status, handleNavigate)}
-      </div>
-      <div ref={stepRefs[4]}>
-        {stepStatusChip(5, 'Metadata setup', step5Status, handleNavigate)}
+        {stepStatusChip(4, 'Metadata setup', step4Status, handleNavigate)}
       </div>
     </div>
   );

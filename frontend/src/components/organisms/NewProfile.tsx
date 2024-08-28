@@ -24,12 +24,26 @@ import { urls } from '@/constants';
 import { DRepMetadata } from '../../../types/commonTypes';
 const FormSchema = z.object({
   profileName: z.string().min(1, { message: 'Profile name is required' }),
-  profileEmail: z.string().min(1, { message: 'Profile email is required' }),
-  profileBio: z.string().min(1, { message: 'Profile bio is required' }),
+  profileEmail: z.string().optional(),
+  profileBio: z.string().optional(),
   profileUrl: z.any(),
+  objectives: z.string().optional(),
+  motivations: z.string().optional(),
+  qualifications: z.string().optional(),
+  paymentAddress: z.string().optional(),
 });
 type InputType = z.infer<typeof FormSchema>;
-
+export const PREDEFINED_KEYS = [
+  'givenName',
+  'bio',
+  'email',
+  'references',
+  'paymentAddress',
+  'image',
+  'objectives',
+  'motivations',
+  'qualifications',
+];
 const NewProfile = () => {
   const {
     register,
@@ -40,8 +54,12 @@ const NewProfile = () => {
   } = useForm<InputType>({
     resolver: zodResolver(FormSchema),
   });
-  const { dRepIDBech32, stakeKey, loginSignTransaction, address } =
-    useCardano();
+  const {
+    dRepIDBech32,
+    stakeKey,
+    loginSignTransaction,
+    walletState: { usedAddress, changeAddress },
+  } = useCardano();
   const { addSuccessAlert, addErrorAlert } = useGlobalNotifications();
   const [currentMetadata, setCurrentMetadata] = useState(null);
   const [currentProfileUrl, setCurrentProfileUrl] = useState<string | null>(
@@ -65,13 +83,17 @@ const NewProfile = () => {
         setValue('profileName', renderJsonldValue(metadataBody?.givenName));
         setValue('profileBio', renderJsonldValue(metadataBody?.bio));
         setValue('profileEmail', renderJsonldValue(metadataBody?.email));
+        setValue('motivations', renderJsonldValue(metadataBody?.motivations));
+        setValue('qualifications', renderJsonldValue(metadataBody?.qualifications));
+        setValue('objectives', renderJsonldValue(metadataBody?.objectives));
+        setValue('paymentAddress', renderJsonldValue(metadataBody?.paymentAddress) || usedAddress || changeAddress);
         setValue(
           'profileUrl',
           renderJsonldValue(metadataBody?.image?.contentUrl) || '',
         );
         setCurrentProfileUrl(
           renderJsonldValue(metadataBody?.image?.contentUrl) || '',
-        )
+        );
 
         //map through the metadata and set the current metadata for each exisitng field
         for (let key in metadataBody) {
@@ -104,7 +126,7 @@ const NewProfile = () => {
     };
     getDRep();
   }, [metadataJsonLd]);
-  
+
   const saveProfile: SubmitHandler<InputType> = async (data) => {
     try {
       if (!dRepIDBech32 || dRepIDBech32 == '') {
@@ -117,14 +139,6 @@ const NewProfile = () => {
         currentMetadata?.bio !== data.profileBio ||
         currentMetadata?.email !== data.profileEmail
       ) {
-        const PREDEFINED_KEYS = [
-          'givenName',
-          'bio',
-          'email',
-          'references',
-          'paymentAddress',
-          'image',
-        ];
         const rest = currentMetadata
           ? Object.keys(currentMetadata)
               .filter((key) => !PREDEFINED_KEYS.includes(key))
@@ -138,7 +152,10 @@ const NewProfile = () => {
           bio: data.profileBio,
           email: data.profileEmail,
           references: currentMetadata?.references as any,
-          paymentAddress: address,
+          paymentAddress: data.paymentAddress,
+          qualifications: data.qualifications,
+          motivations: data.motivations,
+          objectives: data.objectives,
           ...rest,
         };
         if (data.profileUrl) {
@@ -256,7 +273,7 @@ const NewProfile = () => {
           control={control}
           errors={errors}
           setProfileUrl={setValue}
-          currentProfileUrl={currentProfileUrl} 
+          currentProfileUrl={currentProfileUrl}
         />
       </form>
     </div>
