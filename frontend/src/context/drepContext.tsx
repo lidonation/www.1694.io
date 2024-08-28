@@ -25,7 +25,6 @@ interface DRepContext {
   step2Status: stepStatus['status'];
   step3Status: stepStatus['status'];
   step4Status: stepStatus['status'];
-  step5Status: stepStatus['status'];
   isLoggedIn: boolean;
   loginModalOpen: boolean;
   isMobileDrawerOpen: boolean;
@@ -38,7 +37,6 @@ interface DRepContext {
   setStep2Status: React.Dispatch<React.SetStateAction<stepStatus['status']>>;
   setStep3Status: React.Dispatch<React.SetStateAction<stepStatus['status']>>;
   setStep4Status: React.Dispatch<React.SetStateAction<stepStatus['status']>>;
-  setStep5Status: React.Dispatch<React.SetStateAction<stepStatus['status']>>;
   setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
   persistLogin: () => void;
   logout: () => void;
@@ -53,6 +51,7 @@ interface DRepContext {
   setMetadataJsonLd: React.Dispatch<React.SetStateAction<any>>;
   metadataJsonHash: any;
   setMetadataJsonHash: React.Dispatch<React.SetStateAction<any>>;
+  handleRefresh: () => Promise<void>;
 }
 
 interface Props {
@@ -87,8 +86,6 @@ function DRepProvider(props: Props) {
     useState<stepStatus['status']>('pending');
   const [step4Status, setStep4Status] =
     useState<stepStatus['status']>('pending');
-  const [step5Status, setStep5Status] =
-    useState<stepStatus['status']>('pending');
   //will fix later
   const [currentLocale, setCurrentLocale] = useState<string | null>('en');
   useEffect(() => {
@@ -101,9 +98,22 @@ function DRepProvider(props: Props) {
   useEffect(() => {
     persistLogin();
   }, []);
+
   useEffect(() => {
     handleDrepProfileCreationState();
   }, [sharedState?.dRepIDBech32]);
+
+  const handleRefresh = async () => {
+    const locallySavedJsonld = await getItemFromIndexedDB('metadataJsonLd');
+    const locallySavedHash = await getItemFromIndexedDB('metadataJsonHash');
+    if (locallySavedHash) {
+      setMetadataJsonHash(locallySavedHash);
+    }
+    if (locallySavedJsonld) {
+      setMetadataJsonLd(locallySavedJsonld);
+    }
+  };
+
   const handleDrepProfileCreationState = async () => {
     try {
       let metadataJsonLd = null;
@@ -147,9 +157,6 @@ function DRepProvider(props: Props) {
       if (metadataBody?.givenName || metadataBody?.bio || metadataBody?.email) {
         setStep1Status('success');
       }
-      if (metadataBody?.motivations) {
-        setStep3Status('success');
-      }
       if (
         metadataBody?.references &&
         Array.isArray(metadataBody?.references) &&
@@ -157,11 +164,11 @@ function DRepProvider(props: Props) {
       ) {
         const currentSocialLinks = ['x', 'github', 'instagram', 'facebook'];
         const hasSocialLinks = metadataBody?.references.some((ref: any) =>
-          currentSocialLinks.includes(ref.label?.['@value']),
+          currentSocialLinks.includes(ref?.label?.['@value'] || ref?.label),
         );
-        if (hasSocialLinks) setStep4Status('success');
+        if (hasSocialLinks) setStep3Status('success');
       }
-      if (metadataBody) setStep5Status('success');
+      if (metadataBody) setStep4Status('success');
     } catch (error) {
       console.log(error);
     }
@@ -200,7 +207,6 @@ function DRepProvider(props: Props) {
       step2Status,
       step3Status,
       step4Status,
-      step5Status,
       metadataJsonLd,
       setMetadataJsonLd,
       metadataJsonHash,
@@ -213,12 +219,12 @@ function DRepProvider(props: Props) {
       setIsLoggedIn,
       setStep3Status,
       setStep4Status,
-      setStep5Status,
       setIsWalletListModalOpen,
       setIsNotDRepErrorModalOpen,
       setCurrentLocale,
       setCurrentRegistrationStep,
       setIsMobileDrawerOpen,
+      handleRefresh,
       setNewDrepId,
       persistLogin,
       logout,
@@ -236,7 +242,6 @@ function DRepProvider(props: Props) {
       step2Status,
       step3Status,
       step4Status,
-      step5Status,
       isMobileDrawerOpen,
       sharedState,
       metadataJsonLd,

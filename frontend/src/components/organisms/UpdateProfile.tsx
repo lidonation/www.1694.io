@@ -6,25 +6,27 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import UpdateProfileForm from '../molecules/UpdateProfileForm';
-import { getSingleDRep } from '@/services/requests/getSingleDrep';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
-import { getSingleDRepViaVoterId } from '@/services/requests/getSingleDrepViaVoterId';
 import { renderJsonldValue } from '../atoms/MetadataViewer';
 import { getItemFromLocalStorage, setItemToLocalStorage, sha256 } from '@/lib';
 import {
-  processExternalMetadata,
   submitMetadata,
 } from '@/lib/metadataProcessor';
 import { DRepMetadata } from '../../../types/commonTypes';
-import { getItemFromIndexedDB, setItemToIndexedDB } from '@/lib/indexedDb';
+import { setItemToIndexedDB } from '@/lib/indexedDb';
 import { postAddAttachmentToIPFS } from '@/services/requests/postAttachmentToIPFS';
 import { urls } from '@/constants';
-import { set } from 'cypress/types/lodash';
+import { PREDEFINED_KEYS } from './NewProfile';
 const FormSchema = z.object({
   profileName: z.string().min(1, { message: 'Profile name is required' }),
-  profileEmail: z.string().min(1, { message: 'Email is required' }),
-  profileBio: z.string().min(1, { message: 'You need to fill in your bio' }),
+  profileEmail: z.string().optional(),
+  profileBio: z.string().optional(),
   profileUrl: z.any(),
+  objectives: z.string().optional(),
+  motivations: z.string().optional(),
+  qualifications: z.string().optional(),
+  paymentAddress: z.string().optional(),
+
 });
 type InputType = z.infer<typeof FormSchema>;
 export type IPFSResponse = {
@@ -39,10 +41,11 @@ const UpdateProfile = () => {
     control,
     formState: { errors },
     setValue,
+    getValues
   } = useForm<InputType>({
     resolver: zodResolver(FormSchema),
   });
-  const { dRepIDBech32, loginSignTransaction, address } = useCardano();
+  const { dRepIDBech32, loginSignTransaction, walletState:{usedAddress, changeAddress} } = useCardano();
   const [currentProfileUrl, setCurrentProfileUrl] = useState<string | null>(
     null,
   );
@@ -51,6 +54,7 @@ const UpdateProfile = () => {
     setIsNotDRepErrorModalOpen,
     setStep1Status,
     metadataJsonLd,
+    handleRefresh,
   } = useDRepContext();
   const { addSuccessAlert } = useGlobalNotifications();
 
@@ -62,6 +66,10 @@ const UpdateProfile = () => {
         setValue('profileName', renderJsonldValue(metadataBody?.givenName));
         setValue('profileBio', renderJsonldValue(metadataBody?.bio));
         setValue('profileEmail', renderJsonldValue(metadataBody?.email));
+        setValue('motivations', renderJsonldValue(metadataBody?.motivations));
+        setValue('qualifications', renderJsonldValue(metadataBody?.qualifications));
+        setValue('objectives', renderJsonldValue(metadataBody?.objectives));
+        setValue('paymentAddress', renderJsonldValue(metadataBody?.paymentAddress) || usedAddress || changeAddress);
         setValue(
           'profileUrl',
           renderJsonldValue(metadataBody?.image?.contentUrl) || '',
@@ -97,6 +105,9 @@ const UpdateProfile = () => {
         if (isUpdating) {
           addSuccessAlert('Draft restored!');
         }
+        if(Boolean(getValues('profileName'))){
+          setStep1Status('update');
+        }else setStep1Status('active');
         return;
       } catch (error) {
         console.log(error);
@@ -120,16 +131,12 @@ const UpdateProfile = () => {
         currentMetadata?.givenName !== data.profileName ||
         currentMetadata?.bio !== data.profileBio ||
         currentMetadata?.email !== data.profileEmail ||
-        currentMetadata?.image !== data.profileUrl
+        currentMetadata?.image?.contentUrl !== data.profileUrl ||
+        currentMetadata?.paymentAddress !== data.paymentAddress ||
+        currentMetadata?.qualifications !== data.qualifications ||
+        currentMetadata?.motivations !== data.motivations ||
+        currentMetadata?.objectives !== data.objectives
       ) {
-        const PREDEFINED_KEYS = [
-          'givenName',
-          'bio',
-          'email',
-          'references',
-          'paymentAddress',
-          'image',
-        ];
         const rest = currentMetadata
           ? Object.keys(currentMetadata)
               .filter((key) => !PREDEFINED_KEYS.includes(key))
@@ -142,8 +149,11 @@ const UpdateProfile = () => {
           givenName: data.profileName,
           bio: data.profileBio,
           email: data.profileEmail,
-          references: currentMetadata?.references,
-          paymentAddress: address,
+          references: currentMetadata?.references as any,
+          paymentAddress: data.paymentAddress,
+          qualifications: data.qualifications,
+          motivations: data.motivations,
+          objectives: data.objectives,
           ...rest,
         };
         //add the preexisitgn image if it exists
@@ -205,6 +215,7 @@ const UpdateProfile = () => {
         await setItemToIndexedDB('metadataJsonLd', jsonld);
         await setItemToIndexedDB('metadataJsonHash', jsonHash);
         setItemToLocalStorage('isUpdating', 'true');
+        await handleRefresh();
       }
 
       addSuccessAlert('Draft saved!');

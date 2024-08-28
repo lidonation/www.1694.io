@@ -5,189 +5,93 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { SubmitHandler, useForm } from 'react-hook-form';
-import { v4 as uuidv4 } from 'uuid';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import ProfileSubmitArea from '../atoms/ProfileSubmitArea';
-import { getSingleDRep } from '@/services/requests/getSingleDrep';
-import { getSingleDRepViaVoterId } from '@/services/requests/getSingleDrepViaVoterId';
-import { getItemFromLocalStorage, setItemToLocalStorage } from '@/lib';
+import { getItemFromLocalStorage, removeItemFromLocalStorage } from '@/lib';
+import MetadataEditor from '../atoms/MetadataEditor';
+import MetadataViewer from '../atoms/MetadataViewer';
+import Button from '../atoms/Button';
+import SubmitMetadataModal from '../atoms/SubmitMetadataModal';
+import { useRouter } from 'next/navigation';
 import {
-  processExternalMetadata,
-  renderJSONLDToJSON,
-  submitMetadata,
+  renderJSONLDToJSONArr,
 } from '@/lib/metadataProcessor';
-import {
-  FACEBOOK_REGEX,
-  GITHUB_REGEX,
-  INSTAGRAM_REGEX,
-  TWITTER_REGEX,
-} from '@/constants';
-import { getItemFromIndexedDB, setItemToIndexedDB } from '@/lib/indexedDb';
-import { blake2bHex } from 'blakejs';
+import { deleteItemFromIndexedDB } from '@/lib/indexedDb';
 const FormSchema = z.object({
-  github: z
-    .string()
-    .nullable()
-    .refine((val) => val === null || val === '' || GITHUB_REGEX.test(val), {
-      message: 'Invalid Github URL',
-    }),
-  x: z
-    .string()
-    .nullable()
-    .refine((val) => val === null || val === '' || TWITTER_REGEX.test(val), {
-      message: 'Invalid Twitter URL',
-    }),
-  facebook: z
-    .string()
-    .nullable()
-    .refine((val) => val === null || val === '' || FACEBOOK_REGEX.test(val), {
-      message: 'Invalid Facebook URL',
-    }),
-  instagram: z
-    .string()
-    .nullable()
-    .refine((val) => val === null || val === '' || INSTAGRAM_REGEX.test(val), {
-      message: 'Invalid Instagram URL',
-    }),
+  metadata: z.string().optional(),
 });
 type InputType = z.infer<typeof FormSchema>;
 
 const UpdateProfileStep4 = () => {
+  const { register, handleSubmit, getValues, formState, setValue } =
+    useForm<InputType>({
+      resolver: zodResolver(FormSchema),
+    });
+  const { dRepIDBech32 } = useCardano();
   const {
-    register,
-    handleSubmit,
-    getValues,
-    formState: { errors },
-    setValue,
-  } = useForm<InputType>({
-    resolver: zodResolver(FormSchema),
-  });
-  const { dRepIDBech32, loginSignTransaction } = useCardano();
-  const { setIsNotDRepErrorModalOpen, setStep4Status, metadataJsonLd, setMetadataJsonLd } =
-    useDRepContext();
+    setIsNotDRepErrorModalOpen,
+    setStep4Status,
+    metadataJsonLd,
+    metadataJsonHash,
+  } = useDRepContext();
+  const router = useRouter();
+  const [canEdit, setCanEdit] = useState(false);
+  const [jsonHash, setJsonHash] = useState<string | null>(null);
+  const [isAwaitingSubmission, setIsAwaitingSubmission] = useState(false);
   const { addChangesSavedAlert, addSuccessAlert } = useGlobalNotifications();
-  const retrieveLink = (link: string, metadataReferences: any[]) => {
-    return (
-      metadataReferences.find((ref) => ref.label?.['@value'].includes(link))
-        ?.uri?.['@value'] || ''
-    );
-  };
-
+  const [isMetadataLoading, setIsMetadataLoading] = useState(false);
+  const [metadataJson, setMetadataJson] = useState(null);
+  const [metadataError, setMetadataError] = useState<string | null>(null);
+  const [metadata, setMetadata] = useState<any>(null);
+  const [isSubmittingMetadata, setIsSubmittingMetadata] = useState(false);
+  const [refresh, setRefresh] = useState(false);
   useEffect(() => {
-    const getDRep = () => {
+    const processMetadata = async () => {
       try {
         if (!metadataJsonLd) return;
-        const metadataBody = metadataJsonLd?.body;
-        const metadataReferences = (metadataBody?.references as any[]) || [];
-        setValue('github', retrieveLink('github', metadataReferences));
-        setValue('x', retrieveLink('x', metadataReferences));
-        setValue('facebook', retrieveLink('facebook', metadataReferences));
-        setValue('instagram', retrieveLink('instagram', metadataReferences));
-        //map through the metadata and set the current metadata for each exisitng field
-        const isUpdating = getItemFromLocalStorage('isUpdating');
-        if (isUpdating) {
-          addSuccessAlert('Draft restored!');
-        }
-        if (
-          Boolean(getValues('github')) ||
-          Boolean(getValues('x')) ||
-          Boolean(getValues('facebook')) ||
-          Boolean(getValues('instagram'))
-        ) {
+        setIsMetadataLoading(true);
+        const convertedMetadata = renderJSONLDToJSONArr(metadataJsonLd);
+        setMetadataJson(convertedMetadata);
+        setMetadata(metadataJsonLd);
+        setJsonHash(metadataJsonHash);
+        setValue('metadata', JSON.stringify(convertedMetadata));
+        setIsMetadataLoading(false);
+        if (metadataJsonLd) {
           setStep4Status('update');
-        }
+        } else setStep4Status('active');
+        setIsMetadataLoading(false);
         return;
       } catch (error) {
         console.log(error);
+        setMetadata(null);
+        setMetadataError('Metadata Unprocessable');
+      } finally {
+        setIsMetadataLoading(false);
       }
     };
-    getDRep();
-    return () => {
-      if (
-        Boolean(getValues('github')) ||
-        Boolean(getValues('x')) ||
-        Boolean(getValues('facebook')) ||
-        Boolean(getValues('instagram'))
-      ) {
-        setStep4Status('success');
-      } else setStep4Status('pending');
-    };
-  }, [metadataJsonLd]);
+    processMetadata();
+  }, [metadataJsonLd, refresh]);
 
+  const resetDraft = async () => {
+    removeItemFromLocalStorage('isUpdating');
+    await deleteItemFromIndexedDB('metadataJsonLd');
+    await deleteItemFromIndexedDB('metadataJsonHash');
+  };
   const saveProfile: SubmitHandler<InputType> = async (data) => {
     try {
-      let toBeSubmittedMetadataJsonLd = metadataJsonLd;
       if (!dRepIDBech32 || dRepIDBech32 == '') {
         setIsNotDRepErrorModalOpen(true);
         return;
       }
-      const references = [];
-      const links = getValues();
-      for (const link in links) {
-        if (links[link] !== null && links[link] !== '') {
-          references.push({
-            label: link,
-            uri: links[link],
-          });
-        }
-      }
-      const hasExistingReferences = metadataJsonLd?.body?.references;
-      if (!hasExistingReferences) {
-        toBeSubmittedMetadataJsonLd.body = {
-          ...toBeSubmittedMetadataJsonLd.body,
-          references: references,
-        };
-        const toBeSubmittedMetadata = renderJSONLDToJSON(
-          toBeSubmittedMetadataJsonLd,
-        );
-        toBeSubmittedMetadata['references'] = references;
-        const metadataKeys = Object.keys(toBeSubmittedMetadataJsonLd.body);
-        const { jsonHash, jsonld } = await submitMetadata(
-          metadataKeys,
-          toBeSubmittedMetadata as any,
-          loginSignTransaction,
-        );
-        setMetadataJsonLd(jsonld);
-        setItemToLocalStorage('isUpdating', 'true');
-        await setItemToIndexedDB('metadataJsonLd', jsonld);
-        await setItemToIndexedDB('metadataJsonHash', jsonHash);
-        addChangesSavedAlert();
-        return;
+      //is local change
+      if (getItemFromLocalStorage('isUpdating')) {
+        setIsSubmittingMetadata(true);
+        setIsAwaitingSubmission(true);
       } else {
-        const existingMetadataReferences =
-          toBeSubmittedMetadataJsonLd?.body?.references || [];
-        const modifiedExisting = existingMetadataReferences.map((ref) => {
-          return {
-            label: ref.label?.['@value'],
-            uri: ref.uri?.['@value'],
-          };
-        });
-        //add the new references to the existing references, checking for duplicate keys
-        const newReferences = references.filter(
-          (ref) =>
-            !modifiedExisting.find(
-              (existingRef) => existingRef?.label == ref.label,
-            ),
-        );
-        const updatedReferences = [
-          ...existingMetadataReferences,
-          ...newReferences,
-        ];
-        const metadataKeys = Object.keys(toBeSubmittedMetadataJsonLd.body);
-        const toBeSubmittedMetadata = renderJSONLDToJSON(
-          toBeSubmittedMetadataJsonLd,
-        );
-        toBeSubmittedMetadata['references'] = updatedReferences;
-        const { jsonHash, jsonld } = await submitMetadata(
-          metadataKeys,
-          toBeSubmittedMetadata as any,
-          loginSignTransaction,
-        );
-        setItemToLocalStorage('isUpdating', 'true');
-        await setItemToIndexedDB('metadataJsonLd', jsonld);
-        await setItemToIndexedDB('metadataJsonHash', jsonHash);
-        addChangesSavedAlert();
+        //just redirect to success page
+        router.push('/dreps/workflow/profile/success');
       }
+      addChangesSavedAlert();
     } catch (error) {
       console.log(error);
     }
@@ -198,7 +102,7 @@ const UpdateProfileStep4 = () => {
   return (
     <div className="flex w-full flex-col gap-5 px-10 py-5">
       <div className="flex flex-col gap-5">
-        <h1 className="text-4xl font-bold text-zinc-800">Social Media</h1>
+        <h1 className="text-4xl font-bold text-zinc-800">Your metadata</h1>
         {dRepIDBech32 && (
           <div className="flex flex-row flex-wrap gap-1 lg:flex-nowrap">
             <span className="w-full break-words text-slate-500 lg:w-fit">
@@ -216,58 +120,47 @@ const UpdateProfileStep4 = () => {
           </div>
         )}
         <p className="text-base font-normal text-gray-800">
-          Share your social media links as this will increase the credibility of
-          your profile. This will be a part of your metadata.
+          Complete your profile by submitting your metadata. You can include
+          extra fields. This may or may not be supported in GovTool.
         </p>
+      </div>
+      <div className="flex flex-col gap-5">
+        <MetadataViewer
+          metadata={metadata}
+          metadataError={metadataError}
+          isMetadataLoading={isMetadataLoading}
+        />
+        <Button className="w-fit" handleClick={() => setCanEdit(true)}>
+          Edit Metadata
+        </Button>
       </div>
       <form id="profile_form" onSubmit={handleSubmit(saveProfile, onError)}>
         <div className="flex flex-col gap-1">
-          <label>Github</label>
-          <input
-            type="text"
-            className={`rounded-full border border-zinc-100 py-3 pl-5 pr-3`}
-            {...register('github')}
-            placeholder="Paste your github url here"
-          />
-          <div className="text-sm text-red-700" data-testid="error-msg">
-            {errors?.github && errors?.github?.message}
-          </div>
-        </div>
-        <div className="flex flex-col gap-1">
-          <label>X</label>
-          <input
-            type="text"
-            className={`rounded-full border border-zinc-100 py-3 pl-5 pr-3`}
-            {...register('x')}
-            placeholder="Paste your x url here"
-          />
-          <div className="text-sm text-red-700" data-testid="error-msg">
-            {errors?.x && errors?.x?.message}
-          </div>
-        </div>
-        <div className="flex flex-col gap-1">
-          <label>Facebook</label>
-          <input
-            type="text"
-            className={`rounded-full border border-zinc-100 py-3 pl-5 pr-3`}
-            {...register('facebook')}
-            placeholder="Paste your facebook url here"
-          />
-          <div className="text-sm text-red-700" data-testid="error-msg">
-            {errors?.facebook && errors?.facebook?.message}
-          </div>
-        </div>
-        <div className="flex flex-col gap-1">
-          <label>Instagram</label>
-          <input
-            type="text"
-            className={`rounded-full border border-zinc-100 py-3 pl-5 pr-3`}
-            {...register('instagram')}
-            placeholder="Paste your instagram url here"
-          />
-          <div className="text-sm text-red-700" data-testid="error-msg">
-            {errors?.instagram && errors?.instagram?.message}
-          </div>
+          {canEdit && (
+            <MetadataEditor
+              onClose={() => {
+                setCanEdit(false);
+              }}
+              initialMetadata={metadataJson}
+              onSuccessfulSubmit={() => {
+                setRefresh(!refresh);
+              }}
+            />
+          )}
+          {isSubmittingMetadata && (
+            <SubmitMetadataModal
+              onClose={() => setIsSubmittingMetadata(false)}
+              onSuccessfulSubmit={() => {
+                if (isAwaitingSubmission) {
+                  addSuccessAlert(
+                    'Metadata updated successfully. It will probably take few minutes to reflect',
+                  );
+                  resetDraft();
+                  router.push('/dreps/workflow/profile/success');
+                }
+              }}
+            />
+          )}
         </div>
         <ProfileSubmitArea isUpdate />
       </form>
@@ -275,4 +168,4 @@ const UpdateProfileStep4 = () => {
   );
 };
 
-export default UpdateProfileStep4;
+export default UpdateProfileStep4 

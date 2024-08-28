@@ -14,6 +14,7 @@ import {
 } from '@mui/material';
 import { getItemFromLocalStorage, setItemToLocalStorage } from '@/lib';
 import { setItemToIndexedDB } from '@/lib/indexedDb';
+import { useDRepContext } from '@/context/drepContext';
 
 const IMMUTABLE_KEYS = ['givenName', 'bio', 'email'];
 const HIDDEN_KEYS = ['references', 'image'];
@@ -28,6 +29,7 @@ const MetadataEditor = ({
   const [imageData, setImageData] = useState(null);
   const [isSigningData, setIsSigningData] = useState(false);
   const [errors, setErrors] = useState({});
+  const { handleRefresh } = useDRepContext();
   const { addErrorAlert, addSuccessAlert } = useGlobalNotifications();
   useEffect(() => {
     if (initialMetadata === null) {
@@ -150,7 +152,7 @@ const MetadataEditor = ({
         modifiedMetadata.references = modifiedReferences;
         const metadataKeys = [
           ...metadata.map((item) => item.key),
-          'references', 
+          'references',
         ];
         if (imageData) {
           modifiedMetadata.image = imageData;
@@ -165,6 +167,7 @@ const MetadataEditor = ({
         setItemToLocalStorage('isUpdating', 'true');
         await setItemToIndexedDB('metadataJsonLd', jsonld);
         await setItemToIndexedDB('metadataJsonHash', jsonHash);
+        await handleRefresh();
         setIsSigningData(false);
         addSuccessAlert('Metadata updated!');
         onSuccessfulSubmit();

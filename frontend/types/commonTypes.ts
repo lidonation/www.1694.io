@@ -17,8 +17,11 @@ export enum MetadataStandard {
 
 export type DRepMetadata={
   givenName: string;
-  email: string;
-  bio: string;
+  email?: string;
+  bio?: string;
+  objectives?: string;
+  motivations?: string;
+  qualifications?: string;
   references:any[];
   image?:{
     contentUrl:string;
