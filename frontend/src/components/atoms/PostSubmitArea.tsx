@@ -2,9 +2,13 @@ import React from 'react';
 import Button from './Button';
 import { useCardano } from '@/context/walletContext';
 import Link from 'next/link';
-
-const PostSubmitArea = ({isUpdating=false}:{isUpdating?: boolean}) => {
+import { useRouter } from 'next/navigation';
+const PostSubmitArea = ({ isUpdating = false }: { isUpdating?: boolean }) => {
+  const router = useRouter();
   const { isEnabled, dRepIDBech32 } = useCardano();
+  const handleCancel = () => {
+    router.back(); // Redirects to the previous page
+  };
   return (
     <div className="flex w-full flex-row items-center justify-between">
       <div className="ml-5 flex items-center justify-center">
@@ -14,7 +18,10 @@ const PostSubmitArea = ({isUpdating=false}:{isUpdating?: boolean}) => {
           sx={!isEnabled ? { pointerEvents: 'none' } : {}}
           disabled={!isUpdating}
         >
-          <Link href={`/dreps/${dRepIDBech32}`} className="text-center text-sm font-medium leading-4 text-blue-800">
+          <Link
+            href={`/dreps/${dRepIDBech32}`}
+            className="text-center text-sm font-medium leading-4 text-blue-800"
+          >
             View In Timeline
           </Link>
         </Button>
@@ -23,6 +30,7 @@ const PostSubmitArea = ({isUpdating=false}:{isUpdating?: boolean}) => {
         <Button
           variant="outlined"
           bgColor="transparent"
+          handleClick={handleCancel}
           sx={!isEnabled ? { pointerEvents: 'none' } : {}}
         >
           <p className="text-center text-sm font-medium leading-4 text-blue-800">
