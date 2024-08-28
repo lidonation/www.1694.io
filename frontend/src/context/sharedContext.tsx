@@ -5,6 +5,8 @@ const SharedContext = createContext(null);
 export function SharedProvider({ children }) {
   const [sharedState, setSharedState] = useState({
     isWalletListModalOpen: false,
+    isLoginModalOpen: false,
+    isLoggedIn: false,
     isNotDRepErrorModalOpen: false,
     isMobileDrawerOpen: false,
     loginCredentials:{
