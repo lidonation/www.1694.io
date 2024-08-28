@@ -9,7 +9,7 @@ const page = () => {
   return (
     <div className="flex min-h-screen flex-col gap-6 px-10">
       <h1 className="text-4xl lg:text-6xl">Profile Created Successfully!</h1>
-      <div>
+      <div className="text-center">
         <p>
           Your DRep Profile has been created successfully
         </p>
