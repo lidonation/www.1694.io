@@ -152,7 +152,15 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
             />
           }
         >
-          <Typography variant="body1">Unsaved Changes</Typography>
+          <div className='flex gap-2 items-center'>
+            <img
+              onClick={() => setHoveredOnWarning(!hoveredOnWarning)}
+              src="/svgs/toastsvgs/alert-triangle.svg"
+              alt="Warning"
+              className="h-8 w-8 animate-pulse cursor-pointer"
+            />
+            <Typography variant="body1">Unsaved Changes</Typography>
+          </div>
         </AccordionSummary>
         <AccordionDetails>
           <div className="flex flex-col gap-2">
@@ -185,26 +193,7 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
     );
 
     if (getItemFromLocalStorage('isUpdating') && !isSubmittingMetadata) {
-      return (
-        <ClickAwayListener onClickAway={() => setHoveredOnWarning(false)}>
-          <div ref={containerRef} className="flex flex-row items-center gap-2">
-            <img
-              onClick={() => setHoveredOnWarning(!hoveredOnWarning)}
-              src="/svgs/toastsvgs/alert-triangle.svg"
-              alt="Warning"
-              className="h-8 w-8 animate-pulse cursor-pointer"
-            />
-            
-            <Slide
-              direction="right"
-              in={hoveredOnWarning}
-              container={containerRef.current}
-            >
-              {slider}
-            </Slide>
-          </div>
-        </ClickAwayListener>
-      );
+      return slider;
     }
     return null;
   };
