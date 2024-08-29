@@ -16,7 +16,7 @@ import { getItemFromLocalStorage, setItemToLocalStorage } from '@/lib';
 import { setItemToIndexedDB } from '@/lib/indexedDb';
 import { useDRepContext } from '@/context/drepContext';
 
-const IMMUTABLE_KEYS = ['givenName', 'bio', 'email'];
+const IMMUTABLE_KEYS = ['givenName'];
 const HIDDEN_KEYS = ['references', 'image'];
 const MetadataEditor = ({
   onClose,
@@ -184,26 +184,30 @@ const MetadataEditor = ({
     <div className="flex flex-col gap-2">
       <div className="flex flex-col gap-4 ">
         <h2 className="text-xl font-bold">Edit Metadata</h2>
-        <div className="max-h-72 overflow-y-auto">
+        <div className="max-h-[550px] overflow-y-scroll">
           {metadata &&
             metadata.map(({ id, key, value }, index) => (
               <div key={index} className="mb-4">
-                <div className="my-2 flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={key}
-                    onChange={(e) => handleChange(id, 'key', e.target.value)}
-                    placeholder="Key"
-                    disabled={IMMUTABLE_KEYS.includes(key)}
-                    className="flex-grow rounded border p-2"
-                  />
-                  <input
-                    type="text"
-                    value={value}
-                    onChange={(e) => handleChange(id, 'value', e.target.value)}
-                    placeholder="Value"
-                    className="flex-grow rounded border p-2"
-                  />
+                <div className="my-2 flex w-full items-center gap-2">
+                  <div className="my-2 flex w-full flex-col gap-2">
+                    <input
+                      type="text"
+                      value={key}
+                      onChange={(e) => handleChange(id, 'key', e.target.value)}
+                      placeholder="Key"
+                      disabled={IMMUTABLE_KEYS.includes(key)}
+                      className="flex-grow rounded border p-2"
+                    />
+                    <textarea
+                      value={value}
+                      onChange={(e) =>
+                        handleChange(id, 'value', e.target.value)
+                      }
+                      placeholder="Value"
+                      className="flex-grow rounded border p-2"
+                    />
+                  </div>
+
                   <div
                     onClick={() => handleDelete(id)}
                     aria-label="delete"
@@ -254,24 +258,25 @@ const MetadataEditor = ({
                 references.map(({ id, key, value }, index) => (
                   <div key={index} className="mb-4">
                     <div className="my-2 flex items-center gap-2">
-                      <input
-                        type="text"
-                        value={key}
-                        onChange={(e) =>
-                          handleReferenceChange(id, 'key', e.target.value)
-                        }
-                        placeholder="Key (e.g., twitter)"
-                        className="flex-grow rounded border p-2"
-                      />
-                      <input
-                        type="text"
-                        value={value}
-                        onChange={(e) =>
-                          handleReferenceChange(id, 'value', e.target.value)
-                        }
-                        placeholder="Value (e.g., https://x.com/username)"
-                        className="flex-grow rounded border p-2"
-                      />
+                      <div className="my-2 flex w-full flex-col gap-2">
+                        <input
+                          type="text"
+                          value={key}
+                          onChange={(e) =>
+                            handleReferenceChange(id, 'key', e.target.value)
+                          }
+                          placeholder="Key (e.g., twitter)"
+                          className="flex-grow rounded border p-2"
+                        />
+                        <textarea
+                          value={value}
+                          onChange={(e) =>
+                            handleReferenceChange(id, 'value', e.target.value)
+                          }
+                          placeholder="Value (e.g., https://x.com/username)"
+                          className="flex-grow rounded border p-2"
+                        />
+                      </div>
                       <div
                         onClick={() => handleDeleteReference(id)}
                         aria-label="delete"
@@ -347,6 +352,10 @@ const MetadataEditor = ({
   return (
     <ModalWrapper
       onClose={onClose}
+      sx={{
+        minWidth: '80%',
+        minHeight: '80%',
+      }}
       variant="modal"
       hideCloseButton
       children={modalContent}

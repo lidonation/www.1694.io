@@ -18,6 +18,7 @@ import { formatNumberTimeToReadable } from '@/lib';
 import { Fade, Grow } from '@mui/material';
 import DRepTimeLIneFilters from './DRepTimeLineFilters';
 import DatabaseNullIcon from '../atoms/svgs/DatabaseNullIcon';
+import { useScreenDimension } from '@/hooks';
 
 const DrepTimeline = ({ cexplorerDetails }: { cexplorerDetails: any }) => {
   const { drepid } = useParams();
@@ -45,7 +46,7 @@ const DrepTimeline = ({ cexplorerDetails }: { cexplorerDetails: any }) => {
   const pathName = usePathname();
   const { replace } = useRouter();
   const params = new URLSearchParams(searchParams);
-
+const  {isMobile}=useScreenDimension();
   const startTimeFormatted = formatNumberTimeToReadable(timelineStartTime);
   const endTimeFormatted = formatNumberTimeToReadable(timelineEndTime);
 
@@ -166,7 +167,15 @@ const DrepTimeline = ({ cexplorerDetails }: { cexplorerDetails: any }) => {
           <div className="flex items-center gap-4">
             {cexplorerDetails?.view == dRepIDBech32 && (
               <Button size="medium" className="flex w-fit items-center">
-                <Link href={`/dreps/workflow/notes/new`}>Add a note</Link>
+                <Link href={`/dreps/workflow/notes/new`}>
+                {
+                  isMobile?(
+                    <img src="/svgs/file-plus.svg" alt="plus" title='Add a note'/>
+                  ):(
+                    "Add a note"
+                  )
+                }
+                </Link>
               </Button>
             )}
             <DRepTimeLIneFilters />
