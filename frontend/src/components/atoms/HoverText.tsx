@@ -7,7 +7,7 @@ const HoverText = ({ shortText, longText }) => {
 
   if (isSameNumber) {
     return (
-      <div className="w-full cursor-pointer">
+      <div className="w-full cursor-default">
         <Typography className="inline-block w-auto px-1">
           ₳ {shortText}
         </Typography>
@@ -17,7 +17,7 @@ const HoverText = ({ shortText, longText }) => {
 
   return (
     <div
-      className="w-full cursor-pointer"
+      className="w-full cursor-default"
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >

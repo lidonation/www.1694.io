@@ -142,20 +142,27 @@ const DRepsTable = ({
               >
                 <td className="px-4 py-2">
                   {drep?.type === 'voting_option' ? (
-                    <Box className="flex items-center gap-4">
-                      <Link href={`/dreps/${drep?.view}`}>
+                    <Box>
+                      <Link
+                        className="flex items-center gap-4"
+                        href={`/dreps/${drep?.view}`}
+                      >
                         <Button size="extraSmall" width={4}>
                           View
                         </Button>
+                        <p className="font-medium hover:font-semibold">{drep?.view}</p>
                       </Link>
-                      <p className="font-medium">{drep?.view}</p>
                     </Box>
                   ) : !!drep.drep_id ? (
-                    <Box className="flex items-center gap-4">
-                      <Link href={`/dreps/${drep?.view}`}>
+                    <Box>
+                      <Link
+                        className="flex items-center gap-4"
+                        href={`/dreps/${drep?.view}`}
+                      >
                         <Button size="extraSmall" width={4}>
                           View
                         </Button>
+                        <p className="font-medium hover:font-semibold">claimed</p>
                       </Link>
                       {/* Disabled due to model changes */}
                       {/* <p className="font-medium">{drep?.drep_name}</p> */}
@@ -167,7 +174,9 @@ const DRepsTable = ({
                           Claim
                         </Button>
                       </Link>
-                      <p className="font-medium">unclaimed</p>
+                      <Link href={`/dreps/${drep.view}`}>
+                        <p className="font-medium hover:font-semibold">unclaimed</p>
+                      </Link>
                     </Box>
                   )}
                 </td>

@@ -42,7 +42,7 @@ export default function VoltaireMenu() {
       label: 'Intersect',
       text: 'Intersect is a member-based organization for the Cardano ecosystem.',
       href: '//www.intersectmbo.org/',
-      svg: '/img/logos/intersect-logo.ico',
+      svg: '/img/logos/intersect-logo.png',
       bgColor: 'bg-destructive-400',
     },
     {
@@ -123,11 +123,13 @@ export default function VoltaireMenu() {
                     <Box
                       className={`mt-1 flex h-12 w-12 shrink-0 items-center justify-center rounded-lg align-middle ${item.bgColor}`}
                     >
-                      <img
-                        alt={`${item.label} svg`}
-                        src={item.svg}
-                        className="h-9 w-9 rounded-full object-contain"
-                      />
+                      <div className="h-5 w-5 rounded-full">
+                        <img
+                          alt={`${item.label} svg`}
+                          src={item.svg}
+                          className="h-full w-full rounded-full"
+                        />
+                      </div>
                     </Box>
                     <Box className="flex flex-col text-wrap text-complementary-500">
                       <p className="p-0 text-base font-normal">{item.label}</p>
