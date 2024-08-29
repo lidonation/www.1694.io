@@ -3,6 +3,7 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Grow from '@mui/material/Grow';
 import { Box } from '@mui/material';
+import { urls } from '@/constants';
 
 export default function VoltaireMenu() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -19,44 +20,51 @@ export default function VoltaireMenu() {
     {
       label: 'GovTool',
       text: 'Register to become a DRep, delegate voting power to DReps, & review & vote on governance actions.',
-      href: '//preview.gov.tools',
-      svg: '/svgs/voltaire_nav/notification.svg',
+      href: `${urls.govToolUrl}`,
+      svg: '/img/logos/govtool-logo.png',
+      bgColor: 'bg-white',
     },
     {
       label: 'Cardano',
       text: 'Learn more about Cardano proof-of-stake blockchain platform.',
       href: '//cardano.org/',
-      svg: '/svgs/voltaire_nav/search.svg',
+      svg: '/img/logos/cardano-logo.png',
+      bgColor: 'bg-primary-300',
     },
     {
       label: 'Proposal Discussion Forum',
       text: 'Engage in community-driven governance conversations and decision-making.',
-      href: '//preview.gov.tools/proposal_discussion',
-      svg: '/svgs/voltaire_nav/search.svg',
+      href: `${urls.govToolUrl}/proposal_discussion`,
+      svg: '/img/faces/img2.png',
+      bgColor: 'bg-complementary-200',
     },
     {
       label: 'Intersect',
       text: 'Intersect is a member-based organization for the Cardano ecosystem.',
       href: '//www.intersectmbo.org/',
-      svg: '/svgs/voltaire_nav/loader.svg',
+      svg: '/img/logos/intersect-logo.ico',
+      bgColor: 'bg-destructive-400',
     },
     {
       label: 'Catalyst Explorer',
       text: 'Explore the world/’s largest decentralized innovation engine for solving real-world challenges.',
       href: '//catalystexplorer.com/',
-      svg: '/svgs/voltaire_nav/search.svg',
+      svg: '/svgs/black-search.svg',
+      bgColor: 'bg-secondary-300',
     },
     {
-        label: 'Cardano CIPs',
-        text: 'Explore Cardano Improvement Proposals: to change the Cardano ecosystem, processes, or environment.',
-        href: '//cips.cardano.org/',
-        svg: '/svgs/voltaire_nav/secondary-search.svg',
+      label: 'Cardano CIPs',
+      text: 'Explore Cardano Improvement Proposals: to change the Cardano ecosystem, processes, or environment.',
+      href: '//cips.cardano.org/',
+      svg: '/svgs/arrow-up-double-underline.svg',
+      bgColor: 'bg-extra_red',
     },
     {
       label: 'Lido Nation',
       text: 'Blockchain Education in plain English, Kiswahili, and Español.',
       href: '//www.lidonation.com/',
-      svg: '/svgs/voltaire_nav/wave.svg',
+      svg: '/img/logos/lido-logo.png',
+      bgColor: 'bg-blue-100',
     },
   ];
 
@@ -112,11 +120,15 @@ export default function VoltaireMenu() {
                   }}
                 >
                   <Box className="flex max-w-60 gap-4">
-                    <img
-                      alt={`${item.label} svg`}
-                      src={item.svg}
-                      className="mt-1 h-12 w-12"
-                    />
+                    <Box
+                      className={`mt-1 flex h-12 w-12 shrink-0 items-center justify-center rounded-lg align-middle ${item.bgColor}`}
+                    >
+                      <img
+                        alt={`${item.label} svg`}
+                        src={item.svg}
+                        className="h-9 w-9 rounded-full object-contain"
+                      />
+                    </Box>
                     <Box className="flex flex-col text-wrap text-complementary-500">
                       <p className="p-0 text-base font-normal">{item.label}</p>
                       <p className="text-xs font-normal leading-4">

@@ -119,7 +119,7 @@ export default function DRepTimeLIneFilters() {
           <Box className="flex flex-col">
             <FormControl>
               <span className="text-xs font-semibold">
-                Filter DRep's timeline by activity categoty
+                Filter DRep's timeline by activity category
               </span>
               <FormGroup>
                 {filterOptions.map((option) => (
