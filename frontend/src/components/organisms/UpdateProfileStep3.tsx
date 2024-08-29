@@ -1,60 +1,24 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useCardano } from '@/context/walletContext';
 import { useDRepContext } from '@/context/drepContext';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { v4 as uuidv4 } from 'uuid';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
-import { SubmitHandler, useForm } from 'react-hook-form';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import ProfileSubmitArea from '../atoms/ProfileSubmitArea';
 import { getItemFromLocalStorage, setItemToLocalStorage } from '@/lib';
-import { renderJSONLDToJSON, submitMetadata } from '@/lib/metadataProcessor';
 import {
-  FACEBOOK_REGEX,
-  GITHUB_REGEX,
-  INSTAGRAM_REGEX,
-  TWITTER_REGEX,
-} from '@/constants';
+  renderJSONLDToJSON,
+  renderJSONLDToJSONArr,
+  submitMetadata,
+} from '@/lib/metadataProcessor';
 import { setItemToIndexedDB } from '@/lib/indexedDb';
-const FormSchema = z.object({
-  github: z
-    .string()
-    .optional()
-    .refine((val) => val === null || val === '' || GITHUB_REGEX.test(val), {
-      message: 'Invalid Github URL',
-    }),
-  x: z
-    .string()
-    .optional()
-    .refine((val) => val === null || val === '' || TWITTER_REGEX.test(val), {
-      message: 'Invalid Twitter URL',
-    }),
-  facebook: z
-    .string()
-    .optional()
-    .refine((val) => val === null || val === '' || FACEBOOK_REGEX.test(val), {
-      message: 'Invalid Facebook URL',
-    }),
-  instagram: z
-    .string()
-    .optional()
-    .refine((val) => val === null || val === '' || INSTAGRAM_REGEX.test(val), {
-      message: 'Invalid Instagram URL',
-    }),
-});
-type InputType = z.infer<typeof FormSchema>;
-
+import { HtmlTooltip } from '../atoms/HoverChip';
+import Button from '../atoms/Button';
 const UpdateProfileStep3 = () => {
-  const {
-    register,
-    handleSubmit,
-    getValues,
-    formState: { errors },
-    setValue,
-  } = useForm<InputType>({
-    resolver: zodResolver(FormSchema),
-  });
   const { dRepIDBech32, loginSignTransaction } = useCardano();
+
+  const [errors, setErrors] = useState({});
+  const [referencesArr, setReferencesArr] = useState([]);
   const {
     setIsNotDRepErrorModalOpen,
     setStep3Status,
@@ -62,40 +26,29 @@ const UpdateProfileStep3 = () => {
     handleRefresh,
   } = useDRepContext();
   const { addChangesSavedAlert, addSuccessAlert } = useGlobalNotifications();
-  const retrieveLink = (link: string, metadataReferences: any[]) => {
-    let uri = '';
-
-    const matchingLink = metadataReferences.find((ref) => {
-      const label = (ref.label?.['@value'] || ref?.label || '') as string;
-      return label.includes(link);
-    });
-    if (matchingLink) {
-      uri = matchingLink.uri?.['@value'] || matchingLink?.uri;
-    }
-    return uri;
-  };
 
   useEffect(() => {
     const getDRep = () => {
       try {
         if (!metadataJsonLd) return;
-        const metadataBody = metadataJsonLd?.body;
-        const metadataReferences = (metadataBody?.references as any[]) || [];
-        setValue('github', retrieveLink('github', metadataReferences));
-        setValue('x', retrieveLink('x', metadataReferences));
-        setValue('facebook', retrieveLink('facebook', metadataReferences));
-        setValue('instagram', retrieveLink('instagram', metadataReferences));
+        const metadataJson = renderJSONLDToJSONArr(metadataJsonLd);
+        const referencesData = metadataJson.find(
+          (item) => item.key === 'references',
+        );
+        if (referencesData) {
+          try {
+            setReferencesArr(referencesData.value);
+          } catch (error) {
+            console.error('Error parsing references:', error);
+            setReferencesArr([]);
+          }
+        }
         //map through the metadata and set the current metadata for each exisitng field
         const isUpdating = getItemFromLocalStorage('isUpdating');
         if (isUpdating) {
           addSuccessAlert('Draft restored!');
         }
-        if (
-          Boolean(getValues('github')) ||
-          Boolean(getValues('x')) ||
-          Boolean(getValues('facebook')) ||
-          Boolean(getValues('instagram'))
-        ) {
+        if (referencesArr.length > 0) {
           setStep3Status('update');
         } else setStep3Status('active');
         return;
@@ -105,18 +58,56 @@ const UpdateProfileStep3 = () => {
     };
     getDRep();
     return () => {
-      if (
-        Boolean(getValues('github')) ||
-        Boolean(getValues('x')) ||
-        Boolean(getValues('facebook')) ||
-        Boolean(getValues('instagram'))
-      ) {
+      if (referencesArr.length > 0) {
         setStep3Status('success');
       } else setStep3Status('pending');
     };
   }, [metadataJsonLd]);
+  const handleAddReference = () => {
+    setReferencesArr([...referencesArr, { id: uuidv4(), key: '', value: '' }]);
+  };
 
-  const saveProfile: SubmitHandler<InputType> = async (data) => {
+  const handleReferenceChange = (id, field, value) => {
+    setReferencesArr(
+      referencesArr.map((item) =>
+        item.id === id ? { ...item, [field]: value } : item,
+      ),
+    );
+  };
+
+  const handleDeleteReference = (id) => {
+    setReferencesArr(referencesArr.filter((item) => item.id !== id));
+  };
+  const validateAndSave = async (e) => {
+    try {
+      e.preventDefault();
+      const newErrors = {};
+      let hasErrors = false;
+      referencesArr.forEach((item) => {
+        newErrors[item.id] = {};
+        if (!item.key.trim()) {
+          newErrors[item.id].key = 'Key cannot be empty';
+          hasErrors = true;
+        } else if (/\s/.test(item.key)) {
+          newErrors[item.id].key = 'Key cannot contain spaces';
+          hasErrors = true;
+        }
+        if (!item.value.trim()) {
+          newErrors[item.id].value = 'Value cannot be empty';
+          hasErrors = true;
+        }
+      });
+
+      setErrors(newErrors);
+      if (!hasErrors) {
+        saveProfile();
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const saveProfile = async () => {
     try {
       let toBeSubmittedMetadataJsonLd = metadataJsonLd;
       if (!dRepIDBech32 || dRepIDBech32 == '') {
@@ -124,7 +115,10 @@ const UpdateProfileStep3 = () => {
         return;
       }
       const references = [];
-      const links = getValues();
+      const links = referencesArr.reduce((acc, item) => {
+        acc[item.key] = item.value;
+        return acc;
+      }, {});
       for (const link in links) {
         if (links[link] !== null && links[link] !== '') {
           references.push({
@@ -148,7 +142,7 @@ const UpdateProfileStep3 = () => {
           metadataKeys,
           toBeSubmittedMetadata as any,
           loginSignTransaction,
-        ); 
+        );
         setItemToLocalStorage('isUpdating', 'true');
         await setItemToIndexedDB('metadataJsonLd', jsonld);
         await setItemToIndexedDB('metadataJsonHash', jsonHash);
@@ -171,16 +165,12 @@ const UpdateProfileStep3 = () => {
               (existingRef) => existingRef?.label == ref.label,
             ),
         );
-        const previousReferences = references.filter(
-          (ref) =>
-            modifiedExisting.find(
-              (existingRef) => existingRef?.label == ref.label,
-            ),
+        const previousReferences = references.filter((ref) =>
+          modifiedExisting.find(
+            (existingRef) => existingRef?.label == ref.label,
+          ),
         );
-        const updatedReferences = [
-          ...previousReferences,
-          ...newReferences,
-        ];
+        const updatedReferences = [...previousReferences, ...newReferences];
         const metadataKeys = Object.keys(toBeSubmittedMetadataJsonLd.body);
         const toBeSubmittedMetadata = renderJSONLDToJSON(
           toBeSubmittedMetadataJsonLd,
@@ -201,9 +191,7 @@ const UpdateProfileStep3 = () => {
       console.log(error);
     }
   };
-  const onError = (err) => {
-    console.log(err);
-  };
+
   return (
     <div className="flex w-full flex-col gap-5 px-10 py-5">
       <div className="flex flex-col gap-5">
@@ -229,55 +217,67 @@ const UpdateProfileStep3 = () => {
           your profile. This will be a part of your metadata.
         </p>
       </div>
-      <form id="profile_form" onSubmit={handleSubmit(saveProfile, onError)}>
-        <div className="flex flex-col gap-1">
-          <label>Github</label>
-          <input
-            type="text"
-            className={`rounded-full border border-zinc-100 py-3 pl-5 pr-3`}
-            {...register('github')}
-            placeholder="Paste your github url here"
-          />
-          <div className="text-sm text-red-700" data-testid="error-msg">
-            {errors?.github && errors?.github?.message}
-          </div>
-        </div>
-        <div className="flex flex-col gap-1">
-          <label>X</label>
-          <input
-            type="text"
-            className={`rounded-full border border-zinc-100 py-3 pl-5 pr-3`}
-            {...register('x')}
-            placeholder="Paste your x url here"
-          />
-          <div className="text-sm text-red-700" data-testid="error-msg">
-            {errors?.x && errors?.x?.message}
-          </div>
-        </div>
-        <div className="flex flex-col gap-1">
-          <label>Facebook</label>
-          <input
-            type="text"
-            className={`rounded-full border border-zinc-100 py-3 pl-5 pr-3`}
-            {...register('facebook')}
-            placeholder="Paste your facebook url here"
-          />
-          <div className="text-sm text-red-700" data-testid="error-msg">
-            {errors?.facebook && errors?.facebook?.message}
-          </div>
-        </div>
-        <div className="flex flex-col gap-1">
-          <label>Instagram</label>
-          <input
-            type="text"
-            className={`rounded-full border border-zinc-100 py-3 pl-5 pr-3`}
-            {...register('instagram')}
-            placeholder="Paste your instagram url here"
-          />
-          <div className="text-sm text-red-700" data-testid="error-msg">
-            {errors?.instagram && errors?.instagram?.message}
-          </div>
-        </div>
+      <form id="profile_form" onSubmit={validateAndSave}>
+        {referencesArr &&
+          referencesArr.map(({ id, key, value }, index) => (
+            <div key={index} className="mb-4">
+              <div className="my-2 flex items-center gap-2">
+                <input
+                  type="text"
+                  value={key}
+                  onChange={(e) =>
+                    handleReferenceChange(id, 'key', e.target.value)
+                  }
+                  placeholder="Key (e.g., twitter)"
+                  className="flex-grow rounded border p-2"
+                />
+                <input
+                  type="text"
+                  value={value}
+                  onChange={(e) =>
+                    handleReferenceChange(id, 'value', e.target.value)
+                  }
+                  placeholder="Value (e.g., https://x.com/username)"
+                  className="flex-grow rounded border p-2"
+                />
+                <div
+                  onClick={() => handleDeleteReference(id)}
+                  aria-label="delete"
+                  className="cursor-pointer"
+                >
+                  <img src="/svgs/trash.svg" alt="delete" className="h-5 w-5" />
+                </div>
+                {errors[id] && (errors[id].key || errors[id].value) && (
+                    <HtmlTooltip
+                      title={
+                        <div className="text-sm text-red-500">
+                          {errors[id].key && <p>{errors[id].key}</p>}
+                          {errors[id].value && <p>{errors[id].value}</p>}
+                        </div>
+                      }
+                      arrow
+                      placement="top"
+                    >
+                      <img
+                        src="/svgs/alert-circle.svg"
+                        alt="error"
+                        className="h-5 w-5"
+                      />
+                    </HtmlTooltip>
+                  )}
+              </div>
+            </div>
+          ))}
+        <Button
+          handleClick={handleAddReference}
+          aria-valuetext="add reference"
+          className="flex w-full items-center gap-3 rounded-xl border border-dotted shadow-md"
+          bgColor="transparent"
+          variant="outlined"
+        >
+          <img src="/svgs/circle-plus.svg" alt="add" className="h-5 w-5" />
+          <p>Add reference</p>
+        </Button>
         <ProfileSubmitArea isUpdate />
       </form>
     </div>
