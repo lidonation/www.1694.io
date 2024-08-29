@@ -10,7 +10,7 @@ export const useGetDRepsQuery = (
   onChainStatus?: string,
   campaignStatus?: string,
 ) => {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: [
       QUERY_KEYS.getAllDRepsKey,
       s,
@@ -26,5 +26,5 @@ export const useGetDRepsQuery = (
     enabled: true,
   });
 
-  return { DReps: data, isDRepsLoading: isLoading };
+  return { DReps: data, isDRepsLoading: isLoading, isError };
 };
