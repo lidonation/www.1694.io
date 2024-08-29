@@ -1,15 +1,33 @@
 import React, { useEffect, useState } from 'react';
 import Button from './Button';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
-import { Typography, Skeleton } from '@mui/material';
+import {
+  Typography,
+  Skeleton,
+  AccordionSummary,
+  Accordion,
+  AccordionDetails,
+  Box,
+  Slide,
+  ClickAwayListener,
+} from '@mui/material';
 import Link from 'next/link';
-import { convertString, formattedAda } from '@/lib';
+import {
+  convertString,
+  formattedAda,
+  getItemFromLocalStorage,
+  removeItemFromLocalStorage,
+} from '@/lib';
 import { useScreenDimension } from '@/hooks';
 import { useCardano } from '@/context/walletContext';
 import MetadataViewer from './MetadataViewer';
 import { isActive } from '../molecules/DRepsTable';
 import { processExternalMetadata } from '@/lib/metadataProcessor';
 import DRepSocialLinks from './DRepSocialLinks';
+import MetadataEditor from './MetadataEditor';
+import SubmitMetadataModal from './SubmitMetadataModal';
+import { deleteItemFromIndexedDB } from '@/lib/indexedDb';
+import { useGlobalNotifications } from '@/context/globalNotificationContext';
 
 interface StatusProps {
   status:
@@ -62,9 +80,15 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
   const [metadataUrl, setMetadataUrl] = useState<string | null>(null);
   const [metadataError, setMetadataError] = useState<string | null>(null);
   const [metadata, setMetadata] = useState<any>(null);
+  const [metadataJson, setMetadataJson] = useState<any>(null);
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [name, setName] = useState<string | null>(null);
+  const [canEdit, setCanEdit] = useState(false);
+  const { addSuccessAlert } = useGlobalNotifications();
+  const [isSubmittingMetadata, setIsSubmittingMetadata] = useState(false);
   const [socialLinks, setSocialLinks] = useState<any>(null);
+  const [hoveredOnWarning, setHoveredOnWarning] = useState(false);
+  const containerRef = React.useRef(null);
   useEffect(() => {
     const fetchData = async () => {
       const metadataUrl = drep?.cexplorerDetails?.metadata_url;
@@ -77,6 +101,7 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
           metadataUrl,
         });
         setMetadata(jsonLdData);
+        setMetadataJson(modifiedJson);
         const imageUrl = jsonLdData?.body?.image?.contentUrl;
         if (imageUrl) {
           setImageSrc(imageUrl);
@@ -115,6 +140,80 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
     checkStatus();
     fetchData();
   }, []);
+  const renderUnsavedChanges = () => {
+    const slider = (
+      <Accordion>
+        <AccordionSummary
+          expandIcon={
+            <img
+              src="/svgs/chevron-down.svg"
+              alt="expand"
+              className="h-5 w-5"
+            />
+          }
+        >
+          <Typography variant="body1">Unsaved Changes</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <div className="flex flex-col gap-2">
+            <p className="text-xs text-red-500">
+              Your changes are still locally saved. Its recommended to submit to
+              avoid losing your changes.
+            </p>
+            <Button
+              handleClick={() => {
+                setIsSubmittingMetadata(true);
+              }}
+              className="w-full"
+            >
+              Submit Changes
+            </Button>
+            <Button
+              variant="outlined"
+              bgColor="transparent"
+              handleClick={() => {
+                resetDraft();
+                window.location.reload();
+              }}
+              className="w-full"
+            >
+              Discard Changes
+            </Button>
+          </div>
+        </AccordionDetails>
+      </Accordion>
+    );
+
+    if (getItemFromLocalStorage('isUpdating') && !isSubmittingMetadata) {
+      return (
+        <ClickAwayListener onClickAway={() => setHoveredOnWarning(false)}>
+          <div ref={containerRef} className="flex flex-row items-center gap-2">
+            <img
+              onClick={() => setHoveredOnWarning(!hoveredOnWarning)}
+              src="/svgs/toastsvgs/alert-triangle.svg"
+              alt="Warning"
+              className="h-8 w-8 animate-pulse cursor-pointer"
+            />
+            
+            <Slide
+              direction="right"
+              in={hoveredOnWarning}
+              container={containerRef.current}
+            >
+              {slider}
+            </Slide>
+          </div>
+        </ClickAwayListener>
+      );
+    }
+    return null;
+  };
+
+  const resetDraft = async () => {
+    removeItemFromLocalStorage('isUpdating');
+    await deleteItemFromIndexedDB('metadataJsonLd');
+    await deleteItemFromIndexedDB('metadataJsonHash');
+  };
   return (
     <div className="flex w-full flex-col gap-5 bg-white bg-opacity-50 px-5 py-10">
       <div className="flex max-w-52 items-center justify-center rounded-md">
@@ -216,14 +315,39 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
           />
         )}
       </div>
+      <div>
+        {canEdit && (
+          <MetadataEditor
+            onClose={() => {
+              setCanEdit(false);
+            }}
+            initialMetadata={metadataJson}
+            onSuccessfulSubmit={() => {
+              setIsSubmittingMetadata(true);
+            }}
+          />
+        )}
+        {isSubmittingMetadata && (
+          <SubmitMetadataModal
+            onClose={() => setIsSubmittingMetadata(false)}
+            onSuccessfulSubmit={() => {
+              addSuccessAlert(
+                'Metadata updated successfully. It will probably take few minutes to reflect',
+              );
+              resetDraft();
+            }}
+          />
+        )}
+        {(drep?.cexplorerDetails?.view == dRepIDBech32 ||
+          drep?.signature_drepVoterId == dRepIDBech32) &&
+          renderUnsavedChanges()}
+      </div>
       {(drep?.cexplorerDetails?.view == dRepIDBech32 ||
         drep?.signature_drepVoterId == dRepIDBech32) && (
         <div className="flex max-w-prose flex-col gap-2">
-          <Link href={`/dreps/workflow/profile/update/step4`}>
-            <Button className="w-full">
-              {metadata ? 'Edit' : 'Set up'} Metadata
-            </Button>
-          </Link>
+          <Button handleClick={() => setCanEdit(true)} className="w-full">
+            {metadata ? 'Edit' : 'Set up'} Metadata
+          </Button>
           <Link href={`/dreps/workflow/profile/update/step1`}>
             <Button className="w-full" variant="outlined" bgColor="transparent">
               Edit Profile

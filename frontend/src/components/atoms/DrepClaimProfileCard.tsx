@@ -155,9 +155,11 @@ const DrepClaimProfileCard = ({
       </div>
       <div className="flex flex-col gap-2">
         <Button disabled>Set up Metadata</Button>
-        <Button disabled variant="outlined" bgColor="transparent">
-          Update Metadata
-        </Button>
+        <Link className="w-full" href={`/dreps/workflow/profile/new`}>
+          <Button className='w-full' variant="outlined" bgColor="transparent">
+            Claim to Edit
+          </Button>
+        </Link>
       </div>
     </div>
   );
