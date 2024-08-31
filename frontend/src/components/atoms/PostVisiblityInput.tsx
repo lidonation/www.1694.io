@@ -6,31 +6,34 @@ const PostVisibilityInput = ({ registerVisibility, errors }) => {
   return (
     <div className="flex flex-col items-start justify-center">
       <p>Set Visibility</p>
-      <div className="ml-3 flex flex-row items-center gap-3 flex-wrap">
+      <div className="flex flex-row flex-wrap items-center gap-3">
         <input
+          id="everyone"
           type="radio"
           value="everyone"
           disabled={!isEnabled}
           {...registerVisibility('postVisibility')}
           name="postVisibility"
         />
-        <label>Everyone</label>
+        <label htmlFor="everyone">Everyone</label>
         <input
+          id="delegators"
           type="radio"
           value="delegators"
           {...registerVisibility('postVisibility')}
           disabled={!isEnabled}
           name="postVisibility"
         />
-        <label>Delegators only</label>
+        <label htmlFor="delegators">Delegators only</label>
         <input
+          id="myself"
           type="radio"
           value="myself"
           {...registerVisibility('postVisibility')}
           disabled={!isEnabled}
           name="postVisibility"
         />
-        <label>Myself</label>
+        <label htmlFor="myself">Myself</label>
       </div>
       <div className="text-sm text-red-700" data-testid="error-msg">
         {errors?.postVisibility && errors?.postVisibility?.message}
