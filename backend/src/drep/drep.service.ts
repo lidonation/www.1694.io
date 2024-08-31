@@ -659,12 +659,13 @@ export class DrepService {
   }
   async getEpochParams() {
     try {
-      const APIURL =
-        'https://cardano-sanchonet.blockfrost.io/api/v0/epochs/latest/parameters';
+      const APIURL = `${this.configService.get<string>(
+        'BLOCKFROST_NETWORK_URL'
+      )}/api/v0/epochs/latest/parameters`;
       const response = await axios.get(APIURL, {
         headers: {
           project_id: this.configService.get<string>(
-            'BLOCKFROST_SANCHONET_PROJECT_ID',
+            'BLOCKFROST_NETWORK_PROJECT_ID',
           ),
         },
       });
