@@ -1,6 +1,11 @@
 import { useCardano } from '@/context/walletContext';
 import { useScreenDimension } from '@/hooks';
-import { convertString, formatAsCurrency, shortNumber } from '@/lib';
+import {
+  convertString,
+  formatAsCurrency,
+  formattedAda,
+  lovelaceToAda,
+} from '@/lib';
 import React from 'react';
 import HoverText from './HoverText';
 const ViewProfileAction = () => {
@@ -40,8 +45,10 @@ const DrepDelegatorslist = ({ delegators }: { delegators: any[] }) => {
                     <p className="font-bold">Voting Power</p>
                     <div>
                       <HoverText
-                        shortText={shortNumber(delegator.votingPower, 2)}
-                        longText={formatAsCurrency(delegator.votingPower)}
+                        shortText={formattedAda(delegator?.votingPower, 2)}
+                        longText={formatAsCurrency(
+                          lovelaceToAda(delegator?.votingPower),
+                        )}
                       />
                     </div>
                   </div>

@@ -40,6 +40,8 @@ import { getEpochParams } from 'src/queries/getEpochParams';
 import { getDRepDelegatorsHistory } from 'src/queries/drepDelegatorsHistory';
 import { JsonLd } from 'jsonld/jsonld-spec';
 import { Response } from 'express';
+import { getDrepCexplorerDetailsQuery } from 'src/queries/drepCexplorerDetails';
+import { getDrepDelegatorsWithVotingPowerQuery } from 'src/queries/drepDelegatorsWithVotingPower';
 
 @Injectable()
 export class DrepService {
@@ -324,74 +326,12 @@ export class DrepService {
     //also get his details from cexplorer
     const viewParam = drepVoterId;
     const drepCexplorer = await this.cexplorerService.manager.query(
-      `WITH LatestRegistration AS (
-    SELECT 
-        dr.id AS reg_id, 
-        dr.drep_hash_id, 
-        dr.voting_anchor_id, 
-        dr.deposit,
-        va.url AS metadata_url,
-        ROW_NUMBER() OVER (PARTITION BY dr.drep_hash_id ORDER BY reg_tx_bk.time DESC) AS RegRowNum
-    FROM 
-        drep_registration AS dr
-    LEFT JOIN 
-        voting_anchor AS va ON dr.voting_anchor_id = va.id
-    LEFT JOIN 
-        tx AS reg_tx ON dr.tx_id = reg_tx.id 
-    LEFT JOIN 
-        block AS reg_tx_bk ON reg_tx.block_id = reg_tx_bk.id
-)
-, RankedRows AS (
-    SELECT 
-        dh.id AS drep_hash_id, 
-        dh.raw, 
-        dh.view, 
-        dd.id AS drep_distr_id, 
-        dd.amount, 
-        dd.epoch_no, 
-        dd.active_until,
-        lr.deposit, 
-        lr.reg_id AS reg_drep_hash_id, 
-        lr.voting_anchor_id AS reg_voting_anchor_id,  
-        lr.metadata_url,
-        sa.view AS stake_address,
-        (
-            SELECT COUNT(DISTINCT dv.addr_id)
-            FROM delegation_vote dv
-            WHERE dv.drep_hash_id = dh.id
-        ) AS delegation_vote_count,
-        ROW_NUMBER() OVER (PARTITION BY dh.id ORDER BY dd.epoch_no DESC) AS RowNum
-    FROM 
-        drep_hash AS dh
-    LEFT JOIN 
-        drep_distr AS dd ON dh.id = dd.hash_id
-    LEFT JOIN 
-        LatestRegistration AS lr ON dh.id = lr.drep_hash_id AND lr.RegRowNum = 1
-    LEFT JOIN 
-        delegation_vote AS dv ON dh.id = dv.drep_hash_id 
-    LEFT JOIN 
-        stake_address AS sa ON dv.addr_id = sa.id 
-    WHERE 
-        dh.view = $1
-)
-SELECT 
-    drep_hash_id,
-    view,
-    delegation_vote_count,
-    stake_address,
-    amount,
-    epoch_no,
-    active_until,
-    deposit,
-    metadata_url
-FROM 
-    RankedRows
-WHERE 
-    RowNum = 1`,
+      getDrepCexplorerDetailsQuery,
       [viewParam],
     );
     return drepCexplorer[0];
   }
+
   async getDrepDateofRegistration(drepVoterId: string) {
     const drepRegistrationData = await this.cexplorerService.manager.query(
       `SELECT 
@@ -427,7 +367,7 @@ WHERE
     const includeNotes = !filterValues || filterValues.includes('n');
     const includeClaimedProfile = !filterValues || filterValues.includes('cp');
     const includeRegistration = !filterValues || filterValues.includes('r');
-  
+
     const drepId = drep?.drep_id;
     const startingTime = beforeDate ? new Date(Number(beforeDate)) : new Date();
     const endingTime = tillDate
@@ -435,19 +375,19 @@ WHERE
       : new Date(new Date(startingTime).getTime() - 432000000); // 5 days ago
 
     const epochs = await this.getEpochs(startingTime, endingTime);
-  
+
     let drepRegData = null;
     let regDate = null;
     if (includeRegistration) {
       drepRegData = await this.getDrepDateofRegistration(drepVoterId);
       regDate = new Date(drepRegData?.date_of_registration).getTime();
     }
-  
+
     let claimDate = null;
     if (includeClaimedProfile) {
       claimDate = new Date(drep?.drep_createdAt).getTime();
     }
-  
+
     let drepVotingHistory = [];
     if (includeVotingActivity) {
       drepVotingHistory = await this.getDrepVotingActivity(
@@ -456,7 +396,7 @@ WHERE
         endingTime,
       );
     }
-  
+
     let drepDelegatorsHistory = [];
     if (includeDelegations) {
       drepDelegatorsHistory = await this.getDrepDelegators(
@@ -465,7 +405,7 @@ WHERE
         endingTime,
       );
     }
-  
+
     let drepNotes = [];
     if (includeNotes && drepId) {
       drepNotes = await this.getDRepNotes(
@@ -476,7 +416,7 @@ WHERE
         delegation,
       );
     }
-  
+
     const drepActivity = [
       ...epochs.map((epoch) => ({
         ...epoch,
@@ -496,8 +436,8 @@ WHERE
       ...drepDelegatorsHistory,
     ];
 
-     // Add claimed event if drepId is present and falls within the time range
-     if (
+    // Add claimed event if drepId is present and falls within the time range
+    if (
       includeClaimedProfile &&
       drepId &&
       claimDate &&
@@ -511,7 +451,7 @@ WHERE
         claimedDRepId: drepVoterId,
       });
     }
-  
+
     // Add the registration event if it falls within the time range
     if (
       includeRegistration &&
@@ -526,16 +466,15 @@ WHERE
         epoch_no: drepRegData.epoch_of_registration,
       });
     }
-  
+
     // Sort the combined array by timestamp from latest to earliest
     drepActivity.sort(
       (a, b) =>
         new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
     );
-  
+
     return drepActivity;
   }
-  
 
   async getEpochs(beforeDate: Date, tillDate: Date) {
     const epochs = (await this.cexplorerService.manager.query(
@@ -754,76 +693,16 @@ WHERE
   }
 
   async getDrepDelegatorsWithVotingPower(drepVoterId: string) {
-    // Step 1: Get the delegators and their delegation epoch
-    const drepDelegators = await this.cexplorerService.manager.query(
-      `SELECT 
-          sa.view AS stake_address,
-          b.epoch_no AS delegation_epoch
-       FROM 
-          drep_hash AS dh
-       JOIN 
-          delegation_vote AS dv ON dh.id = dv.drep_hash_id
-       JOIN 
-          stake_address sa ON dv.addr_id = sa.id
-       JOIN 
-          tx ON dv.tx_id = tx.id
-       JOIN 
-          block b ON tx.block_id = b.id
-       WHERE 
-          dh.view = $1`,
+    const delegatorsWithVotingPower = await this.cexplorerService.manager.query(
+      getDrepDelegatorsWithVotingPowerQuery,
       [drepVoterId],
     );
 
-    // Step 2: Remove duplicates and keep track of delegation epochs
-    const uniqueDelegatorsMap = new Map<string, number>();
-    drepDelegators.forEach((delegator) => {
-      uniqueDelegatorsMap.set(
-        delegator.stake_address,
-        delegator.delegation_epoch,
-      );
-    });
-
-    // Step 3: Calculate voting power for each unique delegator
-    const delegatorsWithVotingPower = await Promise.all(
-      Array.from(uniqueDelegatorsMap).map(
-        async ([stakeAddress, delegationEpoch]) => {
-          const votingPowerResult = await this.cexplorerService.manager.query(
-            `SELECT 
-            SUM(uv.value) AS total_stake
-         FROM 
-            utxo_view uv
-         JOIN 
-            stake_address sa ON uv.stake_address_id = sa.id
-         WHERE 
-            sa.view = $1
-         GROUP BY 
-            sa.view;`,
-            [stakeAddress],
-          );
-
-          let totalStakeInAda = 0;
-          if (votingPowerResult.length > 0) {
-            const totalStakeInLovelace = parseInt(
-              votingPowerResult[0].total_stake,
-              10,
-            );
-            totalStakeInAda = totalStakeInLovelace / 1000000;
-          }
-
-          return {
-            stakeAddress,
-            delegationEpoch,
-            votingPower: totalStakeInAda,
-          };
-        },
-      ),
-    );
-    //sort from highest epoch
-    delegatorsWithVotingPower.sort(
-      (a, b) => b.delegationEpoch - a.delegationEpoch,
-    );
-
-    return delegatorsWithVotingPower;
+    return delegatorsWithVotingPower.map((delegator) => ({
+      stakeAddress: delegator?.stake_address,
+      delegationEpoch: delegator?.delegation_epoch,
+      votingPower: delegator?.voting_power,
+    }));
   }
 
   async updateDrepInfo(

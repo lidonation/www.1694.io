@@ -10,6 +10,19 @@ export const getAllDRepsQuery = (
     WITH LatestEpoch AS (
         SELECT MAX(no) AS latest_epoch_no FROM epoch
     ),
+    latest_delegations AS (
+      SELECT 
+        dv.addr_id,
+        MAX(b.time) as latest_time
+      FROM 
+        delegation_vote dv
+      JOIN 
+        tx ON dv.tx_id = tx.id
+      JOIN 
+        block b ON tx.block_id = b.id
+      GROUP BY 
+        dv.addr_id
+    ),
     RankedRows AS (
         SELECT 
             dh.id AS drep_hash_id, 
@@ -34,9 +47,12 @@ export const getAllDRepsQuery = (
             sa.view AS stake_address,
             le.latest_epoch_no,
             (
-              SELECT COUNT(DISTINCT dv.addr_id)
-              FROM delegation_vote dv
-              WHERE dv.drep_hash_id = dh.id
+              SELECT COUNT(DISTINCT dv_inner.addr_id)
+              FROM delegation_vote dv_inner
+              JOIN latest_delegations ld ON dv_inner.addr_id = ld.addr_id
+              JOIN tx ON dv_inner.tx_id = tx.id
+              JOIN block b ON tx.block_id = b.id AND b.time = ld.latest_time
+              WHERE dv_inner.drep_hash_id = dh.id
             ) AS delegation_vote_count,
             ROW_NUMBER() OVER (PARTITION BY dh.id ORDER BY dd.epoch_no DESC) AS RowNum
         FROM 
@@ -78,6 +94,7 @@ export const getAllDRepsQuery = (
     ${orderByClause}
     LIMIT ${itemsPerPage} OFFSET ${offset}
   `;
+  
   
   export const getTotalResultsQuery = (
     sanitizedSearch: string,

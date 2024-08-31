@@ -68,6 +68,12 @@ const DrepClaimProfileCard = ({
     checkStatus();
     fetchData();
   }, [drep]);
+
+  const liveVotingPower = drep?.delegators.reduce(
+    (total, delegator) => total + Number(delegator?.votingPower),
+    0,
+  );
+
   return (
     <div className="flex flex-col gap-5 bg-white bg-opacity-50 px-5 py-10 ">
       <div className="flex max-w-52 items-center justify-center rounded-md">
@@ -100,16 +106,29 @@ const DrepClaimProfileCard = ({
           status={drep?.type === 'voting_option' ? 'Active' : status}
         />
       </div>
-      <div>
-        <p className="font-bold">Voting power</p>
-        <p className="flex items-center gap-3 font-normal">
-          ₳{' '}
-          {state ? (
-            <Skeleton animation={'wave'} width={100} height={20} />
-          ) : (
-            formattedAda(drep?.cexplorerDetails?.amount, 2) || 0
-          )}
-        </p>
+      <div className="flex items-center gap-4 lg:justify-between lg:gap-0">
+        <div>
+          <p className="font-bold">Active Voting power</p>
+          <p className="flex items-center gap-3 font-normal">
+            ₳{' '}
+            {state ? (
+              <Skeleton animation={'wave'} width={100} height={20} />
+            ) : (
+              formattedAda(drep?.cexplorerDetails?.amount, 2) || 0
+            )}
+          </p>
+        </div>
+        <div>
+          <p className="font-bold">Live Voting power</p>
+          <p className="flex items-center gap-3 font-normal">
+            ₳{' '}
+            {state ? (
+              <Skeleton animation={'wave'} width={100} height={20} />
+            ) : (
+              formattedAda(liveVotingPower, 2)
+            )}
+          </p>
+        </div>
       </div>
       <div>
         <p className="font-bold">Total delegation</p>
