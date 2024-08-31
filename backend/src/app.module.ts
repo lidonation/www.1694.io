@@ -20,7 +20,6 @@ import { MiscellaneousModule } from './miscellaneous/miscellaneous.module';
       isGlobal: true,
       envFilePath: ['.env', '.env.development', '.env.production'],
     }),
-
     DrepModule,
     DbModule,
     NoteModule,

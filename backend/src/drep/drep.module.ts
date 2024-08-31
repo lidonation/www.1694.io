@@ -16,7 +16,6 @@ import { Metadata } from 'src/entities/metadata.entity';
 @Module({
   imports: [
     HttpModule.register({
-      timeout: 5000,
       maxRedirects: 5,
     }),
     TypeOrmModule.forFeature([Drep, Attachment, Note, Metadata], 'default'),

@@ -9,6 +9,7 @@ import MetadataViewer from './MetadataViewer';
 import { isActive } from '../molecules/DRepsTable';
 import { getExternalMetadata } from '@/services/requests/postExternalMetadataUrl';
 import DRepSocialLinks from './DRepSocialLinks';
+import DRepAvatarCard from './DRepAvatarCard';
 
 const DrepClaimProfileCard = ({
   drep,
@@ -48,7 +49,7 @@ const DrepClaimProfileCard = ({
         setMetadata(jsonLdData);
       } catch (error) {
         setMetadata(null);
-        setMetadataError('Metadata Unprocessable');
+        setMetadataError('Metadata Unprocessable. Probably took long to load or has invalid content');
       } finally {
         setIsMetadataLoading(false);
       }
@@ -76,28 +77,12 @@ const DrepClaimProfileCard = ({
 
   return (
     <div className="flex flex-col gap-5 bg-white bg-opacity-50 px-5 py-10 ">
-      <div className="flex max-w-52 items-center justify-center rounded-md">
-        {state ? (
-          <Skeleton
-            animation={'wave'}
-            variant="circular"
-            width={150}
-            height={150}
-          />
-        ) : (
-          <img
-            className="w-full"
-            src={`${imageSrc ? imageSrc : '/svgs/user-circle.svg'}`}
-            alt=""
-          />
-        )}
-      </div>
+      <DRepAvatarCard state={state} imageSrc={imageSrc} />
       {drep?.type !== 'voting_option' && (
         <Link className="w-full" href={`/dreps/workflow/profile/new`}>
           <Button className="w-full">Claim this profile</Button>
         </Link>
       )}
-      {/* todo: fix to accurate status */}
       <div className="flex flex-row gap-2">
         <StatusChip
           status={drep?.type === 'voting_option' ? 'Claimed' : 'Not claimed'}

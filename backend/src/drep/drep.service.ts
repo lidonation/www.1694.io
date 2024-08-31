@@ -826,10 +826,16 @@ export class DrepService {
       .andWhere('metadata.hash = :hash', { hash: hash })
       .getOne();
     if (existingMetadata) {
+      //check pinned status
+      const content = existingMetadata?.content;
+      if (content) {
+        const { state } = await this.attachmentService.checkPinStatus(content);
+        return { ...existingMetadata, state };
+      }
       return existingMetadata;
     }
     // Create a new metadata record in IPFS
-    const { ipfs_hash } = await this.saveMetadataToIPFS(metadata);
+    const { ipfs_hash, state } = await this.saveMetadataToIPFS(metadata);
     const newMetadata = {
       name: fileName + '.jsonld',
       hash: hash,
@@ -839,7 +845,7 @@ export class DrepService {
 
     const createdMetadata = metadataRepo.create(newMetadata);
     const res = (await metadataRepo.save(createdMetadata)) as Metadata;
-    return res;
+    return { ...res, state };
   }
   async saveMetadataToIPFS(metadata: JsonLd): Promise<IPFSResponse> {
     try {

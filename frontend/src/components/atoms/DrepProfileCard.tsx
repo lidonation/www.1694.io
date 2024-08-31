@@ -7,9 +7,6 @@ import {
   AccordionSummary,
   Accordion,
   AccordionDetails,
-  Box,
-  Slide,
-  ClickAwayListener,
 } from '@mui/material';
 import Link from 'next/link';
 import {
@@ -28,6 +25,7 @@ import MetadataEditor from './MetadataEditor';
 import SubmitMetadataModal from './SubmitMetadataModal';
 import { deleteItemFromIndexedDB } from '@/lib/indexedDb';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
+import DRepAvatarCard from './DRepAvatarCard';
 
 interface StatusProps {
   status:
@@ -88,7 +86,6 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
   const [isSubmittingMetadata, setIsSubmittingMetadata] = useState(false);
   const [socialLinks, setSocialLinks] = useState<any>(null);
   const [hoveredOnWarning, setHoveredOnWarning] = useState(false);
-  const containerRef = React.useRef(null);
   useEffect(() => {
     const fetchData = async () => {
       const metadataUrl = drep?.cexplorerDetails?.metadata_url;
@@ -102,25 +99,25 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
         });
         setMetadata(jsonLdData);
         setMetadataJson(modifiedJson);
-        const imageUrl = jsonLdData?.body?.image?.contentUrl;
+        const metadataBody = jsonLdData?.body;
+        const imageUrl = metadataBody?.image?.contentUrl;
         if (imageUrl) {
           setImageSrc(imageUrl);
         }
         if (
-          jsonLdData?.body?.references &&
-          Array.isArray(jsonLdData?.body?.references) &&
-          jsonLdData?.body?.references.length > 0
+          metadataBody?.references &&
+          Array.isArray(metadataBody?.references) &&
+          metadataBody?.references.length > 0
         ) {
-          setSocialLinks(jsonLdData?.body?.references);
+          setSocialLinks(metadataBody?.references);
         }
-        const name = modifiedJson.filter(
-          (item: any) => item.key === 'givenName',
-        )[0]?.value;
-        setName(name);
+
+        const name = metadataBody?.givenName || metadataBody?.dRepName;
+        setName(name?.['@value'] || name);
       } catch (error) {
         console.log(error);
         setMetadata(null);
-        setMetadataError('Metadata Unprocessable');
+        setMetadataError('Metadata Unprocessable. Probably took long to load or has invalid content.');
       } finally {
         setIsMetadataLoading(false);
       }
@@ -211,22 +208,7 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
 
   return (
     <div className="flex w-full flex-col gap-5 bg-white bg-opacity-50 px-5 py-10">
-      <div className="flex max-w-52 items-center justify-center rounded-md">
-        {state ? (
-          <Skeleton
-            animation={'wave'}
-            variant="circular"
-            width={150}
-            height={150}
-          />
-        ) : (
-          <img
-            className="w-full"
-            src={`${imageSrc ? imageSrc : '/svgs/user-circle.svg'}`}
-            alt=""
-          />
-        )}
-      </div>
+      <DRepAvatarCard state={state} imageSrc={imageSrc} />
       <div className="w-full">
         <Typography
           variant="h4"

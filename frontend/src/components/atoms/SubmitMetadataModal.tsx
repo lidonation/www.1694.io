@@ -3,7 +3,7 @@ import { ModalWrapper } from './modal/ModalWrapper';
 import Button from './Button';
 import { downloadJson } from '@/lib/jsonutils';
 import { postMetadata } from '@/services/requests/postMetadata';
-import { MetadataStandard } from '../../../types/commonTypes';
+import {  MetadataSaveResponse, MetadataStandard } from '../../../types/commonTypes';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { useCardano } from '@/context/walletContext';
 import { CircularProgress, Tabs, Tab } from '@mui/material';
@@ -23,12 +23,12 @@ const SubmitMetadataModal = ({ onClose, onSuccessfulSubmit }) => {
   const [metadataUrl, setMetadataUrl] = useState('');
 
   useEffect(() => {
-    const initiateMetadata = async () => { 
+    const initiateMetadata = async () => {
       const jsonld = await getItemFromIndexedDB('metadataJsonLd');
       const jsonHash = await getItemFromIndexedDB('metadataJsonHash');
       setJsonld(jsonld);
       setJsonHash(jsonHash);
-    }
+    };
     initiateMetadata();
   }, []);
 
@@ -69,13 +69,13 @@ const SubmitMetadataModal = ({ onClose, onSuccessfulSubmit }) => {
   const postSaveMetadata = async () => {
     try {
       //upload metadata to db
-      await postAddMetadataAttachment({
+      const { content } = (await postAddMetadataAttachment({
         metadata: jsonld,
         hash: jsonHash,
         drepId,
         name: jsonHash.slice(0, 10),
-      });
-      const hostedUrl = `${urls.baseServerUrl}/dreps/${drepId}/metadata/${jsonHash}`;
+      })) as MetadataSaveResponse;
+      const hostedUrl = `${urls.ipfsGateway}/ipfs/${content}`;
       return hostedUrl;
     } catch (error) {
       console.log(error);
@@ -147,9 +147,7 @@ const SubmitMetadataModal = ({ onClose, onSuccessfulSubmit }) => {
 
   const renderHostForMeOnIPFSContent = () => (
     <div className="flex flex-col gap-4">
-      <p>
-        This is the final step. We'll host the metadata for you in IPFS.
-      </p>
+      <p>This is the final step. We'll host the metadata for you in IPFS.</p>
       <Button handleClick={onSubmit}>Submit</Button>
     </div>
   );

@@ -29,11 +29,11 @@ const MetadataViewer = ({
 
   const renderContent = () => {
     if (isMetadataLoading) {
-      return <p className="text-sm">Loading...</p>;
+      return <p className="text-sm animate-pulse">Loading...</p>;
     }
 
     if (metadataError) {
-      return <p className="text-sm">{metadataError}</p>;
+      return <p className="text-sm text-red-400">{metadataError}</p>;
     }
 
     if (!metadata || !metadata.body) {
