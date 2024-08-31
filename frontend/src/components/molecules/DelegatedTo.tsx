@@ -41,14 +41,14 @@ export const DelegatedTo = ({ className }: DelegatedToProps) => {
                 Delegated to: {DRep?.drep_name ? `(${DRep.drep_name})` : ''}
               </Typography> */}
               <Typography fontSize="0.85rem" fontWeight={600}>
-                Delegated 
+                Delegated
               </Typography>
-              <Typography
-                fontSize="0.75rem"
-                fontWeight={600}
-                className="flex items-center overflow-hidden text-gray-300"
-              >
-                {shortenAddress(currentDelegation?.drep_view, 12)}
+              <Box className="flex items-center overflow-hidden text-gray-300">
+                <Link href={`/dreps/${currentDelegation?.drep_view}`}>
+                  <Typography fontSize="0.75rem" fontWeight={600}>
+                    {shortenAddress(currentDelegation?.drep_view, 12)}
+                  </Typography>
+                </Link>
                 <Tooltip title="Copy DRep ID">
                   <IconButton
                     size="small"
@@ -61,7 +61,7 @@ export const DelegatedTo = ({ className }: DelegatedToProps) => {
                     />
                   </IconButton>
                 </Tooltip>
-              </Typography>
+              </Box>
             </Box>
             <Box>
               <Typography fontSize="0.85rem" fontWeight={600}>

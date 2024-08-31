@@ -97,7 +97,7 @@ const DRepsTable = ({
             <th className="px-4 py-2">Drep Id</th>
             <th className="px-4 py-2">
               <div className="flex items-center">
-                <span>Live Power</span>
+                <span>Active Power</span>
                 {sort === 'power' &&
                   (order === 'desc' ? (
                     <ArrowDownIcon width={20} height={20} color="black" />
