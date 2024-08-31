@@ -13,8 +13,8 @@ const FormSchema = z.object({
   postTitle: z
     .string()
     .min(3, 'Post Title cant be less than 3 chars')
-    .max(12, "Post Title can't be more than 12 chars"),
-  postTag: z.array(z.string()),
+    .max(255, "Post Title can't be more than 255 chars"),
+    postTag: z.array(z.string()).optional(),
   postText: z.string().min(10, 'Post Text cant be less than 10 chars'),
   postVisibility: z.string().min(1, "Visibility status can't be empty"),
 });
