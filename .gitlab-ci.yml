@@ -282,6 +282,8 @@ app-preview:
       cat $ENV_FILE_FRONTEND > frontend/.env.production
       cp backend/.env.production ./chart/backend_env
       
+      cat frontend/.env.production
+      
       cp $ENV_FILE frontend/.env.production
       cat $ENV_FILE_FRONTEND > frontend/.env.production
       cp frontend/.env.production ./chart/frontend_env
