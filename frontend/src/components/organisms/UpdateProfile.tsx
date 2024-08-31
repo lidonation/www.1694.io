@@ -12,7 +12,7 @@ import { getItemFromLocalStorage, setItemToLocalStorage, sha256 } from '@/lib';
 import {
   submitMetadata,
 } from '@/lib/metadataProcessor';
-import { DRepMetadata } from '../../../types/commonTypes';
+import { DRepMetadata, IPFSResponse } from '../../../types/commonTypes';
 import { setItemToIndexedDB } from '@/lib/indexedDb';
 import { postAddAttachmentToIPFS } from '@/services/requests/postAttachmentToIPFS';
 import { urls } from '@/constants';
@@ -29,11 +29,7 @@ const FormSchema = z.object({
 
 });
 type InputType = z.infer<typeof FormSchema>;
-export type IPFSResponse = {
-  name: string;
-  ipfs_hash: string;
-  size: number;
-};
+
 const UpdateProfile = () => {
   const {
     register,
@@ -182,7 +178,7 @@ const UpdateProfile = () => {
             const { ipfs_hash }: IPFSResponse = await postAddAttachmentToIPFS({
               attachment: formData,
             });
-            const imageUrl = `${urls.baseServerUrl}/attachments/ipfs/${ipfs_hash}`;
+            const imageUrl = `${urls.ipfsGateway}/ipfs/${ipfs_hash}`;
             // hash the image to sha256
             const imageHash = await sha256(imageFile);
             metadataJson['image'] = {

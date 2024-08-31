@@ -8,7 +8,11 @@ import {
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { lastValueFrom } from 'rxjs';
-import { IPFSResponse } from 'src/common/types';
+import {
+  IPFSPinResponse,
+  IPFSPinStatusResponse,
+  IPFSResponse,
+} from 'src/common/types';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
@@ -207,6 +211,74 @@ export class AttachmentService {
           },
         ),
       );
+      const ipfsRes = res.data as IPFSResponse;
+      //then auto-pin the attachment
+      const ipfsPinStatus =await this.pinAttachmentToIPFS(ipfsRes.ipfs_hash) as IPFSPinResponse;
+      return {
+        ...ipfsRes,
+        state: ipfsPinStatus.state
+      }
+    } catch (error) {
+      console.error(error.response.data || error.response || error);
+      throw new HttpException(error.response.data, error.response.status);
+    }
+  }
+  async pinAttachmentToIPFS(hash: string): Promise<IPFSPinResponse> {
+    try {
+      const res = await lastValueFrom(
+        this.httpService.post(
+          `https://ipfs.blockfrost.io/api/v0/ipfs/pin/add/${hash}`,
+          {},
+          {
+            headers: {
+              project_id: this.configService.get<string>(
+                'BLOCKFROST_IPFS_PROJECT_ID',
+              ),
+            },
+          },
+        ),
+      );
+      return res.data;
+    } catch (error) {
+      console.error(error.response.data || error.response || error);
+      throw new HttpException(error.response.data, error.response.status);
+    }
+  }
+  async checkPinStatus(hash: string): Promise<IPFSPinStatusResponse> {
+    try {
+      const res = await lastValueFrom(
+        this.httpService.get(
+          `https://ipfs.blockfrost.io/api/v0/ipfs/pin/list/${hash}`,
+          {
+            headers: {
+              project_id: this.configService.get<string>(
+                'BLOCKFROST_IPFS_PROJECT_ID',
+              ),
+            },
+          },
+        ),
+      );
+      return res.data;
+    } catch (error) {
+      console.error(error.response.data || error.response || error);
+      throw new HttpException(error.response.data, error.response.status);
+    }
+  }
+  async unpinAttachmentFromIPFS(hash: string): Promise<IPFSPinResponse> {
+    try {
+      const res = await lastValueFrom(
+        this.httpService.post(
+          `https://ipfs.blockfrost.io/api/v0/ipfs/pin/remove/${hash}`,
+          {},
+          {
+            headers: {
+              project_id: this.configService.get<string>(
+                'BLOCKFROST_IPFS_PROJECT_ID',
+              ),
+            },
+          },
+        ),
+      );
       return res.data;
     } catch (error) {
       console.error(error.response.data || error.response || error);
@@ -236,7 +308,10 @@ export class AttachmentService {
       return response.data.pipe(res);
     } catch (error) {
       console.error(error);
-      throw new HttpException(error.response.statusText || 'An error occured', error.response.status);
+      throw new HttpException(
+        error.response.statusText || 'An error occured',
+        error.response.status,
+      );
     }
   }
 }

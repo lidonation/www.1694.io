@@ -18,10 +18,9 @@ import { getExternalMetadata } from '@/services/requests/postExternalMetadataUrl
 import { renderJsonldValue } from '../atoms/MetadataViewer';
 import { submitMetadata } from '@/lib/metadataProcessor';
 import { setItemToIndexedDB } from '@/lib/indexedDb';
-import { IPFSResponse } from './UpdateProfile';
 import { postAddAttachmentToIPFS } from '@/services/requests/postAttachmentToIPFS';
 import { urls } from '@/constants';
-import { DRepMetadata } from '../../../types/commonTypes';
+import { DRepMetadata, IPFSResponse } from '../../../types/commonTypes';
 const FormSchema = z.object({
   profileName: z.string().min(1, { message: 'Profile name is required' }),
   profileEmail: z.string().optional(),
@@ -185,7 +184,7 @@ const NewProfile = () => {
             const { ipfs_hash }: IPFSResponse = await postAddAttachmentToIPFS({
               attachment: formData,
             });
-            const imageUrl = `${urls.baseServerUrl}/attachments/ipfs/${ipfs_hash}`;
+            const imageUrl = `${urls.ipfsGateway}/ipfs/${ipfs_hash}`;
             // hash the image to sha256
             const imageHash = await sha256(imageFile);
             metadataJson['image'] = {

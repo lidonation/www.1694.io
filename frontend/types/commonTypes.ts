@@ -15,17 +15,31 @@ export enum MetadataStandard {
   CIP119 = 'CIP119',
 }
 
-export type DRepMetadata={
+export type DRepMetadata = {
   givenName: string;
   email?: string;
   bio?: string;
   objectives?: string;
   motivations?: string;
   qualifications?: string;
-  references:any[];
-  image?:{
-    contentUrl:string;
-    sha256:string;
-  }
-  paymentAddress?:string
-}
+  references: any[];
+  image?: {
+    contentUrl: string;
+    sha256: string;
+  };
+  paymentAddress?: string;
+};
+export type MetadataSaveResponse = {
+  deletedAt: string;
+  id: number;
+  createdAt: string;
+  updatedAt: string;
+  name: string;
+  hash: string;
+  content: string;
+};
+export type IPFSResponse = {
+  name: string;
+  ipfs_hash: string;
+  size: number;
+};

@@ -427,7 +427,7 @@ WHERE
     const includeNotes = !filterValues || filterValues.includes('n');
     const includeClaimedProfile = !filterValues || filterValues.includes('cp');
     const includeRegistration = !filterValues || filterValues.includes('r');
-  
+
     const drepId = drep?.drep_id;
     const startingTime = beforeDate ? new Date(Number(beforeDate)) : new Date();
     const endingTime = tillDate
@@ -435,19 +435,19 @@ WHERE
       : new Date(new Date(startingTime).getTime() - 432000000); // 5 days ago
 
     const epochs = await this.getEpochs(startingTime, endingTime);
-  
+
     let drepRegData = null;
     let regDate = null;
     if (includeRegistration) {
       drepRegData = await this.getDrepDateofRegistration(drepVoterId);
       regDate = new Date(drepRegData?.date_of_registration).getTime();
     }
-  
+
     let claimDate = null;
     if (includeClaimedProfile) {
       claimDate = new Date(drep?.drep_createdAt).getTime();
     }
-  
+
     let drepVotingHistory = [];
     if (includeVotingActivity) {
       drepVotingHistory = await this.getDrepVotingActivity(
@@ -456,7 +456,7 @@ WHERE
         endingTime,
       );
     }
-  
+
     let drepDelegatorsHistory = [];
     if (includeDelegations) {
       drepDelegatorsHistory = await this.getDrepDelegators(
@@ -465,7 +465,7 @@ WHERE
         endingTime,
       );
     }
-  
+
     let drepNotes = [];
     if (includeNotes && drepId) {
       drepNotes = await this.getDRepNotes(
@@ -476,7 +476,7 @@ WHERE
         delegation,
       );
     }
-  
+
     const drepActivity = [
       ...epochs.map((epoch) => ({
         ...epoch,
@@ -496,8 +496,8 @@ WHERE
       ...drepDelegatorsHistory,
     ];
 
-     // Add claimed event if drepId is present and falls within the time range
-     if (
+    // Add claimed event if drepId is present and falls within the time range
+    if (
       includeClaimedProfile &&
       drepId &&
       claimDate &&
@@ -511,7 +511,7 @@ WHERE
         claimedDRepId: drepVoterId,
       });
     }
-  
+
     // Add the registration event if it falls within the time range
     if (
       includeRegistration &&
@@ -526,16 +526,15 @@ WHERE
         epoch_no: drepRegData.epoch_of_registration,
       });
     }
-  
+
     // Sort the combined array by timestamp from latest to earliest
     drepActivity.sort(
       (a, b) =>
         new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
     );
-  
+
     return drepActivity;
   }
-  
 
   async getEpochs(beforeDate: Date, tillDate: Date) {
     const epochs = (await this.cexplorerService.manager.query(
@@ -947,10 +946,16 @@ WHERE
       .andWhere('metadata.hash = :hash', { hash: hash })
       .getOne();
     if (existingMetadata) {
+      //check pinned status
+      const content = existingMetadata?.content;
+      if (content) {
+        const { state } = await this.attachmentService.checkPinStatus(content);
+        return { ...existingMetadata, state };
+      }
       return existingMetadata;
     }
     // Create a new metadata record in IPFS
-    const { ipfs_hash } = await this.saveMetadataToIPFS(metadata);
+    const { ipfs_hash, state } = await this.saveMetadataToIPFS(metadata);
     const newMetadata = {
       name: fileName + '.jsonld',
       hash: hash,
@@ -960,7 +965,7 @@ WHERE
 
     const createdMetadata = metadataRepo.create(newMetadata);
     const res = (await metadataRepo.save(createdMetadata)) as Metadata;
-    return res;
+    return { ...res, state };
   }
   async saveMetadataToIPFS(metadata: JsonLd): Promise<IPFSResponse> {
     try {
