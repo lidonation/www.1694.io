@@ -12,7 +12,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { postAddComment } from '@/services/requests/postAddComment';
 import { useGetNotesQuery } from '@/hooks/useGetNotesQuery';
 import { processNoteContent } from '@/lib/noteContentProcessor/processNoteContent';
-import * as marked from 'marked'
+import * as marked from 'marked';
 const SingleNote = ({
   note,
   currentVoter,
@@ -52,7 +52,7 @@ const SingleNote = ({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       comment: '',
-    }
+    },
   });
   // Update user reactions whenever currentVoter changes
   useEffect(() => {
@@ -63,7 +63,7 @@ const SingleNote = ({
       return acc;
     }, {});
     const updatedReactions = note.reactions.reduce((acc, reaction) => {
-      acc[reaction.type] = (acc[reaction.type] || 0) +1;
+      acc[reaction.type] = (acc[reaction.type] || 0) + 1;
       return acc;
     }, initialReactions);
 
@@ -183,32 +183,35 @@ const SingleNote = ({
         <Typography className="font-black" variant="h5">
           {note.note_note_title}
         </Typography>
-        {!!noteContent && noteContent.map((item, index) => {
-          if (typeof item === 'string') {
-            return (
-              <Typography
-                key={index}
-                dangerouslySetInnerHTML={{ __html: marked.parse(item) }}
-              ></Typography>
-            );
-          } else if (React.isValidElement(item)) {
-            return React.cloneElement(item, { key: index });
-          }
-        })}
-        <div className="flex flex-col gap-1">
-          <p className="text-sm">Tags</p>
-          <div className="flex flex-wrap gap-1">
-            {note.note_note_tag.split(',').map((tag) => (
-              <Chip
-                key={tag}
-                label={tag}
-                variant="outlined"
-                color="primary"
-                className="w-fit text-black"
-              />
-            ))}
+        {!!noteContent &&
+          noteContent.map((item, index) => {
+            if (typeof item === 'string') {
+              return (
+                <Typography
+                  key={index}
+                  dangerouslySetInnerHTML={{ __html: marked.parse(item) }}
+                ></Typography>
+              );
+            } else if (React.isValidElement(item)) {
+              return React.cloneElement(item, { key: index });
+            }
+          })}
+        {!!note.note_note_tag && (
+          <div className="flex flex-col gap-1">
+            <p className="text-sm">Tags</p>
+            <div className="flex flex-wrap gap-1">
+              {note.note_note_tag.split(',').map((tag) => (
+                <Chip
+                  key={tag}
+                  label={tag}
+                  variant="outlined"
+                  color="primary"
+                  className="w-fit text-black"
+                />
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
       <div className="flex items-center gap-5 bg-[#F3F5FF] px-5 py-1">
         <p className="text-sm">Submission Date:</p>

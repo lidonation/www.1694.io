@@ -241,7 +241,7 @@ const MetadataEditor = ({
               </div>
             ))}
 
-          <Accordion>
+          <Accordion defaultExpanded>
             <AccordionSummary
               expandIcon={
                 <img
