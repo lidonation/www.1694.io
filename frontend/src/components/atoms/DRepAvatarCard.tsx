@@ -78,12 +78,15 @@ const DRepAvatarCard: React.FC<DRepAvatarCardProps> = ({ state, imageSrc }) => {
         className="w-full"
         src={imageUrl || undefined}
         sx={{
-          width: 200,
-          height: 200,
+          width: '100%',
+          height: '100%',
         }}
       ></Avatar>
       {isLoading && (
-        <Typography variant="caption" className="mt-2 text-gray-500 animate-pulse">
+        <Typography
+          variant="caption"
+          className="mt-2 animate-pulse text-gray-500"
+        >
           Loading image...
         </Typography>
       )}
