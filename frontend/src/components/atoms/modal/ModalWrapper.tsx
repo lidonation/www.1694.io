@@ -54,7 +54,7 @@ export const BaseWrapper = styled("div")<Pick<Props, "variant">>`
   top: 50%;
   left: 50%;
   display: flex;
-  z-index: 99;
+  z-index: 99999;
   flex-direction: column;
   background: #fbfbff;
   border-radius: 24px;
