@@ -323,7 +323,7 @@ app-preview:
   environment:
     name: preview
   rules:
-    - if: $CI_COMMIT_BRANCH == 'main'
+    - if: $DEPLOY_WEBSITE == 'true'
       when: manual
 
 postgres-app-production:
