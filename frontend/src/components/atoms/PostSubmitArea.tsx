@@ -3,15 +3,23 @@ import Button from './Button';
 import { useCardano } from '@/context/walletContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-const PostSubmitArea = ({ isUpdating = false }: { isUpdating?: boolean }) => {
+const PostSubmitArea = ({
+  isUpdating = false,
+  showViewTimeline = true,
+}: {
+  isUpdating?: boolean;
+  showViewTimeline?: boolean;
+}) => {
   const router = useRouter();
   const { isEnabled, dRepIDBech32 } = useCardano();
   const handleCancel = () => {
     router.back(); // Redirects to the previous page
   };
   return (
-    <div className="flex w-full flex-row items-center justify-between">
-      <div className="ml-5 flex items-center justify-center">
+    <div
+      className={`flex w-full flex-row items-center ${!!showViewTimeline ? 'justify-between' : 'justify-end'}`}
+    >
+      {showViewTimeline && (
         <Button
           variant="text"
           bgColor="transparent"
@@ -25,7 +33,8 @@ const PostSubmitArea = ({ isUpdating = false }: { isUpdating?: boolean }) => {
             View In Timeline
           </Link>
         </Button>
-      </div>
+      )}
+
       <div className="flex flex-row items-center gap-2">
         <Button
           variant="outlined"
