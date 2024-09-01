@@ -340,11 +340,11 @@ function CardanoProvider(props: Props) {
           }
           const network = await enabledApi.getNetworkId();
           console.log({network});
-          if (network !== ALLOWED_NET) {
-            throw new Error(
-              'Currently supported networks are preview and Sancho testnet',
-            );
-          }
+          // if (network !== ALLOWED_NET) {
+          //   throw new Error(
+          //     'Currently supported networks are preview and Sancho testnet',
+          //   );
+          // }
           setIsMainnet(network === 1);
           //Check and set wallet balance
           await getBalance(enabledApi);
