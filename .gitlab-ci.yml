@@ -323,7 +323,7 @@ app-preview:
   environment:
     name: preview
   rules:
-    - if: $DEPLOY_WEBSITE == "true
+    - if: $DEPLOY_WEBSITE == 'true'
       when: manual
 
 postgres-app-production:
