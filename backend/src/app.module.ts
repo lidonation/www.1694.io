@@ -9,6 +9,10 @@ import { AuthModule } from './auth/auth.module';
 import { VoterModule } from './voter/voter.module';
 import { CommentsModule } from './comments/comments.module';
 import { ReactionsModule } from './reactions/reactions.module';
+import { AuthService } from './auth/auth.service';
+import { HttpModule } from '@nestjs/axios';
+import { ProposalsModule } from './proposals/proposals.module';
+import { MiscellaneousModule } from './miscellaneous/miscellaneous.module';
 
 @Module({
   imports: [
@@ -25,8 +29,10 @@ import { ReactionsModule } from './reactions/reactions.module';
     VoterModule,
     CommentsModule,
     ReactionsModule,
+    ProposalsModule,
+    MiscellaneousModule
   ],
   controllers: [],
-  providers: [],
+  providers: [AuthService],
 })
 export class AppModule {}

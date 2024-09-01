@@ -7,10 +7,28 @@ import { AttachmentService } from 'src/attachment/attachment.service';
 import { DrepService } from 'src/drep/drep.service';
 import { ReactionsService } from 'src/reactions/reactions.service';
 import { CommentsService } from 'src/comments/comments.service';
+import { VoterService } from 'src/voter/voter.service';
+import { AuthService } from 'src/auth/auth.service';
+import { JwtService } from '@nestjs/jwt';
+import { HttpModule, HttpService } from '@nestjs/axios';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Note])],
+  imports: [
+    HttpModule.register({
+      timeout: 5000,
+      maxRedirects: 5,
+    }),
+    TypeOrmModule.forFeature([Note]),
+  ],
   controllers: [NoteController],
-  providers: [NoteService, AttachmentService, DrepService, ReactionsService, CommentsService],
+  providers: [
+    NoteService,
+    AttachmentService,
+    DrepService,
+    ReactionsService,
+    CommentsService,
+    VoterService,
+    AuthService,
+  ],
 })
 export class NoteModule {}

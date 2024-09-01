@@ -1,11 +1,48 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { createDrepDto } from 'src/dto';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
+import { createDrepDto, ValidateMetadataDTO } from 'src/dto';
 import { faker } from '@faker-js/faker';
+import * as blake from 'blakejs';
+import { HttpService } from '@nestjs/axios';
 import { AttachmentService } from 'src/attachment/attachment.service';
+import { Observable } from 'rxjs';
+import { AxiosResponse } from 'axios';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
+import { ReactionsService } from 'src/reactions/reactions.service';
+import { CommentsService } from 'src/comments/comments.service';
+import {
+  Delegation,
+  IPFSResponse,
+  LoggerMessage,
+  MetadataStandard,
+  MetadataValidationStatus,
+  ValidateMetadataResult,
+} from 'src/common/types';
+import { AuthService } from 'src/auth/auth.service';
+import { getAllDRepsQuery, getTotalResultsQuery } from 'src/queries/getDReps';
+import {
+  getDRepDelegatorsCountQuery,
+  getDRepVotesCountQuery,
+  getDRepVotingPowerQuery,
+} from 'src/queries/drepStats';
+import { validateMetadataStandard } from 'src/common/validateMetadataStandard';
+import { catchError, firstValueFrom } from 'rxjs';
+import { Metadata } from 'src/entities/metadata.entity';
+import { getEpochParams } from 'src/queries/getEpochParams';
+import { getDRepDelegatorsHistory } from 'src/queries/drepDelegatorsHistory';
+import { JsonLd } from 'jsonld/jsonld-spec';
+import { Response } from 'express';
+import { getDrepCexplorerDetailsQuery } from 'src/queries/drepCexplorerDetails';
+import { getDrepDelegatorsWithVotingPowerQuery } from 'src/queries/drepDelegatorsWithVotingPower';
+
 @Injectable()
 export class DrepService {
   constructor(
@@ -15,119 +52,223 @@ export class DrepService {
     private cexplorerService: DataSource,
     private attachmentService: AttachmentService,
     private configService: ConfigService,
+    private reactionsService: ReactionsService,
+    private commentsService: CommentsService,
+    private authService: AuthService,
+    private readonly httpService: HttpService,
   ) {}
-  //get from cexplorer db
-  async getAllDrepsCexplorer() {
-    const drepList = await this.cexplorerService.manager.query(
-      `WITH RankedRows AS (
-          SELECT 
-              dh.id AS drep_hash_id, 
-              dh.raw, 
-              dh.view, 
-              dh.has_script,
-              dd.id AS drep_distr_id, 
-              dd.hash_id, 
-              dd.amount, 
-              dd.epoch_no, 
-              dd.active_until,
-              dr.id AS drep_registration_id, 
-              dr.tx_id, 
-              dr.cert_index, 
-              dr.deposit, 
-              dr.drep_hash_id AS reg_drep_hash_id, 
-              dr.voting_anchor_id AS reg_voting_anchor_id,  
-              va.id AS voting_anchor_id, 
-              va.url, 
-              va.data_hash, 
-              va.type,
-              sa.view AS stake_address,
-              (
-                SELECT COUNT(DISTINCT dv.addr_id)
-                FROM delegation_vote dv
-                WHERE dv.drep_hash_id = dh.id
-            ) AS delegation_vote_count,
-              ROW_NUMBER() OVER (PARTITION BY dh.id ORDER BY dd.epoch_no DESC) AS RowNum
-          FROM 
-              drep_hash AS dh
-          LEFT JOIN 
-              drep_distr AS dd ON dh.id = dd.hash_id
-          LEFT JOIN 
-              drep_registration AS dr ON dh.id = dr.drep_hash_id
-          LEFT JOIN 
-              voting_anchor AS va ON dr.voting_anchor_id = va.id
-          LEFT JOIN 
-              delegation_vote AS dv ON dh.id = dv.drep_hash_id 
-          LEFT JOIN
-              stake_address AS sa ON dv.addr_id = sa.id 
-      )
-      SELECT 
-          drep_hash_id,
-          view,
-          delegation_vote_count,
-          stake_address,
-          amount,
-          epoch_no,
-          active_until,
-          deposit,
-          url,
-          type
-      FROM 
-          RankedRows
-      WHERE 
-          RowNum = 1`,
+  async getAllDReps(
+    query?: string,
+    currentPage?: number,
+    itemsPerPage?: number,
+    sort?: string,
+    order?: string,
+    onChainStatus?: 'active' | 'inactive',
+    campaignStatus?: 'claimed' | 'unclaimed',
+  ) {
+    let nameFilteredDRepViews: string[];
+
+    // disabled temporarily due to model changes
+    // if (query) {
+    //   const nameFilteredDReps = query ? await this.getDRepsByName(query) : [];
+    //   nameFilteredDRepViews = nameFilteredDReps.map(
+    //     (drep) => drep.signature_drepVoterId,
+    //   );
+    // }
+
+    let sortColumn = null;
+    let sortOrder = null;
+
+    if (sort && sort === 'power') {
+      sortColumn = 'amount';
+    } else if (sort && sort === 'delegators') {
+      sortColumn = 'delegation_vote_count';
+    }
+
+    if (order) sortOrder = order.toUpperCase();
+
+    let dRepViews: string[];
+
+    if (campaignStatus) {
+      const voltaireDReps = (await this.getAllDRepsVoltaire()) ?? [];
+      dRepViews = voltaireDReps.map((drep) => drep.signature_drepVoterId);
+    }
+
+    const drepList = await this.getAllDRepsCexplorer(
+      query,
+      currentPage,
+      itemsPerPage,
+      nameFilteredDRepViews,
+      sortColumn,
+      sortOrder,
+      onChainStatus,
+      campaignStatus,
+      dRepViews,
     );
-    const drepListInADA = drepList.map((entry) => {
+
+    const drepViews = drepList.data.map((drep) => drep.view);
+
+    const voltaireDReps = await this.getVoltaireDRepsByViews(drepViews);
+
+    const totalPages = Math.ceil(drepList.totalItems / itemsPerPage);
+
+    const mergedDRepsData = drepList.data.map((drep) => {
+      const voltaireDrep = voltaireDReps.find(
+        (voltaireDrep) => voltaireDrep.signature_drepVoterId === drep.view,
+      );
+      //account for voting options
+      if (
+        drep?.view &&
+        (drep?.view.includes('drep_always_abstain') ||
+          drep?.view.includes('drep_always_no_confidence'))
+      ) {
+        drep['type'] = 'voting_option';
+      } else {
+        drep['type'] = 'drep';
+      }
       return {
-        ...entry,
-        deposit: (entry.deposit / 1000000).toFixed(1),
-        amount: (entry.amount / 1000000).toFixed(1),
+        ...drep,
+        ...(voltaireDrep ? voltaireDrep : {}),
       };
     });
 
-    return drepListInADA;
+    return {
+      data: mergedDRepsData,
+      totalItems: drepList.totalItems,
+      currentPage,
+      itemsPerPage,
+      totalPages,
+    };
+  }
+
+  async getAllDRepsCexplorer(
+    query?: string,
+    currentPage?: number,
+    itemsPerPage?: number,
+    nameFilteredDRepViews?: string[],
+    sortColumn?: string,
+    sortOrder?: string,
+    onChainStatus?: 'active' | 'inactive',
+    campaignStatus?: 'claimed' | 'unclaimed',
+    dRepViews?: string[],
+  ) {
+    const offset = (currentPage - 1) * itemsPerPage;
+
+    const sanitizedSearch = query ? query.replace(/'/g, "''") : '';
+
+    let nameFilteredDRepCondition = '';
+    if (nameFilteredDRepViews && nameFilteredDRepViews.length > 0) {
+      nameFilteredDRepCondition = `OR dh.view IN (${nameFilteredDRepViews.map((v) => `'${v}'`).join(', ')})`;
+    }
+
+    let chainStatusCondition = '';
+    if (onChainStatus === 'active') {
+      chainStatusCondition = `AND (dd.active_until IS NOT NULL  AND dd.active_until > le.latest_epoch_no)`;
+    } else if (onChainStatus === 'inactive') {
+      chainStatusCondition = `AND (dd.active_until IS NULL  OR dd.active_until < le.latest_epoch_no)`;
+    }
+
+    let campaignStatusCondition = '';
+    if (dRepViews && dRepViews.length > 0) {
+      if (campaignStatus === 'claimed') {
+        campaignStatusCondition = `AND dh.view IN (${dRepViews.map((v) => `'${v}'`).join(', ')})`;
+      } else if (campaignStatus === 'unclaimed') {
+        campaignStatusCondition = `AND dh.view NOT IN (${dRepViews.map((v) => `'${v}'`).join(', ')})`;
+      }
+    }
+
+    let orderByClause = '';
+    if (sortColumn && sortOrder) {
+      const validSortColumns = ['delegation_vote_count', 'amount'];
+      const validSortOrders = ['ASC', 'DESC'];
+
+      if (
+        validSortColumns.includes(sortColumn) &&
+        validSortOrders.includes(sortOrder)
+      ) {
+        if (sortColumn === 'amount') {
+          orderByClause = `ORDER BY COALESCE(${sortColumn}, 0) ${sortOrder}`;
+        } else {
+          orderByClause = `ORDER BY ${sortColumn} ${sortOrder}`;
+        }
+      }
+    }
+
+    const drepList = await this.cexplorerService.manager.query(
+      getAllDRepsQuery(
+        sanitizedSearch,
+        nameFilteredDRepCondition,
+        campaignStatusCondition,
+        chainStatusCondition,
+        orderByClause,
+        itemsPerPage,
+        offset,
+      ),
+    );
+
+    const totalResults = await this.cexplorerService.manager.query(
+      getTotalResultsQuery(
+        sanitizedSearch,
+        nameFilteredDRepCondition,
+        campaignStatusCondition,
+        chainStatusCondition,
+      ),
+    );
+
+    return {
+      data: drepList.map((entry) => {
+        return {
+          ...entry,
+          deposit: (entry.deposit / 1000000).toFixed(1),
+          amount: (entry.amount / 1000000).toFixed(1),
+        };
+      }),
+      totalItems: parseInt(totalResults[0].total, 10),
+    };
   }
   async getAllDRepsVoltaire() {
-    return await this.voltaireService.getRepository('Drep').find();
+    return await this.voltaireService
+      .getRepository('Drep')
+      .createQueryBuilder('drep')
+      .leftJoinAndSelect('signature', 'signature', 'signature.drepId = drep.id')
+      .getRawMany();
   }
-  async getAllDreps() {
-    // get both dreps from voltaire and cexplorer matching drep.view from cexplorer with drep.voter_id from voltaire
-    const drepList = await this.getAllDrepsCexplorer();
-    const voltaireDreps = await this.getAllDRepsVoltaire();
-    //add all fields from voltaire to cexplorer, if no matching, the field can be null
-    const mergedDreps = drepList.map((drep) => {
-      const voltaireDrep = voltaireDreps.find(
-        (voltaireDrep) => voltaireDrep.voter_id === drep.view,
-      );
-      return {
-        ...drep,
-        ...voltaireDrep,
-      };
-    });
-    return mergedDreps;
+
+  async getVoltaireDRepsByViews(views: string[]) {
+    if (views.length === 0) return [];
+
+    return await this.voltaireService
+      .getRepository('Drep')
+      .createQueryBuilder('drep')
+      .leftJoinAndSelect('drep.signatures', 'signature')
+      .where('signature.drepVoterId IN (:...views)', { views })
+      .getRawMany();
+  }
+
+  async getDRepsByName(name: string) {
+    return await this.voltaireService
+      .getRepository('Drep')
+      .createQueryBuilder('drep')
+      .leftJoinAndSelect('drep.signatures', 'signature')
+      .where('drep.name ILIKE :name', { name: `%${name}%` })
+      .getRawMany();
   }
   async getSingleDrepViaID(drepId: number) {
     const drep = await this.voltaireService
       .getRepository('Drep')
       .createQueryBuilder('drep')
-      .leftJoinAndSelect(
-        'attachment',
-        'attachment',
-        'attachment.parentEntity = :parentEntity AND attachment.parentId = drep.id',
-        { parentEntity: 'drep' },
-      )
       .leftJoinAndSelect('signature', 'signature', 'signature.drepId = drep.id')
       .where('drep.id = :drepId', { drepId })
       .getRawMany();
     let drepVoterId;
     if (drep.length > 0) drepVoterId = drep[0].signature_drepVoterId;
     const drepCexplorer = await this.getDrepCexplorerDetails(drepVoterId);
-    const drepVotingHistory = await this.getDrepVotingActivity(drepVoterId);
+
     const drepDelegators =
       await this.getDrepDelegatorsWithVotingPower(drepVoterId);
     const combinedResult = {
       ...drep[0],
       cexplorerDetails: drepCexplorer,
-      activity: drepVotingHistory,
       delegators: drepDelegators,
     };
     if (
@@ -136,12 +277,14 @@ export class DrepService {
     ) {
       throw new NotFoundException('Drep not found!');
     }
-    if (combinedResult.attachment_url) {
-      combinedResult.attachment_url =
-        await this.attachmentService.parseBufferToBase64(
-          combinedResult.attachment_url,
-          combinedResult.attachemnt_attachmentType,
-        );
+    //account for voting options
+    if (
+      combinedResult.cexplorerDetails.view.includes('drep_always_abstain') ||
+      combinedResult.cexplorerDetails.view.includes('drep_always_no_confidence')
+    ) {
+      combinedResult['type'] = 'voting_option';
+    } else {
+      combinedResult['type'] = 'drep';
     }
 
     return combinedResult;
@@ -150,23 +293,15 @@ export class DrepService {
     const drep = await this.voltaireService
       .getRepository('Drep')
       .createQueryBuilder('drep')
-      .leftJoinAndSelect(
-        'attachment',
-        'attachment',
-        'attachment.parentEntity = :parentEntity AND attachment.parentId = drep.id',
-        { parentEntity: 'drep' },
-      )
       .leftJoinAndSelect('signature', 'signature', 'signature.drepId = drep.id')
       .where('signature.drepVoterId = :drepVoterId', { drepVoterId })
       .getRawMany();
     const drepCexplorer = await this.getDrepCexplorerDetails(drepVoterId);
-    const drepVotingHistory = await this.getDrepVotingActivity(drepVoterId);
     const drepDelegators =
       await this.getDrepDelegatorsWithVotingPower(drepVoterId);
     const combinedResult = {
       ...drep[0],
       cexplorerDetails: drepCexplorer,
-      activity: drepVotingHistory,
       delegators: drepDelegators,
     };
     if (
@@ -175,12 +310,14 @@ export class DrepService {
     ) {
       throw new NotFoundException('Drep not found!');
     }
-    if (combinedResult.attachment_url) {
-      combinedResult.attachment_url =
-        await this.attachmentService.parseBufferToBase64(
-          combinedResult.attachment_url,
-          combinedResult.attachemnt_attachmentType,
-        );
+    //account for voting options
+    if (
+      combinedResult.cexplorerDetails.view.includes('drep_always_abstain') ||
+      combinedResult.cexplorerDetails.view.includes('drep_always_no_confidence')
+    ) {
+      combinedResult['type'] = 'voting_option';
+    } else {
+      combinedResult['type'] = 'drep';
     }
 
     return combinedResult;
@@ -189,82 +326,185 @@ export class DrepService {
     //also get his details from cexplorer
     const viewParam = drepVoterId;
     const drepCexplorer = await this.cexplorerService.manager.query(
-      `WITH RankedRows AS (
-              SELECT 
-                  dh.id AS drep_hash_id, 
-                  dh.raw, 
-                  dh.view, 
-                  dh.has_script,
-                  dd.id AS drep_distr_id, 
-                  dd.hash_id, 
-                  dd.amount, 
-                  dd.epoch_no, 
-                  dd.active_until,
-                  dr.id AS drep_registration_id, 
-                  dr.tx_id, 
-                  dr.cert_index, 
-                  dr.deposit, 
-                  dr.drep_hash_id AS reg_drep_hash_id, 
-                  dr.voting_anchor_id AS reg_voting_anchor_id,  
-                  va.id AS voting_anchor_id, 
-                  va.url, 
-                  reg_tx_bk.time AS date_of_registration,
-                  reg_tx_bk.epoch_no AS epoch_of_registration,
-                  va.data_hash, 
-                  va.type,
-                  sa.view AS stake_address,
-                  (
-                    SELECT COUNT(DISTINCT dv.addr_id)
-                    FROM delegation_vote dv
-                    WHERE dv.drep_hash_id = dh.id
-                  ) AS delegation_vote_count,
-                  ROW_NUMBER() OVER (PARTITION BY dh.id ORDER BY dd.epoch_no DESC) AS RowNum
-              FROM 
-                  drep_hash AS dh
-              LEFT JOIN 
-                  drep_distr AS dd ON dh.id = dd.hash_id
-              LEFT JOIN 
-                  drep_registration AS dr ON dh.id = dr.drep_hash_id
-              LEFT JOIN 
-                  voting_anchor AS va ON dr.voting_anchor_id = va.id
-              LEFT JOIN 
-                  delegation_vote AS dv ON dh.id = dv.drep_hash_id 
-              LEFT JOIN 
-                  tx AS reg_tx ON dr.tx_id = reg_tx.id 
-              LEFT JOIN 
-                  block AS reg_tx_bk ON reg_tx.block_id = reg_tx_bk.id 
-              LEFT JOIN
-                  stake_address AS sa ON dv.addr_id = sa.id 
-              WHERE 
-                  dh.view = $1
-          )
-          SELECT 
-              drep_hash_id,
-              view,
-              delegation_vote_count,
-              stake_address,
-              amount,
-              epoch_no,
-              active_until,
-              deposit,
-              date_of_registration,
-              epoch_of_registration,
-              url,
-              type
-          FROM 
-              RankedRows
-          WHERE 
-              RowNum = 1`,
+      getDrepCexplorerDetailsQuery,
       [viewParam],
     );
     return drepCexplorer[0];
   }
-  async getDrepVotingActivity(drepVoterId: string) {
+
+  async getDrepDateofRegistration(drepVoterId: string) {
+    const drepRegistrationData = await this.cexplorerService.manager.query(
+      `SELECT 
+              dh.id AS drep_hash_id, 
+              SUBSTRING(CAST(reg_tx.hash AS TEXT) FROM 3) AS reg_tx_hash,
+              reg_tx_bk.time AS date_of_registration,
+              reg_tx_bk.epoch_no AS epoch_of_registration
+          FROM 
+              drep_hash AS dh
+          LEFT JOIN 
+              drep_registration AS dr ON dh.id = dr.drep_hash_id
+          LEFT JOIN 
+              tx AS reg_tx ON dr.tx_id = reg_tx.id 
+          LEFT JOIN 
+              block AS reg_tx_bk ON reg_tx.block_id = reg_tx_bk.id 
+          WHERE 
+              dh.view = $1`,
+      [drepVoterId],
+    );
+    return drepRegistrationData[0];
+  }
+  async getDrepTimeline(
+    drep: any,
+    drepVoterId: string,
+    stakeKeyBech32?: string,
+    delegation?: Delegation,
+    beforeDate?: number,
+    tillDate?: number,
+    filterValues?: string[] | undefined,
+  ) {
+    const includeVotingActivity = !filterValues || filterValues.includes('va');
+    const includeDelegations = !filterValues || filterValues.includes('d');
+    const includeNotes = !filterValues || filterValues.includes('n');
+    const includeClaimedProfile = !filterValues || filterValues.includes('cp');
+    const includeRegistration = !filterValues || filterValues.includes('r');
+
+    const drepId = drep?.drep_id;
+    const startingTime = beforeDate ? new Date(Number(beforeDate)) : new Date();
+    const endingTime = tillDate
+      ? new Date(Number(tillDate))
+      : new Date(new Date(startingTime).getTime() - 432000000); // 5 days ago
+
+    const epochs = await this.getEpochs(startingTime, endingTime);
+
+    let drepRegData = null;
+    let regDate = null;
+    if (includeRegistration) {
+      drepRegData = await this.getDrepDateofRegistration(drepVoterId);
+      regDate = new Date(drepRegData?.date_of_registration).getTime();
+    }
+
+    let claimDate = null;
+    if (includeClaimedProfile) {
+      claimDate = new Date(drep?.drep_createdAt).getTime();
+    }
+
+    let drepVotingHistory = [];
+    if (includeVotingActivity) {
+      drepVotingHistory = await this.getDrepVotingActivity(
+        drepVoterId,
+        startingTime,
+        endingTime,
+      );
+    }
+
+    let drepDelegatorsHistory = [];
+    if (includeDelegations) {
+      drepDelegatorsHistory = await this.getDrepDelegators(
+        drepVoterId,
+        startingTime,
+        endingTime,
+      );
+    }
+
+    let drepNotes = [];
+    if (includeNotes && drepId) {
+      drepNotes = await this.getDRepNotes(
+        drepId,
+        startingTime,
+        endingTime,
+        stakeKeyBech32,
+        delegation,
+      );
+    }
+
+    const drepActivity = [
+      ...epochs.map((epoch) => ({
+        ...epoch,
+        type: 'epoch',
+        timestamp: epoch.start_time,
+      })),
+      ...drepVotingHistory.map((vote) => ({
+        ...vote,
+        type: 'voting_activity',
+        timestamp: vote.time_voted,
+      })),
+      ...drepNotes.map((note) => ({
+        ...note,
+        type: 'note',
+        timestamp: note.note_createdAt,
+      })),
+      ...drepDelegatorsHistory,
+    ];
+
+    // Add claimed event if drepId is present and falls within the time range
+    if (
+      includeClaimedProfile &&
+      drepId &&
+      claimDate &&
+      startingTime.getTime() > claimDate &&
+      endingTime.getTime() < claimDate
+    ) {
+      drepActivity.push({
+        type: 'claimed_profile',
+        timestamp: drep.drep_createdAt,
+        claimingId: drepId,
+        claimedDRepId: drepVoterId,
+      });
+    }
+
+    // Add the registration event if it falls within the time range
+    if (
+      includeRegistration &&
+      regDate &&
+      startingTime.getTime() > regDate &&
+      endingTime.getTime() < regDate
+    ) {
+      drepActivity.push({
+        type: 'registration',
+        timestamp: drepRegData.date_of_registration,
+        tx_hash: drepRegData.reg_tx_hash,
+        epoch_no: drepRegData.epoch_of_registration,
+      });
+    }
+
+    // Sort the combined array by timestamp from latest to earliest
+    drepActivity.sort(
+      (a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+    );
+
+    return drepActivity;
+  }
+
+  async getEpochs(beforeDate: Date, tillDate: Date) {
+    const epochs = (await this.cexplorerService.manager.query(
+      `SELECT 
+      start_time, end_time, no
+       FROM epoch
+       WHERE epoch.start_time::DATE
+        BETWEEN
+         $2::DATE AND $1::DATE`,
+      [beforeDate, tillDate],
+    )) as any[];
+
+    return epochs.map((epoch) => ({
+      ...epoch,
+      type: 'epoch',
+    }));
+  }
+
+  async getDrepVotingActivity(
+    drepVoterId: string,
+    beforeDate: Date,
+    tillDate: Date,
+  ) {
     const viewParam = drepVoterId;
+
+    // Convert the start and end times from seconds to timestamps
     const drepVotingHistory = (await this.cexplorerService.manager.query(
       `SELECT  
           dh.view, 
-          encode(prop_creation_tx.hash, 'hex') AS gov_action_proposal_id,
+          SUBSTRING(CAST(prop_creation_tx.hash AS TEXT) FROM 3) AS gov_action_proposal_id,
           prop_creation_bk.time AS prop_inception,
           gp.description,
           vp.vote,
@@ -287,22 +527,107 @@ export class DrepService {
           block AS prop_creation_bk ON prop_creation_tx.block_id = prop_creation_bk.id
       WHERE
           dh.view = $1
+          AND bk.time::DATE BETWEEN $3::DATE AND $2::DATE
       ORDER BY 
-          bk.epoch_no;`,
-      [viewParam],
+          bk.epoch_no`,
+      [viewParam, beforeDate, tillDate],
     )) as any[];
+
     return drepVotingHistory.map((item) => {
       return {
         ...item,
-        gov_action_proposal_id: item.gov_action_proposal_id,
+        type: 'voting_activity',
       };
     });
   }
+  async getDRepNotes(
+    drepId: number,
+    beforeDate: Date,
+    tillDate: Date,
+    stakeKeyBech32?: string,
+    delegation?: any,
+  ) {
+    const queryBuilder = await this.voltaireService
+      .getRepository('Note')
+      .createQueryBuilder('note')
+      .leftJoinAndSelect('note.voter', 'drep')
+      .leftJoin('drep.signatures', 'signature')
+      .where('note.voterId = :drepId', { drepId })
+      .andWhere(
+        'note."createdAt"::DATE BETWEEN :tillDate::DATE AND :beforeDate::DATE',
+        {
+          beforeDate,
+          tillDate,
+        },
+      );
+
+    // Prepare visibility conditions
+    const visibilityConditions = ['note.note_visibility = :everyone'];
+
+    const visibilityParams: {
+      everyone: string;
+      delegators?: string;
+      drepVoterId?: string;
+      myself?: string;
+      stakeKeyBech32?: string;
+    } = {
+      everyone: 'everyone',
+    };
+
+    // 'delegators' visibility
+    if (delegation) {
+      visibilityConditions.push(
+        'note.note_visibility = :delegators AND signature.drepVoterId = :drepVoterId',
+      );
+      visibilityParams.delegators = 'delegators';
+      visibilityParams.drepVoterId = delegation.drep_view;
+    }
+
+    // 'myself' visibility
+    if (stakeKeyBech32) {
+      visibilityConditions.push(
+        'note.note_visibility = :myself AND signature.drepStakeKey = :stakeKeyBech32',
+      );
+      visibilityParams.myself = 'myself';
+      visibilityParams.stakeKeyBech32 = stakeKeyBech32;
+    }
+
+    // Combine visibility conditions with OR logic
+    queryBuilder.andWhere(
+      `(${visibilityConditions.join(' OR ')})`,
+      visibilityParams,
+    );
+
+    let allNotes = await queryBuilder.getRawMany();
+
+    // Use Promise.all to ensure all asynchronous operations complete
+    allNotes = await Promise.all(
+      allNotes.map(async (note) => {
+        // Get reactions and comments
+        const reactions = await this.reactionsService.getReactions(
+          note.note_id,
+          'note',
+        );
+        const comments = await this.commentsService.getComments(
+          note.note_id,
+          'note',
+        );
+        // Add reactions and comments to the note
+        return {
+          ...note,
+          reactions: reactions,
+          comments: comments,
+          type: 'note',
+        };
+      }),
+    );
+    return allNotes;
+  }
 
   async populateFakeDRepData() {
-    const dreps = await this.getAllDrepsCexplorer();
+    const dreps = await this.getAllDRepsCexplorer();
     //seeding`
-    const modified = dreps.map((drep) => {
+    const modified = dreps.data.map((drep) => {
       return {
         ...drep,
         name: faker.person.fullName(),
@@ -316,116 +641,69 @@ export class DrepService {
     const insertedDrep = await this.voltaireService
       .getRepository('Drep')
       .insert(drepDto);
-    if (profileUrl) {
-      const optimizedProfileImageUrl =
-        await this.attachmentService.parseImageSize(
-          profileUrl.buffer,
-          profileUrl.mimetype,
-        );
-      await this.attachmentService.insertAttachment(
-        optimizedProfileImageUrl,
-        profileUrl.mimetype,
-        insertedDrep.identifiers[0].id,
-      );
-    }
     const signatureDto = {
       drep: insertedDrep.identifiers[0].id,
       drepVoterId: drepDto?.voter_id,
       drepStakeKey: drepDto?.stake_addr,
+      drepSignatureKey: drepDto?.key,
+      drepSignature: drepDto?.signature,
     };
     const insertedSig = await this.voltaireService
       .getRepository('Signature')
       .insert(signatureDto);
-    return { insertedDrep, insertedSig };
+    const { token } = await this.authService.login(
+      { signature: drepDto?.signature, key: drepDto.key },
+      10000,
+    );
+    return { insertedDrep, insertedSig, token };
   }
   async getEpochParams() {
     try {
-      const APIURL =
-        'https://cardano-sanchonet.blockfrost.io/api/v0/epochs/latest/parameters';
+      const APIURL = `${this.configService.get<string>(
+        'BLOCKFROST_NETWORK_URL'
+      )}/api/v0/epochs/latest/parameters`;
       const response = await axios.get(APIURL, {
         headers: {
           project_id: this.configService.get<string>(
-            'BLOCKFROST_SANCHONET_PROJECT_ID',
+            'BLOCKFROST_NETWORK_PROJECT_ID',
           ),
         },
       });
       return response.data;
     } catch (error) {
-      console.log(error);
-      throw new Error(error);
+      console.error('Blockfrost API call failed:', error);
+
+      try {
+        // Fallback to cexplorerService
+        const fallbackResponse =
+          await this.cexplorerService.manager.query(getEpochParams);
+        if (fallbackResponse) {
+          const modifiedRes = {
+            ...fallbackResponse[0],
+            nonce: String(fallbackResponse[0]?.nonce).slice(2),
+            hash: String(fallbackResponse[0]?.hash).slice(2),
+          };
+          return modifiedRes;
+        }
+        return null;
+      } catch (fallbackError) {
+        console.error('Fallback to cexplorerService failed:', fallbackError);
+        throw fallbackError; // Throw the fallback error if both attempts fail
+      }
     }
   }
+
   async getDrepDelegatorsWithVotingPower(drepVoterId: string) {
-    // Step 1: Get the delegators and their delegation epoch
-    const drepDelegators = await this.cexplorerService.manager.query(
-      `SELECT 
-          sa.view AS stake_address,
-          b.epoch_no AS delegation_epoch
-       FROM 
-          drep_hash AS dh
-       JOIN 
-          delegation_vote AS dv ON dh.id = dv.drep_hash_id
-       JOIN 
-          stake_address sa ON dv.addr_id = sa.id
-       JOIN 
-          tx ON dv.tx_id = tx.id
-       JOIN 
-          block b ON tx.block_id = b.id
-       WHERE 
-          dh.view = $1`,
+    const delegatorsWithVotingPower = await this.cexplorerService.manager.query(
+      getDrepDelegatorsWithVotingPowerQuery,
       [drepVoterId],
     );
 
-    // Step 2: Remove duplicates and keep track of delegation epochs
-    const uniqueDelegatorsMap = new Map<string, number>();
-    drepDelegators.forEach((delegator) => {
-      uniqueDelegatorsMap.set(
-        delegator.stake_address,
-        delegator.delegation_epoch,
-      );
-    });
-
-    // Step 3: Calculate voting power for each unique delegator
-    const delegatorsWithVotingPower = await Promise.all(
-      Array.from(uniqueDelegatorsMap).map(
-        async ([stakeAddress, delegationEpoch]) => {
-          const votingPowerResult = await this.cexplorerService.manager.query(
-            `SELECT 
-            SUM(uv.value) AS total_stake
-         FROM 
-            utxo_view uv
-         JOIN 
-            stake_address sa ON uv.stake_address_id = sa.id
-         WHERE 
-            sa.view = $1
-         GROUP BY 
-            sa.view;`,
-            [stakeAddress],
-          );
-
-          let totalStakeInAda = 0;
-          if (votingPowerResult.length > 0) {
-            const totalStakeInLovelace = parseInt(
-              votingPowerResult[0].total_stake,
-              10,
-            );
-            totalStakeInAda = totalStakeInLovelace / 1000000;
-          }
-
-          return {
-            stakeAddress,
-            delegationEpoch,
-            votingPower: totalStakeInAda,
-          };
-        },
-      ),
-    );
-    //sort from highest epoch
-    delegatorsWithVotingPower.sort(
-      (a, b) => b.delegationEpoch - a.delegationEpoch,
-    );
-
-    return delegatorsWithVotingPower;
+    return delegatorsWithVotingPower.map((delegator) => ({
+      stakeAddress: delegator?.stake_address,
+      delegationEpoch: delegator?.delegation_epoch,
+      votingPower: delegator?.voting_power,
+    }));
   }
 
   async updateDrepInfo(
@@ -436,30 +714,11 @@ export class DrepService {
     const foundDrep = await this.voltaireService
       .getRepository('Drep')
       .createQueryBuilder('drep')
-      .leftJoinAndSelect(
-        'attachment',
-        'attachment',
-        'attachment.parentEntity = :parentEntity AND attachment.parentId = drep.id',
-        { parentEntity: 'drep' },
-      )
       .where('drep.id = :drepId', { drepId })
       .getRawMany();
 
     if (!foundDrep) {
       throw new NotFoundException('Drep to be updated not found!');
-    }
-    if (profileUrl) {
-      const optimizedProfileImageBuffer =
-        await this.attachmentService.parseImageSize(
-          profileUrl.buffer,
-          profileUrl.mimetype,
-        );
-      await this.attachmentService.updateAttachment(
-        optimizedProfileImageBuffer,
-        foundDrep[0].attachment_id,
-        profileUrl.mimetype,
-        drepId,
-      );
     }
     if (drep.signature) {
       await this.voltaireService
@@ -486,5 +745,199 @@ export class DrepService {
     return await this.voltaireService
       .getRepository('Drep')
       .update(drepId, updatedDrep);
+  }
+  async getMetadata(drepId: number, hash: string, res: Response) {
+    if (!drepId || !hash) throw new Error('Inadequate parameters');
+    const foundMetadata = await this.voltaireService
+      .getRepository('Metadata')
+      .createQueryBuilder('metadata')
+      .where('metadata.drep = :drepId', { drepId })
+      .andWhere('metadata.hash = :hash', { hash })
+      .getOne();
+    if (!foundMetadata) throw new NotFoundException('Metadata not found');
+    const cid = foundMetadata.content;
+    return await this.getMetadataFromIPFS(cid, res);
+  }
+  async getMetadataFromExternalLink(metadataUrl: string) {
+    if (!metadataUrl) throw new Error('Inadequate parameters');
+    const { data } = await firstValueFrom(
+      this.httpService.get(metadataUrl).pipe(
+        catchError((err) => {
+          console.log(err);
+          throw new Error('Metadata not found');
+        }),
+      ),
+    );
+
+    return data;
+  }
+  async validateMetadata({
+    hash,
+    url,
+    standard = MetadataStandard.CIP100,
+  }: ValidateMetadataDTO): Promise<
+    Observable<AxiosResponse<ValidateMetadataResult, any>>
+  > {
+    let status: MetadataValidationStatus;
+    let metadata: any;
+    try {
+      const { data } = await firstValueFrom(
+        this.httpService.get(url).pipe(
+          catchError(() => {
+            throw MetadataValidationStatus.URL_NOT_FOUND;
+          }),
+        ),
+      );
+
+      Logger.debug(LoggerMessage.METADATA_DATA, data);
+      //buggy
+      // if (standard) {
+      //   await validateMetadataStandard(data, standard);
+      //   metadata = parseMetadata(data.body, standard);
+      // }
+      const hashedMetadata = blake.blake2bHex(
+        JSON.stringify(data),
+        undefined,
+        32,
+      );
+      if (hashedMetadata !== hash) {
+        throw MetadataValidationStatus.INVALID_HASH;
+      }
+    } catch (error) {
+      Logger.error(LoggerMessage.METADATA_VALIDATION_ERROR, error);
+      if (Object.values(MetadataValidationStatus).includes(error)) {
+        status = error;
+      }
+    }
+
+    return { status, valid: !Boolean(status), metadata } as any;
+  }
+  async saveMetadata(
+    metadata: any,
+    hash: string,
+    drepId: number,
+    fileName: string,
+  ) {
+    const metadataRepo = await this.voltaireService.getRepository('Metadata');
+
+    // Check if a record with the same drepId already exists
+    const existingMetadata = await metadataRepo
+      .createQueryBuilder('metadata')
+      .where('metadata.drep = :drepId', { drepId })
+      .andWhere('metadata.hash = :hash', { hash: hash })
+      .getOne();
+    if (existingMetadata) {
+      //check pinned status
+      const content = existingMetadata?.content;
+      if (content) {
+        const { state } = await this.attachmentService.checkPinStatus(content);
+        return { ...existingMetadata, state };
+      }
+      return existingMetadata;
+    }
+    // Create a new metadata record in IPFS
+    const { ipfs_hash, state } = await this.saveMetadataToIPFS(metadata);
+    const newMetadata = {
+      name: fileName + '.jsonld',
+      hash: hash,
+      content: ipfs_hash,
+      drep: drepId,
+    };
+
+    const createdMetadata = metadataRepo.create(newMetadata);
+    const res = (await metadataRepo.save(createdMetadata)) as Metadata;
+    return { ...res, state };
+  }
+  async saveMetadataToIPFS(metadata: JsonLd): Promise<IPFSResponse> {
+    try {
+      //save to IPFS via blockfrost
+      const metadataStr = JSON.stringify(metadata);
+      const binary = Buffer.from(metadataStr);
+
+      // Prepare the FormData
+      const formData = new FormData();
+      formData.append('file', binary as any);
+      const res = await this.attachmentService.uploadAttachmentToIPFS(formData);
+      return res;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+  async getMetadataFromIPFS(hash: string, res: Response): Promise<JsonLd> {
+    try {
+      const response = await this.attachmentService.getAttachmentFromIPFS(
+        hash,
+        res,
+      );
+      return response;
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+  async getStats(drepVoterId: string) {
+    const drepDelegatorsCountResult = await this.cexplorerService.manager.query(
+      getDRepDelegatorsCountQuery,
+      [drepVoterId],
+    );
+    const drepDelegatorsCount = Number(
+      drepDelegatorsCountResult[0]?.delegators_count || 0,
+    );
+
+    const drepVotesCountResult = await this.cexplorerService.manager.query(
+      getDRepVotesCountQuery,
+      [drepVoterId],
+    );
+    const drepVotesCount = Number(drepVotesCountResult[0]?.vote_count || 0);
+
+    const drepVotingPowerResult = await this.cexplorerService.manager.query(
+      getDRepVotingPowerQuery,
+      [drepVoterId],
+    );
+
+    const drepVotingPower =
+      Number(drepVotingPowerResult[0].voting_power) || null;
+
+    const drepStats = {
+      delegators: drepDelegatorsCount,
+      votes: drepVotesCount,
+      votingPower: drepVotingPower,
+    };
+
+    return drepStats;
+  }
+
+  async getDrepDelegators(
+    drepVoterId: string,
+    beforeDate: Date,
+    tillDate: Date,
+  ) {
+    const drepHashQuery = `
+      SELECT id, view FROM drep_hash WHERE view = $1
+    `;
+    const drepHashResult = await this.cexplorerService.manager.query(
+      drepHashQuery,
+      [drepVoterId],
+    );
+    const drepHashId = drepHashResult[0]?.id;
+
+    if (!drepHashId) {
+      throw new Error(`No DRep found with the view: ${drepVoterId}`);
+    }
+
+    const addrIdsQuery = `
+      SELECT DISTINCT addr_id FROM delegation_vote WHERE drep_hash_id = $1
+    `;
+    const addrIdsResult = await this.cexplorerService.manager.query(
+      addrIdsQuery,
+      [drepHashId],
+    );
+    const addrIds = addrIdsResult.map((row) => row.addr_id);
+    const drepDelegations = await this.cexplorerService.manager.query(
+      getDRepDelegatorsHistory(addrIds),
+      [drepHashId, drepVoterId, beforeDate, tillDate],
+    );
+    return drepDelegations;
   }
 }

@@ -7,7 +7,7 @@ html {
 }
 
 body {
-  @apply relative bg-gradient-to-b from-[#E9EFFF] to-[#FFFFFF] ;
+  @apply relative bg-gradient-to-b from-[#E9EFFF] to-[#FFFFFF];
 }
 
 .base_container {
@@ -30,17 +30,17 @@ body {
   overflow: hidden;
 }
 .img_container {
-  #main{
-    @apply max-w-[450px] max-h-[450px] ;
+  #main {
+    @apply max-h-[450px] max-w-[450px];
   }
-  #inverse{
-    @apply max-w-[150px] max-h-[150px] ;
+  #inverse {
+    @apply max-h-[150px] max-w-[150px];
   }
-  #dull{
-    @apply max-w-[200px] max-h-[200px] ;
+  #dull {
+    @apply max-h-[200px] max-w-[200px];
   }
-  #rainbow{
-    @apply max-w-[300px] max-h-[300px] ;
+  #rainbow {
+    @apply max-h-[300px] max-w-[300px];
   }
 }
 .table_container tbody tr {
@@ -122,73 +122,23 @@ body {
   backdrop-filter: blur(2px);
 }
 
-.tiptap {
-  @apply min-h-40 w-full rounded-bl-xl rounded-br-xl bg-white p-2;
-
-  > * + * {
-    margin-top: 0.75em;
-  }
-
-  blockquote {
-    border-left: 3px solid rgba(#0d0d0d, 0.9);
-    padding-left: 1rem;
-  }
-
-  ul,
-  ol {
-    padding: 0 1rem;
-  }
-
-  a {
-    color: #68cef8;
-    cursor: pointer;
-  }
-
-  ul {
-    list-style-type: circle;
-  }
-
-  ol {
-    list-style-type: decimal;
-  }
-
-  table {
-    border-collapse: collapse;
-    margin: 0;
-    overflow: hidden;
-    table-layout: fixed;
-    width: 100%;
-
-    td,
-    th {
-      border: 2px solid #ced4da;
-      box-sizing: border-box;
-      min-width: 1em;
-      padding: 3px 5px;
-      position: relative;
-      vertical-align: top;
-
-      > * {
-        margin-bottom: 0;
-      }
-    }
-
-    th {
-      background-color: #f1f3f5;
-      font-weight: bold;
-      text-align: left;
-    }
-
-    p {
-      margin: 0;
-    }
-  }
+.mdxeditor {
+  @apply min-h-40 w-full rounded-xl bg-white;
+}
+.mdxeditor-toolbar {
+  @apply bg-black;
+}
+.mdxeditor-diff-source-wrapper {
+  @apply bg-white;
 }
 .dual-bg {
-  background-image: url('/doublecoin-top.png'), url('/doublecoin-bottom.png');
-  background-position: top right, bottom right;
+  background-image: url('/img/doublecoin-top.png'),
+    url('/img/doublecoin-bottom.png');
+  background-position:
+    top right,
+    bottom right;
   background-repeat: no-repeat, no-repeat;
-  background-size: auto, auto; 
+  background-size: auto, auto;
 }
 
 #acknowledgements details {
@@ -210,3 +160,28 @@ body {
   text-align: left !important;
 }
 
+/* width */
+::-webkit-scrollbar {
+  width: 0.5rem;
+  height: 0.5rem;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 0.6rem;
+  -webkit-border-radius: 0.6rem;
+  -moz-border-radius: 0.6rem;
+  -ms-border-radius: 0.6rem;
+  -o-border-radius: 0.6rem;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #4b5563;
+}

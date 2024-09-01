@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import PostInput from '../atoms/PostInput';
 import PostSubmitArea from '../atoms/PostSubmitArea';
-import PostTextareaInput from '../atoms/PostTextareaInput';
 import PostVisiblityInput from '../atoms/PostVisiblityInput';
 import CustomAutocomplete from '../atoms/PostAutoComplete';
-
-const UpdateNotePostForm = ({ register, control, errors}) => {
+import MarkdownEditor from '../atoms/MarkdownEditor';
+const UpdateNotePostForm = ({ register, control, errors }) => {
   return (
     <div className="mt-3 flex flex-col gap-3">
       <PostInput
@@ -25,9 +24,9 @@ const UpdateNotePostForm = ({ register, control, errors}) => {
         errors={errors}
         dataTestId={'post-tag-input'}
       />
-      <PostTextareaInput control={control} errors={errors} />
+      <MarkdownEditor name="postText" control={control} errors={errors} />
       <PostVisiblityInput registerVisibility={register} errors={errors} />
-      <PostSubmitArea />
+      <PostSubmitArea isUpdating={true} />
     </div>
   );
 };

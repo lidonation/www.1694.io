@@ -1,7 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { AttachmentService } from 'src/attachment/attachment.service';
 import { CommentsService } from 'src/comments/comments.service';
+import { Delegation, StakeKeys } from 'src/common/types';
 import { DrepService } from 'src/drep/drep.service';
 import { createNoteDto } from 'src/dto';
 import { ReactionsService } from 'src/reactions/reactions.service';
@@ -14,45 +15,41 @@ export class NoteService {
     private drepService: DrepService,
     private attachmentService: AttachmentService,
     private reactionsService: ReactionsService,
-    private commentsService: CommentsService
+    private commentsService: CommentsService,
   ) {}
-  async getAllNotes() {
-    let allNotes = await this.voltaireService
-      .getRepository('Note')
-      .createQueryBuilder('note')
-      .leftJoinAndSelect('drep', 'drep', 'drep.id = note.voterId')
-      .getRawMany();
-  
+  async getAllNotes(
+    stakeKeyBech32?: string,
+    delegation?: Delegation,
+    currentNote?: number,
+    request?: string,
+  ) {
+    let allNotes = await this.getNotesWithVisibility(
+      delegation,
+      stakeKeyBech32,
+      currentNote,
+      request,
+    );
+
     // Used Promise.all to ensure all asynchronous operations complete
-    allNotes = await Promise.all(allNotes.map(async (note) => {
-      // Extract image IDs from note_content
-      const imgTagMatches = note.note_note_content.match(/<img id="(\d+)" \/>/g);
-      if (imgTagMatches) {
-        for (const imgTagMatch of imgTagMatches) {
-          const idMatch = imgTagMatch.match(/id="(\d+)"/);
-          if (idMatch && idMatch[1]) {
-            const attachmentId = Number(idMatch[1]);
-            const attachment = await this.attachmentService.getSingleAttachment(attachmentId);
-            if (attachment) {
-              const base64String = `data:image/${attachment.attachmentType};base64,${attachment.url}`;
-              note.note_note_content = note.note_note_content.replace(
-                imgTagMatch,
-                `<img id="${idMatch[1]}" src="${base64String}" />`,
-              );
-            }
-          }
-        }
-      }
-  
-      // Get reactions and comments
-      const reactions = await this.reactionsService.getReactions(note.note_id, 'note');
-      const comments = await this.commentsService.getComments(note.note_id, 'note');
-      // Add reactions and comments to the note
-      return { ...note, reactions: reactions, comments: comments };
-    }));
+    allNotes = await Promise.all(
+      allNotes.map(async (note) => {
+        // Get reactions and comments
+        const reactions = await this.reactionsService.getReactions(
+          note.note_id,
+          'note',
+        );
+        const comments = await this.commentsService.getComments(
+          note.note_id,
+          'note',
+        );
+        // Add reactions and comments to the note
+        return { ...note, reactions: reactions, comments: comments };
+      }),
+    );
+
     return allNotes;
   }
-  
+
   async getSingleNote(noteId: string) {
     const numifiedNoteId = Number(noteId);
     const note = await this.voltaireService.getRepository('Note').findOne({
@@ -60,26 +57,6 @@ export class NoteService {
     });
     if (!note) {
       throw new NotFoundException('Note not found!');
-    }
-    //if there are images in note content replace ids with src of base64, get
-    // Extract image IDs from note_content
-    const imgTagMatches = note.note_content.match(/<img id="(\d+)" \/>/g);
-    if (imgTagMatches) {
-      for (const imgTagMatch of imgTagMatches) {
-        const idMatch = imgTagMatch.match(/id="(\d+)"/);
-        if (idMatch && idMatch[1]) {
-          const attachmentId = Number(idMatch[1]);
-          const attachment =
-            await this.attachmentService.getSingleAttachment(attachmentId);
-          if (attachment) {
-            const base64String = `data:image/${attachment.attachmentType};base64,${attachment.url}`;
-            note.note_content = note.note_content.replace(
-              imgTagMatch,
-              `<img id="${idMatch[1]}" src="${base64String}" />`,
-            );
-          }
-        }
-      }
     }
     return note;
   }
@@ -89,37 +66,6 @@ export class NoteService {
     );
     if (isPresent) {
       const modifiedNoteDto = { ...noteDto, voter: isPresent.drep_id };
-      //get the note_content from the modifiedNoteDto
-      // if any a tags or img tags are present, replace them with their respective ids
-      if (modifiedNoteDto.note_content) {
-        // get the img tags and anchor tags
-        const imgTags = modifiedNoteDto.note_content.match(/<img[^>]+>/g);
-
-        if (imgTags) {
-          //first extract src and save as attchment
-          // then get ids of attached and save in the stead of the base64s
-          for (const imgTag of imgTags) {
-            const srcMatch = imgTag.match(/src="([^">]+)"/);
-            const matches = srcMatch[1].match(/^data:([^;]+);base64,(.+)$/);
-            //get mimetype from base64 without the data: part
-            const mimeType = matches[1];
-            if (srcMatch && srcMatch[1]) {
-              const base64Data = matches[2];
-              const attachmentId =
-                await this.attachmentService.insertAttachment(
-                  base64Data,
-                  mimeType,
-                  modifiedNoteDto.voter,
-                );
-              modifiedNoteDto.note_content =
-                modifiedNoteDto.note_content.replace(
-                  imgTag,
-                  `<img id="${attachmentId}" />`,
-                );
-            }
-          }
-        }
-      }
       const res = await this.voltaireService
         .getRepository('Note')
         .insert(modifiedNoteDto);
@@ -141,48 +87,6 @@ export class NoteService {
     );
     if (isPresent) {
       const modifiedNote = { ...note, voter: isPresent.drep_id };
-      if (foundNote.note_content) {
-        // Delete all existing attachments in the original content
-        const oldImgTagMatches =
-          foundNote.note_content.match(/<img id="(\d+)" \/>/g);
-        if (oldImgTagMatches) {
-          for (const oldImgTagMatch of oldImgTagMatches) {
-            const idMatch = oldImgTagMatch.match(/id="(\d+)"/);
-            if (idMatch && idMatch[1]) {
-              const oldAttachmentId = Number(idMatch[1]);
-              await this.attachmentService.deleteAttachment(oldAttachmentId);
-            }
-          }
-        }
-      }
-
-      if (modifiedNote.note_content) {
-        // Handle newly added images without IDs
-        const newImgTags = modifiedNote.note_content.match(
-          /<img[^>]+src="data:[^;]+;base64,([^">]+)"[^>]*>/g,
-        );
-        if (newImgTags) {
-          for (const newImgTag of newImgTags) {
-            const srcMatch = newImgTag.match(
-              /src="data:([^;]+);base64,([^">]+)"/,
-            );
-            if (srcMatch && srcMatch[1] && srcMatch[2]) {
-              const mimeType = srcMatch[1];
-              const base64Data = srcMatch[2];
-              const attachmentId =
-                await this.attachmentService.insertAttachment(
-                  base64Data,
-                  mimeType,
-                  modifiedNote.voter,
-                );
-              modifiedNote.note_content = modifiedNote.note_content.replace(
-                newImgTag,
-                `<img id="${attachmentId}" />`,
-              );
-            }
-          }
-        }
-      }
       // Iterate through the properties of the note object
       Object.keys(modifiedNote).forEach((key) => {
         foundNote[key] = modifiedNote[key];
@@ -191,5 +95,56 @@ export class NoteService {
     } else {
       return new NotFoundException('DRep associated with note not found!');
     }
+  }
+
+  private async getNotesWithVisibility(
+    delegation?,
+    stakeKeyBech32?: string,
+    currentNote?: number,
+    request?: string,
+  ) {
+    const queryBuilder = this.voltaireService
+      .getRepository('Note')
+      .createQueryBuilder('note')
+      .leftJoinAndSelect('note.voter', 'drep')
+      .leftJoin('drep.signatures', 'signature')
+      .orderBy('note.createdAt', 'DESC') // Order by createdAt descending
+      .limit(20); // limit per req
+    // Basic query for notes with visibility 'everyone'
+    queryBuilder.where('note.note_visibility = :everyone', {
+      everyone: 'everyone',
+    });
+    if (currentNote) {
+      if (request === 'before') {
+        queryBuilder.where('note.id <= :currentNote', { currentNote: Number(currentNote) });
+      } else if (request === 'after') {
+        queryBuilder.where('note.id <= :currentNote', {
+          currentNote: Number(currentNote) + 20,
+        });
+      }
+    }
+
+    // 'delegators' visibility
+    if (delegation) {
+      queryBuilder.orWhere(
+        'note.note_visibility = :delegators AND signature.drepVoterId = :drepVoterId',
+        {
+          delegators: 'delegators',
+          drepVoterId: delegation.drep_view,
+        },
+      );
+    }
+    // 'myself' visibility
+    if (stakeKeyBech32) {
+      queryBuilder.orWhere(
+        'note.note_visibility = :myself AND signature.drepStakeKey = :stakeKeyBech32',
+        {
+          myself: 'myself',
+          stakeKeyBech32: stakeKeyBech32,
+        },
+      );
+    }
+
+    return queryBuilder.getRawMany();
   }
 }

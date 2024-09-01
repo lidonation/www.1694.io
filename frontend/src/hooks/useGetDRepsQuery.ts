@@ -1,12 +1,30 @@
+import { QUERY_KEYS } from '@/constants/queryKeys';
 import { getDReps } from '@/services';
 import { useQuery } from 'react-query';
 
-export const useGetDRepsQuery = () => {
-  const { data, isLoading } = useQuery({
-    queryFn: async () => await getDReps(),
-    //performs automatic refetching
+export const useGetDRepsQuery = (
+  s?: string,
+  page?: number,
+  sort?: string,
+  order?: string,
+  onChainStatus?: string,
+  campaignStatus?: string,
+) => {
+  const { data, isLoading, isError } = useQuery({
+    queryKey: [
+      QUERY_KEYS.getAllDRepsKey,
+      s,
+      page,
+      sort,
+      order,
+      onChainStatus,
+      campaignStatus,
+    ],
+    queryFn: async () =>
+      await getDReps(s, page, sort, order, onChainStatus, campaignStatus),
+    refetchOnWindowFocus: false,
     enabled: true,
   });
 
-  return { DReps: data, isDRepsLoading: isLoading };
+  return { DReps: data, isDRepsLoading: isLoading, isError };
 };

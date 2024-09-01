@@ -4,7 +4,6 @@ import { locales } from './constants';
 import { cookies } from 'next/headers';
 import { decodeToken } from './lib/utils';
 import { NextResponse } from 'next/server';
-import { getItemFromLocalStorage } from './lib/localStorage';
 // Export the middleware configuration to define supported locales and the default locale.
 // This setup applies internationalization strategies across the application.
 export default createMiddleware({
@@ -74,10 +73,10 @@ export function middleware(request) {
   if (pathname.match(/\.(svg|png|ico)$/)) return NextResponse.next();
   // Redirect if there is no locale
   const locale = getLocale(request);
-  if (protectedRoutesRegex.test(pathname)) {
-    const response = protectRoutes(request, locale);
-    if (response.status === 307) return response;
-  }
+  // if (protectedRoutesRegex.test(pathname)) {
+  //   const response = protectRoutes(request, locale);
+  //   if (response.status === 307) return response;
+  // }
   request.nextUrl.pathname = `/${locale}${pathname}`;
   return NextResponse.redirect(request.nextUrl);
 }

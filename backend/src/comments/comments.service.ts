@@ -25,7 +25,11 @@ export class CommentsService {
       );
       comment.comments= await this.getComments(comment.id, 'comment');
     }
-    return comments;
+    const sortedComments=comments.sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
+    return sortedComments
   }
 
   async insertComment(

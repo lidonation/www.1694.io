@@ -21,9 +21,6 @@ const DRepProfileBar = ({
 }) => {
   const { isMobile, screenWidth } = useScreenDimension();
   const [active, setIsActive] = useState(0);
-  const getCurrentYear = () => {
-    return new Date().getFullYear();
-  };
   const utilityLinks = [
     {
       icon: '/user-circle-filled-orange',
@@ -85,7 +82,7 @@ const DRepProfileBar = ({
                 onClick={() => setIsOpen(false)}
                 sx={{ padding: 0 }}
               >
-                <img src={'/close.svg'} />
+                <img src={'/svgs/close.svg'} />
               </IconButton>
             </Box>
             <Grid
@@ -106,7 +103,7 @@ const DRepProfileBar = ({
                     }}
                   >
                     <img
-                      src={`${active === index ? link.icon + '-active' : link.icon}.svg`}
+                      src={`/svgs${active === index ? link.icon + '-active' : link.icon}.svg`}
                     />
                     <p>{link.title}</p>
                   </Link>

@@ -8,13 +8,14 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import { usePostNewNoteMutation } from '@/hooks/usePostNewNoteMutation';
+import { useGlobalNotifications } from '@/context/globalNotificationContext';
 const FormSchema = z.object({
   postTitle: z
     .string()
-    .min(3, 'Post Title cant be less than 3 chars')
-    .max(12, "Post Title can't be more than 12 chars"),
-  postTag: z.array(z.string()),
-  postText: z.string().min(10, 'Post Text cant be less than 10 chars'),
+    .min(3, 'Title cant be less than 3 chars')
+    .max(255, "Title can't be more than 255 chars"),
+  postTag: z.array(z.string()).optional(),
+  postText: z.string().min(10, 'Content cant be less than 10 chars'),
   postVisibility: z.string().min(1, "Visibility status can't be empty"),
 });
 
@@ -24,17 +25,17 @@ const NewNoteForm = () => {
   const {
     register,
     handleSubmit,
-    reset,
-    setValue,
     control,
     formState: { errors },
   } = useForm<InputType>({
     resolver: zodResolver(FormSchema),
+    defaultValues: { postText: '' },
   });
-  const { isEnabled, dRepIDBech32, stakeKey } = useCardano();
+  const { dRepIDBech32, stakeKey } = useCardano();
   const router = useRouter();
   const mutation = usePostNewNoteMutation();
   const { setIsNotDRepErrorModalOpen } = useDRepContext();
+  const { addSuccessAlert, addErrorAlert } = useGlobalNotifications();
   const saveNote: SubmitHandler<InputType> = async (data) => {
     try {
       if (!dRepIDBech32 || dRepIDBech32 == '') {
@@ -55,7 +56,9 @@ const NewNoteForm = () => {
       };
       const { noteAdded } = await mutation.mutateAsync({ note: newNote });
       router.push(`/dreps/workflow/notes/${noteAdded}/update`);
+      addSuccessAlert('Note Created Successfully!');
     } catch (error) {
+      addErrorAlert('Note Creation Failed!');
       console.log(error);
     }
   };
@@ -67,11 +70,7 @@ const NewNoteForm = () => {
       className="mb-48 mt-4 rounded-3xl bg-slate-50 p-5 shadow-lg"
       onSubmit={handleSubmit(saveNote, onError)}
     >
-      <NewNotePostForm
-        register={register}
-        control={control}
-        errors={errors}
-      />
+      <NewNotePostForm register={register} control={control} errors={errors} />
     </form>
   );
 };

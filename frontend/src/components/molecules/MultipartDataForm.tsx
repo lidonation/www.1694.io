@@ -1,27 +1,32 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Button from '../atoms/Button';
-import { useScreenDimension } from '@/hooks';
 import { HtmlTooltip } from '../atoms/HoverChip';
+import { urls } from '@/constants';
+import axiosInstance from '@/services/axiosInstance';
+import { CircularProgress } from '@mui/material';
+import { MDXEditorMethods } from '@mdxeditor/editor';
 interface MultipartDataFormProps {
   activeForm: string;
-  nullify: () => void;
   setImagePayload?: (payload: any) => void;
   setLinkPayload?: (payload: any) => void;
+  nullify: () => void;
+  editor?: MDXEditorMethods | any; // any type of editor
 }
 const MultipartDataForm = ({
   activeForm,
-  nullify,
   setImagePayload,
   setLinkPayload,
+  nullify,
+  editor,
 }: MultipartDataFormProps) => {
   const [files, setFiles] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
   const [preview, setPreview] = useState(null);
   const [fileSize, setFileSize] = useState('');
   const [links, setLinks] = useState(null);
   const [currentLinkTitle, setCurrentLinkTitle] = useState('');
   const [currentLinkURL, setCurrentLinkURL] = useState('');
   const formRef = useRef<HTMLDivElement>(null);
-  const { isMobile, screenWidth } = useScreenDimension();
   const formatFileSize = (sizeInBytes) => {
     const kiloBytes = sizeInBytes / 1024;
     const megaBytes = kiloBytes / 1024;
@@ -106,47 +111,66 @@ const MultipartDataForm = ({
       });
     });
   };
-  const toBase64 = (file: File) => {
-    return new Promise((resolve, reject) => {
-      const fileReader = new FileReader();
-
-      fileReader.readAsDataURL(file);
-
-      fileReader.onload = () => {
-        resolve(fileReader.result);
-      };
-
-      fileReader.onerror = (error) => {
-        reject(error);
-      };
-    });
-  };
-  const sendFile = async () => {
-    const base64strArray = await Promise.all(
-      Array.from(files as FileList).map(async (file) => {
-        const base64str = (await toBase64(file)) as string;
-        const mimeType = file.type;
-        return { src: base64str, type: mimeType };
-      }),
-    );
-    setFiles(null);
-    setPreview(null);
-    setImagePayload(base64strArray);
-    nullify();
+  const uploadFilesAndSendIds = async () => {
+    try {
+      setIsUploading(true);
+      const insertedFiles = await Promise.all(
+        Array.from(files as FileList).map(async (file) => {
+          const formData = new FormData();
+          formData.append('attachment', file);
+          formData.append('parentEntity', 'note');
+          formData.append('parentId', null);
+          const mimeType = file.type;
+          const res = await axiosInstance.post(`/attachments/add`, formData);
+          return { name: res.data.name, type: mimeType };
+        }),
+      );
+      setIsUploading(false);
+      insertedFiles.forEach((file) => {
+        const encodedFileName = encodeURIComponent(file.name);
+        const markdown = file.type.includes('pdf')
+          ? `[pdf](${urls.baseServerUrl}/attachments/${encodedFileName})`
+          : `![image](${urls.baseServerUrl}/attachments/${encodedFileName})`;
+        if (editor)
+          editor.focus(
+            () => {
+              editor.insertMarkdown(markdown);
+            },
+            {
+              defaultSelection: 'rootEnd',
+            },
+          );
+        file['markdown'] = markdown;
+        return file;
+      });
+      setImagePayload(insertedFiles);
+      setFiles(null);
+      setPreview(null);
+      nullify();
+    } catch (error) {
+      console.log(error);
+      setIsUploading(false);
+    }
   };
   const sendLink = () => {
+    let linksToInsert = [];
     if (!links || links.length === 0) {
-      setLinkPayload([{ title: currentLinkTitle, url: currentLinkURL }]);
-      setCurrentLinkTitle('');
-      setCurrentLinkURL('');
-      nullify();
-      return;
+      linksToInsert = [{ title: currentLinkTitle, url: currentLinkURL }];
+    } else {
+      linksToInsert = links;
     }
-    if (links && links.length > 0) {
-      setLinkPayload(links);
-      setLinks(null);
-      nullify();
-    }
+
+    linksToInsert.forEach((link) => {
+      const markdown = `[${link.title}](${link.url})`;
+      if (editor) editor.insertMarkdown(markdown);
+      link['markdown'] = markdown;
+      return link;
+    });
+    if (!editor) setLinkPayload(linksToInsert);
+    setCurrentLinkTitle('');
+    setCurrentLinkURL('');
+    setLinks(null);
+    nullify();
   };
   // Handle clicks/taps outside the form
   useEffect(() => {
@@ -172,7 +196,7 @@ const MultipartDataForm = ({
   return (
     <div
       ref={formRef}
-      className={`${isMobile || screenWidth < 1024 ? 'fixed left-1/2 top-1/2 translate-x-[-50%] translate-y-[-50%]' : 'absolute top-9'} z-50 flex min-h-[8.75rem] min-w-96 flex-col rounded-lg bg-white p-5 shadow-lg`}
+      className={`flex min-h-[8.75rem] w-full flex-col text-nowrap rounded-lg bg-white p-5 shadow-lg`}
     >
       {activeForm === 'image' ? (
         <>
@@ -235,8 +259,12 @@ const MultipartDataForm = ({
           {fileSize && <p>File Size: {fileSize}</p>}
           {files && (
             <div className="mt-2 flex flex-col gap-2">
-              <Button handleClick={sendFile}>
-                <p>Add File</p>
+              <Button handleClick={uploadFilesAndSendIds}>
+                {isUploading ? (
+                  <CircularProgress size={20} color="inherit" />
+                ) : (
+                  <p>Add File</p>
+                )}
               </Button>
               <Button
                 handleClick={() => {
@@ -310,7 +338,7 @@ const MultipartDataForm = ({
                     arrow
                     placement="top"
                   >
-                    <p className='text-blue-400'>{link.title}</p>
+                    <p className="text-blue-400">{link.title}</p>
                   </HtmlTooltip>
                 </div>
               ))}
