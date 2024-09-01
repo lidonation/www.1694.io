@@ -126,7 +126,6 @@ build_frontend:
       set -xev
       cp $ENV_FILE_NEXT_PUBLIC_TEMPLATE frontend/.env.production
       # cat $ENV_FILE_FRONTEND > frontend/.env.production
-      cat frontend/.env.production
       
       docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
       echo "Building Dockerfile with tags $CI_APPLICATION_REPOSITORY/1694.io-frontend:$CI_APPLICATION_TAG and $CI_APPLICATION_REPOSITORY/www.1694.io-frontend:latest ..."
@@ -354,6 +353,17 @@ production:
     # - auto-deploy ensure_namespace
     - |      
       DEPLOYMENT_NAME="www-1694.$CI_ENVIRONMENT_SLUG"
+      
+      cp $ENV_FILE backend/.env.production
+      cat $ENV_FILE_BACKEND > backend/.env.production
+      cat $ENV_FILE_FRONTEND > frontend/.env.production
+      cp backend/.env.production ./chart/backend_env
+      
+      cp $ENV_FILE frontend/.env.production
+      cat $ENV_FILE_FRONTEND > frontend/.env.production
+      cp frontend/.env.production ./chart/frontend_env
+      cp $ENV_FILE_FRONTEND ./chart/frontend_env
+      
       helm upgrade $DEPLOYMENT_NAME ./chart --install \
         -f ./chart/values.yaml \
         --timeout 300s \
