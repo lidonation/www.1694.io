@@ -328,9 +328,6 @@ postgres-app-production:
   stage: production
   needs:
     - job: postgres-app-preview
-  rules:
-    - if: $CI_COMMIT_BRANCH == 'main'
-      when: manual
   environment:
     name: production
 
@@ -341,9 +338,6 @@ postgres-dbsync-production:
     name: production
   needs:
     - job: postgres-dbsync-preview
-  rules:
-    - if: $CI_COMMIT_BRANCH == 'main'
-      when: manual
 
 production:
   stage: production
