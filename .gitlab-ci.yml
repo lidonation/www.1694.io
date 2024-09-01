@@ -90,6 +90,7 @@ services:
           $DEPLOYMENT_NAME-web-db \
           bitnami/postgresql
 
+
 .deploy_postgres_dbsync_script: &deploy_postgres_dbsync_script
     - |
       DEPLOYMENT_NAME="www-1694-$CI_ENVIRONMENT_SLUG"
@@ -112,6 +113,8 @@ services:
           --set namespace=$KUBE_NAMESPACE \
           $DEPLOYMENT_NAME-dbsync-db \
           bitnami/postgresql
+
+
 
 build_frontend:
   stage: build
@@ -320,7 +323,7 @@ app-preview:
   environment:
     name: preview
   rules:
-    - if: $CI_COMMIT_BRANCH != 'main'
+    - if: $DEPLOY_WEBSITE == "true
       when: manual
 
 postgres-app-production:
