@@ -1,5 +1,5 @@
 import { useCardano } from '@/context/walletContext';
-import React, { useState } from 'react';
+import React from 'react';
 
 const PostVisibilityInput = ({ registerVisibility, errors }) => {
   const { isEnabled } = useCardano();
@@ -14,8 +14,11 @@ const PostVisibilityInput = ({ registerVisibility, errors }) => {
           disabled={!isEnabled}
           {...registerVisibility('postVisibility')}
           name="postVisibility"
+          className="cursor-pointer"
         />
-        <label htmlFor="everyone">Everyone</label>
+        <label className="cursor-pointer" htmlFor="everyone">
+          Everyone
+        </label>
         <input
           id="delegators"
           type="radio"
@@ -23,8 +26,11 @@ const PostVisibilityInput = ({ registerVisibility, errors }) => {
           {...registerVisibility('postVisibility')}
           disabled={!isEnabled}
           name="postVisibility"
+          className="cursor-pointer"
         />
-        <label htmlFor="delegators">Delegators only</label>
+        <label className="cursor-pointer" htmlFor="delegators">
+          Delegators only
+        </label>
         <input
           id="myself"
           type="radio"
@@ -32,11 +38,14 @@ const PostVisibilityInput = ({ registerVisibility, errors }) => {
           {...registerVisibility('postVisibility')}
           disabled={!isEnabled}
           name="postVisibility"
+          className="cursor-pointer"
         />
-        <label htmlFor="myself">Myself</label>
+        <label className="cursor-pointer" htmlFor="myself">
+          Myself
+        </label>
       </div>
-      <div className="text-sm text-red-700" data-testid="error-msg">
-        {errors?.postVisibility && errors?.postVisibility?.message}
+      <div className="text-sm text-red-500" data-testid="error-msg">
+        <span>{errors?.postVisibility && errors?.postVisibility?.message}</span>
       </div>
     </div>
   );

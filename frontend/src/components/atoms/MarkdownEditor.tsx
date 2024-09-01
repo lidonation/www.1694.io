@@ -75,7 +75,7 @@ const MarkdownEditor = ({ control, errors, name }: MarkdownEditorProps) => {
               </div>
             )}
             {errors[name] && (
-              <span className="text-red-500">{errors[name].message}</span>
+              <span className="text-red-500 text-sm">{errors[name].message}</span>
             )}
           </div>
         );
