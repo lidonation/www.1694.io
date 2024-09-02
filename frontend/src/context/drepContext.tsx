@@ -27,7 +27,6 @@ interface DRepContext {
   step4Status: stepStatus['status'];
   isLoggedIn: boolean;
   loginModalOpen: boolean;
-  isMobileDrawerOpen: boolean;
   isWalletListModalOpen: boolean;
   isNotDRepErrorModalOpen: boolean;
   currentLocale: string;
@@ -43,7 +42,6 @@ interface DRepContext {
   setCurrentRegistrationStep: React.Dispatch<React.SetStateAction<number>>;
   setIsNotDRepErrorModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsWalletListModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setIsMobileDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setCurrentLocale: React.Dispatch<React.SetStateAction<string>>;
   setNewDrepId: React.Dispatch<React.SetStateAction<number>>;
   setLoginModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -69,7 +67,6 @@ DRepContext.displayName = 'DRepContext';
 function DRepProvider(props: Props) {
   const [isWalletListModalOpen, setIsWalletListModalOpen] = useState(false);
   const { sharedState, updateSharedState } = useSharedContext();
-  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [isNotDRepErrorModalOpen, setIsNotDRepErrorModalOpen] = useState(false);
   const [metadataJsonLd, setMetadataJsonLd] = useState(null);
   const [metadataJsonHash, setMetadataJsonHash] = useState(null);
@@ -92,11 +89,10 @@ function DRepProvider(props: Props) {
     updateSharedState({
       isWalletListModalOpen,
       isNotDRepErrorModalOpen,
-      isMobileDrawerOpen,
       isLoggedIn,
       isLoginModalOpen: loginModalOpen,
     });
-  }, [isWalletListModalOpen, isNotDRepErrorModalOpen, isMobileDrawerOpen, isLoggedIn, loginModalOpen]);
+  }, [isWalletListModalOpen, isNotDRepErrorModalOpen, isLoggedIn, loginModalOpen]);
   useEffect(() => {
     persistLogin();
   }, []);
@@ -212,7 +208,6 @@ function DRepProvider(props: Props) {
       setMetadataJsonLd,
       metadataJsonHash,
       setMetadataJsonHash,
-      isMobileDrawerOpen,
       currentRegistrationStep,
       loginModalOpen,
       setStep1Status,
@@ -224,7 +219,6 @@ function DRepProvider(props: Props) {
       setIsNotDRepErrorModalOpen,
       setCurrentLocale,
       setCurrentRegistrationStep,
-      setIsMobileDrawerOpen,
       handleRefresh,
       setNewDrepId,
       persistLogin,
@@ -243,7 +237,6 @@ function DRepProvider(props: Props) {
       step2Status,
       step3Status,
       step4Status,
-      isMobileDrawerOpen,
       sharedState,
       metadataJsonLd,
       metadataJsonHash,
@@ -263,12 +256,6 @@ function DRepProvider(props: Props) {
           <NotDRepErrorModal />
         </div>
       )}
-      {/* {sharedState.isMobileDrawerOpen && (
-        <SliderMenu
-          options={navOptions}
-          handleClose={() => setIsMobileDrawerOpen(false)}
-        />
-      )} */}
       {loginModalOpen && (
         <div className="blur-container fixed left-0 top-0  z-50 flex h-screen w-full items-center justify-center">
           <UserLoginModal />
