@@ -637,7 +637,7 @@ export class DrepService {
     await this.voltaireService.getRepository('Drep').insert(modified);
     return modified;
   }
-  async registerDrep(drepDto: createDrepDto, profileUrl: Express.Multer.File) {
+  async registerDrep(drepDto: createDrepDto) {
     const insertedDrep = await this.voltaireService
       .getRepository('Drep')
       .insert(drepDto);
@@ -706,11 +706,7 @@ export class DrepService {
     }));
   }
 
-  async updateDrepInfo(
-    drepId: number,
-    drep: createDrepDto,
-    profileUrl: Express.Multer.File,
-  ) {
+  async updateDrepInfo(drepId: number, drep: createDrepDto) {
     const foundDrep = await this.voltaireService
       .getRepository('Drep')
       .createQueryBuilder('drep')
@@ -741,7 +737,7 @@ export class DrepService {
       }
       return { ...acc, [key]: value };
     }, {});
-    delete updatedDrep['profileUrl'];
+
     return await this.voltaireService
       .getRepository('Drep')
       .update(drepId, updatedDrep);
@@ -881,6 +877,7 @@ export class DrepService {
       getDRepDelegatorsCountQuery,
       [drepVoterId],
     );
+
     const drepDelegatorsCount = Number(
       drepDelegatorsCountResult[0]?.delegators_count || 0,
     );
@@ -896,8 +893,7 @@ export class DrepService {
       [drepVoterId],
     );
 
-    const drepVotingPower =
-      Number(drepVotingPowerResult[0].voting_power) || null;
+    const drepVotingPower = Number(drepVotingPowerResult[0]?.voting_power) || 0;
 
     const drepStats = {
       delegators: drepDelegatorsCount,
@@ -939,5 +935,11 @@ export class DrepService {
       [drepHashId, drepVoterId, beforeDate, tillDate],
     );
     return drepDelegations;
+  }
+
+  async isDrepRegistered(voterId: string) {
+    const registration = await this.getDrepDateofRegistration(voterId);
+
+    return !!registration ? true : false;
   }
 }
