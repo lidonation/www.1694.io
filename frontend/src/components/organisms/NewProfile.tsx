@@ -3,7 +3,6 @@ import { useCardano } from '@/context/walletContext';
 import { useDRepContext } from '@/context/drepContext';
 import { Address } from '@emurgo/cardano-serialization-lib-asmjs';
 import { z } from 'zod';
-import { v4 as uuidv4 } from 'uuid';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { SubmitHandler, useForm } from 'react-hook-form';
@@ -13,8 +12,6 @@ import { usePostNewDrepMutation } from '@/hooks/usePostNewDRepMutation';
 import { drepInput } from '@/models/drep';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { setItemToLocalStorage, sha256 } from '@/lib';
-import { getSingleDRepViaVoterId } from '@/services/requests/getSingleDrepViaVoterId';
-import { getExternalMetadata } from '@/services/requests/postExternalMetadataUrl';
 import { renderJsonldValue } from '../atoms/MetadataViewer';
 import { submitMetadata } from '@/lib/metadataProcessor';
 import { setItemToIndexedDB } from '@/lib/indexedDb';
@@ -73,7 +70,9 @@ const NewProfile = () => {
     setIsLoggedIn,
     metadataJsonLd,
     handleRefresh,
+    isDRepRegistered,
   } = useDRepContext();
+
 
   useEffect(() => {
     const getDRep = () => {
@@ -129,7 +128,7 @@ const NewProfile = () => {
 
   const saveProfile: SubmitHandler<InputType> = async (data) => {
     try {
-      if (!dRepIDBech32 || dRepIDBech32 == '') {
+      if (!isDRepRegistered) {
         setIsNotDRepErrorModalOpen(true);
         return;
       }

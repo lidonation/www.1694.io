@@ -101,35 +101,30 @@ export class DrepController {
       delegation,
       startTimeCursor,
       endTimeCursor,
-      filterValues
+      filterValues,
     );
 
     return drepTimeline;
   }
 
   @Post('new')
-  @UseInterceptors(FileInterceptor('profileUrl'))
-  create(
-    @UploadedFile() file: Express.Multer.File,
-    @Body() drepDto: createDrepDto,
-  ) {
-    return this.drepService.registerDrep(drepDto, file);
+  create(@Body() drepDto: createDrepDto) {
+    return this.drepService.registerDrep(drepDto);
   }
   @Post(':id/update')
-  @UseInterceptors(FileInterceptor('profileUrl'))
-  updateDetails(
-    @UploadedFile() profileUrl: Express.Multer.File,
-    @Param('id') drepId: number,
-    @Body() drep: createDrepDto,
-  ) {
-    return this.drepService.updateDrepInfo(drepId, drep, profileUrl);
+  updateDetails(@Param('id') drepId: number, @Body() drep: createDrepDto) {
+    return this.drepService.updateDrepInfo(drepId, drep);
   }
   @Get('/metadata/external')
   getExternalMetadata(@Query('metadataUrl') metadataUrl: string) {
     return this.drepService.getMetadataFromExternalLink(metadataUrl);
   }
   @Get(':drepId/metadata/:hash')
-  getMetadata(@Param('drepId') drepId: number, @Param('hash') hash: string,  @Res() res: Response,) {
+  getMetadata(
+    @Param('drepId') drepId: number,
+    @Param('hash') hash: string,
+    @Res() res: Response,
+  ) {
     return this.drepService.getMetadata(drepId, hash, res);
   }
   @Post('metadata/validate')
@@ -149,5 +144,10 @@ export class DrepController {
   @Get(':voterId/stats')
   getStats(@Param('voterId') voterId: string) {
     return this.drepService.getStats(voterId);
+  }
+
+  @Get(':voterId/is-registered')
+  isRegistered(@Param('voterId') voterId: string) {
+    return this.drepService.isDrepRegistered(voterId);
   }
 }
