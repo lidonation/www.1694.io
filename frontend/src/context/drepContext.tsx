@@ -19,6 +19,7 @@ import {
 import { processExternalMetadata } from '@/lib/metadataProcessor';
 import { getSingleDRepViaVoterId } from '@/services/requests/getSingleDrepViaVoterId';
 import { getItemFromIndexedDB } from '@/lib/indexedDb';
+import { getDRepRegStatus } from '@/services/requests/getDRepRegStatus';
 
 interface DRepContext {
   step1Status: stepStatus['status'];
@@ -32,6 +33,7 @@ interface DRepContext {
   currentLocale: string;
   drepId: number;
   currentRegistrationStep: number;
+  isDRepRegistered: boolean;
   setStep1Status: React.Dispatch<React.SetStateAction<stepStatus['status']>>;
   setStep2Status: React.Dispatch<React.SetStateAction<stepStatus['status']>>;
   setStep3Status: React.Dispatch<React.SetStateAction<stepStatus['status']>>;
@@ -70,6 +72,7 @@ function DRepProvider(props: Props) {
   const [isNotDRepErrorModalOpen, setIsNotDRepErrorModalOpen] = useState(false);
   const [metadataJsonLd, setMetadataJsonLd] = useState(null);
   const [metadataJsonHash, setMetadataJsonHash] = useState(null);
+  const [isDRepRegistered, setIsDRepRegistered] = useState(false);
   const [currentRegistrationStep, setCurrentRegistrationStep] =
     useState<currentRegistrationStep['step']>(1);
   const [drepId, setNewDrepId] = useState<number | null>(null);
@@ -116,6 +119,12 @@ function DRepProvider(props: Props) {
       let metadataJsonLd = null;
       const drepId = sharedState?.dRepIDBech32;
       if (!drepId) return;
+
+      const isDRepRegistered = await getDRepRegStatus(drepId);
+      if (!isDRepRegistered) return;
+
+      setIsDRepRegistered(true);
+
       const drep = await getSingleDRepViaVoterId(drepId);
       if (drep?.drep_id) {
         setNewDrepId(drep?.drep_id);
@@ -205,6 +214,7 @@ function DRepProvider(props: Props) {
       step3Status,
       step4Status,
       metadataJsonLd,
+      isDRepRegistered,
       setMetadataJsonLd,
       metadataJsonHash,
       setMetadataJsonHash,
@@ -239,6 +249,7 @@ function DRepProvider(props: Props) {
       step4Status,
       sharedState,
       metadataJsonLd,
+      isDRepRegistered,
       metadataJsonHash,
     ],
   );

@@ -17,14 +17,14 @@ export const ProfileClaimedChip = ({ claimedAddress, dateOfClaim }) => {
         <p>{new Date(dateOfClaim).toDateString()}</p>
       </div>
       {isDRepStatsLoading && (
-        <Skeleton className="h-full w-full" animation={'wave'} />
+        <Skeleton className="w-full" height={60} animation={'wave'} />
       )}{' '}
-      {!DRepStats && (
+      {!isDRepStatsLoading && !DRepStats && (
         <div className="h-full w-full text-center font-bold">
           No DRep stats available!
         </div>
       )}
-      {!!DRepStats && (
+      {!isDRepStatsLoading && !!DRepStats && (
         <div className="rounded bg-gray-800 px-2 py-2">
           <div className="mx-auto max-w-7xl">
             <div className="grid grid-cols-2 gap-px bg-white/5 md:grid-cols-4">
@@ -38,13 +38,13 @@ export const ProfileClaimedChip = ({ claimedAddress, dateOfClaim }) => {
               </div>
               <div className="flex h-full w-full flex-col justify-between  gap-3 bg-gray-800 px-4">
                 <p className="text-xs font-medium leading-3 text-gray-400">
-                  Voting power
+                  Active power
                 </p>
                 <span className="overflow-hidden text-sm font-semibold tracking-tight text-white">
                   ₳ {formattedAda(DRepStats.votingPower, 3)}
                 </span>
               </div>
-              <div className="flex h-full w-full flex-col justify-between gap-3 bg-gray-800 pt-2 px-2 md:px-4 md:pt-0">
+              <div className="flex h-full w-full flex-col justify-between gap-3 bg-gray-800 px-2 pt-2 md:px-4 md:pt-0">
                 <p className="text-xs font-medium leading-3 text-gray-400">
                   Governance actions
                 </p>
@@ -52,7 +52,7 @@ export const ProfileClaimedChip = ({ claimedAddress, dateOfClaim }) => {
                   -
                 </span>
               </div>
-              <div className="flex h-full w-full flex-col justify-between  gap-3 bg-gray-800 pt-2 px-4 md:pt-0">
+              <div className="flex h-full w-full flex-col justify-between  gap-3 bg-gray-800 px-4 pt-2 md:pt-0">
                 <p className="text-xs font-medium leading-3 text-gray-400">
                   Votes
                 </p>
