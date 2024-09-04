@@ -123,11 +123,11 @@ export default function DRepListFilters() {
           horizontal: 'center',
         }}
       >
-        <Box className="bg-extra_gray px-4 py-2">
+        <Box className="bg-extra_gray px-6 py-4">
           <Box className="flex flex-col">
             <FormControl>
               <span className="text-xs font-semibold">
-                Filter DReps by on-chain status
+                Filter DReps by On-chain Status
               </span>
               <RadioGroup
                 aria-labelledby="demo-controlled-radio-buttons-group"
@@ -170,7 +170,7 @@ export default function DRepListFilters() {
 
             <FormControl>
               <span className="mt-2 text-xs font-semibold">
-                Filter DReps by campaign status
+                Filter DReps by Campaign Status
               </span>
               <RadioGroup
                 aria-labelledby="demo-controlled-radio-buttons-group"

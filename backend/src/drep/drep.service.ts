@@ -76,16 +76,14 @@ export class DrepService {
     //   );
     // }
 
-    let sortColumn = null;
-    let sortOrder = null;
+    let sortColumn =
+      {
+        active_power: 'active_power',
+        live_power: 'live_power',
+        delegators: 'delegation_vote_count',
+      }[sort] || null;
 
-    if (sort && sort === 'power') {
-      sortColumn = 'amount';
-    } else if (sort && sort === 'delegators') {
-      sortColumn = 'delegation_vote_count';
-    }
-
-    if (order) sortOrder = order.toUpperCase();
+    let sortOrder = !!order ? order.toUpperCase() : null;
 
     let dRepViews: string[];
 
@@ -179,14 +177,18 @@ export class DrepService {
 
     let orderByClause = '';
     if (sortColumn && sortOrder) {
-      const validSortColumns = ['delegation_vote_count', 'amount'];
+      const validSortColumns = [
+        'delegation_vote_count',
+        'live_power',
+        'active_power',
+      ];
       const validSortOrders = ['ASC', 'DESC'];
 
       if (
         validSortColumns.includes(sortColumn) &&
         validSortOrders.includes(sortOrder)
       ) {
-        if (sortColumn === 'amount') {
+        if (sortColumn === 'active_power' || sortColumn === 'live_power') {
           orderByClause = `ORDER BY COALESCE(${sortColumn}, 0) ${sortOrder}`;
         } else {
           orderByClause = `ORDER BY ${sortColumn} ${sortOrder}`;
@@ -220,7 +222,8 @@ export class DrepService {
         return {
           ...entry,
           deposit: (entry.deposit / 1000000).toFixed(1),
-          amount: (entry.amount / 1000000).toFixed(1),
+          active_power: (entry.active_power / 1000000).toFixed(1),
+          live_power: (entry.live_power / 1000000).toFixed(1),
         };
       }),
       totalItems: parseInt(totalResults[0].total, 10),
