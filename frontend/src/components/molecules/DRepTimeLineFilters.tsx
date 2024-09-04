@@ -115,7 +115,7 @@ export default function DRepTimeLIneFilters() {
           horizontal: 'right',
         }}
       >
-        <Box className="bg-extra_gray px-4 py-2">
+        <Box className="bg-extra_gray px-6 py-4">
           <Box className="flex flex-col">
             <FormControl>
               <span className="text-xs font-semibold">

@@ -116,12 +116,11 @@ export default function DRepListSort() {
           horizontal: 'center',
         }}
       >
-        <Box className="bg-extra_gray px-4 py-2">
-          <Box className="flex flex-col">
+        <Box className="bg-extra_gray px-6 py-4">
+          <p className="text-sm font-semibold">Sort DReps by:</p>
+          <Box className="mt-2 flex flex-col">
             <FormControl>
-              <span className="text-xs font-semibold">
-                Sort DReps by Voting Power
-              </span>
+              <span className="text-xs font-semibold">Active Voting Power</span>
               <RadioGroup
                 aria-labelledby="demo-controlled-radio-buttons-group"
                 name="controlled-radio-buttons-group"
@@ -129,7 +128,7 @@ export default function DRepListSort() {
                 onChange={setSorts}
               >
                 <FormControlLabel
-                  value="power-desc"
+                  value="active_power-desc"
                   control={
                     <Radio
                       sx={{
@@ -142,7 +141,7 @@ export default function DRepListSort() {
                   label="Highest to Lowest"
                 />
                 <FormControlLabel
-                  value="power-asc"
+                  value="active_power-asc"
                   control={
                     <Radio
                       sx={{
@@ -161,7 +160,48 @@ export default function DRepListSort() {
 
             <FormControl>
               <span className="mt-2 text-xs font-semibold">
-                Sort DReps by Delegators count
+                Live Voting Power
+              </span>
+              <RadioGroup
+                aria-labelledby="demo-controlled-radio-buttons-group"
+                name="controlled-radio-buttons-group"
+                value={sortValue()}
+                onChange={setSorts}
+              >
+                <FormControlLabel
+                  value="live_power-desc"
+                  control={
+                    <Radio
+                      sx={{
+                        '&.Mui-checked': {
+                          color: '#f97316',
+                        },
+                      }}
+                    />
+                  }
+                  label="Highest to Lowest"
+                />
+                <FormControlLabel
+                  value="live_power-asc"
+                  control={
+                    <Radio
+                      sx={{
+                        '&.Mui-checked': {
+                          color: '#f97316',
+                        },
+                      }}
+                    />
+                  }
+                  label="Lowest to Highest"
+                />
+              </RadioGroup>
+            </FormControl>
+
+            <Divider />
+
+            <FormControl>
+              <span className="mt-2 text-xs font-semibold">
+                Delegators Count
               </span>
               <RadioGroup
                 aria-labelledby="demo-controlled-radio-buttons-group"
