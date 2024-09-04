@@ -3,13 +3,15 @@ import Button from './Button';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import StatusChip from './StatusChip';
 import Link from 'next/link';
-import { Skeleton, Typography } from '@mui/material';
+import { Skeleton } from '@mui/material';
 import { convertString, formattedAda } from '@/lib';
 import MetadataViewer from './MetadataViewer';
 import { isActive } from '../molecules/DRepsTable';
 import { getExternalMetadata } from '@/services/requests/postExternalMetadataUrl';
 import DRepSocialLinks from './DRepSocialLinks';
 import DRepAvatarCard from './DRepAvatarCard';
+import { useCardano } from '@/context/walletContext';
+import { useDRepContext } from '@/context/drepContext';
 
 const DrepClaimProfileCard = ({
   drep,
@@ -24,7 +26,9 @@ const DrepClaimProfileCard = ({
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [metadataUrl, setMetadataUrl] = useState<string | null>(null);
   const [status, setStatus] = useState<any>('Inactive');
+  const { dRepIDBech32 } = useCardano();
   const [socialLinks, setSocialLinks] = useState<any>(null);
+  const { isLoggedIn } = useDRepContext();
   useEffect(() => {
     const fetchData = async () => {
       const metadataUrl = drep?.cexplorerDetails?.metadata_url;
@@ -49,7 +53,9 @@ const DrepClaimProfileCard = ({
         setMetadata(jsonLdData);
       } catch (error) {
         setMetadata(null);
-        setMetadataError('Metadata Unprocessable. Probably took long to load or has invalid content');
+        setMetadataError(
+          'Metadata Unprocessable. Probably took long to load or has invalid content',
+        );
       } finally {
         setIsMetadataLoading(false);
       }
@@ -157,6 +163,19 @@ const DrepClaimProfileCard = ({
           />
         )}
       </div>
+      {(drep?.cexplorerDetails?.view == dRepIDBech32 ||
+        drep?.signature_drepVoterId == dRepIDBech32) &&
+        isLoggedIn && (
+          <div className="flex max-w-prose flex-col gap-2">
+            <Link href={`/dreps/workflow/profile/new`}>
+              <Button
+                className="w-full"
+              >
+                Claim your profile to update
+              </Button>
+            </Link>
+          </div>
+        )}
     </div>
   );
 };
