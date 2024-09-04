@@ -98,7 +98,20 @@ const DRepsTable = ({
             <th className="px-4 py-2">
               <div className="flex items-center">
                 <span>Active Power</span>
-                {sort === 'power' &&
+                {sort === 'active_power' &&
+                  (order === 'desc' ? (
+                    <ArrowDownIcon width={20} height={20} color="black" />
+                  ) : (
+                    order === 'asc' && (
+                      <ArrowUpIcon width={20} height={20} color="black" />
+                    )
+                  ))}
+              </div>
+            </th>
+            <th className="px-4 py-2">
+              <div className="flex items-center">
+                <span>Live Power</span>
+                {sort === 'live_power' &&
                   (order === 'desc' ? (
                     <ArrowDownIcon width={20} height={20} color="black" />
                   ) : (
@@ -199,8 +212,15 @@ const DRepsTable = ({
 
                 <td className="max-w-11 overflow-auto px-4 py-2">
                   <HoverText
-                    shortText={shortNumber(drep.amount, 2)}
-                    longText={formatAsCurrency(drep.amount)}
+                    shortText={shortNumber(drep.active_power, 2)}
+                    longText={formatAsCurrency(drep.active_power)}
+                  />
+                </td>
+
+                <td className="max-w-11 overflow-auto px-4 py-2">
+                  <HoverText
+                    shortText={shortNumber(drep.live_power, 2)}
+                    longText={formatAsCurrency(drep.live_power)}
                   />
                 </td>
 
