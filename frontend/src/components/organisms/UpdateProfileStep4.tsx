@@ -13,9 +13,7 @@ import MetadataViewer from '../atoms/MetadataViewer';
 import Button from '../atoms/Button';
 import SubmitMetadataModal from '../atoms/SubmitMetadataModal';
 import { useRouter } from 'next/navigation';
-import {
-  renderJSONLDToJSONArr,
-} from '@/lib/metadataProcessor';
+import { renderJSONLDToJSONArr } from '@/lib/metadataProcessor';
 import { deleteItemFromIndexedDB } from '@/lib/indexedDb';
 const FormSchema = z.object({
   metadata: z.string().optional(),
@@ -23,20 +21,14 @@ const FormSchema = z.object({
 type InputType = z.infer<typeof FormSchema>;
 
 const UpdateProfileStep4 = () => {
-  const { register, handleSubmit, getValues, formState, setValue } =
-    useForm<InputType>({
-      resolver: zodResolver(FormSchema),
-    });
+  const { handleSubmit, setValue } = useForm<InputType>({
+    resolver: zodResolver(FormSchema),
+  });
   const { dRepIDBech32 } = useCardano();
-  const {
-    setIsNotDRepErrorModalOpen,
-    setStep4Status,
-    metadataJsonLd,
-    metadataJsonHash,
-  } = useDRepContext();
+  const { setIsNotDRepErrorModalOpen, setStep4Status, metadataJsonLd } =
+    useDRepContext();
   const router = useRouter();
   const [canEdit, setCanEdit] = useState(false);
-  const [jsonHash, setJsonHash] = useState<string | null>(null);
   const [isAwaitingSubmission, setIsAwaitingSubmission] = useState(false);
   const { addChangesSavedAlert, addSuccessAlert } = useGlobalNotifications();
   const [isMetadataLoading, setIsMetadataLoading] = useState(false);
@@ -53,7 +45,6 @@ const UpdateProfileStep4 = () => {
         const convertedMetadata = renderJSONLDToJSONArr(metadataJsonLd);
         setMetadataJson(convertedMetadata);
         setMetadata(metadataJsonLd);
-        setJsonHash(metadataJsonHash);
         setValue('metadata', JSON.stringify(convertedMetadata));
         setIsMetadataLoading(false);
         if (metadataJsonLd) {
@@ -168,4 +159,4 @@ const UpdateProfileStep4 = () => {
   );
 };
 
-export default UpdateProfileStep4 
+export default UpdateProfileStep4;

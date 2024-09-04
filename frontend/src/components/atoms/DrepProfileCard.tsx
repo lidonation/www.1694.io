@@ -26,6 +26,7 @@ import SubmitMetadataModal from './SubmitMetadataModal';
 import { deleteItemFromIndexedDB } from '@/lib/indexedDb';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import DRepAvatarCard from './DRepAvatarCard';
+import { useDRepContext } from '@/context/drepContext';
 
 interface StatusProps {
   status:
@@ -72,6 +73,7 @@ const StatusChip = ({ status }: StatusProps) => {
 
 const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
   const { isMobile } = useScreenDimension();
+  const { setLoginModalOpen, isLoggedIn } = useDRepContext();
   const { dRepIDBech32 } = useCardano();
   const [status, setStatus] = useState<any>('Inactive');
   const [isMetadataLoading, setIsMetadataLoading] = useState(false);
@@ -86,6 +88,16 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
   const [isSubmittingMetadata, setIsSubmittingMetadata] = useState(false);
   const [socialLinks, setSocialLinks] = useState<any>(null);
   const [hoveredOnWarning, setHoveredOnWarning] = useState(false);
+  const ctaActions = [
+    {
+      label: metadata ? 'Edit Metadata' : 'Set up Metadata',
+      action: () => setCanEdit(true),
+    },
+    {
+      label: 'Login to update',
+      action: () => setLoginModalOpen(true),
+    },
+  ];
   useEffect(() => {
     const fetchData = async () => {
       const metadataUrl = drep?.cexplorerDetails?.metadata_url;
@@ -117,7 +129,9 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
       } catch (error) {
         console.log(error);
         setMetadata(null);
-        setMetadataError('Metadata Unprocessable. Probably took long to load or has invalid content.');
+        setMetadataError(
+          'Metadata Unprocessable. Probably took long to load or has invalid content.',
+        );
       } finally {
         setIsMetadataLoading(false);
       }
@@ -335,14 +349,25 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
       {(drep?.cexplorerDetails?.view == dRepIDBech32 ||
         drep?.signature_drepVoterId == dRepIDBech32) && (
         <div className="flex max-w-prose flex-col gap-2">
-          <Button handleClick={() => setCanEdit(true)} className="w-full">
-            {metadata ? 'Edit' : 'Set up'} Metadata
+          <Button
+            handleClick={
+              isLoggedIn ? ctaActions[0].action : ctaActions[1].action
+            }
+            className="w-full"
+          >
+            {isLoggedIn ? ctaActions[0].label : ctaActions[1].label}
           </Button>
-          <Link href={`/dreps/workflow/profile/update/step1`}>
-            <Button className="w-full" variant="outlined" bgColor="transparent">
-              Edit Profile
-            </Button>
-          </Link>
+          {isLoggedIn && (
+            <Link href={`/dreps/workflow/profile/update/step1`}>
+              <Button
+                className="w-full"
+                variant="outlined"
+                bgColor="transparent"
+              >
+                Edit Profile
+              </Button>
+            </Link>
+          )}
         </div>
       )}
     </div>
