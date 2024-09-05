@@ -23,6 +23,7 @@ services:
       - io-1694 # Connect to the 'io-1694' network
     depends_on:
       - web_db # Depends on the database service
+
   dbsync_db:
     image: postgres:16.3-alpine3.19
     environment:
@@ -54,6 +55,7 @@ services:
       options:
         max-size: "200k"
         max-file: "10"
+
   web_db:
     container_name: voltaire_db # Name of the database container
     platform: linux/amd64 # Specify the platform (important for ARM64 architectures)
@@ -69,6 +71,7 @@ services:
       - db-data:/var/lib/postgresql/data/ # Persistent storage for the database
     networks:
       - io-1694 # Connect to the 'io-1694' network
+
   frontend:
     container_name: frontend # Name of the frontend container
     build: # Build configuration for the frontend
@@ -87,7 +90,7 @@ services:
       - backend # Depends on the backend service
 
   cardano-node:
-    image: ghcr.io/intersectmbo/cardano-node:8.12.0-pre
+    image: ghcr.io/intersectmbo/cardano-node:9.1.1
     command: [
       "run",
       "--config", "/config/config.json",
@@ -115,6 +118,7 @@ services:
       retries: 3
     networks:
       - io-1694 # Connect to the 'io-1694' network
+
   cardano-db-sync:
     image: ghcr.io/intersectmbo/cardano-db-sync:13.5.0.0
     environment:
@@ -146,13 +150,15 @@ services:
       options:
         max-size: "200k"
         max-file: "10"
-  adminer: 
+
+  adminer:
     image: adminer
     restart: always
     ports:
       - 8080:8080
     networks:
       - io-1694 # Connect to the 'io-1694' network
+
   cypress:
     image: cypress/included:cypress-13.13.1-node-20.15.1-chrome-126.0.6478.126-1-ff-128.0-edge-126.0.2592.102-1
     # the Docker image to use from https://github.com/cypress-io/cypress-docker-images
@@ -170,6 +176,7 @@ services:
     # share the current folder as volume to avoid copying
     volumes:
       - ./frontend:/e2e
+
 volumes:
   db-data:
   db-sync-data:

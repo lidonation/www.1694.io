@@ -10,7 +10,6 @@ import { VoterModule } from './voter/voter.module';
 import { CommentsModule } from './comments/comments.module';
 import { ReactionsModule } from './reactions/reactions.module';
 import { AuthService } from './auth/auth.service';
-import { HttpModule } from '@nestjs/axios';
 import { ProposalsModule } from './proposals/proposals.module';
 import { MiscellaneousModule } from './miscellaneous/miscellaneous.module';
 
@@ -30,7 +29,7 @@ import { MiscellaneousModule } from './miscellaneous/miscellaneous.module';
     CommentsModule,
     ReactionsModule,
     ProposalsModule,
-    MiscellaneousModule
+    MiscellaneousModule,
   ],
   controllers: [],
   providers: [AuthService],

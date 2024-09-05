@@ -5,7 +5,7 @@ export const getAllDRepsQuery = (
   chainStatusCondition: string,
   orderByClause: string,
   itemsPerPage: number,
-  offset: number
+  offset: number,
 ) => `
   WITH LatestEpoch AS (
       SELECT MAX(no) AS latest_epoch_no FROM epoch
@@ -98,17 +98,17 @@ export const getAllDRepsQuery = (
           ${chainStatusCondition}
   )
   SELECT 
-      drep_hash_id,
+--       drep_hash_id,
       view,
       delegation_vote_count,
       live_power,
       stake_address,
       active_power,
-      epoch_no,
+--       epoch_no,
       active_until,
-      latest_epoch_no,
-      deposit,
-      url,
+--       latest_epoch_no,
+--       deposit,
+--       url,
       type
   FROM 
       RankedRows
@@ -117,14 +117,13 @@ export const getAllDRepsQuery = (
   ${orderByClause}
   LIMIT ${itemsPerPage} OFFSET ${offset}
 `;
-  
-  
-  export const getTotalResultsQuery = (
-    sanitizedSearch: string,
-    nameFilteredDRepCondition: string,
-    campaignStatusCondition: string,
-    chainStatusCondition: string
-  ) => `
+
+export const getTotalResultsQuery = (
+  sanitizedSearch: string,
+  nameFilteredDRepCondition: string,
+  campaignStatusCondition: string,
+  chainStatusCondition: string,
+) => `
     WITH LatestEpoch AS (
         SELECT MAX(no) AS latest_epoch_no FROM epoch
     )
@@ -137,4 +136,3 @@ export const getAllDRepsQuery = (
     ${campaignStatusCondition}
     ${chainStatusCondition}
   `;
-  
