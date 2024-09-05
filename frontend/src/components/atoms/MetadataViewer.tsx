@@ -87,10 +87,10 @@ const MetadataViewer = ({
         return (
           <div
             key={key}
-            className="flex flex-col items-start justify-center gap-1 text-sm"
+            className="flex flex-col items-start justify-center gap-1 text-sm w-full"
           >
             <Typography variant="h6">{capitalizeFirstLetter(key)}</Typography>
-            <p className="pl-2">{valueString}</p>
+            <p className="pl-2 w-full break-words">{valueString}</p>
           </div>
         );
       });
