@@ -12,7 +12,6 @@ import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import ProfileSubmitArea from '../atoms/ProfileSubmitArea';
 import { getSingleDRepViaVoterId } from '@/services/requests/getSingleDrepViaVoterId';
 import { getSingleDRep } from '@/services/requests/getSingleDrep';
-import Button from '../atoms/Button';
 import { Typography } from '@mui/material';
 import { convertString } from '@/lib';
 import WalletConnectButton from '../molecules/WalletConnectButton';
@@ -97,14 +96,15 @@ const UpdateProfileStep2 = () => {
       const stakeAddress = Address.from_bytes(
         Buffer.from(stakeKey, 'hex'),
       ).to_bech32();
-      const formData = new FormData();
-      formData.append('signature', data.signature);
-      formData.append('key', data.key);
-      formData.append('stake_addr', stakeAddress);
-      formData.append('voter_id', dRepIDBech32);
-      const res = await updateDrepMutation.mutateAsync({
+      const formData:drepInput = {
+        signature: data.signature,
+        stake_addr: stakeAddress,
+        key: data.key,
+        voter_id: dRepIDBech32,
+      }
+      await updateDrepMutation.mutateAsync({
         drepId: drepId,
-        drep: formData as drepInput,
+        drep: formData ,
       });
       addChangesSavedAlert();
     } catch (error) {

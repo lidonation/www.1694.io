@@ -73,7 +73,6 @@ const NewProfile = () => {
     isDRepRegistered,
   } = useDRepContext();
 
-
   useEffect(() => {
     const getDRep = () => {
       try {
@@ -83,9 +82,17 @@ const NewProfile = () => {
         setValue('profileBio', renderJsonldValue(metadataBody?.bio));
         setValue('profileEmail', renderJsonldValue(metadataBody?.email));
         setValue('motivations', renderJsonldValue(metadataBody?.motivations));
-        setValue('qualifications', renderJsonldValue(metadataBody?.qualifications));
+        setValue(
+          'qualifications',
+          renderJsonldValue(metadataBody?.qualifications),
+        );
         setValue('objectives', renderJsonldValue(metadataBody?.objectives));
-        setValue('paymentAddress', renderJsonldValue(metadataBody?.paymentAddress) || usedAddress || changeAddress);
+        setValue(
+          'paymentAddress',
+          renderJsonldValue(metadataBody?.paymentAddress) ||
+            usedAddress ||
+            changeAddress,
+        );
         setValue(
           'profileUrl',
           renderJsonldValue(metadataBody?.image?.contentUrl) || '',
@@ -219,13 +226,14 @@ const NewProfile = () => {
       const stakeAddress = Address.from_bytes(
         Buffer.from(stakeKey, 'hex'),
       ).to_bech32();
-      const formData = new FormData();
-      formData.append('stake_addr', stakeAddress);
-      formData.append('voter_id', dRepIDBech32);
-      formData.append('signature', signature);
-      formData.append('key', key);
+      const formData: drepInput = {
+        signature,
+        stake_addr: stakeAddress,
+        key,
+        voter_id: dRepIDBech32,
+      };
       const res = await newDRepMutation.mutateAsync({
-        drep: formData as drepInput,
+        drep: formData as any,
       });
       const { insertedDrep, token } = res;
       setNewDrepId(insertedDrep.raw[0].id);
@@ -266,7 +274,8 @@ const NewProfile = () => {
           </div>
         )}
         <p className="text-base font-normal text-gray-800">
-          Completing your profile will update your cip 119 on-chain DRep metadata.
+          Completing your profile will update your cip 119 on-chain DRep
+          metadata.
         </p>
       </div>
       <form

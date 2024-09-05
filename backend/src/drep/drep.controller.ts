@@ -8,13 +8,9 @@ import {
   Post,
   Query,
   Res,
-  Search,
-  UploadedFile,
-  UseInterceptors,
 } from '@nestjs/common';
 
 import { createDrepDto, ValidateMetadataDTO } from 'src/dto';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { DrepService } from './drep.service';
 import { VoterService } from 'src/voter/voter.service';
 import { Delegation, StakeKeys } from 'src/common/types';

@@ -75,6 +75,14 @@ const SubmitMetadataModal = ({ onClose, onSuccessfulSubmit }) => {
         drepId,
         name: jsonHash.slice(0, 10),
       })) as MetadataSaveResponse;
+      if(!content) {
+        console.log('Error saving metadata, hash not received');
+        throw new Error('Error saving metadata');
+      }
+      if(!urls.ipfsGateway) {
+        console.log('IPFS Gateway not available in environment');
+        throw new Error('Error occured while saving metadata');
+      }
       const hostedUrl = `${urls.ipfsGateway}/ipfs/${content}`;
       return hostedUrl;
     } catch (error) {

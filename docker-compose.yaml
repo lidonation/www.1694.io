@@ -116,7 +116,7 @@ services:
     networks:
       - io-1694 # Connect to the 'io-1694' network
   cardano-db-sync:
-    image: ghcr.io/intersectmbo/cardano-db-sync:sancho-5.0.0
+    image: ghcr.io/intersectmbo/cardano-db-sync:13.5.0.0
     environment:
       - DISABLE_LEDGER=${DISABLE_LEDGER}
       - NETWORK=${CARDANO_NETWORK:-sanchonet}
