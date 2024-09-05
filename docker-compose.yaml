@@ -120,9 +120,10 @@ services:
       - io-1694 # Connect to the 'io-1694' network
 
   cardano-db-sync:
-    image: ghcr.io/intersectmbo/cardano-db-sync:13.5.0.0
+    image: ghcr.io/intersectmbo/cardano-db-sync:13.5.0.2
     environment:
       - DISABLE_LEDGER=${DISABLE_LEDGER}
+      - DB_SYNC_CONFIG=${DB_SYNC_CONFIG:/config/config.json}
       - NETWORK=${CARDANO_NETWORK:-sanchonet}
       - POSTGRES_HOST=dbsync_db
       - POSTGRES_PORT=5432
@@ -142,6 +143,7 @@ services:
     volumes:
       - db-sync-data:/var/lib/cexplorer
       - node-ipc:/node-ipc
+      - ./cardanonode/config/network/${CARDANO_NETWORK:-sanchonet}/cardano-db-sync:/config
     restart: on-failure
     networks:
       - io-1694 # Connect to the 'io-1694' network

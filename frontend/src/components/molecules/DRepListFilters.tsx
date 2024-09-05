@@ -24,7 +24,7 @@ export default function DRepListFilters() {
   const { replace } = useRouter();
 
   useEffect(() => {
-    const value = filtersValue(['on_chain', 'campaign']);
+    const value = filtersValue(['on_chain', 'campaign', 'type']);
     if (value) setIsFiltering(true);
   }, []);
 
@@ -130,8 +130,7 @@ export default function DRepListFilters() {
                 Filter DReps by On-chain Status
               </span>
               <RadioGroup
-                aria-labelledby="demo-controlled-radio-buttons-group"
-                name="controlled-radio-buttons-group"
+                name="drep-on-chain-status"
                 value={filtersValue(['on_chain'])}
                 onChange={(e) => {
                   handleChange(e, 'on_chain');
@@ -173,8 +172,7 @@ export default function DRepListFilters() {
                 Filter DReps by Campaign Status
               </span>
               <RadioGroup
-                aria-labelledby="demo-controlled-radio-buttons-group"
-                name="controlled-radio-buttons-group"
+                name="drep-campaign-status"
                 value={filtersValue(['campaign'])}
                 onChange={(e) => {
                   handleChange(e, 'campaign');
@@ -208,6 +206,34 @@ export default function DRepListFilters() {
                 />
               </RadioGroup>
             </FormControl>
+            <Divider />
+
+            <FormControl>
+              <span className="mt-2 text-xs font-semibold">
+                Filter DReps by DRep type
+              </span>
+              <RadioGroup
+                name="drep-types"
+                value={filtersValue(['type'])}
+                onChange={(e) => {
+                  handleChange(e, 'type');
+                }}
+              >
+                <FormControlLabel
+                  value="has_script"
+                  control={
+                    <Radio
+                      sx={{
+                        '&.Mui-checked': {
+                          color: '#f97316',
+                        },
+                      }}
+                    />
+                  }
+                  label="Scripted DReps"
+                />
+              </RadioGroup>
+            </FormControl>
           </Box>
           {isFiltering && (
             <Box className="flex justify-end">
@@ -216,7 +242,9 @@ export default function DRepListFilters() {
                   backgroundColor: '#1f2937',
                 }}
                 size="extraSmall"
-                handleClick={() => resetFilters(['on_chain', 'campaign'])}
+                handleClick={() =>
+                  resetFilters(['on_chain', 'campaign', 'type'])
+                }
               >
                 <span>Reset</span>
               </Button>

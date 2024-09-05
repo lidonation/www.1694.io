@@ -10,6 +10,7 @@ type PageProps = {
     order?: string;
     on_chain?: string;
     campaign?: string;
+    type?: string;
   };
 };
 const page = ({ searchParams }: PageProps) => {
@@ -19,6 +20,7 @@ const page = ({ searchParams }: PageProps) => {
   const order = searchParams?.order || null;
   const onChainStatus = searchParams?.on_chain || null;
   const campaignStatus = searchParams?.campaign || null;
+  const type = searchParams?.type || null;
 
   return (
     <div className="base_container min-h-screen py-10">
@@ -37,6 +39,7 @@ const page = ({ searchParams }: PageProps) => {
           order={order}
           onChainStatus={onChainStatus}
           campaignStatus={campaignStatus}
+          type={type}
         />
       </section>
     </div>

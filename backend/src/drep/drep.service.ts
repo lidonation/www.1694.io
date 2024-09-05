@@ -64,6 +64,7 @@ export class DrepService {
     order?: string,
     onChainStatus?: 'active' | 'inactive',
     campaignStatus?: 'claimed' | 'unclaimed',
+    type?: 'has_script',
   ) {
     let nameFilteredDRepViews: string[];
 
@@ -101,6 +102,7 @@ export class DrepService {
       onChainStatus,
       campaignStatus,
       dRepViews,
+      type,
     );
 
     const drepViews = drepList.data.map((drep) => drep.view);
@@ -120,6 +122,8 @@ export class DrepService {
           drep?.view.includes('drep_always_no_confidence'))
       ) {
         drep['type'] = 'voting_option';
+      } else if (!!drep?.has_script) {
+        drep['type'] = 'scripted';
       } else {
         drep['type'] = 'drep';
       }
@@ -148,6 +152,7 @@ export class DrepService {
     onChainStatus?: 'active' | 'inactive',
     campaignStatus?: 'claimed' | 'unclaimed',
     dRepViews?: string[],
+    type?: 'has_script',
   ) {
     const offset = (currentPage - 1) * itemsPerPage;
 
@@ -172,6 +177,11 @@ export class DrepService {
       } else if (campaignStatus === 'unclaimed') {
         campaignStatusCondition = `AND dh.view NOT IN (${dRepViews.map((v) => `'${v}'`).join(', ')})`;
       }
+    }
+
+    let typeCondition = '';
+    if (type === 'has_script') {
+      typeCondition = `AND dh.has_script = true`;
     }
 
     let orderByClause = '';
@@ -204,6 +214,7 @@ export class DrepService {
         orderByClause,
         itemsPerPage,
         offset,
+        typeCondition,
       ),
     );
 
@@ -213,6 +224,7 @@ export class DrepService {
         nameFilteredDRepCondition,
         campaignStatusCondition,
         chainStatusCondition,
+        typeCondition,
       ),
     );
 
@@ -318,6 +330,8 @@ export class DrepService {
       combinedResult.cexplorerDetails.view.includes('drep_always_no_confidence')
     ) {
       combinedResult['type'] = 'voting_option';
+    } else if (!!combinedResult.cexplorerDetails.has_script) {
+      combinedResult['type'] = 'scripted';
     } else {
       combinedResult['type'] = 'drep';
     }
