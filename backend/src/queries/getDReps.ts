@@ -111,7 +111,6 @@ export const getAllDRepsQuery = (
       latest_epoch_no,
       deposit,
       url,
-      has_script,
       type
   FROM 
       RankedRows
@@ -120,15 +119,14 @@ export const getAllDRepsQuery = (
   ${orderByClause}
   LIMIT ${itemsPerPage} OFFSET ${offset}
 `;
-  
-  
-  export const getTotalResultsQuery = (
-    sanitizedSearch: string,
-    nameFilteredDRepCondition: string,
-    campaignStatusCondition: string,
-    chainStatusCondition: string,
-    typeCondition: string
-  ) => `
+
+export const getTotalResultsQuery = (
+  sanitizedSearch: string,
+  nameFilteredDRepCondition: string,
+  campaignStatusCondition: string,
+  chainStatusCondition: string,
+  typeCondition: string,
+) => `
     WITH LatestEpoch AS (
         SELECT MAX(no) AS latest_epoch_no FROM epoch
     )
@@ -142,4 +140,3 @@ export const getAllDRepsQuery = (
     ${chainStatusCondition}
     ${typeCondition}
   `;
-  

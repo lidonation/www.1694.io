@@ -33,7 +33,6 @@ import {
   getDRepVotesCountQuery,
   getDRepVotingPowerQuery,
 } from 'src/queries/drepStats';
-import { validateMetadataStandard } from 'src/common/validateMetadataStandard';
 import { catchError, firstValueFrom } from 'rxjs';
 import { Metadata } from 'src/entities/metadata.entity';
 import { getEpochParams } from 'src/queries/getEpochParams';
@@ -77,14 +76,14 @@ export class DrepService {
     //   );
     // }
 
-    let sortColumn =
+    const sortColumn =
       {
         active_power: 'active_power',
         live_power: 'live_power',
         delegators: 'delegation_vote_count',
       }[sort] || null;
 
-    let sortOrder = !!order ? order.toUpperCase() : null;
+    const sortOrder = !!order ? order.toUpperCase() : null;
 
     let dRepViews: string[];
 
@@ -233,7 +232,7 @@ export class DrepService {
       data: drepList.map((entry) => {
         return {
           ...entry,
-          deposit: (entry.deposit / 1000000).toFixed(1),
+          // deposit: (entry.deposit / 1000000).toFixed(1),
           active_power: (entry.active_power / 1000000).toFixed(1),
           live_power: (entry.live_power / 1000000).toFixed(1),
         };
@@ -677,7 +676,7 @@ export class DrepService {
   async getEpochParams() {
     try {
       const APIURL = `${this.configService.get<string>(
-        'BLOCKFROST_NETWORK_URL'
+        'BLOCKFROST_NETWORK_URL',
       )}/api/v0/epochs/latest/parameters`;
       const response = await axios.get(APIURL, {
         headers: {
