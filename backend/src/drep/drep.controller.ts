@@ -33,6 +33,7 @@ export class DrepController {
     @Query('order') order?: string,
     @Query('onChainStatus') onChainStatus?: 'active' | 'inactive',
     @Query('campaignStatus') campaignStatus?: 'claimed' | 'unclaimed',
+    @Query('type') type?: 'has_script', // add more types if needed
   ) {
     return this.drepService.getAllDReps(
       s,
@@ -42,6 +43,7 @@ export class DrepController {
       order,
       onChainStatus,
       campaignStatus,
+      type
     );
   }
   @Get('epochs/latest/parameters')

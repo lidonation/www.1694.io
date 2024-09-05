@@ -1,13 +1,15 @@
 import React from 'react';
 interface StatusProps {
   status:
-  | 'Verified'
-  | 'Unverified'
-  | 'Claimed'
-  | 'Active'
-  | 'Inactive'
-  | 'Not claimed'
-  | 'Not registered';
+    | 'Verified'
+    | 'Unverified'
+    | 'Claimed'
+    | 'Active'
+    | 'Inactive'
+    | 'Not claimed'
+    | 'Not registered'
+    | 'Scripted'
+    | 'Voting Option';
 }
 const StatusChip = ({ status }: StatusProps) => {
   let statusClass = '';
@@ -26,6 +28,12 @@ const StatusChip = ({ status }: StatusProps) => {
       break;
     case 'Inactive':
       statusClass = 'bg-gray-800 text-white';
+      break;
+    case 'Scripted':
+      statusClass = 'bg-blue-800 text-white';
+      break;
+    case 'Voting Option':
+      statusClass = 'bg-blue-800 text-white';
       break;
     default:
       statusClass = 'bg-gray-800 text-white'; // Default to gray if status is not recognized

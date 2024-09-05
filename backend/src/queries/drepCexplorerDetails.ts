@@ -33,7 +33,8 @@ export const getDrepCexplorerDetailsQuery: string = `
         SELECT 
           dh.id AS drep_hash_id, 
           dh.raw, 
-          dh.view, 
+          dh.view,
+          dh.has_script, 
           dd.id AS drep_distr_id, 
           dd.amount, 
           dd.epoch_no, 
@@ -74,7 +75,8 @@ export const getDrepCexplorerDetailsQuery: string = `
         epoch_no,
         active_until,
         deposit,
-        metadata_url
+        metadata_url,
+        has_script
       FROM 
         RankedRows
       WHERE 
