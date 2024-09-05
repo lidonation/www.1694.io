@@ -123,7 +123,7 @@ services:
     image: ghcr.io/intersectmbo/cardano-db-sync:13.5.0.2
     environment:
       - DISABLE_LEDGER=${DISABLE_LEDGER}
-      - DB_SYNC_CONFIG=${DB_SYNC_CONFIG:/config/config.json}
+      - DB_SYNC_CONFIG=${DB_SYNC_CONFIG:-/config/config.json}
       - NETWORK=${CARDANO_NETWORK:-sanchonet}
       - POSTGRES_HOST=dbsync_db
       - POSTGRES_PORT=5432
