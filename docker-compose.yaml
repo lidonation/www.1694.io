@@ -144,6 +144,7 @@ services:
       - db-sync-data:/var/lib/cexplorer
       - node-ipc:/node-ipc
       - ./cardanonode/config/network/${CARDANO_NETWORK:-sanchonet}/cardano-db-sync:/config
+      - ./cardanonode/config/network/${CARDANO_NETWORK:-sanchonet}/genesis:/genesis
     restart: on-failure
     networks:
       - io-1694 # Connect to the 'io-1694' network
