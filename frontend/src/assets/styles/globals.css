@@ -185,3 +185,15 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #4b5563;
 }
+.loader {
+  width: 35px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  animation: l5 1s infinite linear alternate;
+}
+@keyframes l5 {
+    0%  {box-shadow: 60px 0 #0033AD, -60px 0 #4340ff;background: #0033AD }
+    33% {box-shadow: 60px 0 #0033AD, -60px 0 #4340ff;background: #4340ff}
+    66% {box-shadow: 60px 0 #4340ff,-60px 0 #0033AD; background: #4340ff}
+    100%{box-shadow: 60px 0 #4340ff,-60px 0 #0033AD; background: #0033AD }
+}
