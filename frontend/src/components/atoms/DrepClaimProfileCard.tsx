@@ -84,15 +84,19 @@ const DrepClaimProfileCard = ({
   return (
     <div className="flex flex-col gap-5 bg-white bg-opacity-50 px-5 py-10 ">
       <DRepAvatarCard state={state} imageSrc={imageSrc} />
-      {drep?.type !== 'voting_option' && (
+      {drep?.type !== 'scripted' && drep?.type !== 'voting_option' && (
         <Link className="w-full" href={`/dreps/workflow/profile/new`}>
           <Button className="w-full">Claim this profile</Button>
         </Link>
       )}
       <div className="flex flex-row gap-2">
-        <StatusChip
-          status={drep?.type === 'voting_option' ? 'Claimed' : 'Not claimed'}
-        />
+        {drep?.type === 'scripted' && <StatusChip status="Scripted" />}
+        {drep?.type === 'voting_option' && (
+          <StatusChip status="Voting Option" />
+        )}
+        {drep?.type !== 'scripted' && drep?.type !== 'voting_option' && (
+          <StatusChip status="Not claimed" />
+        )}
         <StatusChip
           status={drep?.type === 'voting_option' ? 'Active' : status}
         />
@@ -168,11 +172,7 @@ const DrepClaimProfileCard = ({
         isLoggedIn && (
           <div className="flex max-w-prose flex-col gap-2">
             <Link href={`/dreps/workflow/profile/new`}>
-              <Button
-                className="w-full"
-              >
-                Claim your profile to update
-              </Button>
+              <Button className="w-full">Claim your profile to update</Button>
             </Link>
           </div>
         )}
