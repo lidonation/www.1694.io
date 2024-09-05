@@ -29,6 +29,7 @@ type DRepsTableProps = {
   order?: string;
   onChainStatus?: string;
   campaignStatus?: string;
+  type?: string;
 };
 export function isActive(latest_epoch_no: number, active_until: number) {
   if (
@@ -47,6 +48,7 @@ const DRepsTable = ({
   order,
   onChainStatus,
   campaignStatus,
+  type,
 }: DRepsTableProps) => {
   const searchParams = useSearchParams();
   const pathName = usePathname();
@@ -60,6 +62,7 @@ const DRepsTable = ({
     order,
     onChainStatus,
     campaignStatus,
+    type,
   );
   // Handle table pagination
   function moveToPage(targetPage: number) {
@@ -154,44 +157,54 @@ const DRepsTable = ({
                 className="text-nowrap text-left text-sm"
               >
                 <td className="px-4 py-2">
-                  {drep?.type === 'voting_option' ? (
-                    <Box>
+                  <Box>
+                    {drep?.type === 'voting_option' ||
+                    drep?.type === 'scripted' ? (
                       <Link
                         className="flex items-center gap-4"
                         href={`/dreps/${drep?.view}`}
+                        prefetch={false}
                       >
                         <Button size="extraSmall" width={4}>
                           View
                         </Button>
-                        <p className="font-medium hover:font-semibold">{drep?.view}</p>
+                        <p className="font-medium hover:font-semibold uppercase">
+                          {drep?.type === 'scripted'
+                            ? ''
+                            : drep?.view.replace('drep_', '')}
+                        </p>
                       </Link>
-                    </Box>
-                  ) : !!drep.drep_id ? (
-                    <Box>
+                    ) : drep?.drep_id ? (
                       <Link
                         className="flex items-center gap-4"
                         href={`/dreps/${drep?.view}`}
+                        prefetch={false}
                       >
                         <Button size="extraSmall" width={4}>
                           View
                         </Button>
-                        <p className="font-medium hover:font-semibold">claimed</p>
+                        <p className="font-medium hover:font-semibold">
+                          claimed
+                        </p>
                       </Link>
-                      {/* Disabled due to model changes */}
-                      {/* <p className="font-medium">{drep?.drep_name}</p> */}
-                    </Box>
-                  ) : (
-                    <Box className="flex items-center gap-4">
-                      <Link href={`/dreps/workflow/profile/new`}>
-                        <Button size="extraSmall" width={4}>
-                          Claim
-                        </Button>
-                      </Link>
-                      <Link href={`/dreps/${drep.view}`}>
-                        <p className="font-medium hover:font-semibold">unclaimed</p>
-                      </Link>
-                    </Box>
-                  )}
+                    ) : (
+                      <div className="flex items-center gap-4">
+                        <Link
+                          href={`/dreps/workflow/profile/new`}
+                          prefetch={false}
+                        >
+                          <Button size="extraSmall" width={4}>
+                            Claim
+                          </Button>
+                        </Link>
+                        <Link href={`/dreps/${drep.view}`}>
+                          <p className="font-medium hover:font-semibold">
+                            unclaimed
+                          </p>
+                        </Link>
+                      </div>
+                    )}
+                  </Box>
                 </td>
 
                 <td className="flex items-center px-4 py-2">
@@ -203,11 +216,17 @@ const DRepsTable = ({
                       <CopyToClipBoard width={18} height={18} />
                     </IconButton>
                   </Tooltip>
-                  <Link href={`/dreps/${drep.view}`}>
+
+                  <Link href={`/dreps/${drep.view}`} prefetch={false}>
                     <p className="hover:font-semibold">
                       {convertString(drep.view, isMobile)}
                     </p>
                   </Link>
+                  {drep.type === 'scripted' && (
+                    <span className="ml-1 rounded-full bg-menu_select px-0.5 text-center text-xs text-black">
+                      Script
+                    </span>
+                  )}
                 </td>
 
                 <td className="max-w-11 overflow-auto px-4 py-2">
