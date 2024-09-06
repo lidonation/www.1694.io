@@ -9,7 +9,7 @@ export const getDRepDelegatorsHistory = (addrIds: []) => {
     (current_drep.id = $1 OR previous_drep.id = $1)
     AND b.time::DATE BETWEEN $4::DATE AND $3::DATE`;
 
-  const query = `
+  return `
     SELECT 
         sa.view AS stake_address,
         $2::TEXT AS target_drep,
@@ -107,5 +107,4 @@ export const getDRepDelegatorsHistory = (addrIds: []) => {
         ${addrIdsCondition}
     ORDER BY 
         b.time DESC;`;
-  return query;
 };
