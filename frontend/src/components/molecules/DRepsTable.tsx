@@ -102,7 +102,7 @@ const DRepsTable = ({
                     {/* <th className="px-4 py-2">Drep Id</th> */}
                     <th className="px-4 py-2">
                         <div className="flex items-center">
-                            <span>Active Power</span>
+                            <span>Voting Power</span>
                             {sort === 'active_power' &&
                                 (order === 'desc' ? (
                                     <ArrowDownIcon width={20} height={20} color="black"/>
@@ -115,7 +115,7 @@ const DRepsTable = ({
                     </th>
                     {/* <th className="px-4 py-2">
               <div className="flex items-center">
-                <span>Live Power</span>
+                <span>Live Stake</span>
                 {sort === 'live_power' &&
                   (order === 'desc' ? (
                     <ArrowDownIcon width={20} height={20} color="black" />
@@ -139,7 +139,6 @@ const DRepsTable = ({
                                 ))}
                         </div>
                     </th>
-                    <th className="px-4 py-2 text-center">Status</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -159,7 +158,7 @@ const DRepsTable = ({
                             className="text-sm text-left text-nowrap"
                         >
                             <td className="px-4 py-2">
-                                <Box className='flex flex-row gap-2'>
+                                <Box className='flex flex-row items-center gap-3'>
                                     {drep?.type === 'voting_option' ||
                                     drep?.type === 'scripted' ? (
                                         <Link
@@ -216,14 +215,43 @@ const DRepsTable = ({
                                         </Link>
                                     </Box>
 
-                                    {drep.type === 'scripted' && (
-                                        <span
-                                            className="px-1 ml-1 text-xs text-center text-black rounded-full bg-menu_select">
-                        Script
-                      </span>
-                                    )}
-                                </Box>
+                                    {drep.given_name !== null && <Box className='w-30 flex flex-row items-center gap-1.5'>
+                                        <Tooltip title="DRep given name">
+                                            <Link
+                                                className='inline-flex'
+                                                href={`/dreps/${drep?.view}`}
+                                                prefetch={false}
+                                            >
+                                                <span className='border text-xs border-black rounded-xl font-black inline-block px-1.5 py-0.5 text-black text-ellipsis overflow-hidden'>
+                                                    {drep.given_name}
+                                                </span>
+                                            </Link>
+                                        </Tooltip>
 
+                                        <Tooltip title="DRep onchain status">
+                                            <StatusChip
+                                                status={
+                                                    drep.active ? 'Active' : 'Inactive'
+                                                }
+                                            />
+                                        </Tooltip>
+                                    </Box>}
+
+                                    <Box className='w-30 flex flex-row gap-1 text-ellipsis overflow-hidden'>
+                                        {drep.type === 'scripted' && (
+                                            <span
+                                                className="px-1 ml-1 text-xs text-center text-black rounded-full bg-menu_select">
+                                                Script
+                                            </span>
+                                        )}
+                                        {drep.type === 'scripted' && (
+                                            <span
+                                                className="px-1 ml-1 text-xs text-center text-black rounded-full bg-menu_select">
+                                                Script
+                                            </span>
+                                        )}
+                                    </Box>
+                                </Box>
                             </td>
 
                             <td className="px-4 py-2 overflow-auto max-w-11">
@@ -251,16 +279,6 @@ const DRepsTable = ({
                             <td className="px-4 py-2">
                                 <p className="text-center">{drep.delegation_vote_count}</p>
                             </td>
-
-                            <td className="px-4 py-2">
-                                <StatusChip
-                                    status={
-                                        isActive(drep.latest_epoch_no, drep.active_until)
-                                            ? 'Active'
-                                            : 'Inactive'
-                                    }
-                                />
-                            </td>
                         </tr>
                     ))
                 ) : (
@@ -272,8 +290,8 @@ const DRepsTable = ({
                                         className="flex flex-col items-center w-full p-12 border-2 border-gray-300 border-dashed rounded-lg hover:border-gray-400">
                                         <DatabaseNullIcon width={60} height={50}/>
                                         <span className="block mt-2 text-sm font-semibold text-gray-500">
-                        No DReps to show for now...
-                      </span>
+                                            No DReps to show for now...
+                                        </span>
                                     </div>
                                 </div>
                             )}
