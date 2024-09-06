@@ -198,7 +198,7 @@ export class DrepService {
         validSortOrders.includes(sortOrder)
       ) {
         if (sortColumn === 'active_power' || sortColumn === 'live_power') {
-          orderByClause = `ORDER BY COALESCE(${sortColumn}, 0) ${sortOrder}`;
+          orderByClause = `ORDER BY ${sortColumn} ${sortOrder}`;
         } else {
           orderByClause = `ORDER BY ${sortColumn} ${sortOrder}`;
         }
