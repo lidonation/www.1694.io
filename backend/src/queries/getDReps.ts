@@ -16,6 +16,28 @@ WITH DRepDistr AS (
     drep_distr
     JOIN drep_hash ON drep_hash.id = drep_distr.hash_id
 ),
+DRepDelegationVoteCount AS (
+  SELECT
+    dh.id AS drep_hash_id,
+    COUNT(DISTINCT dv.addr_id) AS vote_count
+  FROM
+    drep_hash dh
+    JOIN delegation_vote dv ON dh.id = dv.drep_hash_id
+    JOIN stake_address sa ON dv.addr_id = sa.id
+    JOIN tx ON dv.tx_id = tx.id
+    JOIN block b ON tx.block_id = b.id
+  WHERE
+    b.time = (
+      SELECT MAX(b2.time)
+      FROM delegation_vote dv2
+      JOIN tx tx2 ON dv2.tx_id = tx2.id
+      JOIN block b2 ON tx2.block_id = b2.id
+      WHERE dv2.addr_id = dv.addr_id
+      AND dv2.drep_hash_id = dv.drep_hash_id
+    )
+  GROUP BY
+    dh.id
+),
 DRepActivity AS (
   SELECT
     drep_activity AS drep_activity,
@@ -37,7 +59,8 @@ SELECT
   encode(dr_voting_anchor.tx_hash, 'hex') AS tx_hash,
   newestRegister.time AS last_register_time,
   off_chain_vote_drep_data.given_name,
-  off_chain_vote_drep_data.image_url
+  off_chain_vote_drep_data.image_url,
+  COALESCE(dvc.vote_count, 0) AS delegation_vote_count
 FROM
   drep_hash dh
   JOIN (
@@ -125,6 +148,7 @@ FROM
     AND dr_first_register.rn = 1
   LEFT JOIN tx AS tx_first_register ON tx_first_register.id = dr_first_register.tx_id
   LEFT JOIN block AS block_first_register ON block_first_register.id = tx_first_register.block_id
+  LEFT JOIN DRepDelegationVoteCount dvc ON dvc.drep_hash_id = dh.id
 GROUP BY
   dh.raw,
   second_to_newest_drep_registration.voting_anchor_id,
@@ -137,7 +161,9 @@ GROUP BY
   newestRegister.time,
   latestDeposit.deposit,
   off_chain_vote_drep_data.given_name,
-  off_chain_vote_drep_data.image_url
+  off_chain_vote_drep_data.image_url,
+  dvc.vote_count
+${orderByClause}
 LIMIT ${itemsPerPage} OFFSET ${offset}
 `;
 // export const getAllDRepsQuery = (
