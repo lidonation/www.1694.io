@@ -37,6 +37,7 @@ export const getAllDRepsQuery = (
            dh.view,
            va.url,
            DRepDistr.amount                        As active_power,
+           dh.has_script,
            (DRepActivity.epoch_no - Max(coalesce(block.epoch_no, block_first_register.epoch_no))) <=
            DRepActivity.drep_activity              AS active,
            encode(dr_voting_anchor.tx_hash, 'hex') AS tx_hash,
@@ -118,6 +119,7 @@ export const getAllDRepsQuery = (
         dh.view,
         va.url,
         active_power,
+        dh.has_script,
         DRepActivity.epoch_no,
         DRepActivity.drep_activity,
         dr_voting_anchor.tx_hash,
