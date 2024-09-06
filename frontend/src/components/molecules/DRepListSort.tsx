@@ -128,7 +128,7 @@ export default function DRepListSort() {
                 onChange={setSorts}
               >
                 <FormControlLabel
-                  value="active_power-desc"
+                  value="voting_power-desc"
                   control={
                     <Radio
                       sx={{
@@ -141,7 +141,7 @@ export default function DRepListSort() {
                   label="Highest to Lowest"
                 />
                 <FormControlLabel
-                  value="active_power-asc"
+                  value="voting_power-asc"
                   control={
                     <Radio
                       sx={{

@@ -103,7 +103,7 @@ const DRepsTable = ({
                     <th className="px-4 py-2">
                         <div className="flex items-center">
                             <span>Voting Power</span>
-                            {sort === 'active_power' &&
+                            {sort === 'voting_power' &&
                                 (order === 'desc' ? (
                                     <ArrowDownIcon width={20} height={20} color="black"/>
                                 ) : (
@@ -212,8 +212,8 @@ const DRepsTable = ({
                                         </Link>
                                     </Box>
 
-                                    {drep.given_name !== null && <Box className='w-30 flex flex-row items-center gap-1.5'>
-                                        <Tooltip title="DRep given name">
+                                    <Box className='w-30 flex flex-row items-center gap-1.5'>
+                                        {drep.given_name !== null && <Tooltip title="DRep given name">
                                             <Link
                                                 className='inline-flex'
                                                 href={`/dreps/${drep?.view}`}
@@ -223,39 +223,32 @@ const DRepsTable = ({
                                                     {drep.given_name}
                                                 </span>
                                             </Link>
-                                        </Tooltip>
+                                        </Tooltip>}
 
-                                        <Tooltip title="DRep onchain status">
-                                            <StatusChip
-                                                status={
-                                                    drep.active ? 'Active' : 'Inactive'
-                                                }
-                                            />
+                                        <Tooltip title="DRep onchain status" disableFocusListener>
+                                            <button className='hover:cursor-default'>
+                                                <StatusChip
+                                                    status={
+                                                        drep.active ? 'Active' : 'Inactive'
+                                                    }
+                                                />
+                                            </button>
                                         </Tooltip>
-                                    </Box>}
+                                    </Box>
 
                                     <Box className='w-30 flex flex-row gap-1 text-ellipsis overflow-hidden'>
                                         {drep.type === 'scripted' && (
-                                            <span
-                                                className="px-1 ml-1 text-xs text-center text-black rounded-full bg-menu_select">
-                                                Script
-                                            </span>
-                                        )}
-                                        {drep.type === 'scripted' && (
-                                            <span
-                                                className="px-1 ml-1 text-xs text-center text-black rounded-full bg-menu_select">
-                                                Script
-                                            </span>
+                                            <StatusChip status='Scripted' />
                                         )}
                                     </Box>
                                 </Box>
                             </td>
 
                             <td className="px-4 py-2 overflow-auto max-w-11">
-                                {drep.active_power !== null ? (
+                                {drep.voting_power !== null ? (
                                     <HoverText
-                                        shortText={shortNumber(drep.active_power, 2)}
-                                        longText={formatAsCurrency(drep.active_power)}
+                                        shortText={shortNumber(drep.voting_power, 2)}
+                                        longText={formatAsCurrency(drep.voting_power)}
                                     />
                                 ) : (
                                     <p>-</p>
