@@ -263,17 +263,17 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
             )}
           </p>
         </div>
-        <div>
-          <Typography variant="h6">Live Voting power</Typography>
-          <p className="flex items-center gap-3 font-normal">
-            ₳{' '}
-            {state ? (
-              <Skeleton animation={'wave'} width={50} height={20} />
-            ) : (
-              formattedAda(liveVotingPower, 2)
-            )}
-          </p>
-        </div>
+        {/*<div>*/}
+        {/*  <Typography variant="h6">Live Voting power</Typography>*/}
+        {/*  <p className="flex items-center gap-3 font-normal">*/}
+        {/*    ₳{' '}*/}
+        {/*    {state ? (*/}
+        {/*      <Skeleton animation={'wave'} width={50} height={20} />*/}
+        {/*    ) : (*/}
+        {/*      formattedAda(liveVotingPower, 2)*/}
+        {/*    )}*/}
+        {/*  </p>*/}
+        {/*</div>*/}
       </div>
       <div>
         <Typography variant="h6">Total delegation</Typography>

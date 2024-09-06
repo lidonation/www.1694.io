@@ -125,7 +125,7 @@ export default function DRepListFilters() {
       >
         <Box className="bg-extra_gray px-6 py-4">
           <Box className="flex flex-col">
-            <FormControl>
+            {/* <FormControl>
               <span className="text-xs font-semibold">
                 Filter DReps by On-chain Status
               </span>
@@ -163,12 +163,12 @@ export default function DRepListFilters() {
                   label="Inactive"
                 />
               </RadioGroup>
-            </FormControl>
+            </FormControl> */}
 
-            <Divider />
+            {/* <Divider /> */}
 
             <FormControl>
-              <span className="mt-2 text-xs font-semibold">
+              <span className="text-xs font-semibold">
                 Filter DReps by Campaign Status
               </span>
               <RadioGroup
