@@ -95,9 +95,9 @@ const DRepsTable = ({
     <div className="flex flex-col overflow-x-auto">
       <table className="min-w-full">
         <thead className="mb-2">
-          <tr className="overflow-x-auto text-nowrap bg-white text-left text-xl font-black">
-            <th className="px-4 py-2">Campaign</th>
-            <th className="px-4 py-2">Drep Id</th>
+          <tr className="overflow-x-auto text-xl font-black text-left bg-white text-nowrap">
+            <th className="px-4 py-2">DRep</th>
+            {/* <th className="px-4 py-2">Drep Id</th> */}
             <th className="px-4 py-2">
               <div className="flex items-center">
                 <span>Active Power</span>
@@ -111,7 +111,7 @@ const DRepsTable = ({
                   ))}
               </div>
             </th>
-            <th className="px-4 py-2">
+            {/* <th className="px-4 py-2">
               <div className="flex items-center">
                 <span>Live Power</span>
                 {sort === 'live_power' &&
@@ -123,7 +123,7 @@ const DRepsTable = ({
                     )
                   ))}
               </div>
-            </th>
+            </th> */}
             <th className="px-4 py-2">
               <div className="flex items-center">
                 <span>Delegators</span>
@@ -154,94 +154,96 @@ const DRepsTable = ({
               <tr
                 key={drep.drep_hash_id}
                 data-testid={`drep-id-${drep.view}`}
-                className="text-nowrap text-left text-sm"
+                className="text-sm text-left text-nowrap"
               >
                 <td className="px-4 py-2">
-                  <Box>
-                    {drep?.type === 'voting_option' ||
-                    drep?.type === 'scripted' ? (
-                      <Link
-                        className="flex items-center gap-4"
-                        href={`/dreps/${drep?.view}`}
-                        prefetch={false}
-                      >
-                        <Button size="extraSmall" width={4}>
-                          View
-                        </Button>
-                        <p className="font-medium hover:font-semibold uppercase">
-                          {drep?.type === 'scripted'
-                            ? ''
-                            : drep?.view.replace('drep_', '')}
-                        </p>
-                      </Link>
-                    ) : drep?.drep_id ? (
-                      <Link
-                        className="flex items-center gap-4"
-                        href={`/dreps/${drep?.view}`}
-                        prefetch={false}
-                      >
-                        <Button size="extraSmall" width={4}>
-                          View
-                        </Button>
-                        <p className="font-medium hover:font-semibold">
-                          claimed
-                        </p>
-                      </Link>
-                    ) : (
-                      <div className="flex items-center gap-4">
+                    <Box className='flex flex-row gap-2'>
+                      {drep?.type === 'voting_option' ||
+                      drep?.type === 'scripted' ? (
                         <Link
-                          href={`/dreps/workflow/profile/new`}
+                          className="flex items-center gap-4"
+                          href={`/dreps/${drep?.view}`}
+                          prefetch={false}
+                        >
+                          <p className="font-medium uppercase hover:font-semibold">
+                            {drep?.type === 'scripted'
+                              ? ''
+                              : drep?.view.replace('drep_', '')}
+                          </p>
+                        </Link>
+                      ) : drep?.drep_id ? (
+                        <Link
+                          className="flex items-center gap-4"
+                          href={`/dreps/${drep?.view}`}
                           prefetch={false}
                         >
                           <Button size="extraSmall" width={4}>
-                            Claim
+                            View
                           </Button>
-                        </Link>
-                        <Link href={`/dreps/${drep.view}`}>
                           <p className="font-medium hover:font-semibold">
-                            unclaimed
+                            claimed
                           </p>
                         </Link>
-                      </div>
+                      ) : (
+                        <div className="flex items-center gap-4">
+                          <Link
+                            href={`/dreps/workflow/profile/new`}
+                            prefetch={false}
+                          >
+                            <Button size="extraSmall" width={4}>
+                              Claim
+                            </Button>
+                          </Link>
+                        </div>
+                      )}
+                  
+                      <Box className='flex items-center flex-nowrap'>
+                    <Tooltip title="Copy DRep ID">
+                      <IconButton
+                        size="small"
+                        onClick={() => handleCopyText(drep.view)}
+                      >
+                        <CopyToClipBoard width={18} height={18} />
+                      </IconButton>
+                    </Tooltip>
+                    
+                    <Link href={`/dreps/${drep.view}`} prefetch={false}>
+                      <p className="hover:font-semibold">
+                        {convertString(drep.view, isMobile)}
+                      </p>
+                    </Link>
+                    </Box>
+                    
+                    {drep.type === 'scripted' && (
+                      <span className="px-1 ml-1 text-xs text-center text-black rounded-full bg-menu_select">
+                        Script
+                      </span>
                     )}
-                  </Box>
+                    </Box>
+                  
                 </td>
 
-                <td className="flex items-center px-4 py-2">
-                  <Tooltip title="Copy DRep ID">
-                    <IconButton
-                      size="small"
-                      onClick={() => handleCopyText(drep.view)}
-                    >
-                      <CopyToClipBoard width={18} height={18} />
-                    </IconButton>
-                  </Tooltip>
-
-                  <Link href={`/dreps/${drep.view}`} prefetch={false}>
-                    <p className="hover:font-semibold">
-                      {convertString(drep.view, isMobile)}
-                    </p>
-                  </Link>
-                  {drep.type === 'scripted' && (
-                    <span className="ml-1 rounded-full bg-menu_select px-0.5 text-center text-xs text-black">
-                      Script
-                    </span>
+                <td className="px-4 py-2 overflow-auto max-w-11">
+                  {drep.active_power !== null ? (
+                    <HoverText
+                      shortText={shortNumber(drep.active_power, 2)}
+                      longText={formatAsCurrency(drep.active_power)}
+                    />
+                  ) : (
+                    <p>-</p>
                   )}
                 </td>
 
-                <td className="max-w-11 overflow-auto px-4 py-2">
-                  <HoverText
-                    shortText={shortNumber(drep.active_power, 2)}
-                    longText={formatAsCurrency(drep.active_power)}
-                  />
-                </td>
-
-                <td className="max-w-11 overflow-auto px-4 py-2">
-                  <HoverText
-                    shortText={shortNumber(drep.live_power, 2)}
-                    longText={formatAsCurrency(drep.live_power)}
-                  />
-                </td>
+                {/* <td className="px-4 py-2 overflow-auto max-w-11">
+                  {drep.live_power !== null ? (
+                    <HoverText
+                      shortText={shortNumber(drep.live_power, 2)}
+                      longText={formatAsCurrency(drep.live_power)}
+                    />
+                  ) : (
+                    <p>-</p>
+                  )}
+                </td> */}
 
                 <td className="px-4 py-2">
                   <p className="text-center">{drep.delegation_vote_count}</p>
@@ -263,9 +265,9 @@ const DRepsTable = ({
               <td colSpan={10} className="px-4 py-6 text-center">
                 {!isError && (
                   <div className="flex flex-col items-center justify-center">
-                    <div className="flex w-full flex-col items-center rounded-lg border-2 border-dashed border-gray-300 p-12 hover:border-gray-400">
+                    <div className="flex flex-col items-center w-full p-12 border-2 border-gray-300 border-dashed rounded-lg hover:border-gray-400">
                       <DatabaseNullIcon width={60} height={50} />
-                      <span className="mt-2 block text-sm font-semibold text-gray-500">
+                      <span className="block mt-2 text-sm font-semibold text-gray-500">
                         No DReps to show for now...
                       </span>
                     </div>
@@ -285,7 +287,7 @@ const DRepsTable = ({
                               />
                             </div>
                             <div className="flex flex-col py-4">
-                              <p className="px-3 text-left text-lg font-bold text-red-700">
+                              <p className="px-3 text-lg font-bold text-left text-red-700">
                                 Opps!!!
                               </p>
                               <p className="px-3 text-sm font-semibold text-red-700">
@@ -305,7 +307,7 @@ const DRepsTable = ({
         </tbody>
       </table>
       {!isDRepsLoading && DReps?.data && DReps?.data.length > 0 && (
-        <Box className="mt-6 flex justify-end">
+        <Box className="flex justify-end mt-6">
           <Pagination
             currentPage={DReps.currentPage}
             totalPages={DReps.totalPages}

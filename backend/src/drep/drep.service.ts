@@ -204,7 +204,6 @@ export class DrepService {
         }
       }
     }
-
     const drepList = await this.cexplorerService.manager.query(
       getAllDRepsQuery(
         sanitizedSearch,
@@ -217,7 +216,6 @@ export class DrepService {
         typeCondition,
       ),
     );
-
     const totalResults = await this.cexplorerService.manager.query(
       getTotalResultsQuery(
         sanitizedSearch,
@@ -233,7 +231,7 @@ export class DrepService {
         return {
           ...entry,
           // deposit: (entry.deposit / 1000000).toFixed(1),
-          active_power: (entry.active_power / 1000000).toFixed(1),
+          active_power: entry.active_power != null ? (entry.active_power / 1000000).toFixed(1) : null,
           live_power: (entry.live_power / 1000000).toFixed(1),
         };
       }),
