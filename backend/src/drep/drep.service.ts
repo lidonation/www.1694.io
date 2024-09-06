@@ -78,7 +78,7 @@ export class DrepService {
 
     const sortColumn =
       {
-        active_power: 'active_power',
+        voting_power: 'voting_power',
         live_power: 'live_power',
         delegators: 'delegation_vote_count',
       }[sort] || null;
@@ -157,6 +157,10 @@ export class DrepService {
     const offset = (currentPage - 1) * itemsPerPage;
 
     const sanitizedSearch = query ? query.replace(/'/g, "''") : '';
+    let sanitizedSearchCondition = '';
+    if (sanitizedSearch && sanitizedSearch.length > 0) {
+      sanitizedSearchCondition = `AND (dh.view ILIKE '%${sanitizedSearch}%' OR off_chain_vote_drep_data.given_name ILIKE '%${sanitizedSearch}%')`;
+    }
 
     let nameFilteredDRepCondition = '';
     if (nameFilteredDRepViews && nameFilteredDRepViews.length > 0) {
@@ -165,9 +169,11 @@ export class DrepService {
 
     let chainStatusCondition = '';
     if (onChainStatus === 'active') {
-      chainStatusCondition = `AND (dd.active_until IS NOT NULL  AND dd.active_until > le.latest_epoch_no)`;
+      chainStatusCondition = `AND (DRepActivity.epoch_no - coalesce(block.epoch_no, block_first_register.epoch_no)) <=
+                  DRepActivity.drep_activity`;
     } else if (onChainStatus === 'inactive') {
-      chainStatusCondition = `AND (dd.active_until IS NULL  OR dd.active_until < le.latest_epoch_no)`;
+      chainStatusCondition = `AND (DRepActivity.epoch_no - coalesce(block.epoch_no, block_first_register.epoch_no)) >=
+                  DRepActivity.drep_activity`;
     }
 
     let campaignStatusCondition = '';
@@ -189,7 +195,7 @@ export class DrepService {
       const validSortColumns = [
         'delegation_vote_count',
         'live_power',
-        'active_power',
+        'voting_power',
       ];
       const validSortOrders = ['ASC', 'DESC'];
 
@@ -197,7 +203,7 @@ export class DrepService {
         validSortColumns.includes(sortColumn) &&
         validSortOrders.includes(sortOrder)
       ) {
-        if (sortColumn === 'active_power' || sortColumn === 'live_power') {
+        if (sortColumn === 'voting_power' || sortColumn === 'live_power') {
           orderByClause = `ORDER BY ${sortColumn} ${sortOrder}`;
         } else {
           orderByClause = `ORDER BY ${sortColumn} ${sortOrder}`;
@@ -206,7 +212,7 @@ export class DrepService {
     }
     const drepList = await this.cexplorerService.manager.query(
       getAllDRepsQuery(
-        sanitizedSearch,
+        sanitizedSearchCondition,
         nameFilteredDRepCondition,
         campaignStatusCondition,
         chainStatusCondition,
@@ -218,8 +224,7 @@ export class DrepService {
     );
     const totalResults = await this.cexplorerService.manager.query(
       getTotalResultsQuery(
-        sanitizedSearch,
-        nameFilteredDRepCondition,
+        sanitizedSearchCondition,
         campaignStatusCondition,
         chainStatusCondition,
         typeCondition,
@@ -231,7 +236,7 @@ export class DrepService {
         return {
           ...entry,
           // deposit: (entry.deposit / 1000000).toFixed(1),
-          active_power: entry.active_power != null ? (entry.active_power / 1000000).toFixed(1) : null,
+          voting_power: entry.voting_power != null ? (entry.voting_power / 1000000).toFixed(1) : null,
           live_power: (entry.live_power / 1000000).toFixed(1),
         };
       }),

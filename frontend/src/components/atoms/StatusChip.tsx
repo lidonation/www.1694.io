@@ -41,7 +41,7 @@ const StatusChip = ({ status }: StatusProps) => {
 
   return (
     <div
-      className={`text-nowrap rounded-full px-1.5 py-0.5 text-center text-sm font-normal  ${statusClass}`}
+      className={`text-nowrap rounded-full px-1.5 py-0.5 text-center text-xs font-normal  ${statusClass}`}
     >
       {status}
     </div>
