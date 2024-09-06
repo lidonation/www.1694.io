@@ -181,6 +181,7 @@ const DRepsTable = ({
                                             <Button size="extraSmall" width={4}>
                                                 View
                                             </Button>
+                                        </Link>
                                     ) : (
                                         <div className="flex items-center gap-4">
                                             <Link
