@@ -172,7 +172,7 @@ export class DrepService {
       chainStatusCondition = `AND (DRepActivity.epoch_no - coalesce(block.epoch_no, block_first_register.epoch_no)) <=
                   DRepActivity.drep_activity`;
     } else if (onChainStatus === 'inactive') {
-      chainStatusCondition = `AND (DRepActivity.epoch_no - coalesce(block.epoch_no, block_first_register.epoch_no)) >=
+      chainStatusCondition = `AND (DRepActivity.epoch_no - coalesce(block.epoch_no, block_first_register.epoch_no)) >
                   DRepActivity.drep_activity`;
     }
 
