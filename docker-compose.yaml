@@ -99,8 +99,8 @@ services:
       "--topology", "/config/topology.json"
     ]
     volumes:
-      - ./cardanonode/config/network/${CARDANO_NETWORK:-sanchonet}/cardano-node:/config
-      - ./cardanonode/config/network/${CARDANO_NETWORK:-sanchonet}/genesis:/genesis
+      - ./cardanonode/config/network/${CARDANO_NETWORK:-preview}/cardano-node:/config
+      - ./cardanonode/config/network/${CARDANO_NETWORK:-preview}/genesis:/genesis
       - node-db:/data
       - node-ipc:/ipc
     restart: on-failure
@@ -124,7 +124,7 @@ services:
     environment:
       - DISABLE_LEDGER=${DISABLE_LEDGER}
       - DB_SYNC_CONFIG=${DB_SYNC_CONFIG:-/config/config.json}
-      - NETWORK=${CARDANO_NETWORK:-sanchonet}
+      - NETWORK=${CARDANO_NETWORK:-preview}
       - POSTGRES_HOST=dbsync_db
       - POSTGRES_PORT=5432
       - RESTORE_SNAPSHOT=${RESTORE_SNAPSHOT:-}
@@ -143,8 +143,8 @@ services:
     volumes:
       - db-sync-data:/var/lib/cexplorer
       - node-ipc:/node-ipc
-      - ./cardanonode/config/network/${CARDANO_NETWORK:-sanchonet}/cardano-db-sync:/config
-      - ./cardanonode/config/network/${CARDANO_NETWORK:-sanchonet}/genesis:/genesis
+      - ./cardanonode/config/network/${CARDANO_NETWORK:-preview}/cardano-db-sync:/config
+      - ./cardanonode/config/network/${CARDANO_NETWORK:-preview}/genesis:/genesis
     restart: on-failure
     networks:
       - io-1694 # Connect to the 'io-1694' network

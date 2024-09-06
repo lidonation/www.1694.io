@@ -27,7 +27,7 @@ export class DrepController {
     @Query('s', new DefaultValuePipe('')) s: string,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe)
     page: number,
-    @Query('perPage', new DefaultValuePipe(12), ParseIntPipe)
+    @Query('perPage', new DefaultValuePipe(24), ParseIntPipe)
     perPage: number,
     @Query('sort') sort?: string,
     @Query('order') order?: string,
