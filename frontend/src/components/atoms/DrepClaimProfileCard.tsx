@@ -113,17 +113,17 @@ const DrepClaimProfileCard = ({
             )}
           </p>
         </div>
-        <div>
-          <p className="font-bold">Live Voting power</p>
-          <p className="flex items-center gap-3 font-normal">
-            ₳{' '}
-            {state ? (
-              <Skeleton animation={'wave'} width={100} height={20} />
-            ) : (
-              formattedAda(liveVotingPower, 2)
-            )}
-          </p>
-        </div>
+        {/*<div>*/}
+        {/*  <p className="font-bold">Live Voting power</p>*/}
+        {/*  <p className="flex items-center gap-3 font-normal">*/}
+        {/*    ₳{' '}*/}
+        {/*    {state ? (*/}
+        {/*      <Skeleton animation={'wave'} width={100} height={20} />*/}
+        {/*    ) : (*/}
+        {/*      formattedAda(liveVotingPower, 2)*/}
+        {/*    )}*/}
+        {/*  </p>*/}
+        {/*</div>*/}
       </div>
       <div>
         <p className="font-bold">Total delegation</p>
