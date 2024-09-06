@@ -42,7 +42,7 @@ const DrepDelegatorslist = ({ delegators }: { delegators: any[] }) => {
                   </div>
 
                   <div className="flex min-w-40 flex-col items-center justify-start">
-                    <p className="font-bold">Voting Power</p>
+                    <p className="font-bold">Active Stake</p>
                     <div>
                       <HoverText
                         shortText={formattedAda(delegator?.votingPower, 2)}
