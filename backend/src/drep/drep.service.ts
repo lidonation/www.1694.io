@@ -79,7 +79,7 @@ export class DrepService {
     const sortColumn =
       {
         voting_power: 'voting_power',
-        live_power: 'live_power',
+        live_stake: 'live_stake',
         delegators: 'delegation_vote_count',
       }[sort] || null;
 
@@ -194,7 +194,7 @@ export class DrepService {
     if (sortColumn && sortOrder) {
       const validSortColumns = [
         'delegation_vote_count',
-        'live_power',
+        'live_stake',
         'voting_power',
       ];
       const validSortOrders = ['ASC', 'DESC'];
@@ -203,10 +203,10 @@ export class DrepService {
         validSortColumns.includes(sortColumn) &&
         validSortOrders.includes(sortOrder)
       ) {
-        if (sortColumn === 'voting_power' || sortColumn === 'live_power') {
-          orderByClause = `ORDER BY ${sortColumn} ${sortOrder}`;
-        } else {
-          orderByClause = `ORDER BY ${sortColumn} ${sortOrder}`;
+        if (sortOrder === 'DESC') {
+          orderByClause = `ORDER BY ${sortColumn} ${sortOrder} NULLS LAST`;
+        } else if (sortOrder === 'ASC') {
+          orderByClause = `ORDER BY ${sortColumn} ${sortOrder} NULLS FIRST`;
         }
       }
     }
@@ -236,8 +236,11 @@ export class DrepService {
         return {
           ...entry,
           // deposit: (entry.deposit / 1000000).toFixed(1),
-          voting_power: entry.voting_power != null ? (entry.voting_power / 1000000).toFixed(1) : null,
-          live_power: (entry.live_power / 1000000).toFixed(1),
+          voting_power:
+            entry.voting_power != null
+              ? (entry.voting_power / 1000000).toFixed(1)
+              : null,
+          live_stake: (entry.live_stake / 1000000).toFixed(1),
         };
       }),
       totalItems: parseInt(totalResults[0].total, 10),
