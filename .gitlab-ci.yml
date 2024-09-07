@@ -238,6 +238,8 @@ app-sancho:
         --atomic \
         --namespace="$KUBE_NAMESPACE" \
         --set image.tag=$CI_APPLICATION_TAG \
+        --set backend.replicaCount=1 \
+        --set frontend.replicaCount=1 \
         --set secrets.NEXT_PUBLIC_GOOGLE_API="$NEXT_PUBLIC_GOOGLE_API" \
         --set ingress.hosts[0]="$AUTO_DEVOPS_WEB_DOMAIN" \
         --namespace="$KUBE_NAMESPACE" \
@@ -308,6 +310,8 @@ app-preview:
         --atomic \
         --namespace="$KUBE_NAMESPACE" \
         --set image.tag=$CI_APPLICATION_TAG \
+        --set backend.replicaCount=1 \
+        --set frontend.replicaCount=1 \
         --set secrets.NEXT_PUBLIC_GOOGLE_API="$NEXT_PUBLIC_GOOGLE_API" \
         --set ingress.hosts[0]="$AUTO_DEVOPS_WEB_DOMAIN" \
         --set namespace=$KUBE_NAMESPACE \
@@ -371,6 +375,8 @@ production:
         --atomic \
         --set image.repository=$CI_APPLICATION_REPOSITORY/www.1694.io \
         --set image.tag=$CI_APPLICATION_TAG \
+        --set backend.replicaCount=5 \
+        --set frontend.replicaCount=5 \
         --set secrets.NEXT_PUBLIC_GOOGLE_API="$NEXT_PUBLIC_GOOGLE_API" \
         --set ingress.hosts[0]="$AUTO_DEVOPS_WEB_DOMAIN" \
         --set namespace=$KUBE_NAMESPACE \
