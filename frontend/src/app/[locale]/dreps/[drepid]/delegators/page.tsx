@@ -6,8 +6,8 @@ import { useParams } from 'next/navigation';
 import { Suspense } from 'react';
 
 const DelegatorsPage = () => {
-  const { drepid } = useParams();
-  const { dRep } = useGetSingleDRepQuery(drepid);
+  const { drepIdd } = useParams();
+  const { dRep } = useGetSingleDRepQuery(drepIdd);
 
   return (
     <Suspense fallback={<Loading />}>
