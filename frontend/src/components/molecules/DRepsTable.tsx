@@ -261,13 +261,13 @@ const DRepsTable = ({
                           {shortNumber(drep.live_stake, 2)}
                         </Typography>
                       </Tooltip>
-                      <Typography
+                        {drep.voting_power > 0.00 && <Typography
                           variant='body1'
                           className={`font-bolder ${percentageDifference(drep.live_stake, drep.voting_power) > 0.00 ? 'text-success' : percentageDifference(drep.live_stake, drep.voting_power) < 0.00 ? 'text-extra_red' : ''}`}>
                         {new Intl.NumberFormat("en-US", {
                           signDisplay: "exceptZero"
                         }).format(percentageDifference(drep.live_stake, drep.voting_power))}%
-                      </Typography>
+                      </Typography>}
                       </Box>
                   ) : (
                     <p>-</p>
