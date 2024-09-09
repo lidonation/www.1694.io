@@ -100,22 +100,24 @@ const DrepClaimProfileCard = ({
         <div>
           <p className="font-bold">Voting power</p>
           <p className="flex items-center gap-3 font-normal">
-            ₳{' '}
             {state ? (
-              <Skeleton animation={'wave'} width={100} height={20} />
+              <Skeleton animation={'wave'} width={50} height={20} />
+            ) : drep?.cexplorerDetails?.voting_power != null ? (
+              `₳ ${formattedAda(drep?.cexplorerDetails?.voting_power, 2)}`
             ) : (
-              formattedAda(drep?.cexplorerDetails?.voting_power, 2) || 0
+              '-'
             )}
           </p>
         </div>
         <div>
           <p className="font-bold">Live Stake</p>
           <p className="flex items-center gap-3 font-normal">
-            ₳{' '}
             {state ? (
-              <Skeleton animation={'wave'} width={100} height={20} />
+              <Skeleton animation={'wave'} width={50} height={20} />
+            ) : drep?.cexplorerDetails?.live_stake != null ? (
+              `₳ ${formattedAda(drep?.cexplorerDetails?.live_stake, 2)}`
             ) : (
-              formattedAda(drep?.cexplorerDetails?.live_stake, 2) || 0
+              '-'
             )}
           </p>
         </div>
