@@ -91,11 +91,11 @@ const DRepsTable = ({
   }
 
   return (
-    <div className="flex flex-col overflow-x-auto">
-      <table className="min-w-full">
+    <div className="flex flex-col overflow-x-auto dreps-table-wrapper">
+      <table className="min-w-full dreps-table">
         <thead className="mb-2">
           <tr className="overflow-x-auto text-nowrap bg-white text-left text-xl font-black">
-            <th className="px-4 py-2">DRep</th>
+            <th className="py-2">DRep</th>
             {/* <th className="px-4 py-2">Drep Id</th> */}
             <th className="px-4 py-2">
               <div className="flex items-center">
@@ -123,8 +123,8 @@ const DRepsTable = ({
                   ))}
               </div>
             </th>
-            <th className="px-4 py-2">
-              <div className="flex items-center">
+            <th className="py-2">
+              <div className="flex items-center justifiy-end text-left">
                 <span>Delegators</span>
                 {sort === 'delegators' &&
                   (order === 'desc' ? (
@@ -152,9 +152,9 @@ const DRepsTable = ({
               <tr
                 key={drep.drep_hash_id}
                 data-testid={`drep-id-${drep.view}`}
-                className="text-nowrap text-left text-sm"
+                className={`text-nowrap text-left text-sm ${drep.view}`}
               >
-                <td className="px-4 py-2">
+                <td className="py-2.5">
                   <Box className="flex flex-row items-center gap-3">
                     {drep?.type === 'voting_option' ||
                     drep?.type === 'scripted' ? (
@@ -192,7 +192,7 @@ const DRepsTable = ({
                       </div>
                     )}
 
-                    <Box className="flex flex-nowrap items-center">
+                    {drep?.type !== 'voting_option' && <Box className="flex flex-nowrap items-center">
                       <Tooltip title="Copy DRep ID">
                         <IconButton
                           size="small"
@@ -208,6 +208,7 @@ const DRepsTable = ({
                         </p>
                       </Link>
                     </Box>
+                    }
 
                     <Box className="w-30 flex flex-row items-center gap-1.5">
                       {drep.given_name !== null && (

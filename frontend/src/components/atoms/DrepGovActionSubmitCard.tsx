@@ -71,7 +71,7 @@ const DrepGovActionSubmitCard = ({
 
   let style: any = {
     borderColor: 'border-[#D19471]',
-    bgColor: 'bg-[#D19471]',
+    bgcolor: 'bg-[#D19471]',
     imgSrc: '/svgs/exchange.svg',
     actionName: '',
   };
@@ -80,7 +80,7 @@ const DrepGovActionSubmitCard = ({
     case actionType.includes('protocolparameter'):
       style = {
         borderColor: 'border-[#D19471]',
-        bgColor: 'bg-[#D19471]',
+        bgcolor: 'bg-[#D19471]',
         imgSrc: '/svgs/exchange.svg',
         actionName: 'Protocol Parameter Changes',
       };
@@ -88,7 +88,7 @@ const DrepGovActionSubmitCard = ({
     case actionType.includes('info'):
       style = {
         borderColor: 'border-[#BB7AEE]',
-        bgColor: 'bg-[#BB7AEE]',
+        bgcolor: 'bg-[#BB7AEE]',
         imgSrc: '/svgs/info-circle.svg',
         actionName: 'Info',
       };
@@ -96,7 +96,7 @@ const DrepGovActionSubmitCard = ({
     case actionType.includes('hardfork'):
       style = {
         borderColor: 'border-[#A3D96C]',
-        bgColor: 'bg-[#A3D96C]',
+        bgcolor: 'bg-[#A3D96C]',
         imgSrc: '/svgs/status-change.svg',
         actionName: 'Hard-Fork Initiation',
       };
@@ -104,7 +104,7 @@ const DrepGovActionSubmitCard = ({
     case actionType.includes('newconstitution'):
       style = {
         borderColor: 'border-[#D96CAE]',
-        bgColor: 'bg-[#D96CAE]',
+        bgcolor: 'bg-[#D96CAE]',
         imgSrc: '/svgs/notebook.svg',
         actionName: 'New Constitution or Guardrails Script',
       };
@@ -112,7 +112,7 @@ const DrepGovActionSubmitCard = ({
     case actionType.includes('updatecommittee'):
       style = {
         borderColor: 'border-[#6FDF8E]',
-        bgColor: 'bg-[#6FDF8E]',
+        bgcolor: 'bg-[#6FDF8E]',
         imgSrc: '/svgs/users-group.svg',
         actionName: 'Update committee and/or threshold and/or terms',
       };
@@ -120,7 +120,7 @@ const DrepGovActionSubmitCard = ({
     default:
       style = {
         borderColor: 'border-[#6FDF8E]',
-        bgColor: 'bg-[#6FDF8E]',
+        bgcolor: 'bg-[#6FDF8E]',
         imgSrc: '/svgs/users-group.svg',
         actionName: capitalizeFirstLetter(actionType),
       };
@@ -143,7 +143,7 @@ const DrepGovActionSubmitCard = ({
       <SubmittedChip date={cardData?.prop_inception_time} />
       <hr />
       <div className="flex flex-col gap-1">
-        <div className={`rounded-full p-1 ${style.bgColor} w-fit`}>
+        <div className={`rounded-full p-1 ${style.bgcolor} w-fit`}>
           <img src={style.imgSrc} alt="" className="h-5 w-5" />
         </div>
         <p className="text-wrap text-lg font-medium">{style.actionName}</p>

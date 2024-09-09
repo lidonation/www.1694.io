@@ -22,7 +22,7 @@ const PostSubmitArea = ({
       {showViewTimeline && (
         <Button
           variant="text"
-          bgColor="transparent"
+          bgcolor="transparent"
           sx={!isEnabled ? { pointerEvents: 'none' } : {}}
           disabled={!isUpdating}
         >
@@ -38,7 +38,7 @@ const PostSubmitArea = ({
       <div className="flex flex-row items-center gap-2">
         <Button
           variant="outlined"
-          bgColor="transparent"
+          bgcolor="transparent"
           handleClick={handleCancel}
           sx={!isEnabled ? { pointerEvents: 'none' } : {}}
         >

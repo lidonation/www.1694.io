@@ -189,7 +189,7 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
             </Button>
             <Button
               variant="outlined"
-              bgColor="transparent"
+              bgcolor="transparent"
               handleClick={() => {
                 resetDraft();
                 window.location.reload();
@@ -357,7 +357,7 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
               <Button
                 className="w-full"
                 variant="outlined"
-                bgColor="transparent"
+                bgcolor="transparent"
               >
                 Edit Profile
               </Button>
