@@ -59,7 +59,7 @@ export const getDrepDelegatorsWithVotingPowerQuery: string = `
            JOIN block b ON tx.block_id = b.id
            JOIN latest_delegations ld ON dv.addr_id = ld.addr_id
     AND b.time = ld.latest_time
-    JOIN tx_out txo ON sa.id = txo.stake_address_id
+    JOIN tx_out txo ON sa.id = txo.stake_address_id AND txo.consumed_by_tx_id IS NULL
     GROUP BY sa.view,
          b.epoch_no
     ORDER BY voting_power DESC

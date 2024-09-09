@@ -332,8 +332,8 @@ export class DrepService {
     }
     //account for voting options
     if (
-      combinedResult.cexplorerDetails.view.includes('drep_always_abstain') ||
-      combinedResult.cexplorerDetails.view.includes('drep_always_no_confidence')
+      combinedResult.cexplorerDetails?.view.includes('drep_always_abstain') ||
+      combinedResult.cexplorerDetails?.view.includes('drep_always_no_confidence')
     ) {
       combinedResult['type'] = 'voting_option';
     } else if (!!combinedResult.cexplorerDetails.has_script) {
