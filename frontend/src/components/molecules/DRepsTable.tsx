@@ -261,7 +261,9 @@ const DRepsTable = ({
                           {shortNumber(drep.live_stake, 2)}
                         </Typography>
                       </Tooltip>
-                      <Typography variant='body1' className={`font-bolder ${percentageDifference(drep.live_stake, drep.voting_power) > 0.00 ? 'text-success': 'text-extra_red'}`}>
+                      <Typography
+                          variant='body1'
+                          className={`font-bolder ${percentageDifference(drep.live_stake, drep.voting_power) > 0.00 ? 'text-success' : percentageDifference(drep.live_stake, drep.voting_power) < 0.00 ? 'text-extra_red' : ''}`}>
                         {new Intl.NumberFormat("en-US", {
                           signDisplay: "exceptZero"
                         }).format(percentageDifference(drep.live_stake, drep.voting_power))}%
