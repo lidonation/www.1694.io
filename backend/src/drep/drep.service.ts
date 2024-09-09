@@ -240,7 +240,10 @@ export class DrepService {
             entry.voting_power != null
               ? (entry.voting_power / 1000000).toFixed(1)
               : null,
-          live_stake: (entry.live_stake / 1000000).toFixed(1),
+          live_stake:
+            entry.live_stake != null
+              ? (entry.live_stake / 1000000).toFixed(1)
+              : null,
         };
       }),
       totalItems: parseInt(totalResults[0].total, 10),
