@@ -12,6 +12,7 @@ import { ReactionsModule } from './reactions/reactions.module';
 import { AuthService } from './auth/auth.service';
 import { ProposalsModule } from './proposals/proposals.module';
 import { MiscellaneousModule } from './miscellaneous/miscellaneous.module';
+import {NotificationsModule} from "./notifications/notifications.module";
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { MiscellaneousModule } from './miscellaneous/miscellaneous.module';
     ReactionsModule,
     ProposalsModule,
     MiscellaneousModule,
+    NotificationsModule
   ],
   controllers: [],
   providers: [AuthService],

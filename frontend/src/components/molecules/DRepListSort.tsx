@@ -156,46 +156,46 @@ export default function DRepListSort() {
               </RadioGroup>
             </FormControl>
 
-            {/*<Divider />*/}
+            <Divider />
 
-            {/*<FormControl>*/}
-            {/*  <span className="mt-2 text-xs font-semibold">*/}
-            {/*    Live Voting Power*/}
-            {/*  </span>*/}
-            {/*  <RadioGroup*/}
-            {/*    aria-labelledby="demo-controlled-radio-buttons-group"*/}
-            {/*    name="controlled-radio-buttons-group"*/}
-            {/*    value={sortValue()}*/}
-            {/*    onChange={setSorts}*/}
-            {/*  >*/}
-            {/*    <FormControlLabel*/}
-            {/*      value="live_power-desc"*/}
-            {/*      control={*/}
-            {/*        <Radio*/}
-            {/*          sx={{*/}
-            {/*            '&.Mui-checked': {*/}
-            {/*              color: '#f97316',*/}
-            {/*            },*/}
-            {/*          }}*/}
-            {/*        />*/}
-            {/*      }*/}
-            {/*      label="Highest to Lowest"*/}
-            {/*    />*/}
-            {/*    <FormControlLabel*/}
-            {/*      value="live_power-asc"*/}
-            {/*      control={*/}
-            {/*        <Radio*/}
-            {/*          sx={{*/}
-            {/*            '&.Mui-checked': {*/}
-            {/*              color: '#f97316',*/}
-            {/*            },*/}
-            {/*          }}*/}
-            {/*        />*/}
-            {/*      }*/}
-            {/*      label="Lowest to Highest"*/}
-            {/*    />*/}
-            {/*  </RadioGroup>*/}
-            {/*</FormControl>*/}
+            <FormControl>
+              <span className="mt-2 text-xs font-semibold">
+                Live Voting Power
+              </span>
+              <RadioGroup
+                aria-labelledby="demo-controlled-radio-buttons-group"
+                name="controlled-radio-buttons-group"
+                value={sortValue()}
+                onChange={setSorts}
+              >
+                <FormControlLabel
+                  value="live_stake-desc"
+                  control={
+                    <Radio
+                      sx={{
+                        '&.Mui-checked': {
+                          color: '#f97316',
+                        },
+                      }}
+                    />
+                  }
+                  label="Highest to Lowest"
+                />
+                <FormControlLabel
+                  value="live_stake-asc"
+                  control={
+                    <Radio
+                      sx={{
+                        '&.Mui-checked': {
+                          color: '#f97316',
+                        },
+                      }}
+                    />
+                  }
+                  label="Lowest to Highest"
+                />
+              </RadioGroup>
+            </FormControl>
 
             <Divider />
 

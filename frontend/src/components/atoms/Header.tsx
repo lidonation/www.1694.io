@@ -9,6 +9,7 @@ import { useScreenDimension } from '@/hooks';
 import VoltaireMenu from '../molecules/VoltaireMenu';
 import DRepMenu from '../molecules/DRepMenu';
 import { SliderMenu } from '../organisms/SliderMenu';
+import NotificationDrawer from "@/components/molecules/NotificationDrawer";
 
 const Header = () => {
   const { isEnabled } = useCardano();
@@ -45,7 +46,9 @@ const Header = () => {
               >
                 CIP
               </Link>
+
               <DRepMenu />
+
               <VoltaireMenu />
             </div>
           )}
@@ -57,9 +60,7 @@ const Header = () => {
             )}
           </div>
           {!isMobile && (
-            <div className="cursor-pointer">
-              <img src="/svgs/bell.svg" alt="Notifs" />
-            </div>
+            <NotificationDrawer />
           )}
           {isMobile && (
             <div

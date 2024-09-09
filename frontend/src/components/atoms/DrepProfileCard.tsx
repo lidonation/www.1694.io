@@ -189,7 +189,7 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
             </Button>
             <Button
               variant="outlined"
-              bgColor="transparent"
+              bgcolor="transparent"
               handleClick={() => {
                 resetDraft();
                 window.location.reload();
@@ -214,11 +214,6 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
     await deleteItemFromIndexedDB('metadataJsonLd');
     await deleteItemFromIndexedDB('metadataJsonHash');
   };
-
-  const liveVotingPower = drep?.delegators.reduce(
-    (total, delegator) => total + Number(delegator?.votingPower),
-    0,
-  );
 
   return (
     <div className="flex w-full flex-col gap-5 bg-white bg-opacity-50 px-5 py-10">
@@ -251,29 +246,29 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
         <StatusChip status={status} />
         <StatusChip status="Verified" />
       </div>
-      <div className="flex items-center gap-4 lg:justify-between lg:gap-0">
+      <div className="flex items-center gap-4">
         <div>
-          <Typography variant="h6">Active Voting power</Typography>
+          <Typography variant="h6">Voting power</Typography>
           <p className="flex items-center gap-3 font-normal">
             ₳{' '}
             {state ? (
               <Skeleton animation={'wave'} width={50} height={20} />
             ) : (
-              formattedAda(drep?.cexplorerDetails?.amount, 2) || 0
+              formattedAda(drep?.cexplorerDetails?.voting_power, 2) || 0
             )}
           </p>
         </div>
-        {/*<div>*/}
-        {/*  <Typography variant="h6">Live Voting power</Typography>*/}
-        {/*  <p className="flex items-center gap-3 font-normal">*/}
-        {/*    ₳{' '}*/}
-        {/*    {state ? (*/}
-        {/*      <Skeleton animation={'wave'} width={50} height={20} />*/}
-        {/*    ) : (*/}
-        {/*      formattedAda(liveVotingPower, 2)*/}
-        {/*    )}*/}
-        {/*  </p>*/}
-        {/*</div>*/}
+        <div>
+          <Typography variant="h6">Live Stake</Typography>
+          <p className="flex items-center gap-3 font-normal">
+            ₳{' '}
+            {state ? (
+              <Skeleton animation={'wave'} width={50} height={20} />
+            ) : (
+              formattedAda(drep?.cexplorerDetails?.live_stake, 2) || 0
+            )}
+          </p>
+        </div>
       </div>
       <div>
         <Typography variant="h6">Total delegation</Typography>
@@ -362,7 +357,7 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
               <Button
                 className="w-full"
                 variant="outlined"
-                bgColor="transparent"
+                bgcolor="transparent"
               >
                 Edit Profile
               </Button>

@@ -138,7 +138,7 @@ const ProposalActionForm = ({
               setProposals(null);
             }}
             variant="outlined"
-            bgColor="transparent"
+            bgcolor="transparent"
           >
             <p>Cancel</p>
           </Button>

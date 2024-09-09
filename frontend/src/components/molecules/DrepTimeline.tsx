@@ -15,10 +15,11 @@ import { useGetDRepTimelineQuery } from '@/hooks/useGetDRepTimelineQuery';
 import DRepTimelineLoader from '../Loaders/DRepTimelineLoader';
 import ReloadIcon from '../atoms/svgs/ReloadIcon';
 import { formatNumberTimeToReadable } from '@/lib';
-import { Fade, Grow } from '@mui/material';
+import {Box, Fade, Grow} from '@mui/material';
 import DRepTimeLIneFilters from './DRepTimeLineFilters';
 import DatabaseNullIcon from '../atoms/svgs/DatabaseNullIcon';
 import { useScreenDimension } from '@/hooks';
+import Typography from "@mui/material/Typography";
 
 const DrepTimeline = ({ cexplorerDetails }: { cexplorerDetails: any }) => {
   const { drepid } = useParams();
@@ -161,9 +162,7 @@ const  {isMobile}=useScreenDimension();
     <div className="flex h-full w-full flex-col gap-5 bg-white px-5 py-3">
       <div className="flex flex-col items-center gap-2 sm:flex-row sm:justify-between">
         <div className="flex w-full justify-between">
-          <p className="w-full text-2xl font-bold sm:w-auto lg:text-3xl">
-            Timeline
-          </p>
+          <Typography variant='h4'>Timeline</Typography>
           <div className="flex items-center gap-4">
             {cexplorerDetails?.view == dRepIDBech32 && (
               <Button size="medium" className="flex w-fit items-center">
@@ -192,29 +191,29 @@ const  {isMobile}=useScreenDimension();
           {...(!isInitialLoad ? { timeout: 400 } : {})}
         >
           <div className="flex w-full flex-col gap-2">
-            <div className="flex w-full flex-col items-center gap-2">
+            <Box className="flex w-full flex-col items-center gap-2">
               {!isAtLatestPoint && (
                 <div
                   className="flex cursor-pointer items-center gap-2 rounded border px-2 py-1 hover:bg-gray-200"
                   onClick={loadNewerData}
                 >
                   <ReloadIcon color="black" width={20} height={18} />
-                  <p className="text-base font-medium text-orange-500 ">
+                  <Typography variant='body1' paragraph={true} className="text-base font-medium text-orange-500 ">
                     Load Newer
-                  </p>
+                  </Typography>
                 </div>
               )}
-              <div className="flex flex-col items-center">
+              <Box className="flex flex-col items-center">
                 {isAtLatestPoint && DRepActivity.length > 0 && (
-                  <p className="text-gray-500">You're all caught up!</p>
+                  <Typography variant='body1' paragraph={true} className="text-gray-500">You're all caught up!</Typography>
                 )}
-                <p className="text-sm">
+                <Typography  variant='body1' paragraph={true} className="text-sm">
                   Showing results from{' '}
                   <span className="font-semibold">{startTimeFormatted}</span> to{' '}
                   <span className="font-semibold">{endTimeFormatted}</span>
-                </p>
-              </div>
-            </div>
+                </Typography>
+              </Box>
+            </Box>
             {isLoadingNewerData && (
               <Grow
                 in={isLoadingNewerData}

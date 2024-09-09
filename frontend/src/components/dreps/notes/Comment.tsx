@@ -205,7 +205,7 @@ const Comment: React.FC<CommentProps> = ({
           <div className="flex flex-row items-center justify-center gap-2 sm:justify-end lg:w-[80%] lg:gap-3">
             <Button type="submit">Comment</Button>
             <Button
-              bgColor="transparent"
+              bgcolor="transparent"
               variant="outlined"
               handleClick={() => setIsReplying(false)}
             >

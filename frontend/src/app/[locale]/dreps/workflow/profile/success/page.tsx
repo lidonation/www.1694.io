@@ -17,7 +17,7 @@ const page = () => {
       <div className="mt-6 flex items-center justify-center gap-5 lg:flex-row">
         <Button
           variant="outlined"
-          bgColor="transparent"
+          bgcolor="transparent"
           handleClick={() => setStep1Status('update')}
         >
           <Link className="w-fit" href="/dreps/workflow/profile/update/step1">

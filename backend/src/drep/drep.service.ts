@@ -240,7 +240,10 @@ export class DrepService {
             entry.voting_power != null
               ? (entry.voting_power / 1000000).toFixed(1)
               : null,
-          live_stake: (entry.live_stake / 1000000).toFixed(1),
+          live_stake:
+            entry.live_stake != null
+              ? (entry.live_stake / 1000000).toFixed(1)
+              : null,
         };
       }),
       totalItems: parseInt(totalResults[0].total, 10),
@@ -332,8 +335,8 @@ export class DrepService {
     }
     //account for voting options
     if (
-      combinedResult.cexplorerDetails.view.includes('drep_always_abstain') ||
-      combinedResult.cexplorerDetails.view.includes('drep_always_no_confidence')
+      combinedResult.cexplorerDetails?.view.includes('drep_always_abstain') ||
+      combinedResult.cexplorerDetails?.view.includes('drep_always_no_confidence')
     ) {
       combinedResult['type'] = 'voting_option';
     } else if (!!combinedResult.cexplorerDetails.has_script) {

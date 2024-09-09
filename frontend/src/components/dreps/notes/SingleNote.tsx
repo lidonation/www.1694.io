@@ -227,7 +227,7 @@ const SingleNote = ({
           )}
           <Button
             variant="outlined"
-            bgColor="transparent"
+            bgcolor="transparent"
             handleClick={() => setShowResponses(!showResponses)}
           >
             {showResponses ? 'Hide' : 'View'} Responses
@@ -271,7 +271,7 @@ const SingleNote = ({
           <div className="flex flex-row items-center justify-center gap-2 sm:justify-end lg:gap-3">
             <Button type="submit">Comment</Button>
             <Button
-              bgColor="transparent"
+              bgcolor="transparent"
               variant="outlined"
               handleClick={() => setIsCommenting(false)}
             >
