@@ -6,7 +6,7 @@ import { useGetDRepsQuery } from '@/hooks/useGetDRepsQuery';
 import {
   convertString,
   formatAsCurrency,
-  handleCopyText,
+  handleCopyText, percentageDifference,
   shortNumber,
 } from '@/lib';
 import { useScreenDimension } from '@/hooks';
@@ -21,6 +21,7 @@ import ArrowDownIcon from '../atoms/svgs/ArrowDownIcon';
 import ArrowUpIcon from '../atoms/svgs/ArrowUpIcon';
 import DatabaseNullIcon from '../atoms/svgs/DatabaseNullIcon';
 import CrossIcon from '../atoms/svgs/CrossIcon';
+import Typography from "@mui/material/Typography";
 
 type DRepsTableProps = {
   query?: string;
@@ -152,7 +153,7 @@ const DRepsTable = ({
               <tr
                 key={drep.drep_hash_id}
                 data-testid={`drep-id-${drep.view}`}
-                className={`text-nowrap text-left text-sm ${drep.view}`}
+                className={`text-nowrap text-left text-sm hover:bg-gray-50 ${drep.view}`}
               >
                 <td className="py-2.5">
                   <Box className="flex flex-row items-center gap-3">
@@ -253,12 +254,19 @@ const DRepsTable = ({
                   )}
                 </td>
 
-                <td className="max-w-11 overflow-auto px-4 py-2">
-                  {drep.live_stake !== null ? (
-                    <HoverText
-                      shortText={shortNumber(drep.live_stake, 2)}
-                      longText={formatAsCurrency(drep.live_stake)}
-                    />
+                <td className="overflow-auto px-2 py-2">
+                  {drep.live_stake !== null ? (<Box className='flex flex-row flex-nowrap justify-start items-center gap-1.5 w-full'>
+                      <Tooltip title={formatAsCurrency(drep.live_stake)}>
+                        <Typography>
+                          {shortNumber(drep.live_stake, 2)}
+                        </Typography>
+                      </Tooltip>
+                      <Typography variant='body1' className={`font-bolder ${percentageDifference(drep.live_stake, drep.voting_power) > 0.00 ? 'text-success': 'text-extra_red'}`}>
+                        {new Intl.NumberFormat("en-US", {
+                          signDisplay: "exceptZero"
+                        }).format(percentageDifference(drep.live_stake, drep.voting_power))}%
+                      </Typography>
+                      </Box>
                   ) : (
                     <p>-</p>
                   )}
