@@ -10,7 +10,7 @@ export const useGetSingleDRepQuery = (drepId?: any) => {
       drepId.includes('drep')
         ? await getSingleDRepViaVoterId(drepId)
         : await getSingleDRep(drepId),
-
+    enabled: !!drepId,
     refetchOnWindowFocus: false,
   });
 
