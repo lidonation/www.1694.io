@@ -250,22 +250,24 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
         <div>
           <Typography variant="h6">Voting power</Typography>
           <p className="flex items-center gap-3 font-normal">
-            ₳{' '}
             {state ? (
               <Skeleton animation={'wave'} width={50} height={20} />
+            ) : drep?.cexplorerDetails?.voting_power != null ? (
+              `₳ ${formattedAda(drep?.cexplorerDetails?.voting_power, 2)}`
             ) : (
-              formattedAda(drep?.cexplorerDetails?.voting_power, 2) || 0
+              '-'
             )}
           </p>
         </div>
         <div>
           <Typography variant="h6">Live Stake</Typography>
           <p className="flex items-center gap-3 font-normal">
-            ₳{' '}
             {state ? (
               <Skeleton animation={'wave'} width={50} height={20} />
+            ) : drep?.cexplorerDetails?.live_stake != null ? (
+              `₳ ${formattedAda(drep?.cexplorerDetails?.live_stake, 2)}`
             ) : (
-              formattedAda(drep?.cexplorerDetails?.live_stake, 2) || 0
+              '-'
             )}
           </p>
         </div>
