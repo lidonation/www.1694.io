@@ -4,6 +4,7 @@ import MenuItem from '@mui/material/MenuItem';
 import Grow from '@mui/material/Grow';
 import { Box } from '@mui/material';
 import {useGetUserNotificationQuery} from "@/hooks/useGetUserNotificationQuery";
+import Typography from "@mui/material/Typography";
 
 export default function NotificationDrawer() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -29,8 +30,6 @@ export default function NotificationDrawer() {
                onClick={handleClick}
                aria-expanded={open ? 'true' : undefined} />
         </div>
-
-
             <Menu
                 id="notification-drawer"
                 MenuListProps={{
@@ -52,34 +51,38 @@ export default function NotificationDrawer() {
                   '.MuiPaper-root': {
                     borderRadius: '0 0 1rem 1rem',
                     boxShadow: '1px 2px 11px 0 rgba(0, 18, 61, 0.37)',
-                    bgColor: '#F3F5FF',
+                    bgcolor: '#F3F5FF',
                   },
                   '.MuiMenu-list': {padding: 0},
                 }}
             >
-              {!!notificationItems && (<Box className="relative flex flex-col">
-                {notificationItems.map((item, index) => (
-                      <MenuItem
-                          onClick={handleClose}
-                          sx={{
-                            '&:hover': {
-                              backgroundColor: '#FFC19D',
-                            },
-                          }}
-                      >
-                        <Box className="flex max-w-60 gap-4">
-                          <Box className="flex flex-col text-wrap text-complementary-500">
-                            <p className="p-0 text-base font-normal">{item.label}</p>
-                            <p className="text-xs font-normal leading-4">
-                              {item.text}
-                            </p>
-                          </Box>
-                        </Box>
-                      </MenuItem>
-                ))}
-              </Box>
-              )}
-
+                <Box className='w-72'>
+                    <Box className='w-full flex justify-between p-2 items-center'>
+                      <Typography variant='h4'>Notifications</Typography>
+                    </Box>
+                  {!!notificationItems && (<Box className="relative w-full flex flex-col">
+                    {notificationItems.map((item, index) => (
+                          <MenuItem
+                              onClick={handleClose}
+                              sx={{
+                                '&:hover': {
+                                  backgroundColor: '#FFC19D',
+                                },
+                              }}
+                          >
+                            <Box className="flex max-w-60 gap-4">
+                              <Box className="flex flex-col text-wrap text-complementary-500">
+                                <p className="p-0 text-base font-normal">{item.label}</p>
+                                <p className="text-xs font-normal leading-4">
+                                  {item.text}
+                                </p>
+                              </Box>
+                            </Box>
+                          </MenuItem>
+                    ))}
+                  </Box>
+                  )}
+                </Box>
               {!notificationItems || notificationItems.length <= 0 && (
                   <MenuItem
                       onClick={handleClose}
@@ -90,10 +93,8 @@ export default function NotificationDrawer() {
                       }}
                   >
                   <Box className="flex flex-col text-wrap text-complementary-500 py-2 mb-4">
-                    <p className="p-0 text-base font-normal">Mempool Clear</p>
-                    <p className="text-xs font-normal leading-4">
-                      You're all caught up.
-                    </p>
+                    <Typography variant='subtitle2' className='font-bold'>Mempool Clear</Typography>
+                    <Typography variant='body1'>You're all caught up.</Typography>
                   </Box>
                   </MenuItem>
               )}
