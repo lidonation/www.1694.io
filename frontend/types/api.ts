@@ -9,7 +9,8 @@ export type DRepCExplorerDetails = {
   view: string | null;
   delegation_vote_count: string | null;
   stake_address: string | null;
-  amount: string | null;
+  voting_power: string | null;
+  live_stake: string | null;
   epoch_no: number | null;
   active_until: number | null;
   deposit: string | null;
