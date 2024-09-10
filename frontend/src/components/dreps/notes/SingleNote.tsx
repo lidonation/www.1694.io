@@ -101,6 +101,22 @@ const SingleNote = ({
     }
     setIsCommenting(true);
   };
+  const countTotalComments = (comments) => {
+    // If there are no comments, return 0
+    if (!comments || comments.length === 0) return 0;
+  
+    let totalCount = comments.length; // Counting top-level comments
+  
+    // Loop through each comment
+    comments.forEach(comment => {
+      // Recursively count the responses (nested comments)
+      if (comment.comments && comment.comments.length > 0) {
+        totalCount += countTotalComments(comment.comments); // Add nested comment count
+      }
+    });
+  
+    return totalCount;
+  };
   const handleReaction = async (type) => {
     //to prevent orphan reaction till say wallet is done connecting
     if (!isEnabled) {
@@ -180,6 +196,7 @@ const SingleNote = ({
       reset({ comment: '' });
       setIsCommenting(false);
       handleRefetch();
+      setShowResponses(true);
     } catch (error) {
       console.log(error);
     }
@@ -261,7 +278,7 @@ const SingleNote = ({
               }
             }}
           >
-            {showResponses ? 'Hide' : 'View'} Responses
+            {showResponses ? 'Hide' : 'View'} Responses ({countTotalComments(currentComments)})
           </Button>
         </div>
         <div className="flex gap-5">
