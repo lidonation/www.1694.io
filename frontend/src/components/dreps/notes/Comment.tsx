@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Typography } from '@mui/material';
-import { useForm, SubmitHandler } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Button from '@/components/atoms/Button';
@@ -9,31 +9,50 @@ import { postAddComment } from '@/services/requests/postAddComment';
 import { convertString } from '@/lib';
 import { postRemoveReaction } from '@/services/requests/postRemoveReaction';
 import { postAddReaction } from '@/services/requests/postAddReaction';
-import * as marked from 'marked'
+import * as marked from 'marked';
 type CommentProps = {
+  parentNoteId: number;
   comment: any; // Replace `any` with your comment type
   currentVoter: string;
   isEnabled: boolean;
   isLoggedIn: boolean;
-  refetch: Function;
   setIsWalletListModalOpen: Function;
   setLoginModalOpen: Function;
   depth?: number;
+  handleRefetch?: Function;
+  latestComment?: number;
 };
 
 const Comment: React.FC<CommentProps> = ({
+  parentNoteId,
   comment,
   currentVoter,
   isEnabled,
   isLoggedIn,
-  refetch,
   setIsWalletListModalOpen,
   setLoginModalOpen,
   depth = 0,
+  handleRefetch,
+  latestComment,
 }) => {
   const [isReplying, setIsReplying] = useState(false);
   const [userCommentReactions, setUserReactions] = useState({});
   const [reactionCommentCounts, setReactionCounts] = useState({});
+  const [isHighlighted, setIsHighlighted] = useState(false);
+  const [currentLatestComment, setCurrentLatestComment] =
+    useState(latestComment);
+
+  useEffect(() => {
+    if (currentLatestComment) {
+      setIsHighlighted(true);
+      const timer = setTimeout(() => {
+        setIsHighlighted(false);
+        setCurrentLatestComment(null);
+      }, 3000); // 3 seconds highlight
+
+      return () => clearTimeout(timer);
+    }
+  }, [currentLatestComment]);
 
   const FormSchema = z.object({
     comment: z.string().min(1, 'Comment is required'),
@@ -48,7 +67,7 @@ const Comment: React.FC<CommentProps> = ({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       comment: '',
-    }
+    },
   });
 
   type InputType = z.infer<typeof FormSchema>;
@@ -61,12 +80,19 @@ const Comment: React.FC<CommentProps> = ({
       return acc;
     }, {});
     setUserReactions(updatedUserReactions);
-
-    const initialReactionCounts = comment.reactions.reduce((acc, reaction) => {
-      acc[reaction.type] = (acc[reaction.type] || 0) + 1;
-      return acc;
-    }, {});
-    setReactionCounts(initialReactionCounts);
+    const initialReactionsCount = {
+      like: comment.reactions.filter((reaction) => reaction.type === 'like')
+        .length,
+      thumbsup: comment.reactions.filter(
+        (reaction) => reaction.type === 'thumbsup',
+      ).length,
+      thumbsdown: comment.reactions.filter(
+        (reaction) => reaction.type === 'thumbsdown',
+      ).length,
+      rocket: comment.reactions.filter((reaction) => reaction.type === 'rocket')
+        .length,
+    };
+    setReactionCounts(initialReactionsCount);
   }, [comment.reactions, currentVoter]);
 
   const reactionIcons = {
@@ -131,15 +157,17 @@ const Comment: React.FC<CommentProps> = ({
   const saveComment = async (data: InputType, commentId: number) => {
     try {
       const { comment } = data;
-      await postAddComment({
+      const res = await postAddComment({
         parentId: commentId,
         parentEntity: 'comment',
         comment,
         voter: currentVoter,
       });
+      setCurrentLatestComment(res.id as number);
       reset({ comment: '' });
       setIsReplying(false);
-      refetch();
+      handleRefetch();
+      setIsHighlighted(true);
     } catch (error) {
       console.log(error);
     }
@@ -148,7 +176,11 @@ const Comment: React.FC<CommentProps> = ({
   return (
     <div
       style={{ marginLeft: depth * 20 }}
-      className={`flex flex-col gap-2 ${depth > 0 && 'border-l pl-3'}`}
+      className={`flex flex-col gap-2 px-2 py-1 ${depth > 0 && 'border-l pl-3'} ${
+        isHighlighted && comment?.id == latestComment
+          ? 'bg-yellow-100 transition-colors duration-1000'
+          : ''
+      }`}
     >
       <Typography className="font-bold" variant="subtitle1">
         {convertString(comment.voter, true)}
@@ -157,7 +189,7 @@ const Comment: React.FC<CommentProps> = ({
         dangerouslySetInnerHTML={{ __html: marked.parse(comment.content) }}
         variant="caption"
       ></Typography>
-      <div className="flex flex-col justify-start gap-3 md:gap-5 md:flex-row">
+      <div className="flex flex-col justify-start gap-3 md:flex-row md:gap-5">
         {!isReplying && (
           <div className="w-fit">
             <Button handleClick={() => setIsReplying(true)}>Reply</Button>
@@ -202,7 +234,7 @@ const Comment: React.FC<CommentProps> = ({
             name="comment"
             label=""
           />
-          <div className="flex flex-row items-center justify-center gap-2 sm:justify-end lg:w-[80%] lg:gap-3">
+          <div className="flex flex-row items-center justify-center gap-2 sm:justify-end">
             <Button type="submit">Comment</Button>
             <Button
               bgcolor="transparent"
@@ -219,14 +251,15 @@ const Comment: React.FC<CommentProps> = ({
         comment.comments.map((childComment) => (
           <Comment
             key={childComment.id}
+            parentNoteId={parentNoteId}
             comment={childComment}
             currentVoter={currentVoter}
             isEnabled={isEnabled}
             isLoggedIn={isLoggedIn}
-            refetch={refetch}
             setIsWalletListModalOpen={setIsWalletListModalOpen}
             setLoginModalOpen={setLoginModalOpen}
             depth={depth + 1}
+            handleRefetch={handleRefetch}
           />
         ))}
     </div>
