@@ -15,14 +15,6 @@ export const governanceActionProcessor = (content: string) => {
   
     parts.push(content.substring(lastIndex, startIndex));
 
-    const govActionData = {
-      gov_action_proposal_id: '0x1a2b3c4d5e6f7g8h9i0j',
-      description: {
-        tag: 'Protocol Parameter Changes',
-      },
-      createdAt: '2024-03-15T09:23:14Z',
-    };
-
     parts.push(
       <DrepGovActionSubmitCard
         key={hash}
