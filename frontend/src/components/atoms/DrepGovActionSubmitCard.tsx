@@ -148,7 +148,7 @@ const DrepGovActionSubmitCard = ({
         </div>
         <p className="text-wrap text-lg font-medium">{style.actionName}</p>
       </div>
-      <ViewActionLink hash={hash} />
+      <ViewActionLink hash={hash || item.hash} />
     </div>
   );
 };
