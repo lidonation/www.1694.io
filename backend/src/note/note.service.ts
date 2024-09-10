@@ -58,7 +58,15 @@ export class NoteService {
     if (!note) {
       throw new NotFoundException('Note not found!');
     }
-    return note;
+    const reactions = await this.reactionsService.getReactions(
+      note.id,
+      'note',
+    );
+    const comments = await this.commentsService.getComments(
+      note.id,
+      'note',
+    );
+    return { ...note, reactions: reactions, comments: comments };
   }
   async registerNote(noteDto: createNoteDto) {
     const isPresent = await this.drepService.getSingleDrepViaVoterID(

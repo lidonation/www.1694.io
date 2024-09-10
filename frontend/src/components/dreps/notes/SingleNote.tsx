@@ -10,9 +10,9 @@ import { z } from 'zod';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { postAddComment } from '@/services/requests/postAddComment';
-import { useGetNotesQuery } from '@/hooks/useGetNotesQuery';
 import { processNoteContent } from '@/lib/noteContentProcessor/processNoteContent';
 import * as marked from 'marked';
+import { useGetSingleNoteQuery } from '@/hooks/useGetSingleNoteQuery';
 const SingleNote = ({
   note,
   currentVoter,
@@ -25,7 +25,7 @@ const SingleNote = ({
   isLoggedIn: boolean;
 }) => {
   const { setIsWalletListModalOpen, setLoginModalOpen } = useDRepContext();
-  const { refetch } = useGetNotesQuery();
+
   // Initial reaction state from the note prop
   const initialReactions = {
     like: 0,
@@ -34,11 +34,17 @@ const SingleNote = ({
     rocket: 0,
   };
   // Count initial reactions
-
+  const [performReload, setPerformReload] = useState(false);
+  const [currentComments, setCurrentComments] = useState(note?.comments || []);
   const [reactions, setReactions] = useState(initialReactions);
   const [userReactions, setUserReactions] = useState({});
   const [isCommenting, setIsCommenting] = useState(false);
   const [showResponses, setShowResponses] = useState(false);
+  const [latestComment, setLatestComment] = useState<number | null>(null);
+  const { Note, isNoteLoading } = useGetSingleNoteQuery(
+    note?.note_id,
+    performReload,
+  );
   const FormSchema = z.object({
     comment: z.string(),
   });
@@ -62,14 +68,28 @@ const SingleNote = ({
       }
       return acc;
     }, {});
-    const updatedReactions = note.reactions.reduce((acc, reaction) => {
-      acc[reaction.type] = (acc[reaction.type] || 0) + 1;
-      return acc;
-    }, initialReactions);
 
+    const updatedReactionsCount = {
+      like: note.reactions.filter((reaction) => reaction.type === 'like')
+        .length,
+      thumbsup: note.reactions.filter(
+        (reaction) => reaction.type === 'thumbsup',
+      ).length,
+      thumbsdown: note.reactions.filter(
+        (reaction) => reaction.type === 'thumbsdown',
+      ).length,
+      rocket: note.reactions.filter((reaction) => reaction.type === 'rocket')
+        .length,
+    };
     setUserReactions(updatedUserReactions);
-    setReactions(updatedReactions);
+    setReactions(updatedReactionsCount);
   }, [currentVoter, note.reactions]);
+
+  useEffect(() => {
+    if (Note && !isNoteLoading) {
+      setCurrentComments(Note.comments);
+    }
+  }, [Note, isNoteLoading]);
   const startCommenting = () => {
     if (!isEnabled) {
       setIsWalletListModalOpen(true);
@@ -94,7 +114,7 @@ const SingleNote = ({
     if (userReactions[type]) {
       // User has already reacted, so remove the reaction
       try {
-        const res = await postRemoveReaction({
+        await postRemoveReaction({
           type,
           parentId: note.note_id,
           parentEntity: 'note',
@@ -118,7 +138,7 @@ const SingleNote = ({
     } else {
       // User has not reacted, so add the reaction
       try {
-        const res = await postAddReaction({
+        await postAddReaction({
           type,
           parentId: note.note_id,
           parentEntity: 'note',
@@ -141,7 +161,12 @@ const SingleNote = ({
       }
     }
   };
-
+  const handleRefetch = () => {
+    setPerformReload(true);
+    setTimeout(() => {
+      setPerformReload(false);
+    }, 100);
+  };
   const saveComment: SubmitHandler<InputType> = async (data) => {
     try {
       const { comment } = data;
@@ -151,9 +176,10 @@ const SingleNote = ({
         comment,
         voter: currentVoter,
       });
+      setLatestComment(res.id as number);
       reset({ comment: '' });
       setIsCommenting(false);
-      refetch();
+      handleRefetch();
     } catch (error) {
       console.log(error);
     }
@@ -228,7 +254,12 @@ const SingleNote = ({
           <Button
             variant="outlined"
             bgcolor="transparent"
-            handleClick={() => setShowResponses(!showResponses)}
+            handleClick={() => {
+              setShowResponses(!showResponses);
+              if (latestComment) {
+                setLatestComment(null);
+              }
+            }}
           >
             {showResponses ? 'Hide' : 'View'} Responses
           </Button>
@@ -284,10 +315,13 @@ const SingleNote = ({
         <>
           <hr />
           <SingleNoteResponses
-            comments={note?.comments}
+            noteId={note.note_id}
+            comments={currentComments}
             currentVoter={currentVoter}
             isEnabled={isEnabled}
             isLoggedIn={isLoggedIn}
+            handleRefetch={handleRefetch}
+            latestComment={latestComment}
           />
         </>
       )}
