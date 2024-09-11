@@ -5,10 +5,9 @@ import * as blake from 'blakejs';
 import {HttpService} from '@nestjs/axios';
 import {AttachmentService} from 'src/attachment/attachment.service';
 import {catchError, firstValueFrom, Observable} from 'rxjs';
-import axios, {AxiosResponse} from 'axios';
+import {AxiosResponse} from 'axios';
 import {InjectDataSource} from '@nestjs/typeorm';
 import {DataSource} from 'typeorm';
-import {ConfigService} from '@nestjs/config';
 import {ReactionsService} from 'src/reactions/reactions.service';
 import {CommentsService} from 'src/comments/comments.service';
 import {
@@ -29,6 +28,7 @@ import {JsonLd} from 'jsonld/jsonld-spec';
 import {Response} from 'express';
 import {getDrepCexplorerDetailsQuery} from 'src/queries/drepCexplorerDetails';
 import {getDrepDelegatorsWithVotingPowerQuery} from 'src/queries/drepDelegatorsWithVotingPower';
+import { BlockfrostService } from 'src/blockfrost/blockfrost.service';
 
 @Injectable()
 export class DrepService {
@@ -38,11 +38,11 @@ export class DrepService {
     @InjectDataSource('dbsync')
     private cexplorerService: DataSource,
     private attachmentService: AttachmentService,
-    private configService: ConfigService,
     private reactionsService: ReactionsService,
     private commentsService: CommentsService,
     private authService: AuthService,
     private readonly httpService: HttpService,
+    private blockfrostService: BlockfrostService,
   ) {}
   async getAllDReps(
     query?: string,
@@ -324,7 +324,9 @@ export class DrepService {
     //account for voting options
     if (
       combinedResult.cexplorerDetails?.view.includes('drep_always_abstain') ||
-      combinedResult.cexplorerDetails?.view.includes('drep_always_no_confidence')
+      combinedResult.cexplorerDetails?.view.includes(
+        'drep_always_no_confidence',
+      )
     ) {
       combinedResult['type'] = 'voting_option';
     } else if (!!combinedResult.cexplorerDetails.has_script) {
@@ -670,20 +672,9 @@ export class DrepService {
   }
   async getEpochParams() {
     try {
-      const APIURL = `${this.configService.get<string>(
-        'BLOCKFROST_NETWORK_URL',
-      )}/api/v0/epochs/latest/parameters`;
-      const response = await axios.get(APIURL, {
-        headers: {
-          project_id: this.configService.get<string>(
-            'BLOCKFROST_NETWORK_PROJECT_ID',
-          ),
-        },
-      });
-      return response.data;
+      return await this.blockfrostService.getEpochParameters();
     } catch (error) {
       console.error('Blockfrost API call failed:', error);
-
       try {
         // Fallback to cexplorerService
         const fallbackResponse =
