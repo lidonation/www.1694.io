@@ -108,8 +108,8 @@ const SubmitMetadataModal = ({ onClose, onSuccessfulSubmit }) => {
         currentHostedUrl,
         jsonHash,
       );
-      await signAndSubmitTransaction(updateDRepMetadataCert);
-      onSuccessfulSubmit();
+      const res = await signAndSubmitTransaction(updateDRepMetadataCert);
+      onSuccessfulSubmit(res.resultHash);
       onClose();
     } catch (error) {
       console.log(error);

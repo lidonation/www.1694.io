@@ -17,4 +17,15 @@ export class MiscellaneousService {
     );
     return epoch[0];
   }
+
+  async checkTxExists(hash: string) {
+    const tx = await this.cexplorerService.manager.query(
+      `SELECT id, SUBSTRING(CAST(tx.hash AS TEXT) FROM 3) AS tx_hash 
+       FROM "tx" 
+       WHERE "hash" = decode($1, 'hex');`,
+      [hash],
+    );
+
+    return tx[0]?.tx_hash ? true : false;
+  }
 }
