@@ -1,23 +1,16 @@
-import {
-  HttpException,
-  HttpStatus,
-  Injectable,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
-import { createDrepDto, ValidateMetadataDTO } from 'src/dto';
-import { faker } from '@faker-js/faker';
+import {HttpException, HttpStatus, Injectable, Logger, NotFoundException,} from '@nestjs/common';
+import {createDrepDto, ValidateMetadataDTO} from 'src/dto';
+import {faker} from '@faker-js/faker';
 import * as blake from 'blakejs';
-import { HttpService } from '@nestjs/axios';
-import { AttachmentService } from 'src/attachment/attachment.service';
-import { Observable } from 'rxjs';
-import { AxiosResponse } from 'axios';
-import { InjectDataSource } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
-import { ConfigService } from '@nestjs/config';
-import axios from 'axios';
-import { ReactionsService } from 'src/reactions/reactions.service';
-import { CommentsService } from 'src/comments/comments.service';
+import {HttpService} from '@nestjs/axios';
+import {AttachmentService} from 'src/attachment/attachment.service';
+import {catchError, firstValueFrom, Observable} from 'rxjs';
+import axios, {AxiosResponse} from 'axios';
+import {InjectDataSource} from '@nestjs/typeorm';
+import {DataSource} from 'typeorm';
+import {ConfigService} from '@nestjs/config';
+import {ReactionsService} from 'src/reactions/reactions.service';
+import {CommentsService} from 'src/comments/comments.service';
 import {
   Delegation,
   IPFSResponse,
@@ -26,21 +19,16 @@ import {
   MetadataValidationStatus,
   ValidateMetadataResult,
 } from 'src/common/types';
-import { AuthService } from 'src/auth/auth.service';
-import { getAllDRepsQuery, getTotalResultsQuery } from 'src/queries/getDReps';
-import {
-  getDRepDelegatorsCountQuery,
-  getDRepVotesCountQuery,
-  getDRepVotingPowerQuery,
-} from 'src/queries/drepStats';
-import { catchError, firstValueFrom } from 'rxjs';
-import { Metadata } from 'src/entities/metadata.entity';
-import { getEpochParams } from 'src/queries/getEpochParams';
-import { getDRepDelegatorsHistory } from 'src/queries/drepDelegatorsHistory';
-import { JsonLd } from 'jsonld/jsonld-spec';
-import { Response } from 'express';
-import { getDrepCexplorerDetailsQuery } from 'src/queries/drepCexplorerDetails';
-import { getDrepDelegatorsWithVotingPowerQuery } from 'src/queries/drepDelegatorsWithVotingPower';
+import {AuthService} from 'src/auth/auth.service';
+import {getAllDRepsQuery, getTotalResultsQuery} from 'src/queries/getDReps';
+import {getDRepDelegatorsCountQuery, getDRepVotesCountQuery, getDRepVotingPowerQuery,} from 'src/queries/drepStats';
+import {Metadata} from 'src/entities/metadata.entity';
+import {getEpochParams} from 'src/queries/getEpochParams';
+import {getDRepDelegatorsHistory} from 'src/queries/drepDelegatorsHistory';
+import {JsonLd} from 'jsonld/jsonld-spec';
+import {Response} from 'express';
+import {getDrepCexplorerDetailsQuery} from 'src/queries/drepCexplorerDetails';
+import {getDrepDelegatorsWithVotingPowerQuery} from 'src/queries/drepDelegatorsWithVotingPower';
 
 @Injectable()
 export class DrepService {
@@ -523,8 +511,6 @@ export class DrepService {
     beforeDate: Date,
     tillDate: Date,
   ) {
-    const viewParam = drepVoterId;
-
     // Convert the start and end times from seconds to timestamps
     const drepVotingHistory = (await this.cexplorerService.manager.query(
       `SELECT  
@@ -555,7 +541,7 @@ export class DrepService {
           AND bk.time::DATE BETWEEN $3::DATE AND $2::DATE
       ORDER BY 
           bk.epoch_no`,
-      [viewParam, beforeDate, tillDate],
+      [drepVoterId, beforeDate, tillDate],
     )) as any[];
 
     return drepVotingHistory.map((item) => {
