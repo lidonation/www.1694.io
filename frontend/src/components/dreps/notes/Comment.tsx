@@ -178,7 +178,7 @@ const Comment: React.FC<CommentProps> = ({
       style={{ marginLeft: depth * 20 }}
       className={`flex flex-col gap-2 px-2 py-1 ${depth > 0 && 'border-l pl-3'} ${
         isHighlighted && comment?.id == latestComment
-          ? 'bg-fuchsia-200 transition-colors duration-1000'
+          ? 'bg-fuchsia-200 transition-colors duration-1000 rounded'
           : ''
       }`}
     >

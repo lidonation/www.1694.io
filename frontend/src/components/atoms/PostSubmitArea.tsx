@@ -1,20 +1,56 @@
-import React from 'react';
+'use client';
+import React, { useEffect, useState } from 'react';
 import Button from './Button';
 import { useCardano } from '@/context/walletContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import SpinnerIcon from './svgs/SpinnerIcon';
+
+type PostSubmitAreaProps = {
+  isUpdating?: boolean;
+  showViewTimeline?: boolean;
+  isLoading?: boolean;
+  noteCreatedAt?: string;
+};
+
 const PostSubmitArea = ({
   isUpdating = false,
   showViewTimeline = true,
-}: {
-  isUpdating?: boolean;
-  showViewTimeline?: boolean;
-}) => {
+  isLoading,
+  noteCreatedAt,
+}: PostSubmitAreaProps) => {
+  const [bgColor, setBgColor] = useState('transparent');
+  const TEN_MINUTES = 10 * 60 * 1000;
+
   const router = useRouter();
   const { isEnabled, dRepIDBech32 } = useCardano();
+
+  const isRecentlyCreated = new Date().getTime() - new Date(noteCreatedAt).getTime() <= TEN_MINUTES;
+
+  useEffect(() => {
+    if (isRecentlyCreated) {
+      let toggle = false;
+      const interval = setInterval(() => {
+        toggle = !toggle;
+        setBgColor(toggle ? '#f5d0fe' : 'transparent');
+      }, 500);
+
+      const stopTimer = setTimeout(() => {
+        clearInterval(interval);
+        setBgColor('transparent');
+      }, 10 * 1000);
+
+      return () => {
+        clearInterval(interval);
+        clearTimeout(stopTimer);
+      };
+    }
+  }, [isRecentlyCreated]);
+
   const handleCancel = () => {
-    router.back(); // Redirects to the previous page
+    router.back();
   };
+
   return (
     <div
       className={`flex w-full flex-row items-center ${!!showViewTimeline ? 'justify-between' : 'justify-end'}`}
@@ -22,7 +58,7 @@ const PostSubmitArea = ({
       {showViewTimeline && (
         <Button
           variant="text"
-          bgcolor="transparent"
+          bgcolor={bgColor}
           sx={!isEnabled ? { pointerEvents: 'none' } : {}}
           disabled={!isUpdating}
         >
@@ -50,10 +86,14 @@ const PostSubmitArea = ({
           type="submit"
           data-testid="post-submit-button"
           sx={!isEnabled ? { pointerEvents: 'none' } : {}}
+          className="flex items-center gap-2"
         >
           <p className="text-center text-sm font-medium leading-4 text-white">
             Post
           </p>
+          {isLoading && (
+            <SpinnerIcon/>
+          )}
         </Button>
       </div>
     </div>
