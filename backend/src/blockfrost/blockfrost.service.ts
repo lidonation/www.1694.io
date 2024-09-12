@@ -46,11 +46,11 @@ export class BlockfrostService {
   }
   async getLatestBlock() {
     try {
-      //fetch the latest block from blockfrost API
-      const apiUrl = `${this.blockfrostAPIFallbackURL}/api/v0/blocks/latest`;
+      //fetch the latest block from external blockfrost API
+      const apiUrl = `${this.blockfrostAPIFallbackURL}/api/v0/blocks/latest`; //use the fallback API
       const response = await axios.get(apiUrl, {
         headers: {
-          project_id: this.blockfrostAPIFallbackProjectID,
+          project_id: this.blockfrostAPIFallbackProjectID, //use the fallback project ID
         },
       });
       return response.data;
@@ -65,11 +65,11 @@ export class BlockfrostService {
 
   async getLatestEpoch() {
     try {
-      const apiUrl = `${this.blockfrostAPIFallbackURL}/api/v0/epochs/latest`;
+      const apiUrl = `${this.blockfrostAPIURL}/api/v0/epochs/latest`;
       const response = await lastValueFrom(
         this.httpService.get(apiUrl, {
           headers: {
-            project_id: this.blockfrostAPIFallbackProjectID,
+            project_id: this.blockfrostAPIProjectID,
           },
         }),
       );
@@ -84,11 +84,11 @@ export class BlockfrostService {
   }
   async getEpochParameters() {
     try {
-      const apiUrl = `${this.blockfrostAPIFallbackURL}/api/v0/epochs/latest/parameters`;
+      const apiUrl = `${this.blockfrostAPIURL}/api/v0/epochs/latest/parameters`;
       const response = await lastValueFrom(
         this.httpService.get(apiUrl, {
           headers: {
-            project_id: this.blockfrostAPIFallbackProjectID,
+            project_id: this.blockfrostAPIProjectID,
           },
         }),
       );
