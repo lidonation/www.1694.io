@@ -10,17 +10,24 @@ export class BlockfrostService {
   blockfrostAPIProjectID: string;
   blockfrostIPFSURL: string;
   blockfrostIPFSProjectID: string;
-  constructor(private configService: ConfigService, private httpService: HttpService) {
-    this.blockfrostAPIURL = this.configService.get<string>(
-      'BLOCKFROST_NETWORK_URL',
-    ) || this.configService.get<string>('BLOCKFROST_NETWORK_URL_FALLBACK');
-    this.blockfrostAPIProjectID = this.configService.get<string>(
-      'BLOCKFROST_NETWORK_PROJECT_ID',
-    ) || this.configService.get<string>('BLOCKFROST_NETWORK_PROJECT_ID_FALLBACK');
-    this.blockfrostIPFSURL = 'https://ipfs.blockfrost.io';
-    this.blockfrostIPFSProjectID = this.configService.get<string>(
-      'BLOCKFROST_IPFS_PROJECT_ID',
-    );
+  constructor(
+    private configService: ConfigService,
+    private httpService: HttpService,
+  ) {
+    //use the external blockfrost API to fetch data(fallback) before the local blockfrost API is ready
+    this.blockfrostAPIURL =
+      this.configService.get<string>('BLOCKFROST_NETWORK_URL_FALLBACK') ||
+      this.configService.get<string>('BLOCKFROST_NETWORK_URL');
+    this.blockfrostAPIProjectID =
+      this.configService.get<string>(
+        'BLOCKFROST_NETWORK_PROJECT_ID_FALLBACK',
+      ) || this.configService.get<string>('BLOCKFROST_NETWORK_PROJECT_ID');
+    this.blockfrostIPFSURL =
+      this.configService.get<string>('BLOCKFROST_IPFS_URL_FALLBACK') ||
+      this.configService.get<string>('BLOCKFROST_IPFS_URL');
+    this.blockfrostIPFSProjectID =
+      this.configService.get<string>('BLOCKFROST_IPFS_PROJECT_ID_FALLBACK') ||
+      this.configService.get<string>('BLOCKFROST_IPFS_PROJECT_ID');
   }
   async getLatestBlock() {
     try {
@@ -44,7 +51,7 @@ export class BlockfrostService {
   async getLatestEpoch() {
     try {
       const apiUrl = `${this.blockfrostAPIURL}/api/v0/epochs/latest`;
-      const response = await lastValueFrom( 
+      const response = await lastValueFrom(
         this.httpService.get(apiUrl, {
           headers: {
             project_id: this.blockfrostAPIProjectID,
@@ -79,5 +86,4 @@ export class BlockfrostService {
       );
     }
   }
-  
 }
