@@ -9,7 +9,7 @@ const Footer = () => {
     <div className="w-full flex-col items-center justify-center bg-zinc-800 py-2 text-white">
       <div className="mb-12 flex items-center justify-center p-5">
         <img
-          src="/svgs/govtool-1694-white.svg"
+          src="/img/logos/govtool-white.png"
           alt="Sancho logo"
           width={'300px'}
           height={'77px'}
