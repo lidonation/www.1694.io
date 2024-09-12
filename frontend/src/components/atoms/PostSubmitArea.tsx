@@ -4,7 +4,7 @@ import Button from './Button';
 import { useCardano } from '@/context/walletContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import SpinnerIcon from './svgs/SpinnerIcon';
+import DotsLoader from './DotsLoader';
 
 type PostSubmitAreaProps = {
   isUpdating?: boolean;
@@ -38,7 +38,7 @@ const PostSubmitArea = ({
       const stopTimer = setTimeout(() => {
         clearInterval(interval);
         setBgColor('transparent');
-      }, 10 * 1000);
+      }, 2000);
 
       return () => {
         clearInterval(interval);
@@ -61,6 +61,7 @@ const PostSubmitArea = ({
           bgcolor={bgColor}
           sx={!isEnabled ? { pointerEvents: 'none' } : {}}
           disabled={!isUpdating}
+          className="duration-3000 transition-all ease-linear"
         >
           <Link
             href={`/dreps/${dRepIDBech32}`}
@@ -88,11 +89,15 @@ const PostSubmitArea = ({
           sx={!isEnabled ? { pointerEvents: 'none' } : {}}
           className="flex items-center gap-2"
         >
-          <p className="text-center text-sm font-medium leading-4 text-white">
-            Post
-          </p>
+          {!isLoading && (
+            <p className="text-center text-sm font-medium leading-4 text-white">
+              Post
+            </p>
+          )}
           {isLoading && (
-            <SpinnerIcon/>
+            <div className="mx-auto transition-all duration-300 ease-linear">
+              <DotsLoader size={10} shadowOffset={12} />
+            </div>
           )}
         </Button>
       </div>

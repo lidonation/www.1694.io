@@ -65,7 +65,8 @@ const UpdateNoteForm = ({ noteId, initialValues }) => {
         stake_addr: stakeAddress,
         voter: dRepIDBech32,
       };
-      const res = mutation.mutateAsync({ noteId: noteId, note: updatedNote });
+      await mutation.mutateAsync({ noteId: noteId, note: updatedNote });
+
       addSuccessAlert('Note Updated Successfully!');
       setIsLoading(false);
     } catch (error) {
@@ -77,7 +78,7 @@ const UpdateNoteForm = ({ noteId, initialValues }) => {
   const onError = (err) => {
     console.log(err);
   };
-  
+
   return (
     <form
       className="mb-48 mt-4 rounded-3xl bg-slate-50 p-5 shadow-lg"
