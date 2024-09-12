@@ -200,11 +200,11 @@ export class AttachmentService {
     try {
       const res = await lastValueFrom(
         this.httpService.post(
-          `${this.blockfrostService.blockfrostIPFSURL}/api/v0/ipfs/add`,
+          `${this.blockfrostService.blockfrostIPFSFallbackURL}/api/v0/ipfs/add`,
           attachment,
           {
             headers: {
-              project_id: this.blockfrostService.blockfrostIPFSProjectID,
+              project_id: this.blockfrostService.blockfrostIPFSFallbackProjectID,
             },
           },
         ),
@@ -227,11 +227,11 @@ export class AttachmentService {
     try {
       const res = await lastValueFrom(
         this.httpService.post(
-          `${this.blockfrostService.blockfrostIPFSURL}/api/v0/ipfs/pin/add/${hash}`,
+          `${this.blockfrostService.blockfrostIPFSFallbackURL}/api/v0/ipfs/pin/add/${hash}`,
           {},
           {
             headers: {
-              project_id: this.blockfrostService.blockfrostIPFSProjectID,
+              project_id: this.blockfrostService.blockfrostIPFSFallbackProjectID,
             },
           },
         ),
@@ -246,10 +246,10 @@ export class AttachmentService {
     try {
       const res = await lastValueFrom(
         this.httpService.get(
-          `${this.blockfrostService.blockfrostIPFSURL}/api/v0/ipfs/pin/list/${hash}`,
+          `${this.blockfrostService.blockfrostIPFSFallbackURL}/api/v0/ipfs/pin/list/${hash}`,
           {
             headers: {
-              project_id: this.blockfrostService.blockfrostIPFSProjectID,
+              project_id: this.blockfrostService.blockfrostIPFSFallbackProjectID,
             },
           },
         ),
@@ -264,11 +264,11 @@ export class AttachmentService {
     try {
       const res = await lastValueFrom(
         this.httpService.post(
-          `${this.blockfrostService.blockfrostIPFSURL}/api/v0/ipfs/pin/remove/${hash}`,
+          `${this.blockfrostService.blockfrostIPFSFallbackURL}/api/v0/ipfs/pin/remove/${hash}`,
           {},
           {
             headers: {
-              project_id: this.blockfrostService.blockfrostIPFSProjectID,
+              project_id: this.blockfrostService.blockfrostIPFSFallbackProjectID,
             },
           },
         ),
@@ -283,10 +283,10 @@ export class AttachmentService {
     try {
       const response = await lastValueFrom(
         this.httpService.get(
-          `${this.blockfrostService.blockfrostIPFSURL}/api/v0/ipfs/gateway/${hash}`,
+          `${this.blockfrostService.blockfrostIPFSFallbackURL}/api/v0/ipfs/gateway/${hash}`,
           {
             headers: {
-              project_id: this.blockfrostService.blockfrostIPFSProjectID,
+              project_id: this.blockfrostService.blockfrostIPFSFallbackProjectID,
             },
             responseType: 'stream', // Used stream to handle large files or non-JSON data
           },
