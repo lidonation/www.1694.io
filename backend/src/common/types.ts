@@ -59,3 +59,49 @@ export type IPFSPinStatusResponse = {
   size: string;
   state: 'queued' | 'pinned' | 'unpinned' | 'failed' | 'gc';
 };
+
+/**
+ * Represents the response object for a Blockfrost block.
+ *
+ * @remarks
+ * This type contains information about a specific block in the Blockfrost blockchain.
+ *
+ * 
+ * @remarks {height} - block number
+ */
+export type BlockfrostBlockRes = {
+  time: number;
+  height: number; // block number
+  hash: string;
+  slot: number;
+  epoch: number;
+  epoch_slot: number;
+  slot_leader: string;
+  size: number;
+  tx_count: number;
+  output: string;
+  fees: string;
+  block_vrf: string;
+  op_cert: string;
+  op_cert_counter: string;
+  previous_block: string;
+  next_block: null | string;
+  confirmations: number;
+};
+export type NodeBlockRes = {
+  hash: string;
+  epoch_no: number;
+  slot_no: string;
+  epoch_slot_no: number;
+  block_no: number;
+  previous_id: string;
+  slot_leader: string;
+  size: number;
+  time: string;
+  tx_count: string;
+  proto_major: number;
+  proto_minor: number;
+  vrf_key: string;
+  op_cert: string;
+  op_cert_counter: string;
+};

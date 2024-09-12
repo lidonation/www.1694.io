@@ -10,6 +10,7 @@ import VoltaireMenu from '../molecules/VoltaireMenu';
 import DRepMenu from '../molecules/DRepMenu';
 import { SliderMenu } from '../organisms/SliderMenu';
 import NotificationDrawer from "@/components/molecules/NotificationDrawer";
+import { CONFIGURED_NETWORK_NAME } from '@/constants';
 
 const Header = () => {
   const { isEnabled } = useCardano();
@@ -18,6 +19,22 @@ const Header = () => {
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const pathname = usePathname();
   const [activeLink, setActiveLink] = useState(null);
+  const renderLogoOnNetworkChange = () => {
+    if(CONFIGURED_NETWORK_NAME){
+      switch(CONFIGURED_NETWORK_NAME){
+        case 'sanchonet':
+          return '/img/logos/sancho-black.png';
+        case 'mainnet':
+          return '/img/logos/mainnet-black.png';
+        case 'preview':
+          return '/img/logos/preview-black.png';
+        default:
+          return '/img/logos/sancho-black.png';
+      }
+    }
+    //return default logo if network name is not set
+    return '/img/logos/sancho-black.png';
+  }
   useEffect(() => {
     // Setting the active link based on the current pathname
     setActiveLink(pathname);
@@ -28,7 +45,7 @@ const Header = () => {
       <div className="base_container flex shrink-0 flex-row items-center justify-between py-6 ">
         <Link href="/">
           <img
-            src="/svgs/sancho1694.svg"
+            src={renderLogoOnNetworkChange()}
             alt="Sancho logo"
             width={isMobile ? 100 : 150}
           />

@@ -12,7 +12,7 @@ const page = (params: { params: { noteid: number } }) => {
   const { setIsWalletListModalOpen } = useDRepContext();
   //displays or hides modal only if in form page
   useEffect(() => {
-    const fetchNoteandCheckLogin = async () => {
+    const fetchNoteAndCheckLogin = async () => {
       try {
         if (!isEnabled) setIsWalletListModalOpen(true);
         const note = await getSingleNote(params.params.noteid);
@@ -21,7 +21,7 @@ const page = (params: { params: { noteid: number } }) => {
         console.log(error);
       }
     };
-    fetchNoteandCheckLogin();
+    fetchNoteAndCheckLogin();
     return () => {
       setIsWalletListModalOpen(false);
     };

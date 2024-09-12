@@ -3,6 +3,7 @@ import { convertString } from '@/lib';
 import Link from 'next/link';
 import React from 'react';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
+import {Box} from "@mui/material";
 const VoteStatusChip = ({ date }: { date: string }) => {
   return (
     <div className="flex flex-row items-center justify-between">
@@ -16,13 +17,13 @@ const VoteStatusChip = ({ date }: { date: string }) => {
 };
 const DrepVoteTimelineCard = ({ item }: { item: any }) => {
   return (
-    <div
+    <Box
       id="epoch-card"
       className="flex max-w-md flex-col gap-3 rounded-xl bg-white p-3 shadow-lg"
     >
       <VoteStatusChip date={item.time_voted} />
       <hr />
-      <div className="flex max-w-52 flex-col gap-1">
+      <Box className="flex max-w-52 flex-col gap-1">
         <p className="text-lg font-bold">
           For {item?.description?.tag || null}
         </p>
@@ -41,7 +42,7 @@ const DrepVoteTimelineCard = ({ item }: { item: any }) => {
             <img src="/svgs/copy.svg" alt="copy" />
           </CopyToClipboard>
         </div>
-      </div>
+      </Box>
       <Link
         href={`${urls.govToolUrl}/governance_actions/${item?.gov_action_proposal_id}#0`}
         target="_blank"
@@ -49,7 +50,7 @@ const DrepVoteTimelineCard = ({ item }: { item: any }) => {
       >
         View Governance Action
       </Link>
-    </div>
+    </Box>
   );
 };
 
