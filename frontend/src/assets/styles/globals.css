@@ -205,3 +205,12 @@ table.dreps-table .drep_always_no_confidence > td {
     66% {box-shadow: 60px 0 #4340ff,-60px 0 #0033AD; background: #4340ff}
     100%{box-shadow: 60px 0 #4340ff,-60px 0 #0033AD; background: #0033AD }
 }
+
+
+.parsed-content a {
+  @apply text-primary-300;
+  text-decoration: none;
+}
+.parsed-content a:hover {
+  @apply text-primary-400
+}
