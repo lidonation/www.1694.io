@@ -5,14 +5,16 @@ import { postAddReaction } from '@/services/requests/postAddReaction';
 import { postRemoveReaction } from '@/services/requests/postRemoveReaction';
 import SingleNoteResponses from './SingleNoteResponses';
 import { useDRepContext } from '@/context/drepContext';
-import PostTextareaInput from '@/components/atoms/PostTextareaInput';
 import { z } from 'zod';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { postAddComment } from '@/services/requests/postAddComment';
-import { processNoteContent } from '@/lib/noteContentProcessor/processNoteContent';
 import * as marked from 'marked';
 import { useGetSingleNoteQuery } from '@/hooks/useGetSingleNoteQuery';
+import { processContent } from '@/lib/ContentProcessor/processContent';
+import MarkdownEditor from '@/components/atoms/MarkdownEditor';
+import DisplayParsedContent from '@/components/atoms/DisplayParsedContent';
+
 const SingleNote = ({
   note,
   currentVoter,
@@ -45,10 +47,13 @@ const SingleNote = ({
     note?.note_id,
     performReload,
   );
+
   const FormSchema = z.object({
-    comment: z.string(),
+    comment: z.string().min(1, 'Comment is required'),
   });
+
   type InputType = z.infer<typeof FormSchema>;
+
   const {
     handleSubmit,
     reset,
@@ -90,6 +95,7 @@ const SingleNote = ({
       setCurrentComments(Note.comments);
     }
   }, [Note, isNoteLoading]);
+
   const startCommenting = () => {
     if (!isEnabled) {
       setIsWalletListModalOpen(true);
@@ -101,22 +107,24 @@ const SingleNote = ({
     }
     setIsCommenting(true);
   };
+
   const countTotalComments = (comments) => {
     // If there are no comments, return 0
     if (!comments || comments.length === 0) return 0;
-  
+
     let totalCount = comments.length; // Counting top-level comments
-  
+
     // Loop through each comment
-    comments.forEach(comment => {
+    comments.forEach((comment) => {
       // Recursively count the responses (nested comments)
       if (comment.comments && comment.comments.length > 0) {
         totalCount += countTotalComments(comment.comments); // Add nested comment count
       }
     });
-  
+
     return totalCount;
   };
+
   const handleReaction = async (type) => {
     //to prevent orphan reaction till say wallet is done connecting
     if (!isEnabled) {
@@ -177,16 +185,20 @@ const SingleNote = ({
       }
     }
   };
+
   const handleRefetch = () => {
     setPerformReload(true);
     setTimeout(() => {
       setPerformReload(false);
     }, 100);
   };
+
   const saveComment: SubmitHandler<InputType> = async (data) => {
     try {
       const { comment } = data;
       const res = await postAddComment({
+        rootEntity: 'note',
+        rootEntityId: note.note_id,
         parentId: note.note_id,
         parentEntity: 'note',
         comment,
@@ -203,7 +215,7 @@ const SingleNote = ({
   };
 
   const noteContent = useMemo(
-    () => processNoteContent(note.note_note_content),
+    () => processContent(note.note_note_content),
     [note.note_note_content],
   );
 
@@ -239,6 +251,7 @@ const SingleNote = ({
               return React.cloneElement(item, { key: index });
             }
           })}
+        {!!noteContent && <DisplayParsedContent content={noteContent} />}
         {!!note.note_note_tag && (
           <div className="flex flex-col gap-1">
             <p className="text-sm">Tags</p>
@@ -256,7 +269,7 @@ const SingleNote = ({
           </div>
         )}
       </div>
-      <div className="flex items-center gap-5 bg-[#F3F5FF] px-5 py-1">
+      <div className="flex items-center gap-5 bg-extra_gray px-5 py-1">
         <p className="text-sm">Submission Date:</p>
         <p className="text-sm">
           {new Date(note.note_createdAt).toDateString()}
@@ -278,7 +291,8 @@ const SingleNote = ({
               }
             }}
           >
-            {showResponses ? 'Hide' : 'View'} Responses ({countTotalComments(currentComments)})
+            {showResponses ? 'Hide' : 'View'} Responses (
+            {countTotalComments(currentComments)})
           </Button>
         </div>
         <div className="flex gap-5">
@@ -310,12 +324,7 @@ const SingleNote = ({
           onSubmit={handleSubmit(saveComment, (error) => console.log(error))}
           className="flex flex-col gap-1 px-5 py-1"
         >
-          <PostTextareaInput
-            control={control}
-            errors={errors}
-            name="comment"
-            label=""
-          />
+          <MarkdownEditor name="comment" control={control} errors={errors} />
           <div className="flex flex-row items-center justify-center gap-2 sm:justify-end lg:gap-3">
             <Button type="submit">Comment</Button>
             <Button

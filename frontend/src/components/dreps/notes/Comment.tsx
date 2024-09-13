@@ -4,12 +4,15 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Button from '@/components/atoms/Button';
-import PostTextareaInput from '@/components/atoms/PostTextareaInput';
 import { postAddComment } from '@/services/requests/postAddComment';
 import { convertString } from '@/lib';
 import { postRemoveReaction } from '@/services/requests/postRemoveReaction';
 import { postAddReaction } from '@/services/requests/postAddReaction';
-import * as marked from 'marked';
+import { processContent } from '@/lib/ContentProcessor/processContent';
+import MarkdownEditor from '@/components/atoms/MarkdownEditor';
+import DisplayParsedContent from '@/components/atoms/DisplayParsedContent';
+
+
 type CommentProps = {
   parentNoteId: number;
   comment: any; // Replace `any` with your comment type
@@ -41,6 +44,7 @@ const Comment: React.FC<CommentProps> = ({
   const [isHighlighted, setIsHighlighted] = useState(false);
   const [currentLatestComment, setCurrentLatestComment] =
     useState(latestComment);
+  const [commentContent, setCommentContent] = useState(null);
 
   useEffect(() => {
     if (currentLatestComment) {
@@ -94,6 +98,11 @@ const Comment: React.FC<CommentProps> = ({
     };
     setReactionCounts(initialReactionsCount);
   }, [comment.reactions, currentVoter]);
+
+  useEffect(() => {
+    const content = () => processContent(comment.content);
+    setCommentContent(content);
+  }, [comment.content]);
 
   const reactionIcons = {
     like: '/svgs/reactions/heart.svg',
@@ -158,6 +167,8 @@ const Comment: React.FC<CommentProps> = ({
     try {
       const { comment } = data;
       const res = await postAddComment({
+        rootEntity: 'note',
+        rootEntityId: parentNoteId,
         parentId: commentId,
         parentEntity: 'comment',
         comment,
@@ -178,17 +189,24 @@ const Comment: React.FC<CommentProps> = ({
       style={{ marginLeft: depth * 20 }}
       className={`flex flex-col gap-2 px-2 py-1 ${depth > 0 && 'border-l pl-3'} ${
         isHighlighted && comment?.id == latestComment
-          ? 'bg-fuchsia-200 transition-colors duration-1000 rounded'
+          ? 'rounded bg-fuchsia-200 transition-colors duration-1000'
           : ''
       }`}
     >
-      <Typography className="font-bold" variant="subtitle1">
-        {convertString(comment.voter, true)}
-      </Typography>
-      <Typography
-        dangerouslySetInnerHTML={{ __html: marked.parse(comment.content) }}
-        variant="caption"
-      ></Typography>
+      <div className="flex items-center gap-4">
+        <Typography className="font-bold underline" variant="subtitle1">
+          {convertString(comment.voter, true)}
+        </Typography>
+        <div className="flex items-center gap-2 rounded bg-extra_gray px-2">
+          <p className="text-sm">Posted:</p>
+          <p className="text-sm">
+            {new Date(comment?.createdAt).toDateString()}
+          </p>
+        </div>
+      </div>
+
+      {!!commentContent && <DisplayParsedContent content={commentContent} />}
+
       <div className="flex flex-col justify-start gap-3 md:flex-row md:gap-5">
         {!isReplying && (
           <div className="w-fit">
@@ -228,12 +246,7 @@ const Comment: React.FC<CommentProps> = ({
           )}
           className="flex flex-col gap-1 px-5 py-1"
         >
-          <PostTextareaInput
-            control={control}
-            errors={errors}
-            name="comment"
-            label=""
-          />
+          <MarkdownEditor name="comment" control={control} errors={errors} />
           <div className="flex flex-row items-center justify-center gap-2 sm:justify-end">
             <Button type="submit">Comment</Button>
             <Button
