@@ -446,7 +446,7 @@ export class DrepService {
       ...drepNotes.map((note) => ({
         ...note,
         type: 'note',
-        timestamp: note.note_createdAt,
+        timestamp: note.note_updatedAt,
       })),
       ...drepDelegatorsHistory,
     ];
