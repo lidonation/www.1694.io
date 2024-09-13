@@ -238,19 +238,6 @@ const SingleNote = ({
         <Typography className="font-black" variant="h5">
           {note.note_note_title}
         </Typography>
-        {!!noteContent &&
-          noteContent.map((item, index) => {
-            if (typeof item === 'string') {
-              return (
-                <Typography
-                  key={index}
-                  dangerouslySetInnerHTML={{ __html: marked.parse(item) }}
-                ></Typography>
-              );
-            } else if (React.isValidElement(item)) {
-              return React.cloneElement(item, { key: index });
-            }
-          })}
         {!!noteContent && <DisplayParsedContent content={noteContent} />}
         {!!note.note_note_tag && (
           <div className="flex flex-col gap-1">
