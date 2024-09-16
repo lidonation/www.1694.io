@@ -135,7 +135,7 @@ export class NoteService {
     // 'delegators' visibility
     if (delegation) {
       queryBuilder.orWhere(
-        'note.note_visibility = :delegators AND signature.drepVoterId = :drepVoterId',
+        'note.note_visibility = :delegators AND signature.voterId = :drepVoterId',
         {
           delegators: 'delegators',
           drepVoterId: delegation.drep_view,
@@ -145,7 +145,7 @@ export class NoteService {
     // 'myself' visibility
     if (stakeKeyBech32) {
       queryBuilder.orWhere(
-        'note.note_visibility = :myself AND signature.drepStakeKey = :stakeKeyBech32',
+        'note.note_visibility = :myself AND signature.stakeKey = :stakeKeyBech32',
         {
           myself: 'myself',
           stakeKeyBech32: stakeKeyBech32,

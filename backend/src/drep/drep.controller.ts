@@ -82,7 +82,7 @@ export class DrepController {
 
     if (drepId) {
       drep = await this.drepService.getSingleDrepViaID(drepId);
-      drepVoterId = drep.signature_drepVoterId;
+      drepVoterId = drep.signature_voterId;
     } else if (drepVoterId) {
       drep = await this.drepService.getSingleDrepViaVoterID(drepVoterId);
     }
