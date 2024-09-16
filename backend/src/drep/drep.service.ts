@@ -42,6 +42,7 @@ import {
   getDrepDelegatorsWithVotingPowerQuery,
 } from 'src/queries/drepDelegatorsWithVotingPower';
 import { BlockfrostService } from 'src/blockfrost/blockfrost.service';
+import { drepRegistrationQuery } from 'src/queries/drepRegistration';
 
 @Injectable()
 export class DrepService {
@@ -967,8 +968,13 @@ export class DrepService {
   }
 
   async isDrepRegistered(voterId: string) {
-    const registration = await this.getDrepDateofRegistration(voterId);
+    const latestRegistration = await this.cexplorerService.manager.query(
+      drepRegistrationQuery,
+      [voterId],
+    );
 
-    return !!registration ? true : false;
+    const regDeposit = latestRegistration[0]?.deposit;
+
+    return regDeposit === null || regDeposit > 0;
   }
 }
