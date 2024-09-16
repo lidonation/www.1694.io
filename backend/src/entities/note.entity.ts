@@ -2,6 +2,7 @@ import { Entity, Column, ManyToOne, OneToMany } from 'typeorm';
 import { Drep } from './drep.entity';
 import { BaseEntity } from 'src/global';
 import { Reaction } from './reaction.entity';
+import { Signature } from './signatures.entity';
 
 @Entity()
 export class Note extends BaseEntity {
@@ -15,7 +16,10 @@ export class Note extends BaseEntity {
   note_content: string;
 
   @ManyToOne(() => Drep, (drep) => drep.id)
-  voter: Drep;
+  drep: Drep; // This is the Drep/ drep page that the note belongs to/will be hosted by
+  
+  @ManyToOne(() => Signature, (signature) => signature.id)
+  author: Signature; // This is the Signature/ user that wrote the note
 
   @Column()
   note_visibility: string;

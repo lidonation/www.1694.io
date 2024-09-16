@@ -59,10 +59,10 @@ export type SingleDRep = {
   attachment_drepId?: number | null;
   attachment_commentId?: number | null;
   signature_id?: number | null;
-  signature_drepVoterId?: string | null;
-  signature_drepStakeKey?: string | null;
-  signature_drepSignature?: string | null;
-  signature_drepSignatureKey?: string | null;
+  signature_voterId?: string | null;
+  signature_stakeKey?: string | null;
+  signature_signature?: string | null;
+  signature_signatureKey?: string | null;
   signature_drepId?: number | null;
   cexplorerDetails: DRepCExplorerDetails;
 };

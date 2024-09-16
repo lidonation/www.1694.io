@@ -340,11 +340,11 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
           />
         )}
         {(drep?.cexplorerDetails?.view == dRepIDBech32 ||
-          drep?.signature_drepVoterId == dRepIDBech32) &&
+          drep?.signature_voterId == dRepIDBech32) &&
           renderUnsavedChanges()}
       </div>
       {(drep?.cexplorerDetails?.view == dRepIDBech32 ||
-        drep?.signature_drepVoterId == dRepIDBech32) && (
+        drep?.signature_voterId == dRepIDBech32) && (
         <div className="flex max-w-prose flex-col gap-2">
           <Button
             handleClick={

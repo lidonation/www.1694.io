@@ -52,10 +52,10 @@ const UpdateProfileStep2 = () => {
           drep = await getSingleDRepViaVoterId(dRepIDBech32);
         }
         setNewDrepId(drep.drep_id);
-        setValue('signature', drep.signature_drepSignature);
+        setValue('signature', drep.signature_signature);
         setSignature({
-          signature: drep.signature_drepSignature,
-          key: drep.signature_drepSignatureKey,
+          signature: drep.signature_signature,
+          key: drep.signature_signatureKey,
         });
         if (drep.drep_platform_statement) {
           setStep2Status('update');

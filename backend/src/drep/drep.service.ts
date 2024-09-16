@@ -74,7 +74,7 @@ export class DrepService {
     // if (query) {
     //   const nameFilteredDReps = query ? await this.getDRepsByName(query) : [];
     //   nameFilteredDRepViews = nameFilteredDReps.map(
-    //     (drep) => drep.signature_drepVoterId,
+    //     (drep) => drep.signature_voterId,
     //   );
     // }
 
@@ -91,7 +91,7 @@ export class DrepService {
 
     if (campaignStatus) {
       const voltaireDReps = (await this.getAllDRepsVoltaire()) ?? [];
-      dRepViews = voltaireDReps.map((drep) => drep.signature_drepVoterId);
+      dRepViews = voltaireDReps.map((drep) => drep.signature_voterId);
     }
 
     const drepList = await this.getAllDRepsCexplorer(
@@ -115,7 +115,7 @@ export class DrepService {
 
     const mergedDRepsData = drepList.data.map((drep) => {
       const voltaireDrep = voltaireDReps.find(
-        (voltaireDrep) => voltaireDrep.signature_drepVoterId === drep.view,
+        (voltaireDrep) => voltaireDrep.signature_voterId === drep.view,
       );
       //account for voting options
       if (
@@ -266,7 +266,7 @@ export class DrepService {
       .getRepository('Drep')
       .createQueryBuilder('drep')
       .leftJoinAndSelect('drep.signatures', 'signature')
-      .where('signature.drepVoterId IN (:...views)', { views })
+      .where('signature.voterId IN (:...views)', { views })
       .getRawMany();
   }
 
@@ -286,7 +286,7 @@ export class DrepService {
       .where('drep.id = :drepId', { drepId })
       .getRawMany();
     let drepVoterId;
-    if (drep.length > 0) drepVoterId = drep[0].signature_drepVoterId;
+    if (drep.length > 0) drepVoterId = drep[0].signature_voterId;
     const drepCexplorer = await this.getDrepCexplorerDetails(drepVoterId);
 
     const combinedResult = {
@@ -316,7 +316,7 @@ export class DrepService {
       .getRepository('Drep')
       .createQueryBuilder('drep')
       .leftJoinAndSelect('signature', 'signature', 'signature.drepId = drep.id')
-      .where('signature.drepVoterId = :drepVoterId', { drepVoterId })
+      .where('signature.voterId = :drepVoterId', { drepVoterId })
       .getRawMany();
     const drepCexplorer = await this.getDrepCexplorerDetails(drepVoterId);
     const combinedResult = {
@@ -598,7 +598,7 @@ export class DrepService {
     // 'delegators' visibility
     if (delegation) {
       visibilityConditions.push(
-        'note.note_visibility = :delegators AND signature.drepVoterId = :drepVoterId',
+        'note.note_visibility = :delegators AND signature.voterId = :drepVoterId',
       );
       visibilityParams.delegators = 'delegators';
       visibilityParams.drepVoterId = delegation.drep_view;
@@ -607,7 +607,7 @@ export class DrepService {
     // 'myself' visibility
     if (stakeKeyBech32) {
       visibilityConditions.push(
-        'note.note_visibility = :myself AND signature.drepStakeKey = :stakeKeyBech32',
+        'note.note_visibility = :myself AND signature.stakeKey = :stakeKeyBech32',
       );
       visibilityParams.myself = 'myself';
       visibilityParams.stakeKeyBech32 = stakeKeyBech32;
