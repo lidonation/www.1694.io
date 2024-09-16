@@ -26,6 +26,14 @@ export type Delegator = {
   votingPower: number | null;
 };
 
+export type Delegators = {
+  data: Delegator[];
+  totalItems: number;
+  currentPage: number;
+  itemsPerPage: number;
+  totalPages: number;
+};
+
 export type SingleDRep = {
   drep_deletedAt?: string | null;
   drep_id?: number | null;
@@ -57,8 +65,6 @@ export type SingleDRep = {
   signature_signatureKey?: string | null;
   signature_drepId?: number | null;
   cexplorerDetails: DRepCExplorerDetails;
-  activity?: any[];
-  delegators?: Delegator[];
 };
 
 export type DRepStats = {

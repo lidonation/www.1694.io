@@ -1,15 +1,21 @@
-import {HttpException, HttpStatus, Injectable, Logger, NotFoundException,} from '@nestjs/common';
-import {createDrepDto, ValidateMetadataDTO} from 'src/dto';
-import {faker} from '@faker-js/faker';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
+import { createDrepDto, ValidateMetadataDTO } from 'src/dto';
+import { faker } from '@faker-js/faker';
 import * as blake from 'blakejs';
-import {HttpService} from '@nestjs/axios';
-import {AttachmentService} from 'src/attachment/attachment.service';
-import {catchError, firstValueFrom, Observable} from 'rxjs';
-import {AxiosResponse} from 'axios';
-import {InjectDataSource} from '@nestjs/typeorm';
-import {DataSource} from 'typeorm';
-import {ReactionsService} from 'src/reactions/reactions.service';
-import {CommentsService} from 'src/comments/comments.service';
+import { HttpService } from '@nestjs/axios';
+import { AttachmentService } from 'src/attachment/attachment.service';
+import { catchError, firstValueFrom, Observable } from 'rxjs';
+import { AxiosResponse } from 'axios';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
+import { ReactionsService } from 'src/reactions/reactions.service';
+import { CommentsService } from 'src/comments/comments.service';
 import {
   Delegation,
   IPFSResponse,
@@ -18,16 +24,23 @@ import {
   MetadataValidationStatus,
   ValidateMetadataResult,
 } from 'src/common/types';
-import {AuthService} from 'src/auth/auth.service';
-import {getAllDRepsQuery, getTotalResultsQuery} from 'src/queries/getDReps';
-import {getDRepDelegatorsCountQuery, getDRepVotesCountQuery, getDRepVotingPowerQuery,} from 'src/queries/drepStats';
-import {Metadata} from 'src/entities/metadata.entity';
-import {getEpochParams} from 'src/queries/getEpochParams';
-import {getDRepDelegatorsHistory} from 'src/queries/drepDelegatorsHistory';
-import {JsonLd} from 'jsonld/jsonld-spec';
-import {Response} from 'express';
-import {getDrepCexplorerDetailsQuery} from 'src/queries/drepCexplorerDetails';
-import {getDrepDelegatorsWithVotingPowerQuery} from 'src/queries/drepDelegatorsWithVotingPower';
+import { AuthService } from 'src/auth/auth.service';
+import { getAllDRepsQuery, getTotalResultsQuery } from 'src/queries/getDReps';
+import {
+  getDRepDelegatorsCountQuery,
+  getDRepVotesCountQuery,
+  getDRepVotingPowerQuery,
+} from 'src/queries/drepStats';
+import { Metadata } from 'src/entities/metadata.entity';
+import { getEpochParams } from 'src/queries/getEpochParams';
+import { getDRepDelegatorsHistory } from 'src/queries/drepDelegatorsHistory';
+import { JsonLd } from 'jsonld/jsonld-spec';
+import { Response } from 'express';
+import { getDrepCexplorerDetailsQuery } from 'src/queries/drepCexplorerDetails';
+import {
+  getDrepDelegatorsCountQuery,
+  getDrepDelegatorsWithVotingPowerQuery,
+} from 'src/queries/drepDelegatorsWithVotingPower';
 import { BlockfrostService } from 'src/blockfrost/blockfrost.service';
 
 @Injectable()
@@ -275,12 +288,9 @@ export class DrepService {
     if (drep.length > 0) drepVoterId = drep[0].signature_voterId;
     const drepCexplorer = await this.getDrepCexplorerDetails(drepVoterId);
 
-    const drepDelegators =
-      await this.getDrepDelegatorsWithVotingPower(drepVoterId);
     const combinedResult = {
       ...drep[0],
       cexplorerDetails: drepCexplorer,
-      delegators: drepDelegators,
     };
     if (
       (!drep || drep.length === 0) &&
@@ -308,12 +318,9 @@ export class DrepService {
       .where('signature.voterId = :drepVoterId', { drepVoterId })
       .getRawMany();
     const drepCexplorer = await this.getDrepCexplorerDetails(drepVoterId);
-    const drepDelegators =
-      await this.getDrepDelegatorsWithVotingPower(drepVoterId);
     const combinedResult = {
       ...drep[0],
       cexplorerDetails: drepCexplorer,
-      delegators: drepDelegators,
     };
     if (
       (!drep || drep.length === 0) &&
@@ -695,17 +702,37 @@ export class DrepService {
     }
   }
 
-  async getDrepDelegatorsWithVotingPower(drepVoterId: string) {
+  async getDrepDelegatorsWithVotingPower(
+    drepVoterId: string,
+    currentPage: number,
+    itemsPerPage: number,
+  ) {
+    const offset = (currentPage - 1) * itemsPerPage;
+
     const delegatorsWithVotingPower = await this.cexplorerService.manager.query(
-      getDrepDelegatorsWithVotingPowerQuery,
+      getDrepDelegatorsWithVotingPowerQuery(itemsPerPage, offset),
       [drepVoterId],
     );
 
-    return delegatorsWithVotingPower.map((delegator) => ({
-      stakeAddress: delegator?.stake_address,
-      delegationEpoch: delegator?.delegation_epoch,
-      votingPower: delegator?.voting_power,
-    }));
+    const totalResults = await this.cexplorerService.manager.query(
+      getDrepDelegatorsCountQuery(),
+      [drepVoterId],
+    );
+
+    const totalItems = parseInt(totalResults[0].total, 10);
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+    return {
+      data: delegatorsWithVotingPower.map((delegator) => ({
+        stakeAddress: delegator?.stake_address,
+        delegationEpoch: delegator?.delegation_epoch,
+        votingPower: delegator?.voting_power,
+      })),
+      totalItems,
+      currentPage,
+      itemsPerPage,
+      totalPages,
+    };
   }
 
   async updateDrepInfo(drepId: number, drep: createDrepDto) {
