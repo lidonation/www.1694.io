@@ -6,8 +6,13 @@ import {
   formattedAda,
   lovelaceToAda,
 } from '@/lib';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import HoverText from './HoverText';
+import { useGetDrepDelegators } from '@/hooks/useGetDrepDelegatorsQuery';
+import { Box, Skeleton } from '@mui/material';
+import Pagination from '../molecules/Pagination';
+import { useSearchParams } from 'next/navigation';
+
 const ViewProfileAction = () => {
   return (
     <div className="flex w-fit flex-row items-center gap-2 rounded-full bg-gray-200 px-3 py-1 text-sm">
@@ -16,19 +21,42 @@ const ViewProfileAction = () => {
     </div>
   );
 };
-const DrepDelegatorslist = ({ delegators }: { delegators: any[] }) => {
+
+const DrepDelegatorslist = ({ voterId }: { voterId: string }) => {
+  const [currentPage, setCurrentPage] = useState(1);
   const { latestEpoch } = useCardano();
   const { isMobile, screenWidth } = useScreenDimension();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    setCurrentPage(Number(searchParams.get('page') || 1));
+  }, [searchParams]);
+
+  const { Delegators, isDelegatorsLoading } = useGetDrepDelegators(
+    voterId,
+    currentPage,
+  );
+
   return (
-    <div className="w-full overflow-x-scroll">
+    <div className="w-full">
       <p className="text-3xl font-bold">Delegators</p>
-      {delegators && delegators.length > 0 ? (
-        delegators.map((delegator, index) => {
-          return (
-            <div key={index}>
-              <div className="flex flex-col">
-                <div className="flex w-full flex-row items-center justify-between text-nowrap py-4">
-                  <div className="flex min-w-40 flex-col">
+      {isDelegatorsLoading && (
+        <div className="px-1">
+          {Array.from({ length: 24 }).map((_, index) => (
+            <Skeleton height={80} key={index} />
+          ))}
+        </div>
+      )}
+      {!isDelegatorsLoading && Delegators.data.length > 0 && (
+        <div className="flex flex-col overflow-x-auto">
+          {Delegators.data.map((delegator, index) => {
+            return (
+              <div className="flex w-full flex-col" key={index}>
+                <div
+                  className="flex w-full flex-row items-center justify-between text-nowrap py-4"
+                  
+                >
+                  <div className="flex w-40 shrink-0 flex-col lg:w-60">
                     <p className="font-bold">
                       Epoch {delegator?.delegationEpoch}{' '}
                       {delegator?.delegationEpoch == latestEpoch && '(actual)'}
@@ -41,7 +69,7 @@ const DrepDelegatorslist = ({ delegators }: { delegators: any[] }) => {
                     </p>
                   </div>
 
-                  <div className="flex min-w-40 flex-col items-center justify-start">
+                  <div className="flex w-40 shrink-0 flex-col items-center justify-start">
                     <p className="font-bold">Active Stake</p>
                     <div>
                       <HoverText
@@ -53,26 +81,40 @@ const DrepDelegatorslist = ({ delegators }: { delegators: any[] }) => {
                     </div>
                   </div>
 
-                  <div className="flex min-w-40 flex-col items-center justify-start">
+                  <div className="flex w-40 shrink-0 flex-col items-center justify-start">
                     <p className="font-bold">Epoch</p>
                     <p> {delegator.delegationEpoch}</p>
                   </div>
 
-                  <div className="flex min-w-40 flex-col items-start justify-start">
+                  <div className="flex max-w-40 shrink-0 flex-col items-start justify-start">
                     <p className="font-bold">Actions</p>
                     <div className="flex items-center gap-2">
                       <ViewProfileAction />
                     </div>
                   </div>
                 </div>
-                <hr className="w-dvw border" />
+                <hr className="w-full border" />
               </div>
-            </div>
-          );
-        })
-      ) : (
-        <p>No delegators to show</p>
+            );
+          })}
+        </div>
       )}
+      {!isDelegatorsLoading && Delegators.data.length < 1 && (
+        <p className="text-center">No delegators to show</p>
+      )}
+
+      {!isDelegatorsLoading &&
+        Delegators?.data &&
+        Delegators?.data.length > 0 && (
+          <Box className="mt-6 flex justify-end">
+            <Pagination
+              currentPage={Delegators.currentPage}
+              totalPages={Delegators.totalPages}
+              totalItems={Delegators.totalItems}
+              dataType="Delegators"
+            />
+          </Box>
+        )}
     </div>
   );
 };
