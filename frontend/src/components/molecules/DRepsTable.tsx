@@ -6,7 +6,8 @@ import { useGetDRepsQuery } from '@/hooks/useGetDRepsQuery';
 import {
   convertString,
   formatAsCurrency,
-  handleCopyText, percentageDifference,
+  handleCopyText,
+  percentageDifference,
   shortNumber,
 } from '@/lib';
 import { useScreenDimension } from '@/hooks';
@@ -15,13 +16,12 @@ import Button from '../atoms/Button';
 import Link from 'next/link';
 import HoverText from '../atoms/HoverText';
 import Pagination from './Pagination';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import CopyToClipBoard from '../atoms/svgs/CopyToClipBoardIcon';
 import ArrowDownIcon from '../atoms/svgs/ArrowDownIcon';
 import ArrowUpIcon from '../atoms/svgs/ArrowUpIcon';
 import DatabaseNullIcon from '../atoms/svgs/DatabaseNullIcon';
 import CrossIcon from '../atoms/svgs/CrossIcon';
-import Typography from "@mui/material/Typography";
+import Typography from '@mui/material/Typography';
 
 type DRepsTableProps = {
   query?: string;
@@ -49,9 +49,6 @@ const DRepsTable = ({
   campaignStatus,
   type,
 }: DRepsTableProps) => {
-  const searchParams = useSearchParams();
-  const pathName = usePathname();
-  const { replace } = useRouter();
   const { isMobile } = useScreenDimension();
 
   const { DReps, isDRepsLoading, isError } = useGetDRepsQuery(
@@ -64,36 +61,9 @@ const DRepsTable = ({
     type,
   );
 
-  // Handle table pagination
-  function moveToPage(targetPage: number) {
-    const params = new URLSearchParams(searchParams);
-
-    if (page !== targetPage) {
-      params.set('page', targetPage.toString());
-    }
-    replace(`${pathName}?${params.toString()}`);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
-  function moveToFirstPage(firstPage: number) {
-    moveToPage(firstPage);
-  }
-
-  function moveToLastPage(lastPage: number) {
-    moveToPage(lastPage);
-  }
-
-  function moveToPreviousPage(previousPage: number) {
-    moveToPage(previousPage);
-  }
-
-  function moveToNextPage(nextPage: number) {
-    moveToPage(nextPage);
-  }
-
   return (
-    <div className="flex flex-col overflow-x-auto dreps-table-wrapper">
-      <table className="min-w-full dreps-table">
+    <div className="dreps-table-wrapper flex flex-col overflow-x-auto">
+      <table className="dreps-table min-w-full">
         <thead className="mb-2">
           <tr className="overflow-x-auto text-nowrap bg-white text-left text-xl font-black">
             <th className="py-2">DRep</th>
@@ -125,7 +95,7 @@ const DRepsTable = ({
               </div>
             </th>
             <th className="py-2">
-              <div className="flex items-center justifiy-end text-left">
+              <div className="justify-end flex items-center text-left">
                 <span>Delegators</span>
                 {sort === 'delegators' &&
                   (order === 'desc' ? (
@@ -331,10 +301,7 @@ const DRepsTable = ({
             currentPage={DReps.currentPage}
             totalPages={DReps.totalPages}
             totalItems={DReps.totalItems}
-            moveToFirstPage={moveToFirstPage}
-            moveToLastPage={moveToLastPage}
-            moveToPreviousPage={moveToPreviousPage}
-            moveToNextPage={moveToNextPage}
+            dataType="DReps"
           />
         </Box>
       )}
