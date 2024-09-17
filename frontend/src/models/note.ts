@@ -3,6 +3,7 @@ export interface noteInput {
   note_tag: string[];
   note_content: string;
   stake_addr: string;
-  voter: string;
+  drep: string;
   note_visibility: string;
+  author?: string;
 }

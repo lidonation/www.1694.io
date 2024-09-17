@@ -571,9 +571,9 @@ export class DrepService {
     const queryBuilder = await this.voltaireService
       .getRepository('Note')
       .createQueryBuilder('note')
-      .leftJoinAndSelect('note.voter', 'drep')
+      .leftJoinAndSelect('note.drep', 'drep')
       .leftJoin('drep.signatures', 'signature')
-      .where('note.voterId = :drepId', { drepId })
+      .where('note.drep = :drepId', { drepId })
       .andWhere(
         'note."createdAt"::DATE BETWEEN :tillDate::DATE AND :beforeDate::DATE',
         {
@@ -664,10 +664,10 @@ export class DrepService {
       .insert(drepDto);
     const signatureDto = {
       drep: insertedDrep.identifiers[0].id,
-      drepVoterId: drepDto?.voter_id,
-      drepStakeKey: drepDto?.stake_addr,
-      drepSignatureKey: drepDto?.key,
-      drepSignature: drepDto?.signature,
+      voterId: drepDto?.voter_id,
+      stakeKey: drepDto?.stake_addr,
+      signatureKey: drepDto?.key,
+      signature: drepDto?.signature,
     };
     const insertedSig = await this.voltaireService
       .getRepository('Signature')
@@ -751,7 +751,7 @@ export class DrepService {
         .getRepository('Signature')
         .update(
           { drep: foundDrep[0].drep_id },
-          { drepSignatureKey: drep.key, drepSignature: drep.signature },
+          { signatureKey: drep.key, signature: drep.signature },
         );
       delete drep.signature;
       delete drep.key;

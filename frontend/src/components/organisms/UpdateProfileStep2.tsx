@@ -142,7 +142,7 @@ const UpdateProfileStep2 = () => {
         </Typography>
       </div>
       <Box>
-        <Typography className="" variant="h6">
+        <Typography variant="h6">
           Signatures
         </Typography>
       </Box>

@@ -11,7 +11,9 @@ export class createNoteDto {
   @IsNotEmpty()
   stake_addr: string;
   @IsNotEmpty()
-  voter: string;
+  drep: string;
+  //@IsNotEmpty()
+  author: string;
   @IsNotEmpty()
   note_visibility: string;
   @IsOptional()
