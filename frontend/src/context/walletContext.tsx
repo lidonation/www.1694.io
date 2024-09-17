@@ -22,7 +22,7 @@ import {
   TransactionWitnessSet,
   Certificate,
   Ed25519KeyHash,
-  DrepUpdate,
+  DRepUpdate,
   Credential,
   CertificatesBuilder,
 } from '@emurgo/cardano-serialization-lib-asmjs';
@@ -429,7 +429,10 @@ function CardanoProvider(props: Props) {
           setItemToLocalStorage(`${WALLET_LS_KEY}_name`, walletName);
           setItemToLocalStorage(`${WALLET_LS_KEY}_api`, enabledApi);
           setIsEnabling(false);
-          updateSharedState({ isWalletListModalOpen: false, dRepIDBech32: dRepIDs?.dRepIDBech32 || '' });
+          updateSharedState({
+            isWalletListModalOpen: false,
+            dRepIDBech32: dRepIDs?.dRepIDBech32 || '',
+          });
           return { status: 'ok', stakeKey: stakeKeySet };
         } catch (e) {
           console.error(e);
@@ -517,9 +520,7 @@ function CardanoProvider(props: Props) {
     try {
       const txBuilder = await initTransactionBuilder();
       //sample recipient address
-      const shelleyOutputAddress = Address.from_bech32(
-        'addr_test1qrt7j04dtk4hfjq036r2nfewt59q8zpa69ax88utyr6es2ar72l7vd6evxct69wcje5cs25ze4qeshejy828h30zkydsu4yrmm',
-      );
+      const shelleyOutputAddress = Address.from_bech32(walletState.usedAddress);
       const shelleyChangeAddress = Address.from_bech32(
         walletState.changeAddress,
       );
@@ -651,9 +652,9 @@ function CardanoProvider(props: Props) {
         if (cip95MetadataURL && cip95MetadataHash) {
           const anchor = generateAnchor(cip95MetadataURL, cip95MetadataHash);
           // Create cert object using one Ada as the deposit
-          dRepUpdateCert = DrepUpdate.new_with_anchor(dRepCred, anchor);
+          dRepUpdateCert = DRepUpdate.new_with_anchor(dRepCred, anchor);
         } else {
-          dRepUpdateCert = DrepUpdate.new(dRepCred);
+          dRepUpdateCert = DRepUpdate.new(dRepCred);
         }
         return Certificate.new_drep_update(dRepUpdateCert);
       } catch (e) {
