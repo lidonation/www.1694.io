@@ -82,7 +82,7 @@ export class DrepController {
 
     if (drepId) {
       drep = await this.drepService.getSingleDrepViaID(drepId);
-      drepVoterId = drep.signature_drepVoterId;
+      drepVoterId = drep.signature_voterId;
     } else if (drepVoterId) {
       drep = await this.drepService.getSingleDrepViaVoterID(drepVoterId);
     }
@@ -147,5 +147,20 @@ export class DrepController {
   @Get(':voterId/is-registered')
   isRegistered(@Param('voterId') voterId: string) {
     return this.drepService.isDrepRegistered(voterId);
+  }
+
+  @Get(':voterId/delegators')
+  getDrepDelegators(
+    @Param('voterId') voterId: string,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe)
+    page: number,
+    @Query('perPage', new DefaultValuePipe(24), ParseIntPipe)
+    perPage: number,
+  ) {
+    return this.drepService.getDrepDelegatorsWithVotingPower(
+      voterId,
+      page,
+      perPage
+    );
   }
 }

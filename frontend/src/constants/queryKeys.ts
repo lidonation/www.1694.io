@@ -5,5 +5,6 @@ export const QUERY_KEYS = {
   getSingleDRepKey: 'getSingleDRepKey',
   getAllDRepsKey: 'getAllDRepsKey',
   getDRepStatsKey: 'getDRepStatsKey',
-  getDRepTimelineKey: 'getDRepTimelineKey'
+  getDRepTimelineKey: 'getDRepTimelineKey',
+  getDrepDelegators: 'getDrepDelegators'
 };

@@ -129,7 +129,7 @@ function DRepProvider(props: Props) {
       if (drep?.drep_id) {
         setNewDrepId(drep?.drep_id);
       }
-      if (drep?.signature_drepSignature) {
+      if (drep?.signature_signature) {
         setStep2Status('success');
       }
       //check for metadata locally first

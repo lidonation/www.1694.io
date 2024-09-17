@@ -2,7 +2,7 @@ import { getCurrentNodeStatus } from '@/services/requests/getCurrentNodeStatus';
 import { useQuery } from 'react-query';
 
 export const useGetNodeStatusQuery = () => {
-  const { data, isLoading, isFetching, isError, error , isSuccess} = useQuery({
+  const { data, isLoading, isFetching, isError, error , isSuccess, isFetchedAfterMount} = useQuery({
     queryKey: 'nodeStatus',
     queryFn: async () => getCurrentNodeStatus(),
     refetchInterval: 10000,
@@ -12,6 +12,7 @@ export const useGetNodeStatusQuery = () => {
     NodeStatus: data,
     isLoading,
     isFetching,
+    isFetchedAfterMount,
     isError: !isSuccess || isError,
     error,
   };

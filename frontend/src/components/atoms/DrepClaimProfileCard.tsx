@@ -165,7 +165,7 @@ const DrepClaimProfileCard = ({
         )}
       </div>
       {(drep?.cexplorerDetails?.view == dRepIDBech32 ||
-        drep?.signature_drepVoterId == dRepIDBech32) &&
+        drep?.signature_voterId == dRepIDBech32) &&
         isLoggedIn && (
           <div className="flex max-w-prose flex-col gap-2">
             <Link href={`/dreps/workflow/profile/new`}>

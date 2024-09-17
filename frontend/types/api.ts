@@ -26,6 +26,14 @@ export type Delegator = {
   votingPower: number | null;
 };
 
+export type Delegators = {
+  data: Delegator[];
+  totalItems: number;
+  currentPage: number;
+  itemsPerPage: number;
+  totalPages: number;
+};
+
 export type SingleDRep = {
   drep_deletedAt?: string | null;
   drep_id?: number | null;
@@ -51,14 +59,12 @@ export type SingleDRep = {
   attachment_drepId?: number | null;
   attachment_commentId?: number | null;
   signature_id?: number | null;
-  signature_drepVoterId?: string | null;
-  signature_drepStakeKey?: string | null;
-  signature_drepSignature?: string | null;
-  signature_drepSignatureKey?: string | null;
+  signature_voterId?: string | null;
+  signature_stakeKey?: string | null;
+  signature_signature?: string | null;
+  signature_signatureKey?: string | null;
   signature_drepId?: number | null;
   cexplorerDetails: DRepCExplorerDetails;
-  activity?: any[];
-  delegators?: Delegator[];
 };
 
 export type DRepStats = {
