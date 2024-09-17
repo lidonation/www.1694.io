@@ -1,7 +1,7 @@
 import React from 'react';
 import Button from '@/components/atoms/Button';
 import Link from 'next/link';
-import { cli } from 'cypress';
+
 
 interface DrepInfoCardProps {
   img: string;
