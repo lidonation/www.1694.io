@@ -9,7 +9,6 @@ import {
   useCallback,
 } from 'react';
 import { useSharedContext } from './sharedContext';
-import { SliderMenu } from '@/components/organisms/SliderMenu';
 import { UserLoginModal } from '@/components/organisms/UserLoginModal';
 import {
   decodeToken,
