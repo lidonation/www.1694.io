@@ -70,10 +70,10 @@ export class NoteService {
   }
   async registerNote(noteDto: createNoteDto) {
     const isPresent = await this.drepService.getSingleDrepViaVoterID(
-      noteDto.voter,
+      noteDto.drep,
     );
     if (isPresent) {
-      const modifiedNoteDto = { ...noteDto, voter: isPresent.drep_id };
+      const modifiedNoteDto = { ...noteDto, drep: isPresent.drep_id };
       const res = await this.voltaireService
         .getRepository('Note')
         .insert(modifiedNoteDto);
@@ -91,10 +91,10 @@ export class NoteService {
       throw new NotFoundException('Note to be updated not found!');
     }
     const isPresent = await this.drepService.getSingleDrepViaVoterID(
-      note.voter,
+      note.drep,
     );
     if (isPresent) {
-      const modifiedNote = { ...note, voter: isPresent.drep_id };
+      const modifiedNote = { ...note, drep: isPresent.drep_id };
       // Iterate through the properties of the note object
       Object.keys(modifiedNote).forEach((key) => {
         foundNote[key] = modifiedNote[key];
@@ -114,7 +114,7 @@ export class NoteService {
     const queryBuilder = this.voltaireService
       .getRepository('Note')
       .createQueryBuilder('note')
-      .leftJoinAndSelect('note.voter', 'drep')
+      .leftJoinAndSelect('note.drep', 'drep')
       .leftJoin('drep.signatures', 'signature')
       .orderBy('note.createdAt', 'DESC') // Order by createdAt descending
       .limit(20); // limit per req
