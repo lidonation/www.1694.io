@@ -12,6 +12,7 @@ import DRepSocialLinks from './DRepSocialLinks';
 import DRepAvatarCard from './DRepAvatarCard';
 import { useCardano } from '@/context/walletContext';
 import { useDRepContext } from '@/context/drepContext';
+import { getDRepMetadata } from '@/services/requests/getDRepMetadata';
 
 const DrepClaimProfileCard = ({
   drep,
@@ -31,26 +32,27 @@ const DrepClaimProfileCard = ({
   const { isLoggedIn } = useDRepContext();
   useEffect(() => {
     const fetchData = async () => {
+      setIsMetadataLoading(true);
+      setMetadataError(null);
+
       const metadataUrl = drep?.cexplorerDetails?.metadata_url;
       setMetadataUrl(metadataUrl);
-      if (!metadataUrl) return;
       try {
-        setIsMetadataLoading(true);
-        setMetadataError(null);
-        const response = await getExternalMetadata({ metadataUrl });
-        const jsonLdData = response;
-        const imageUrl = jsonLdData?.body?.image?.contentUrl;
-        if (imageUrl) {
-          setImageSrc(imageUrl);
+        try {
+          const voterId = drep?.cexplorerDetails.view;
+          const res = await getDRepMetadata(voterId);
+
+          setMetadataEntries(res?.metadata?.body);
+          setMetadata(res?.metadata);
+        } catch (error) {
+          if (error.response && error.response.status === 404) {
+            const response = await getExternalMetadata({ metadataUrl });
+            const jsonLdData = response;
+
+            setMetadataEntries(jsonLdData?.body);
+            setMetadata(jsonLdData);
+          }
         }
-        if (
-          jsonLdData?.body?.references &&
-          Array.isArray(jsonLdData?.body?.references) &&
-          jsonLdData?.body?.references.length > 0
-        ) {
-          setSocialLinks(jsonLdData?.body?.references);
-        }
-        setMetadata(jsonLdData);
       } catch (error) {
         setMetadata(null);
         setMetadataError(
@@ -75,6 +77,20 @@ const DrepClaimProfileCard = ({
     checkStatus();
     fetchData();
   }, [drep]);
+
+  const setMetadataEntries = (metadataBody) => {
+    const imageUrl = metadataBody?.image?.contentUrl;
+    if (imageUrl) {
+      setImageSrc(imageUrl);
+    }
+    if (
+      metadataBody?.references &&
+      Array.isArray(metadataBody?.references) &&
+      metadataBody?.references.length > 0
+    ) {
+      setSocialLinks(metadataBody?.references);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-5 bg-white bg-opacity-50 px-5 py-10 ">
