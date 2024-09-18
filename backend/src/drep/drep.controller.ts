@@ -113,18 +113,24 @@ export class DrepController {
   updateDetails(@Param('id') drepId: number, @Body() drep: createDrepDto) {
     return this.drepService.updateDrepInfo(drepId, drep);
   }
+
+  @Get(':voterId/metadata')
+  getMetadata(@Param('voterId') voterId: string) {
+    return this.drepService.getMetadata(voterId);
+  }
+
   @Get('/metadata/external')
   getExternalMetadata(@Query('metadataUrl') metadataUrl: string) {
     return this.drepService.getMetadataFromExternalLink(metadataUrl);
   }
-  @Get(':drepId/metadata/:hash')
-  getMetadata(
-    @Param('drepId') drepId: number,
-    @Param('hash') hash: string,
-    @Res() res: Response,
-  ) {
-    return this.drepService.getMetadata(drepId, hash, res);
-  }
+  // @Get(':drepId/metadata/:hash')
+  // getMetadata(
+  //   @Param('drepId') drepId: number,
+  //   @Param('hash') hash: string,
+  //   @Res() res: Response,
+  // ) {
+  //   return this.drepService.getMetadata(drepId, hash, res);
+  // }
   @Post('metadata/validate')
   validateMetadata(@Body() metadataBody: ValidateMetadataDTO) {
     return this.drepService.validateMetadata(metadataBody);
@@ -163,4 +169,5 @@ export class DrepController {
       perPage
     );
   }
+  
 }

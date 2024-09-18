@@ -19,7 +19,10 @@ import { useScreenDimension } from '@/hooks';
 import { useCardano } from '@/context/walletContext';
 import MetadataViewer from './MetadataViewer';
 import { isActive } from '../molecules/DRepsTable';
-import { processExternalMetadata } from '@/lib/metadataProcessor';
+import {
+  processExternalMetadata,
+  renderJSONLDToJSONArr,
+} from '@/lib/metadataProcessor';
 import DRepSocialLinks from './DRepSocialLinks';
 import MetadataEditor from './MetadataEditor';
 import SubmitMetadataModal from './SubmitMetadataModal';
@@ -27,6 +30,7 @@ import { deleteItemFromIndexedDB } from '@/lib/indexedDb';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import DRepAvatarCard from './DRepAvatarCard';
 import { useDRepContext } from '@/context/drepContext';
+import { getDRepMetadata } from '@/services/requests/getDRepMetadata';
 
 interface StatusProps {
   status:
@@ -100,32 +104,34 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
   ];
   useEffect(() => {
     const fetchData = async () => {
+      setIsMetadataLoading(true);
+      setMetadataError(null);
+
       const metadataUrl = drep?.cexplorerDetails?.metadata_url;
       setMetadataUrl(metadataUrl);
-      if (!metadataUrl) return;
-      try {
-        setIsMetadataLoading(true);
-        setMetadataError(null);
-        const { jsonLdData, modifiedJson } = await processExternalMetadata({
-          metadataUrl,
-        });
-        setMetadata(jsonLdData);
-        setMetadataJson(modifiedJson);
-        const metadataBody = jsonLdData?.body;
-        const imageUrl = metadataBody?.image?.contentUrl;
-        if (imageUrl) {
-          setImageSrc(imageUrl);
-        }
-        if (
-          metadataBody?.references &&
-          Array.isArray(metadataBody?.references) &&
-          metadataBody?.references.length > 0
-        ) {
-          setSocialLinks(metadataBody?.references);
-        }
 
-        const name = metadataBody?.givenName || metadataBody?.dRepName;
-        setName(name?.['@value'] || name);
+      try {
+        const voterId = drep?.cexplorerDetails.view;
+
+        try {
+          const res = await getDRepMetadata(voterId);
+          setMetadata(res.metadata);
+
+          const modifiedJson = renderJSONLDToJSONArr(res.metadata);
+          setMetadataJson(modifiedJson);
+
+          setMetadataEntries(res?.metadata?.body);
+        } catch (error) {
+          if (error.response && error.response.status === 404) {
+            const { jsonLdData, modifiedJson } = await processExternalMetadata({
+              metadataUrl,
+            });
+            setMetadata(jsonLdData);
+            setMetadataJson(modifiedJson);
+
+            setMetadataEntries(jsonLdData?.body);
+          }
+        }
       } catch (error) {
         console.log(error);
         setMetadata(null);
@@ -136,6 +142,7 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
         setIsMetadataLoading(false);
       }
     };
+
     const checkStatus = () => {
       let status;
       if (drep?.type !== 'voting_option') {
@@ -148,9 +155,27 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
         setStatus(status);
       }
     };
+
     checkStatus();
     fetchData();
   }, []);
+
+  const setMetadataEntries = (metadataBody) => {
+    const imageUrl = metadataBody?.image?.contentUrl;
+    if (imageUrl) {
+      setImageSrc(imageUrl);
+    }
+    if (
+      metadataBody?.references &&
+      Array.isArray(metadataBody?.references) &&
+      metadataBody?.references.length > 0
+    ) {
+      setSocialLinks(metadataBody?.references);
+    }
+    const name = metadataBody?.givenName || metadataBody?.dRepName;
+    setName(name?.['@value'] || name);
+  };
+
   const renderUnsavedChanges = () => {
     const slider = (
       <Accordion>
