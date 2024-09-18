@@ -465,7 +465,7 @@ function CardanoProvider(props: Props) {
       const payloadBuffer = Buffer.from(`Verify DRep ${dRepIDBech32}`).toString(
         'hex',
       );
-      const sign = await walletApi.signData(address, payloadBuffer);
+      const sign = await walletApi.signData(dRepID, payloadBuffer);
       const { signature, key } = sign;
       setLoginCredentials({ signature, vkey: key });
       setIsGettingSignatures(false);

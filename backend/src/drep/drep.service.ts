@@ -663,17 +663,14 @@ export class DrepService {
       .getRepository('Drep')
       .insert(drepDto);
     const signatureDto = {
-      drep: insertedDrep.identifiers[0].id,
+      drepId: insertedDrep.identifiers[0].id,
       voterId: drepDto?.voter_id,
       stakeKey: drepDto?.stake_addr,
-      signatureKey: drepDto?.key,
+      key: drepDto?.key,
       signature: drepDto?.signature,
     };
-    const insertedSig = await this.voltaireService
-      .getRepository('Signature')
-      .insert(signatureDto);
-    const { token } = await this.authService.login(
-      { signature: drepDto?.signature, key: drepDto.key },
+    const { token, insertedSig } = await this.authService.login(
+      signatureDto,
       10000,
     );
     return { insertedDrep, insertedSig, token };
