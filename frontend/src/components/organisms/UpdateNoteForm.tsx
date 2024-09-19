@@ -40,10 +40,10 @@ const UpdateNoteForm = ({ noteId, initialValues }) => {
 
   useEffect(() => {
     if (initialValues) {
-      setValue('postTitle', initialValues?.note_title);
+      setValue('postTitle', initialValues?.title);
       setValue('postTag', initialValues?.note_tag);
-      setValue('postText', initialValues?.note_content);
-      setValue('postVisibility', initialValues?.note_visibility);
+      setValue('postText', initialValues?.content);
+      setValue('postVisibility', initialValues?.visibility);
     }
   }, [initialValues]);
   const updateNote: SubmitHandler<InputType> = async (data) => {
@@ -58,10 +58,10 @@ const UpdateNoteForm = ({ noteId, initialValues }) => {
       ).to_bech32();
       const { postTag, postText, postTitle, postVisibility } = data;
       const updatedNote = {
-        note_title: postTitle,
+        title: postTitle,
         note_tag: postTag,
-        note_content: postText,
-        note_visibility: postVisibility,
+        content: postText,
+        visibility: postVisibility,
         stake_addr: stakeAddress,
         drep: dRepIDBech32,
         author: null

@@ -3,11 +3,11 @@ import {Type} from 'class-transformer'
 
 export class createNoteDto {
   @IsNotEmpty()
-  note_title: string;
+  title: string;
   @IsOptional()
   note_tag: string[];
   @IsNotEmpty()
-  note_content: string;
+  content: string;
   @IsNotEmpty()
   stake_addr: string;
   @IsNotEmpty()
@@ -15,7 +15,7 @@ export class createNoteDto {
   //@IsNotEmpty()
   author: string;
   @IsNotEmpty()
-  note_visibility: string;
+  visibility: string;
   @IsOptional()
   attachments: string[];
 }
