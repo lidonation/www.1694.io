@@ -17,5 +17,5 @@ const datasource = new DataSource({
   },
   logging: true,
 });
-datasource.initialize();
+datasource.initialize().then();
 export default datasource;
