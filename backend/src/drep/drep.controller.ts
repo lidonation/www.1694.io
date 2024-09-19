@@ -123,14 +123,7 @@ export class DrepController {
   getExternalMetadata(@Query('metadataUrl') metadataUrl: string) {
     return this.drepService.getMetadataFromExternalLink(metadataUrl);
   }
-  // @Get(':drepId/metadata/:hash')
-  // getMetadata(
-  //   @Param('drepId') drepId: number,
-  //   @Param('hash') hash: string,
-  //   @Res() res: Response,
-  // ) {
-  //   return this.drepService.getMetadata(drepId, hash, res);
-  // }
+  
   @Post('metadata/validate')
   validateMetadata(@Body() metadataBody: ValidateMetadataDTO) {
     return this.drepService.validateMetadata(metadataBody);

@@ -43,6 +43,7 @@ import {
 } from 'src/queries/drepDelegatorsWithVotingPower';
 import { BlockfrostService } from 'src/blockfrost/blockfrost.service';
 import { drepRegistrationQuery } from 'src/queries/drepRegistration';
+import { getDRepMetadataQuery } from 'src/queries/drepMetadata';
 
 @Injectable()
 export class DrepService {
@@ -291,7 +292,7 @@ export class DrepService {
 
     const combinedResult = {
       ...drep[0],
-      cexplorerDetails: drepCexplorer,
+      ...drepCexplorer,
     };
     if (
       (!drep || drep.length === 0) &&
@@ -301,8 +302,8 @@ export class DrepService {
     }
     //account for voting options
     if (
-      combinedResult.cexplorerDetails.view.includes('drep_always_abstain') ||
-      combinedResult.cexplorerDetails.view.includes('drep_always_no_confidence')
+      combinedResult?.view.includes('drep_always_abstain') ||
+      combinedResult?.view.includes('drep_always_no_confidence')
     ) {
       combinedResult['type'] = 'voting_option';
     } else {
@@ -321,7 +322,7 @@ export class DrepService {
     const drepCexplorer = await this.getDrepCexplorerDetails(drepVoterId);
     const combinedResult = {
       ...drep[0],
-      cexplorerDetails: drepCexplorer,
+      ...drepCexplorer,
     };
     if (
       (!drep || drep.length === 0) &&
@@ -331,13 +332,13 @@ export class DrepService {
     }
     //account for voting options
     if (
-      combinedResult.cexplorerDetails?.view.includes('drep_always_abstain') ||
-      combinedResult.cexplorerDetails?.view.includes(
+      combinedResult?.view.includes('drep_always_abstain') ||
+      combinedResult?.view.includes(
         'drep_always_no_confidence',
       )
     ) {
       combinedResult['type'] = 'voting_option';
-    } else if (!!combinedResult.cexplorerDetails.has_script) {
+    } else if (!!combinedResult.has_script) {
       combinedResult['type'] = 'scripted';
     } else {
       combinedResult['type'] = 'drep';
@@ -769,18 +770,7 @@ export class DrepService {
       .getRepository('Drep')
       .update(drepId, updatedDrep);
   }
-  // async getMetadata(drepId: number, hash: string, res: Response) {
-  //   if (!drepId || !hash) throw new Error('Inadequate parameters');
-  //   const foundMetadata = await this.voltaireService
-  //     .getRepository('Metadata')
-  //     .createQueryBuilder('metadata')
-  //     .where('metadata.drep = :drepId', { drepId })
-  //     .andWhere('metadata.hash = :hash', { hash })
-  //     .getOne();
-  //   if (!foundMetadata) throw new NotFoundException('Metadata not found');
-  //   const cid = foundMetadata.content;
-  //   return await this.getMetadataFromIPFS(cid, res);
-  // }
+  
   async getMetadataFromExternalLink(metadataUrl: string) {
     if (!metadataUrl) throw new Error('Inadequate parameters');
     const { data } = await firstValueFrom(
@@ -977,21 +967,7 @@ export class DrepService {
 
   async getMetadata(voterId: string) {
     const metadata = await this.cexplorerService.manager.query(
-      `SELECT dh.view,
-            vd.json AS metadata
-      FROM drep_hash dh
-      LEFT JOIN (
-          SELECT dr.id,
-                dr.drep_hash_id,
-                dr.voting_anchor_id,
-                ROW_NUMBER() OVER (PARTITION BY dr.drep_hash_id ORDER BY dr.tx_id DESC) AS rn,
-                tx.hash AS tx_hash
-          FROM drep_registration dr
-          JOIN tx ON tx.id = dr.tx_id
-      ) AS dr_voting_anchor ON dr_voting_anchor.drep_hash_id = dh.id AND dr_voting_anchor.rn = 1
-      LEFT JOIN voting_anchor va ON va.id = dr_voting_anchor.voting_anchor_id
-      LEFT JOIN off_chain_vote_data vd ON vd.voting_anchor_id = va.id
-      WHERE dh.view = $1`,
+      getDRepMetadataQuery,
       [voterId],
     );
 

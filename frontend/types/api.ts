@@ -4,22 +4,6 @@ export type currentDelegation = {
   encode: string | null;
 } | null;
 
-export type DRepCExplorerDetails = {
-  drep_hash_id: string | null;
-  view: string | null;
-  delegation_vote_count: string | null;
-  stake_address: string | null;
-  voting_power: string | null;
-  live_stake: string | null;
-  epoch_no: number | null;
-  active_until: number | null;
-  deposit: string | null;
-  date_of_registration: string | null;
-  epoch_of_registration: number | null;
-  url: string | null;
-  type: string | null;
-} | null;
-
 export type Delegator = {
   stakeAddress: string | null;
   delegationEpoch: number | null;
@@ -64,7 +48,18 @@ export type SingleDRep = {
   signature_signature?: string | null;
   signature_signatureKey?: string | null;
   signature_drepId?: number | null;
-  cexplorerDetails: DRepCExplorerDetails;
+  drep_hash_id: string | null;
+  view: string | null;
+  delegation_vote_count: string | null;
+  stake_address: string | null;
+  voting_power: string | null;
+  live_stake: string | null;
+  epoch_no: number | null;
+  active_until: number | null;
+  deposit: string | null;
+  metadata_url: string | null;
+  has_script: string | null;
+  type: string | null;
 };
 
 export type DRepStats = {

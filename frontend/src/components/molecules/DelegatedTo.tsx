@@ -73,7 +73,7 @@ export const DelegatedTo = ({ className }: DelegatedToProps) => {
                 fontWeight={600}
                 className="overflow-hidden text-gray-300"
               >
-                ₳ {formattedAda(DRep?.cexplorerDetails?.voting_power, 2)}
+                ₳ {formattedAda(DRep?.voting_power, 2)}
               </Typography>
             </Box>
           </>
