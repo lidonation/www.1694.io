@@ -583,7 +583,7 @@ export class DrepService {
       );
 
     // Prepare visibility conditions
-    const visibilityConditions = ['note.note_visibility = :everyone'];
+    const visibilityConditions = ['note.visibility = :everyone'];
 
     const visibilityParams: {
       everyone: string;
@@ -598,7 +598,7 @@ export class DrepService {
     // 'delegators' visibility
     if (delegation) {
       visibilityConditions.push(
-        'note.note_visibility = :delegators AND signature.voterId = :drepVoterId',
+        'note.visibility = :delegators AND signature.voterId = :drepVoterId',
       );
       visibilityParams.delegators = 'delegators';
       visibilityParams.drepVoterId = delegation.drep_view;
@@ -607,7 +607,7 @@ export class DrepService {
     // 'myself' visibility
     if (stakeKeyBech32) {
       visibilityConditions.push(
-        'note.note_visibility = :myself AND signature.stakeKey = :stakeKeyBech32',
+        'note.visibility = :myself AND signature.stakeKey = :stakeKeyBech32',
       );
       visibilityParams.myself = 'myself';
       visibilityParams.stakeKeyBech32 = stakeKeyBech32;

@@ -13,10 +13,10 @@ export class Signature {
   })
   drep: Drep;
 
-  @Column({nullable: true})
+  @Column({ nullable: true })
   voterId: string;
 
-  @Column({nullable: true})
+  @Column({ nullable: true })
   stakeKey: string;
 
   @Column({ nullable: true, unique: false, default: null })
@@ -24,6 +24,4 @@ export class Signature {
 
   @Column({ nullable: true, unique: false, default: null })
   signatureKey: string;
-
-  
 }
