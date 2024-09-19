@@ -104,14 +104,16 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
   ];
   useEffect(() => {
     const fetchData = async () => {
+      if (!drep) return;
+      
       setIsMetadataLoading(true);
       setMetadataError(null);
 
-      const metadataUrl = drep?.cexplorerDetails?.metadata_url;
+      const metadataUrl = drep?.metadata_url;
       setMetadataUrl(metadataUrl);
 
       try {
-        const voterId = drep?.cexplorerDetails.view;
+        const voterId = drep?.view;
 
         try {
           const res = await getDRepMetadata(voterId);
@@ -147,8 +149,8 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
       let status;
       if (drep?.type !== 'voting_option') {
         status = isActive(
-          drep?.cexplorerDetails?.epoch_no,
-          drep?.cexplorerDetails?.active_until,
+          drep?.epoch_no,
+          drep?.active_until,
         )
           ? 'Active'
           : 'Inactive';
@@ -262,8 +264,8 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
             drep &&
             (name
               ? name
-              : drep?.cexplorerDetails?.view &&
-                convertString(drep?.cexplorerDetails?.view, isMobile))
+              : drep?.view &&
+                convertString(drep?.view, isMobile))
           )}
         </Typography>
       </div>
@@ -277,8 +279,8 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
           <p className="flex items-center gap-3 font-normal">
             {state ? (
               <Skeleton animation={'wave'} width={50} height={20} />
-            ) : drep?.cexplorerDetails?.voting_power != null ? (
-              `₳ ${formattedAda(drep?.cexplorerDetails?.voting_power, 2)}`
+            ) : drep?.voting_power != null ? (
+              `₳ ${formattedAda(drep?.voting_power, 2)}`
             ) : (
               '-'
             )}
@@ -289,8 +291,8 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
           <p className="flex items-center gap-3 font-normal">
             {state ? (
               <Skeleton animation={'wave'} width={50} height={20} />
-            ) : drep?.cexplorerDetails?.live_stake != null ? (
-              `₳ ${formattedAda(drep?.cexplorerDetails?.live_stake, 2)}`
+            ) : drep?.live_stake != null ? (
+              `₳ ${formattedAda(drep?.live_stake, 2)}`
             ) : (
               '-'
             )}
@@ -304,7 +306,7 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
           {state ? (
             <Skeleton animation={'wave'} width={100} height={20} />
           ) : (
-            `${drep?.cexplorerDetails?.delegation_vote_count || 0} ${drep?.cexplorerDetails?.delegation_vote_count > 1 ? 'Delegators' : 'Delegator'}`
+            `${drep?.delegation_vote_count || 0} ${drep?.delegation_vote_count > 1 ? 'Delegators' : 'Delegator'}`
           )}
         </p>
       </div>
@@ -314,12 +316,12 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
           {state ? (
             <Skeleton animation={'wave'} width={150} height={20} />
           ) : (
-            drep?.cexplorerDetails?.view &&
-            convertString(drep?.cexplorerDetails?.view, true)
+            drep?.view &&
+            convertString(drep?.view, true)
           )}
         </p>
         <CopyToClipboard
-          text={drep?.cexplorerDetails?.view}
+          text={drep?.view}
           onCopy={() => {
             console.log('copied!');
           }}
@@ -364,11 +366,11 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
             }}
           />
         )}
-        {(drep?.cexplorerDetails?.view == dRepIDBech32 ||
+        {(drep?.view == dRepIDBech32 ||
           drep?.signature_voterId == dRepIDBech32) &&
           renderUnsavedChanges()}
       </div>
-      {(drep?.cexplorerDetails?.view == dRepIDBech32 ||
+      {(drep?.view == dRepIDBech32 ||
         drep?.signature_voterId == dRepIDBech32) && (
         <div className="flex max-w-prose flex-col gap-2">
           <Button

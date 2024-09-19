@@ -32,14 +32,16 @@ const DrepClaimProfileCard = ({
   const { isLoggedIn } = useDRepContext();
   useEffect(() => {
     const fetchData = async () => {
+      if(!drep) return;
+      
       setIsMetadataLoading(true);
       setMetadataError(null);
 
-      const metadataUrl = drep?.cexplorerDetails?.metadata_url;
+      const metadataUrl = drep?.metadata_url;
       setMetadataUrl(metadataUrl);
       try {
         try {
-          const voterId = drep?.cexplorerDetails.view;
+          const voterId = drep?.view;
           const res = await getDRepMetadata(voterId);
 
           setMetadataEntries(res?.metadata?.body);
@@ -66,8 +68,8 @@ const DrepClaimProfileCard = ({
       let status;
       if (drep?.type !== 'voting_option') {
         status = isActive(
-          drep?.cexplorerDetails?.epoch_no,
-          drep?.cexplorerDetails?.active_until,
+          drep?.epoch_no,
+          drep?.active_until,
         )
           ? 'Active'
           : 'Inactive';
@@ -118,8 +120,8 @@ const DrepClaimProfileCard = ({
           <p className="flex items-center gap-3 font-normal">
             {state ? (
               <Skeleton animation={'wave'} width={50} height={20} />
-            ) : drep?.cexplorerDetails?.voting_power != null ? (
-              `₳ ${formattedAda(drep?.cexplorerDetails?.voting_power, 2)}`
+            ) : drep?.voting_power != null ? (
+              `₳ ${formattedAda(drep?.voting_power, 2)}`
             ) : (
               '-'
             )}
@@ -130,8 +132,8 @@ const DrepClaimProfileCard = ({
           <p className="flex items-center gap-3 font-normal">
             {state ? (
               <Skeleton animation={'wave'} width={50} height={20} />
-            ) : drep?.cexplorerDetails?.live_stake != null ? (
-              `₳ ${formattedAda(drep?.cexplorerDetails?.live_stake, 2)}`
+            ) : drep?.live_stake != null ? (
+              `₳ ${formattedAda(drep?.live_stake, 2)}`
             ) : (
               '-'
             )}
@@ -144,7 +146,7 @@ const DrepClaimProfileCard = ({
           {state ? (
             <Skeleton animation={'wave'} width={150} height={20} />
           ) : (
-            `${drep?.cexplorerDetails?.delegation_vote_count || 0} ${drep?.cexplorerDetails?.delegation_vote_count > 1 ? 'Delegators' : 'Delegator'}`
+            `${drep?.delegation_vote_count || 0} ${drep?.delegation_vote_count > 1 ? 'Delegators' : 'Delegator'}`
           )}
         </p>
       </div>
@@ -154,11 +156,11 @@ const DrepClaimProfileCard = ({
           {state ? (
             <Skeleton animation={'wave'} width={150} height={20} />
           ) : (
-            convertString(drep?.cexplorerDetails?.view || '', true)
+            convertString(drep?.view || '', true)
           )}
         </p>
         <CopyToClipboard
-          text={drep?.cexplorerDetails?.view}
+          text={drep?.view}
           onCopy={() => {
             console.log('copied!');
           }}
@@ -180,7 +182,7 @@ const DrepClaimProfileCard = ({
           />
         )}
       </div>
-      {(drep?.cexplorerDetails?.view == dRepIDBech32 ||
+      {(drep?.view == dRepIDBech32 ||
         drep?.signature_voterId == dRepIDBech32) &&
         isLoggedIn && (
           <div className="flex max-w-prose flex-col gap-2">
