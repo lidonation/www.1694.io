@@ -215,8 +215,8 @@ const SingleNote = ({
   };
 
   const noteContent = useMemo(
-    () => processContent(note.note_note_content),
-    [note.note_note_content],
+    () => processContent(note.note_content),
+    [note.note_content],
   );
 
   const reactionIcons = {
@@ -236,7 +236,7 @@ const SingleNote = ({
     <div className="flex flex-col gap-3 rounded-xl bg-white bg-opacity-70 shadow-md">
       <div className="flex flex-col gap-3 p-5">
         <Typography className="font-black" variant="h5">
-          {note.note_note_title}
+          {note.note_title}
         </Typography>
         {!!noteContent && <DisplayParsedContent content={noteContent} />}
         {!!note.note_note_tag && (

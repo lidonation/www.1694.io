@@ -119,7 +119,7 @@ export class NoteService {
       .orderBy('note.createdAt', 'DESC') // Order by createdAt descending
       .limit(20); // limit per req
     // Basic query for notes with visibility 'everyone'
-    queryBuilder.where('note.note_visibility = :everyone', {
+    queryBuilder.where('note.visibility = :everyone', {
       everyone: 'everyone',
     });
     if (currentNote) {
@@ -135,7 +135,7 @@ export class NoteService {
     // 'delegators' visibility
     if (delegation) {
       queryBuilder.orWhere(
-        'note.note_visibility = :delegators AND signature.voterId = :drepVoterId',
+        'note.visibility = :delegators AND signature.voterId = :drepVoterId',
         {
           delegators: 'delegators',
           drepVoterId: delegation.drep_view,
@@ -145,7 +145,7 @@ export class NoteService {
     // 'myself' visibility
     if (stakeKeyBech32) {
       queryBuilder.orWhere(
-        'note.note_visibility = :myself AND signature.stakeKey = :stakeKeyBech32',
+        'note.visibility = :myself AND signature.stakeKey = :stakeKeyBech32',
         {
           myself: 'myself',
           stakeKeyBech32: stakeKeyBech32,

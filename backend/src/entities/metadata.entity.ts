@@ -1,5 +1,5 @@
 import { Column, Entity, ManyToOne } from 'typeorm';
-import { BaseEntity } from 'src/global';
+import { BaseEntity } from '../global';
 import { Drep } from './drep.entity';
 
 @Entity()

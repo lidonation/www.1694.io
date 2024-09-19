@@ -1,6 +1,6 @@
-import { Column, Entity, OneToMany } from 'typeorm';
+import { Entity, OneToMany } from 'typeorm';
 import { Signature } from './signatures.entity';
-import { BaseEntity } from 'src/global';
+import { BaseEntity } from '../global';
 
 @Entity()
 export class Drep extends BaseEntity {

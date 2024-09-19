@@ -51,10 +51,10 @@ const NewNoteForm = () => {
       ).to_bech32();
       const { postTag, postText, postTitle, postVisibility } = data;
       const newNote = {
-        note_title: postTitle,
+        title: postTitle,
         note_tag: postTag,
-        note_content: postText,
-        note_visibility: postVisibility,
+        content: postText,
+        visibility: postVisibility,
         stake_addr: stakeAddress,
         drep: dRepIDBech32,
         author: null

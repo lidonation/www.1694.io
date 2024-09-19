@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useCardano } from '@/context/walletContext';
 import WalletConnectButton from '@/components/molecules/WalletConnectButton';
 import { WalletInfoCard } from '@/components/molecules';
@@ -9,19 +9,23 @@ import { useScreenDimension } from '@/hooks';
 import VoltaireMenu from '../molecules/VoltaireMenu';
 import DRepMenu from '../molecules/DRepMenu';
 import { SliderMenu } from '../organisms/SliderMenu';
-import NotificationDrawer from "@/components/molecules/NotificationDrawer";
+import NotificationDrawer from '@/components/molecules/NotificationDrawer';
 import { CONFIGURED_NETWORK_NAME } from '@/constants';
 
 const Header = () => {
   const { isEnabled } = useCardano();
+  const [networkName, setNetworkName] = useState('');
   const { currentLocale } = useDRepContext();
   const { isMobile } = useScreenDimension();
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const pathname = usePathname();
   const [activeLink, setActiveLink] = useState(null);
-  const renderLogoOnNetworkChange = () => {
-    if(CONFIGURED_NETWORK_NAME){
-      switch(CONFIGURED_NETWORK_NAME){
+  useEffect(() => {
+    setNetworkName(CONFIGURED_NETWORK_NAME);
+  }, [CONFIGURED_NETWORK_NAME]);
+  const renderLogoOnNetworkChange = useCallback(() => {
+    if (networkName) {
+      switch (networkName) {
         case 'sanchonet':
           return '/img/logos/sancho-black.png';
         case 'mainnet':
@@ -32,9 +36,7 @@ const Header = () => {
           return '/img/logos/sancho-black.png';
       }
     }
-    //return default logo if network name is not set
-    return '/img/logos/sancho-black.png';
-  }
+  }, [networkName]);
   useEffect(() => {
     // Setting the active link based on the current pathname
     setActiveLink(pathname);
@@ -76,9 +78,7 @@ const Header = () => {
               <WalletInfoCard test_name={'header'} />
             )}
           </div>
-          {!isMobile && (
-            <NotificationDrawer />
-          )}
+          {!isMobile && <NotificationDrawer />}
           {isMobile && (
             <div
               className="cursor-pointer"
