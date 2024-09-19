@@ -19,6 +19,8 @@ import { processExternalMetadata } from '@/lib/metadataProcessor';
 import { getSingleDRepViaVoterId } from '@/services/requests/getSingleDrepViaVoterId';
 import { getItemFromIndexedDB } from '@/lib/indexedDb';
 import { getDRepRegStatus } from '@/services/requests/getDRepRegStatus';
+import { getDRepMetadata } from '@/services/requests/getDRepMetadata';
+import { blake2bHex } from 'blakejs';
 
 interface DRepContext {
   step1Status: stepStatus['status'];
@@ -119,11 +121,13 @@ function DRepProvider(props: Props) {
       const drepId = sharedState?.dRepIDBech32;
       if (!drepId) return;
 
+      // Check if DRep is registered
       const isDRepRegistered = await getDRepRegStatus(drepId);
       if (!isDRepRegistered) return;
 
       setIsDRepRegistered(true);
 
+      // Fetch DRep data
       const drep = await getSingleDRepViaVoterId(drepId);
       if (drep?.drep_id) {
         setNewDrepId(drep?.drep_id);
@@ -131,34 +135,55 @@ function DRepProvider(props: Props) {
       if (drep?.signature_signature) {
         setStep2Status('success');
       }
-      //check for metadata locally first
-      const locallySavedJsonld = await getItemFromIndexedDB('metadataJsonLd');
-      const locallySavedHash = await getItemFromIndexedDB('metadataJsonHash');
-      if (locallySavedHash) {
-        setMetadataJsonHash(locallySavedHash);
+
+      // Try to fetch metadata from db-sync first
+      try {
+        const res = await getDRepMetadata(drep?.view);
+        if (res) {
+          metadataJsonLd = res.metadata;
+          setMetadataJsonLd(res.metadata);
+          const jsonHash = blake2bHex(JSON.stringify(metadataJsonLd), undefined, 32);
+          setMetadataJsonHash(jsonHash);
+        }
+      } catch (e) {
+        if (e.response && e.response.status === 404) {
+          console.log(
+            'Metadata not found via from db-sync, trying local or external sources.',
+          );
+        } else {
+          console.log(e);
+        }
       }
-      if (locallySavedJsonld) {
-        metadataJsonLd = locallySavedJsonld;
-        setMetadataJsonLd(locallySavedJsonld);
-      } else {
-        //else get the metadata from the blockchain
-        if (drep?.cexplorerDetails?.metadata_url) {
-          const { jsonLdData, jsonHash } = await processExternalMetadata({
-            metadataUrl: drep?.cexplorerDetails?.metadata_url,
-          });
-          if (!jsonLdData) return;
+
+      // Check for metadata locally if not found via db-sync
+      if (!metadataJsonLd) {
+        const locallySavedJsonld = await getItemFromIndexedDB('metadataJsonLd');
+        const locallySavedHash = await getItemFromIndexedDB('metadataJsonHash');
+        if (locallySavedHash) {
+          setMetadataJsonHash(locallySavedHash);
+        }
+        if (locallySavedJsonld) {
+          metadataJsonLd = locallySavedJsonld;
+          setMetadataJsonLd(locallySavedJsonld);
+        }
+      }
+
+      // Fallback to external metadata if not found locally or via db-sync
+      if (!metadataJsonLd && drep?.metadata_url) {
+        const { jsonLdData, jsonHash } = await processExternalMetadata({
+          metadataUrl: drep?.metadata_url,
+        });
+        if (jsonLdData) {
           metadataJsonLd = jsonLdData;
           setMetadataJsonLd(jsonLdData);
           setMetadataJsonHash(jsonHash);
         }
       }
-      // if metadata is not found ignore
+
       if (!metadataJsonLd) return;
       const metadataBody = metadataJsonLd?.body;
-      // else set the metadata to the context
-      // depending on the content set the status
 
-      //set steps accordingly
+    
       if (metadataBody?.givenName || metadataBody?.bio || metadataBody?.email) {
         setStep1Status('success');
       }

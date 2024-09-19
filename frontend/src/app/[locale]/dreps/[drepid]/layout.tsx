@@ -14,7 +14,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const { dRep } = useGetSingleDRepQuery(drepid);
 
   const currentUserIsDrep =
-    dRep?.drep_id && dRep?.cexplorerDetails?.view == dRepIDBech32;
+    dRep?.drep_id && dRep?.view == dRepIDBech32;
   return (
     <div className="flex">
       {/* If current user is a drep, the drawer will be available for use */}
