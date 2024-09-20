@@ -23,9 +23,6 @@ export class Migrations1726539689889 implements MigrationInterface {
       `ALTER TABLE "note" ADD "visibility" character varying NOT NULL`,
     );
     await queryRunner.query(
-      `ALTER TABLE "note" ADD CONSTRAINT "FK_270ca39118de4b28864f3de4d04" FOREIGN KEY ("drepId") REFERENCES "drep"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
-    );
-    await queryRunner.query(
       `ALTER TABLE "note" ADD CONSTRAINT "FK_59d5801d406020527940335d902" FOREIGN KEY ("authorId") REFERENCES "signature"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
     );
   }
