@@ -10,7 +10,6 @@ export class Migrations1726539689889 implements MigrationInterface {
     await queryRunner.query(`ALTER TABLE "note" DROP COLUMN "note_title"`);
     await queryRunner.query(`ALTER TABLE "note" DROP COLUMN "note_content"`);
     await queryRunner.query(`ALTER TABLE "note" DROP COLUMN "note_visibility"`);
-    await queryRunner.query(`ALTER TABLE "note" DROP COLUMN "voterId"`);
     await queryRunner.query(
       `ALTER TABLE "signature" ADD "voterId" character varying`,
     );
@@ -35,8 +34,6 @@ export class Migrations1726539689889 implements MigrationInterface {
     await queryRunner.query(
       `ALTER TABLE "note" ADD "visibility" character varying NOT NULL`,
     );
-    await queryRunner.query(`ALTER TABLE "note" ADD "drepId" integer`);
-    await queryRunner.query(`ALTER TABLE "note" ADD "authorId" integer`);
     await queryRunner.query(
       `ALTER TABLE "note" ADD CONSTRAINT "FK_270ca39118de4b28864f3de4d04" FOREIGN KEY ("drepId") REFERENCES "drep"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
     );
