@@ -21,7 +21,7 @@ import DatabaseNullIcon from '../atoms/svgs/DatabaseNullIcon';
 import { useScreenDimension } from '@/hooks';
 import Typography from "@mui/material/Typography";
 
-const DrepTimeline = ({ cexplorerDetails }: { cexplorerDetails: any }) => {
+const DrepTimeline = ({ drep }: { drep: any }) => {
   const { drepid } = useParams();
   const [filterValues, setFilterValues] = useState<string[]>(null);
   const {
@@ -164,7 +164,7 @@ const  {isMobile}=useScreenDimension();
         <div className="flex w-full justify-between">
           <Typography variant='h4'>Timeline</Typography>
           <div className="flex items-center gap-4">
-            {cexplorerDetails?.view == dRepIDBech32 && (
+            {drep?.view == dRepIDBech32 && (
               <Button size="medium" className="flex w-fit items-center">
                 <Link href={`/dreps/workflow/notes/new`}>
                 {
