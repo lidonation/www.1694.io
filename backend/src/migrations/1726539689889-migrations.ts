@@ -11,18 +11,6 @@ export class Migrations1726539689889 implements MigrationInterface {
     await queryRunner.query(`ALTER TABLE "note" DROP COLUMN "note_content"`);
     await queryRunner.query(`ALTER TABLE "note" DROP COLUMN "note_visibility"`);
     await queryRunner.query(
-      `ALTER TABLE "signature" ADD "voterId" character varying`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "signature" ADD "stakeKey" character varying`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "signature" ADD "signature" character varying`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "signature" ADD "signatureKey" character varying`,
-    );
-    await queryRunner.query(
       `ALTER TABLE "note" ADD "title" character varying NOT NULL`,
     );
     await queryRunner.query(
