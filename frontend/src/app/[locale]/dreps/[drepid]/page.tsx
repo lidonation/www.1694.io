@@ -21,7 +21,7 @@ const page = () => {
         </div>
         <div className="lg:w-[70%]">
           <Suspense>
-            <DrepTimeline cexplorerDetails={dRep?.cexplorerDetails} />
+            <DrepTimeline drep={dRep} />
           </Suspense>
         </div>
       </div>

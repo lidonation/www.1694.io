@@ -132,11 +132,8 @@ export class DrepController {
   @Post('metadata/save')
   saveMetadata(
     @Body('metadata') metadata: any,
-    @Body('hash') hash: string,
-    @Body('drepId') drepId: number,
-    @Body('name') name: string,
   ) {
-    return this.drepService.saveMetadata(metadata, hash, drepId, name);
+    return this.drepService.saveMetadata(metadata);
   }
   @Get(':voterId/stats')
   getStats(@Param('voterId') voterId: string) {

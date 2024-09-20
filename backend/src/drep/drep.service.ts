@@ -31,7 +31,6 @@ import {
   getDRepVotesCountQuery,
   getDRepVotingPowerQuery,
 } from 'src/queries/drepStats';
-import { Metadata } from 'src/entities/metadata.entity';
 import { getEpochParams } from 'src/queries/getEpochParams';
 import { getDRepDelegatorsHistory } from 'src/queries/drepDelegatorsHistory';
 import { JsonLd } from 'jsonld/jsonld-spec';
@@ -770,7 +769,7 @@ export class DrepService {
       .getRepository('Drep')
       .update(drepId, updatedDrep);
   }
-  
+
   async getMetadataFromExternalLink(metadataUrl: string) {
     if (!metadataUrl) throw new Error('Inadequate parameters');
     const { data } = await firstValueFrom(
@@ -825,41 +824,11 @@ export class DrepService {
 
     return { status, valid: !Boolean(status), metadata } as any;
   }
-  async saveMetadata(
-    metadata: any,
-    hash: string,
-    drepId: number,
-    fileName: string,
-  ) {
-    const metadataRepo = await this.voltaireService.getRepository('Metadata');
-
-    // Check if a record with the same drepId already exists
-    const existingMetadata = await metadataRepo
-      .createQueryBuilder('metadata')
-      .where('metadata.drep = :drepId', { drepId })
-      .andWhere('metadata.hash = :hash', { hash: hash })
-      .getOne();
-    if (existingMetadata) {
-      //check pinned status
-      const content = existingMetadata?.content;
-      if (content) {
-        const { state } = await this.attachmentService.checkPinStatus(content);
-        return { ...existingMetadata, state };
-      }
-      return existingMetadata;
-    }
+  async saveMetadata(metadata: any) {
     // Create a new metadata record in IPFS
     const { ipfs_hash, state } = await this.saveMetadataToIPFS(metadata);
-    const newMetadata = {
-      name: fileName + '.jsonld',
-      hash: hash,
-      content: ipfs_hash,
-      drep: drepId,
-    };
 
-    const createdMetadata = metadataRepo.create(newMetadata);
-    const res = (await metadataRepo.save(createdMetadata)) as Metadata;
-    return { ...res, state };
+    return { content: ipfs_hash, state };
   }
   async saveMetadataToIPFS(metadata: JsonLd): Promise<IPFSResponse> {
     try {
@@ -966,17 +935,17 @@ export class DrepService {
   }
 
   async getMetadata(voterId: string) {
-    const metadata = await this.cexplorerService.manager.query(
+    const metadataRes = await this.cexplorerService.manager.query(
       getDRepMetadataQuery,
       [voterId],
     );
 
-    if (!metadata || metadata.length === 0) {
+    if (!metadataRes || !metadataRes?.[0].metadata) {
       throw new NotFoundException(
         `Metadata not found for voter ID: ${voterId}`,
       );
     }
 
-    return metadata?.[0];
+    return metadataRes?.[0];
   }
 }

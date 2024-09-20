@@ -7,7 +7,6 @@ import { Reaction } from './entities/reaction.entity';
 import { Note } from './entities/note.entity';
 import { Comment } from './entities/comment.entity';
 import { Signature } from './entities/signatures.entity';
-import { Metadata } from './entities/metadata.entity';
 
 @Module({
   imports: [
