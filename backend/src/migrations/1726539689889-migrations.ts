@@ -5,24 +5,6 @@ export class Migrations1726539689889 implements MigrationInterface {
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `ALTER TABLE "signature" DROP COLUMN "drepVoterId"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "signature" DROP COLUMN "drepStakeKey"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "signature" DROP COLUMN "drepSignature"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "signature" DROP COLUMN "drepSignatureKey"`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "drep" DROP COLUMN "platform_statement"`,
-    );
-    await queryRunner.query(`ALTER TABLE "drep" DROP COLUMN "expertise"`);
-    await queryRunner.query(`ALTER TABLE "drep" DROP COLUMN "perspective"`);
-    await queryRunner.query(`ALTER TABLE "drep" DROP COLUMN "social"`);
-    await queryRunner.query(
       `ALTER TABLE "note" DROP CONSTRAINT "UQ_6841f094732260ba4e626f994c1"`,
     );
     await queryRunner.query(`ALTER TABLE "note" DROP COLUMN "note_title"`);
