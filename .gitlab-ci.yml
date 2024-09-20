@@ -388,7 +388,7 @@ production:
   needs:
     - job: app-preview
   rules:
-    - if: $CI_COMMIT_BRANCH == 'main'
+    - if: $CI_COMMIT_BRANCH == 'main' && $DEPLOY_WEBSITE == True
       when: manual
 
 ui-chrome-tests:
