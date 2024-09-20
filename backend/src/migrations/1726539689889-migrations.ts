@@ -5,9 +5,6 @@ export class Migrations1726539689889 implements MigrationInterface {
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `ALTER TABLE "note" DROP CONSTRAINT "FK_1039aaf9251b0cb14b7eec9140b"`,
-    );
-    await queryRunner.query(
       `ALTER TABLE "signature" DROP COLUMN "drepVoterId"`,
     );
     await queryRunner.query(
