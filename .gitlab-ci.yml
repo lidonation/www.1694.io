@@ -253,7 +253,7 @@ app-sancho:
   environment:
     name: sancho
   rules:
-    - if: '$CI_COMMIT_BRANCH != "main" && ($DEPLOY_WEBSITE == "true")'
+    - if: '$DEPLOY_WEBSITE == "true"'
 
 postgres-app-preview:
   <<: *deploy_postgres_web
