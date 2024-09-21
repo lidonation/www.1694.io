@@ -1,6 +1,6 @@
 export interface noteInput {
   title: string;
-  note_tag: string[];
+  tag: string[];
   content: string;
   stake_addr: string;
   drep: string;
