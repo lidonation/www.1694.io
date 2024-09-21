@@ -1,12 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { Drep } from './entities/drep.entity';
-import { Attachment } from './entities/attachment.entity';
-import { Reaction } from './entities/reaction.entity';
-import { Note } from './entities/note.entity';
-import { Comment } from './entities/comment.entity';
-import { Signature } from './entities/signatures.entity';
 
 @Module({
   imports: [
