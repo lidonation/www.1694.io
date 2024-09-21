@@ -21,7 +21,7 @@ import { Signature } from './entities/signatures.entity';
         username: configService.get('DATABASE_USERNAME', 'postgres'),
         password: configService.get('DATABASE_PASSWORD', 'postgres'),
         database: configService.get('DATABASE_NAME', '1694'),
-        entities: ['dist/entities/*.entity.{ts,js}'],
+        entities: [__dirname + '/entities/*.entity.{ts,js}'],
         synchronize: false,
         migrations: [__dirname + '/migrations/*{.ts,.js}'],
         extra: {
