@@ -6,8 +6,9 @@ import { usePathname } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 
 const PageBanner = () => {
+  const [disablePolling, setDisablePolling] = useState(false);
   const { NodeStatus, isLoading, isFetching, isError, isFetchedAfterMount } =
-    useGetNodeStatusQuery();
+    useGetNodeStatusQuery({ disablePolling });
   const pathname = usePathname();
   const [showBanner, setShowBanner] = useState(false);
   const [nodeStats, setNodeStats] = useState(null);
@@ -21,6 +22,9 @@ const PageBanner = () => {
   useEffect(() => {
     if (NodeStatus) {
       setNodeStats(NodeStatus);
+      if (NodeStatus?.behindBy <= 30 && !isError) {
+        setDisablePolling(true);
+      }
     }
   }, [NodeStatus, isLoading, isFetching]);
   useEffect(() => {
@@ -33,6 +37,7 @@ const PageBanner = () => {
       (isError || (nodeStats && nodeStats?.behindBy >= 30))
     );
   };
+
   const renderStatus = () => {
     if (!nodeStats && !isError) return '-';
     if (nodeStats && !isError) {
