@@ -5,22 +5,22 @@ export class Migrations1726539689889 implements MigrationInterface {
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `ALTER TABLE "note" DROP CONSTRAINT "UQ_6841f094732260ba4e626f994c1"`,
+      `ALTER TABLE "note" RENAME COLUMN "note_title" TO "title"`,
     );
-    await queryRunner.query(`ALTER TABLE "note" DROP COLUMN "note_title"`);
-    await queryRunner.query(`ALTER TABLE "note" DROP COLUMN "note_content"`);
-    await queryRunner.query(`ALTER TABLE "note" DROP COLUMN "note_visibility"`);
     await queryRunner.query(
-      `ALTER TABLE "note" ADD "title" character varying NOT NULL`,
+      `ALTER TABLE "note" RENAME COLUMN "note_tag" TO "tag"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "note" RENAME COLUMN "note_content" TO "content"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "note" RENAME COLUMN "note_visibility" TO "visibility"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "note" DROP CONSTRAINT "UQ_6841f094732260ba4e626f994c1"`,
     );
     await queryRunner.query(
       `ALTER TABLE "note" ADD CONSTRAINT "UQ_c1872643429ea977256802b0974" UNIQUE ("title")`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "note" ADD "content" character varying NOT NULL`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "note" ADD "visibility" character varying NOT NULL`,
     );
   }
 
