@@ -15,9 +15,7 @@ export class AuthService {
   constructor(
     private jwtService: JwtService,
     @InjectDataSource('default')
-    private voltaireService: DataSource,
-    @InjectDataSource('dbsync')
-    private cexplorerService: DataSource,
+    private voltaireService: DataSource
   ) {}
   async signJWT(payload: Payload, tte: number | string) {
     const accessSecret = jwtConstants.secret;

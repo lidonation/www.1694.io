@@ -10,7 +10,7 @@ export class Note extends BaseEntity {
   title: string;
 
   @Column('simple-array', { nullable: true })
-  note_tag: string[];
+  tag: string[];
 
   @Column({ nullable: false })
   content: string;

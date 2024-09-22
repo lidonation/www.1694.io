@@ -52,7 +52,7 @@ const NewNoteForm = () => {
       const { postTag, postText, postTitle, postVisibility } = data;
       const newNote = {
         title: postTitle,
-        note_tag: postTag,
+        tag: postTag,
         content: postText,
         visibility: postVisibility,
         stake_addr: stakeAddress,

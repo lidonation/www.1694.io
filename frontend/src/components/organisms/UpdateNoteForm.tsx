@@ -41,7 +41,7 @@ const UpdateNoteForm = ({ noteId, initialValues }) => {
   useEffect(() => {
     if (initialValues) {
       setValue('postTitle', initialValues?.title);
-      setValue('postTag', initialValues?.note_tag);
+      setValue('postTag', initialValues?.tag);
       setValue('postText', initialValues?.content);
       setValue('postVisibility', initialValues?.visibility);
     }
@@ -59,7 +59,7 @@ const UpdateNoteForm = ({ noteId, initialValues }) => {
       const { postTag, postText, postTitle, postVisibility } = data;
       const updatedNote = {
         title: postTitle,
-        note_tag: postTag,
+        tag: postTag,
         content: postText,
         visibility: postVisibility,
         stake_addr: stakeAddress,
