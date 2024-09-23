@@ -3,24 +3,16 @@ import DrepInfoCard from '../atoms/DrepInfoCard';
 import { urls } from '@/constants';
 import { useDRepContext } from '@/context/drepContext';
 import { useCardano } from '@/context/walletContext';
+import { useGetAdaHolderCurrentDelegationQuery } from '@/hooks/useGetAdaHolderCurrentDelegationQuery';
+import { useGetSingleDRepViaVoterIdQuery } from '@/hooks/useGetSingleDRepViaVoterIdQuery';
 
 const DrepInfoCardRow = () => {
-  const {isLoggedIn, setIsWalletListModalOpen} = useDRepContext()
-  const {isEnabled} = useCardano()
-  const [disabled, setDisabled] = useState(false)
-  const [connectWalletLabel, setConnectWalletLabel] = useState("Connect Wallet")
-
-  useEffect(()=>{
-    if(isEnabled && !isLoggedIn){
-      setConnectWalletLabel("Wallet Connected")
-      setDisabled(true)
-    }else if(isEnabled && isLoggedIn){
-      setDisabled(false)
-    }else{
-      setDisabled(false)
-      setConnectWalletLabel("Connect Wallet")
-    }
-  }, [isEnabled, isLoggedIn])
+  const {setIsWalletListModalOpen} = useDRepContext()
+  const {isEnabled, stakeKey} = useCardano();
+  const currentDelegation = useGetAdaHolderCurrentDelegationQuery(stakeKey)
+  const { DRep } = useGetSingleDRepViaVoterIdQuery(
+    currentDelegation?.currentDelegation?.drep_view
+  );
   
   return (
     <div className="grid grid-cols-1 items-center justify-center gap-4 text-zinc-100 sm:grid-cols-2 xl:grid-cols-4">
@@ -28,12 +20,11 @@ const DrepInfoCardRow = () => {
         img={'/img/regImg.png'}
         title={'Registration'}
         action={{
-          label: isLoggedIn ? 'Register on-chain' : connectWalletLabel,
-          href: isLoggedIn ? `${urls.govToolUrl}/register_drep` : '',
-          target: isLoggedIn ? '_blank' : undefined,
+          label: isEnabled ? 'Register on-chain' : "Connect Wallet",
+          href: isEnabled ? `${urls.govToolUrl}/register_drep` : '',
+          target: isEnabled ? '_blank' : undefined,
         }}
-        clicked={isLoggedIn ? undefined : ()=>{setIsWalletListModalOpen(true)}}
-        disabled = {disabled}
+        clicked={isEnabled ? undefined : ()=>{setIsWalletListModalOpen(true)}}
         description={
           'Like stake pools, DRep registers their intention on chain via DRep Certificates.'
         }
@@ -43,11 +34,10 @@ const DrepInfoCardRow = () => {
         img={'/img/delegImg.png'}
         title={'Delegation'}
         action={{
-          label: isLoggedIn ? 'Create your campaign' : connectWalletLabel,
-          href: isLoggedIn ? '/dreps/workflow/profile/new' : '',
+          label: isEnabled ? 'Create your campaign' :"Connect Wallet",
+          href: isEnabled ? '/dreps/workflow/profile/new' : '',
         }}
-        clicked={isLoggedIn ? undefined : ()=>{setIsWalletListModalOpen(true)}}
-        disabled = {disabled}
+        clicked={isEnabled ? undefined : ()=>{setIsWalletListModalOpen(true)}}
         description={
           'Just like staking a pool, Ada holders can delegate their stake to a DRep with Transaction.'
         }
@@ -57,11 +47,10 @@ const DrepInfoCardRow = () => {
         img={'/img/credImg.png'}
         title={'Voting Power'}
         action={{
-          label: isLoggedIn ? 'See Your Profile' : connectWalletLabel,
-          href: isLoggedIn ?'#' : '',
+          label: isEnabled ? 'See Your Profile' : "Connect Wallet",
+          href: isEnabled ?`/dreps/${currentDelegation?.currentDelegation?.drep_view}` : ''
         }}
-        clicked={isLoggedIn ? undefined : ()=>{setIsWalletListModalOpen(true)}}
-        disabled = {disabled}
+        clicked={isEnabled ? undefined : ()=>{setIsWalletListModalOpen(true)}}
         description={
           'DRep voting power will be the total value of staked Ada delegated to the DRep.'
         }
@@ -71,14 +60,13 @@ const DrepInfoCardRow = () => {
         img={'/img/statusImg.png'}
         title={'Status'}
         action={{
-          label: isLoggedIn ? 'Go To Your Timeline' : connectWalletLabel,
-          href: isLoggedIn ?'#' : '',
+          label: isEnabled ? 'Go To Your Timeline' : "Connect Wallet",
+          href: isEnabled ?`/dreps/${currentDelegation?.currentDelegation?.drep_view}` : ''
         }}
         description={
           'Registered DReps will need to vote regularly to still be considered active.'
         }
-        disabled = {disabled}
-        clicked={isLoggedIn ? undefined : ()=>{setIsWalletListModalOpen(true)}}
+        clicked={isEnabled ? undefined : ()=>{setIsWalletListModalOpen(true)}}
       />
     </div>
   );
