@@ -1,5 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
+import { DrepService } from 'src/drep/drep.service';
+import { getDrepAddrData } from 'src/queries/drepAddrData';
+import { getAddrDataQuery } from 'src/queries/getAddrData';
+import { getStakeKeyData } from 'src/queries/getStakeKeyData';
+import { getVoterDelegationHistory } from 'src/queries/getVoterDelegationHistory';
 import { DataSource } from 'typeorm';
 
 @Injectable()
@@ -8,6 +13,46 @@ export class VoterService {
     @InjectDataSource('dbsync')
     private cexplorerService: DataSource,
   ) {}
+  async getVoter(voterIdentity: string) {
+    let voterData;
+    let delegationHistory;
+    switch (true) {
+      case voterIdentity.includes('drep'):
+        voterData = await this.cexplorerService.manager.query(getDrepAddrData, [
+          voterIdentity,
+        ]);
+        delegationHistory = await this.cexplorerService.manager.query(
+          getVoterDelegationHistory,
+          [voterData[0].stake_address],
+        );
+        break;
+      case voterIdentity.includes('stake'):
+        voterData = await this.cexplorerService.manager.query(getStakeKeyData, [
+          voterIdentity,
+        ]);
+        delegationHistory = await this.cexplorerService.manager.query(
+          getVoterDelegationHistory,
+          [voterIdentity],
+        );
+        break;
+      default:
+        voterData = await this.cexplorerService.manager.query(
+          getAddrDataQuery,
+          [voterIdentity],
+        );
+        delegationHistory = await this.cexplorerService.manager.query(
+          getVoterDelegationHistory,
+          [voterData[0].stake_address],
+        );
+        break;
+    }
+
+    return Array.isArray(voterData) ? {
+      ...voterData[0],
+      delegationHistory,
+      isDelegated: delegationHistory.length > 0,
+    } : null;
+  }
   async getAdaHolderCurrentDelegation(stakeKey: string) {
     const delegation = await this.cexplorerService.manager.query(
       `SELECT

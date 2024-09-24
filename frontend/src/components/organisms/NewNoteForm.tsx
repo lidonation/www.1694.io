@@ -56,8 +56,7 @@ const NewNoteForm = () => {
         content: postText,
         visibility: postVisibility,
         stake_addr: stakeAddress,
-        drep: dRepIDBech32,
-        author: null
+        drep: null,
       };
       const { noteAdded } = await mutation.mutateAsync({ note: newNote });
       router.push(`/dreps/workflow/notes/${noteAdded}/update`);
