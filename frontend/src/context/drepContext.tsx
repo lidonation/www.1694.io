@@ -29,7 +29,9 @@ interface DRepContext {
   step4Status: stepStatus['status'];
   isLoggedIn: boolean;
   loginModalOpen: boolean;
+  hideCloseButtonOnLoginModal: boolean
   isWalletListModalOpen: boolean;
+  hideCloseButtonOnWalletListModal: boolean;
   isNotDRepErrorModalOpen: boolean;
   currentLocale: string;
   drepId: number;
@@ -45,9 +47,11 @@ interface DRepContext {
   setCurrentRegistrationStep: React.Dispatch<React.SetStateAction<number>>;
   setIsNotDRepErrorModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsWalletListModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setHideCloseButtonOnWalletListModal: React.Dispatch<React.SetStateAction<boolean>>;
   setCurrentLocale: React.Dispatch<React.SetStateAction<string>>;
   setNewDrepId: React.Dispatch<React.SetStateAction<number>>;
   setLoginModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setHideCloseButtonOnLoginModal: React.Dispatch<React.SetStateAction<boolean>>;
   metadataJsonLd: any;
   setMetadataJsonLd: React.Dispatch<React.SetStateAction<any>>;
   metadataJsonHash: any;
@@ -69,24 +73,21 @@ DRepContext.displayName = 'DRepContext';
 
 function DRepProvider(props: Props) {
   const [isWalletListModalOpen, setIsWalletListModalOpen] = useState(false);
+  const [hideCloseButtonOnWalletListModal, setHideCloseButtonOnWalletListModal] = useState(false);
   const { sharedState, updateSharedState } = useSharedContext();
   const [isNotDRepErrorModalOpen, setIsNotDRepErrorModalOpen] = useState(false);
   const [metadataJsonLd, setMetadataJsonLd] = useState(null);
   const [metadataJsonHash, setMetadataJsonHash] = useState(null);
   const [isDRepRegistered, setIsDRepRegistered] = useState(false);
-  const [currentRegistrationStep, setCurrentRegistrationStep] =
-    useState<currentRegistrationStep['step']>(1);
+  const [currentRegistrationStep, setCurrentRegistrationStep] = useState<currentRegistrationStep['step']>(1);
   const [drepId, setNewDrepId] = useState<number | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
-  const [step1Status, setStep1Status] =
-    useState<stepStatus['status']>('pending');
-  const [step2Status, setStep2Status] =
-    useState<stepStatus['status']>('pending');
-  const [step3Status, setStep3Status] =
-    useState<stepStatus['status']>('pending');
-  const [step4Status, setStep4Status] =
-    useState<stepStatus['status']>('pending');
+  const [hideCloseButtonOnLoginModal, setHideCloseButtonOnLoginModal] = useState(false);
+  const [step1Status, setStep1Status] = useState<stepStatus['status']>('pending');
+  const [step2Status, setStep2Status] = useState<stepStatus['status']>('pending');
+  const [step3Status, setStep3Status] = useState<stepStatus['status']>('pending');
+  const [step4Status, setStep4Status] = useState<stepStatus['status']>('pending');
   //will fix later
   const [currentLocale, setCurrentLocale] = useState<string | null>('en');
   useEffect(() => {
@@ -95,8 +96,9 @@ function DRepProvider(props: Props) {
       isNotDRepErrorModalOpen,
       isLoggedIn,
       isLoginModalOpen: loginModalOpen,
+      hideCloseButtonOnLoginModal: hideCloseButtonOnLoginModal
     });
-  }, [isWalletListModalOpen, isNotDRepErrorModalOpen, isLoggedIn, loginModalOpen]);
+  }, [isWalletListModalOpen, isNotDRepErrorModalOpen, isLoggedIn, loginModalOpen, hideCloseButtonOnLoginModal]);
   useEffect(() => {
     persistLogin();
   }, []);
@@ -182,7 +184,6 @@ function DRepProvider(props: Props) {
 
       if (!metadataJsonLd) return;
       const metadataBody = metadataJsonLd?.body;
-
     
       if (metadataBody?.givenName || metadataBody?.bio || metadataBody?.email) {
         setStep1Status('success');
@@ -244,13 +245,17 @@ function DRepProvider(props: Props) {
       setMetadataJsonHash,
       currentRegistrationStep,
       loginModalOpen,
+      hideCloseButtonOnWalletListModal,
+      hideCloseButtonOnLoginModal,
       setStep1Status,
       setStep2Status,
       setIsLoggedIn,
       setStep3Status,
       setStep4Status,
       setIsWalletListModalOpen,
+      setHideCloseButtonOnWalletListModal,
       setIsNotDRepErrorModalOpen,
+      setHideCloseButtonOnLoginModal,
       setCurrentLocale,
       setCurrentRegistrationStep,
       handleRefresh,
@@ -262,6 +267,7 @@ function DRepProvider(props: Props) {
     }),
     [
       isWalletListModalOpen,
+      hideCloseButtonOnWalletListModal,
       isNotDRepErrorModalOpen,
       currentRegistrationStep,
       currentLocale,
@@ -283,7 +289,7 @@ function DRepProvider(props: Props) {
       {props.children}
       {sharedState.isWalletListModalOpen && (
         <div className="blur-container absolute left-0 top-0  z-50 flex h-screen w-full items-center justify-center">
-          <ChooseWalletModal />
+          <ChooseWalletModal hideCloseButton={hideCloseButtonOnWalletListModal} />
         </div>
       )}
       {sharedState.isNotDRepErrorModalOpen && (
@@ -293,7 +299,7 @@ function DRepProvider(props: Props) {
       )}
       {loginModalOpen && (
         <div className="blur-container fixed left-0 top-0  z-50 flex h-screen w-full items-center justify-center">
-          <UserLoginModal />
+          <UserLoginModal hideCloseButton={hideCloseButtonOnLoginModal} />
         </div>
       )}
     </DRepContext.Provider>

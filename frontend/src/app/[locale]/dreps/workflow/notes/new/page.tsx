@@ -16,6 +16,8 @@ const page = () => {
     isWalletListModalOpen,
     loginModalOpen,
     currentLocale,
+    setHideCloseButtonOnWalletListModal,
+    setHideCloseButtonOnLoginModal
   } = useDRepContext();
 
   const checkAccess = useCallback(() => {
@@ -24,15 +26,17 @@ const page = () => {
     }
     if (!isEnabled) {
       setIsWalletListModalOpen(true);
+      setHideCloseButtonOnWalletListModal(true);
     } else if (isEnabled && !isLoggedIn) {
       setLoginModalOpen(true);
+      setHideCloseButtonOnLoginModal(true);
     }
   }, [isEnabled, isLoggedIn, isWalletListModalOpen, loginModalOpen]);
 
   useEffect(() => {
     checkAccess();
   }, [checkAccess]);
-  
+
   return (
     <div className="drep_radial_bg flex items-center justify-center">
       <div className="form_container h-full ">

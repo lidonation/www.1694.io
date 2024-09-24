@@ -6,15 +6,21 @@ import { IconButton } from '@mui/material';
 import { useCardano } from '@/context/walletContext';
 import { useGetSingleDRepQuery } from '@/hooks/useGetSingleDRepQuery';
 import { useParams } from 'next/navigation';
+import NotFound from './not-found';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { dRepIDBech32 } = useCardano();
   const [isOpen, setIsOpen] = useState(false);
   const { drepid } = useParams();
-  const { dRep } = useGetSingleDRepQuery(drepid);
+  const { dRep, isDRepLoading } = useGetSingleDRepQuery(drepid);
 
-  const currentUserIsDrep =
-    dRep?.drep_id && dRep?.view == dRepIDBech32;
+  const currentUserIsDrep = dRep?.drep_id && dRep?.view == dRepIDBech32;
+
+  if(!isDRepLoading && !dRep) {
+    return (
+      <NotFound/>
+    )
+  }
   return (
     <div className="flex">
       {/* If current user is a drep, the drawer will be available for use */}
