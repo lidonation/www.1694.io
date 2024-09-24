@@ -7,7 +7,7 @@ const SubmittedChip = ({ date }: { date: string }) => {
   return (
     <div className="flex flex-row items-center justify-between">
       <div className="flex w-fit rounded-full bg-blue-800 px-3 py-1 text-white">
-        <p className="text-xs font-light">Submitted a Governance Action</p>
+        <p className="text-xs font-light">Governance Action</p>
       </div>
       <p>
         {date
@@ -138,7 +138,7 @@ const DrepGovActionSubmitCard = ({
   return (
     <div
       id="epoch-card"
-      className={`flex max-w-md flex-col gap-3 rounded-xl border-2 bg-white p-3 shadow-xl ${style.borderColor}`}
+      className={`flex flex-col gap-3 rounded-xl border-2 bg-white p-3 shadow-xl ${style.borderColor} w-full`}
     >
       <SubmittedChip date={cardData?.prop_inception_time} />
       <hr />
