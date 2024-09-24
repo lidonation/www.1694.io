@@ -64,7 +64,6 @@ const UpdateNoteForm = ({ noteId, initialValues }) => {
         visibility: postVisibility,
         stake_addr: stakeAddress,
         drep: dRepIDBech32,
-        author: null
       };
       await mutation.mutateAsync({ noteId: noteId, note: updatedNote });
 

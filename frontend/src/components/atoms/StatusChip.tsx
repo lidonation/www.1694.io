@@ -9,7 +9,9 @@ interface StatusProps {
     | 'Not claimed'
     | 'Not registered'
     | 'Scripted'
-    | 'Voting Option';
+    | 'Voting Option'
+    | 'Delegated'
+    | 'Not Delegated';
 }
 const StatusChip = ({ status }: StatusProps) => {
   let statusClass = '';
@@ -26,7 +28,13 @@ const StatusChip = ({ status }: StatusProps) => {
     case 'Active':
       statusClass = 'bg-success text-zinc-800';
       break;
+    case 'Delegated':
+      statusClass = 'bg-success text-zinc-800';
+      break;
     case 'Inactive':
+      statusClass = 'bg-gray-800 text-white';
+      break;
+    case 'Not Delegated':
       statusClass = 'bg-gray-800 text-white';
       break;
     case 'Scripted':

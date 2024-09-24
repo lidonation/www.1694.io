@@ -12,13 +12,16 @@ import { useGetDrepDelegators } from '@/hooks/useGetDrepDelegatorsQuery';
 import { Box, Skeleton } from '@mui/material';
 import Pagination from '../molecules/Pagination';
 import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 
-const ViewProfileAction = () => {
+const ViewProfileAction = ({ toStakeKey }: { toStakeKey: string }) => {
   return (
-    <div className="flex w-fit flex-row items-center gap-2 rounded-full bg-gray-200 px-3 py-1 text-sm">
-      <img src="/svgs/eye.svg" alt="View Profile" />
-      <p>View Profile</p>
-    </div>
+    <Link prefetch={false} href={toStakeKey ? `/voters/${toStakeKey}` : '#'}>
+      <div className="flex w-fit flex-row items-center gap-2 rounded-full bg-gray-200 px-3 py-1 text-sm">
+        <img src="/svgs/eye.svg" alt="View Profile" />
+        <p>View Profile</p>
+      </div>
+    </Link>
   );
 };
 
@@ -52,10 +55,7 @@ const DrepDelegatorslist = ({ voterId }: { voterId: string }) => {
           {Delegators.data.map((delegator, index) => {
             return (
               <div className="flex w-full flex-col" key={index}>
-                <div
-                  className="flex w-full flex-row items-center justify-between text-nowrap py-4"
-                  
-                >
+                <div className="flex w-full flex-row items-center justify-between text-nowrap py-4">
                   <div className="flex w-40 shrink-0 flex-col lg:w-60">
                     <p className="font-bold">
                       Epoch {delegator?.delegationEpoch}{' '}
@@ -89,7 +89,7 @@ const DrepDelegatorslist = ({ voterId }: { voterId: string }) => {
                   <div className="flex max-w-40 shrink-0 flex-col items-start justify-start">
                     <p className="font-bold">Actions</p>
                     <div className="flex items-center gap-2">
-                      <ViewProfileAction />
+                      <ViewProfileAction toStakeKey={delegator.stakeAddress} />
                     </div>
                   </div>
                 </div>
