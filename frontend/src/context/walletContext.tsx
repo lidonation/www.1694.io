@@ -335,9 +335,9 @@ function CardanoProvider(props: Props) {
 
         if (requiredNetwork !== network) {
           if (requiredNetwork == 1) {
-            addErrorAlert('Mainnet wallet required, please switch to the mainnet');
+            addErrorAlert('Mainnet network wallet required, please switch to the mainnet');
           } else {
-            addErrorAlert('Testnet wallet required, please switch to the testnet');
+            addErrorAlert('Testnet network wallet required, please switch to the testnet');
           }
           setIsEnableLoading(null);
           setIsEnabling(false);
