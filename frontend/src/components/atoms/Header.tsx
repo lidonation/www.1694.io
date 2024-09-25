@@ -36,6 +36,8 @@ const Header = () => {
           return '/img/logos/sancho-black.png';
       }
     }
+    // Default to voltaire logo
+    return '/img/logos/voltaire-black.png';
   }, [networkName]);
   useEffect(() => {
     // Setting the active link based on the current pathname
