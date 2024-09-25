@@ -109,3 +109,30 @@ export const getAllDRepsQuery = (
         LIMIT ${itemsPerPage}
     OFFSET ${offset}
 `;
+
+export const getTotalResultsQuery = (
+  sanitizedSearchCondition: string,
+  campaignStatusCondition: string,
+  chainStatusCondition: string,
+  typeCondition: string,
+) => `
+    WITH LatestEpoch AS (SELECT MAX(no) AS latest_epoch_no
+                         FROM epoch)
+    SELECT COUNT(DISTINCT dh.id) AS total
+    FROM drep_hash AS dh
+             LEFT JOIN drep_distr AS dd ON dh.id = dd.hash_id
+             LEFT JOIN (SELECT dr.id,
+                               dr.drep_hash_id,
+                               dr.voting_anchor_id,
+                               ROW_NUMBER() OVER (PARTITION BY dr.drep_hash_id ORDER BY dr.tx_id DESC) AS rn, tx.hash AS tx_hash
+                        FROM drep_registration dr
+                                 JOIN tx ON tx.id = dr.tx_id) AS dr_voting_anchor
+                       ON dr_voting_anchor.drep_hash_id = dh.id
+                           AND dr_voting_anchor.rn = 1
+             LEFT JOIN voting_anchor va ON va.id = dr_voting_anchor.voting_anchor_id
+             LEFT JOIN off_chain_vote_data ON off_chain_vote_data.voting_anchor_id = va.id
+             LEFT JOIN off_chain_vote_drep_data
+                       on off_chain_vote_drep_data.off_chain_vote_data_id = off_chain_vote_data.id
+             CROSS JOIN LatestEpoch le
+    WHERE 1=1 ${sanitizedSearchCondition} ${campaignStatusCondition} ${typeCondition}
+`;
