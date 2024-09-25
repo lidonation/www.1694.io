@@ -8,159 +8,104 @@ export const getAllDRepsQuery = (
   offset: number,
   typeCondition: string,
 ) => `
-WITH DRepDistr AS (
-    SELECT *,
-           ROW_NUMBER() OVER (PARTITION BY drep_hash.id ORDER BY drep_distr.epoch_no DESC) AS rn
-    FROM drep_distr
-    JOIN drep_hash ON drep_hash.id = drep_distr.hash_id
-),
-LatestDelegation AS (
-    SELECT dv.addr_id,
-           dv.drep_hash_id,
-           ROW_NUMBER() OVER (PARTITION BY dv.addr_id ORDER BY b.time DESC) AS row_num
-    FROM delegation_vote dv
-    JOIN tx ON dv.tx_id = tx.id
-    JOIN block b ON tx.block_id = b.id
-),
-DRepDelegationData AS (
-    SELECT dh.id AS drep_hash_id,
-           COUNT(DISTINCT ld.addr_id) AS vote_count,
-           SUM(tx_out.value) AS live_stake
+    WITH DRepDistr AS (
+        SELECT *,
+               ROW_NUMBER() OVER (PARTITION BY drep_hash.id ORDER BY drep_distr.epoch_no DESC) AS rn
+        FROM drep_distr
+                 JOIN drep_hash ON drep_hash.id = drep_distr.hash_id
+    ),
+         DRepActivity AS (
+             SELECT drep_activity AS drep_activity,
+                    epoch_no AS epoch_no
+             FROM epoch_param
+             WHERE epoch_no IS NOT NULL
+             ORDER BY epoch_no DESC
+        LIMIT 1
+        ),
+        DRepRegistrationData AS (
+    SELECT
+        dr.id,
+        dr.tx_id,
+        dr.drep_hash_id,
+        dr.deposit,
+        dr.voting_anchor_id,
+        tx.hash AS tx_hash,
+        block.time AS register_time,
+        ROW_NUMBER() OVER (PARTITION BY dr.drep_hash_id ORDER BY dr.tx_id ASC) AS first_register_rn,
+        ROW_NUMBER() OVER (PARTITION BY dr.drep_hash_id ORDER BY dr.tx_id DESC) AS newest_register_rn,
+        CASE
+        WHEN dr.deposit IS NOT NULL AND dr.deposit >= 0 THEN ROW_NUMBER() OVER (PARTITION BY dr.drep_hash_id ORDER BY dr.tx_id DESC)
+        ELSE NULL
+        END AS non_deregister_voting_anchor_rn
+    FROM drep_registration dr
+        JOIN tx ON tx.id = dr.tx_id
+        JOIN block ON block.id = tx.block_id
+        )
+
+    SELECT
+        encode(dh.raw, 'hex'),
+        dh.view,
+        va.url,
+        DRepDistr.amount AS voting_power,
+        dh.has_script,
+        (DRepActivity.epoch_no - MAX(COALESCE(block.epoch_no, block_first_register.epoch_no))) <= DRepActivity.drep_activity AS active,
+        encode(dr_voting_anchor.tx_hash, 'hex') AS tx_hash,
+        dr_voting_anchor.register_time AS last_register_time,
+        off_chain_vote_drep_data.given_name,
+        off_chain_vote_drep_data.image_url,
+        COALESCE(dd.vote_count, 0) AS delegation_vote_count,
+        COALESCE(dd.live_stake, null) AS live_stake
     FROM drep_hash dh
-    JOIN LatestDelegation ld ON dh.id = ld.drep_hash_id AND ld.row_num = 1
-    JOIN stake_address sa ON ld.addr_id = sa.id
-    JOIN tx_out ON sa.id = tx_out.stake_address_id
-    WHERE tx_out.consumed_by_tx_id IS NULL
-    GROUP BY dh.id
-),
-DRepActivity AS (
-    SELECT drep_activity AS drep_activity,
-           epoch_no AS epoch_no
-    FROM epoch_param
-    WHERE epoch_no IS NOT NULL
-    ORDER BY epoch_no DESC
-    LIMIT 1
-)
-SELECT 
-    encode(dh.raw, 'hex'),
-    dh.view,
-    va.url,
-    DRepDistr.amount AS voting_power,
-    dh.has_script,
-    (DRepActivity.epoch_no - MAX(COALESCE(block.epoch_no, block_first_register.epoch_no))) <= DRepActivity.drep_activity AS active,
-    encode(dr_voting_anchor.tx_hash, 'hex') AS tx_hash,
-    newestRegister.time AS last_register_time,
-    off_chain_vote_drep_data.given_name,
-    off_chain_vote_drep_data.image_url,
-    COALESCE(dd.vote_count, 0) AS delegation_vote_count,
-    COALESCE(dd.live_stake, null) AS live_stake
-FROM drep_hash dh
 
-LEFT JOIN (
-    SELECT dr.id,
-           dr.drep_hash_id,
-           dr.deposit,
-           ROW_NUMBER() OVER (PARTITION BY dr.drep_hash_id ORDER BY dr.tx_id DESC) AS rn
-    FROM drep_registration dr
-) AS latestDeposit ON latestDeposit.drep_hash_id = dh.id AND latestDeposit.rn = 1
-LEFT JOIN (
-    SELECT dr.id,
-           dr.drep_hash_id,
-           dr.voting_anchor_id,
-           ROW_NUMBER() OVER (PARTITION BY dr.drep_hash_id ORDER BY dr.tx_id DESC) AS rn,
-           tx.hash AS tx_hash
-    FROM drep_registration dr
-    JOIN tx ON tx.id = dr.tx_id
-) AS dr_voting_anchor ON dr_voting_anchor.drep_hash_id = dh.id AND dr_voting_anchor.rn = 1
-LEFT JOIN (
-    SELECT dr.id,
-           dr.drep_hash_id,
-           dr.voting_anchor_id,
-           ROW_NUMBER() OVER (PARTITION BY dr.drep_hash_id ORDER BY dr.tx_id DESC) AS rn,
-           tx.hash AS tx_hash
-    FROM drep_registration dr
-    JOIN tx ON tx.id = dr.tx_id
-    WHERE dr.deposit IS NOT NULL AND dr.deposit >= 0
-) AS dr_non_deregister_voting_anchor ON dr_non_deregister_voting_anchor.drep_hash_id = dh.id AND dr_non_deregister_voting_anchor.rn = 1
-LEFT JOIN (
-    SELECT dr.id,
-           dr.drep_hash_id,
-           dr.voting_anchor_id,
-           ROW_NUMBER() OVER (PARTITION BY dr.drep_hash_id ORDER BY dr.tx_id DESC) AS rn
-    FROM drep_registration dr
-) AS second_to_newest_drep_registration ON second_to_newest_drep_registration.drep_hash_id = dh.id AND second_to_newest_drep_registration.rn = 2
-LEFT JOIN DRepDistr ON DRepDistr.hash_id = dh.id AND DRepDistr.rn = 1
-LEFT JOIN voting_anchor va ON va.id = dr_voting_anchor.voting_anchor_id
-LEFT JOIN voting_anchor non_deregister_voting_anchor ON non_deregister_voting_anchor.id = dr_non_deregister_voting_anchor.voting_anchor_id
-LEFT JOIN off_chain_vote_data ON off_chain_vote_data.voting_anchor_id = va.id
-LEFT JOIN off_chain_vote_drep_data ON off_chain_vote_drep_data.off_chain_vote_data_id = off_chain_vote_data.id
-CROSS JOIN DRepActivity
-LEFT JOIN voting_procedure AS voting_procedure ON voting_procedure.drep_voter = dh.id
-LEFT JOIN tx AS tx ON tx.id = voting_procedure.tx_id
-LEFT JOIN block AS block ON block.id = tx.block_id
-LEFT JOIN (
-    SELECT block.time,
-           dr.drep_hash_id,
-           ROW_NUMBER() OVER (PARTITION BY dr.drep_hash_id ORDER BY dr.tx_id DESC) AS rn
-    FROM drep_registration dr
-    JOIN tx ON tx.id = dr.tx_id
-    JOIN block ON block.id = tx.block_id
-    WHERE NOT (dr.deposit < 0)
-) AS newestRegister ON newestRegister.drep_hash_id = dh.id AND newestRegister.rn = 1
-LEFT JOIN (
-    SELECT dr.tx_id,
-           dr.drep_hash_id,
-           ROW_NUMBER() OVER (PARTITION BY dr.drep_hash_id ORDER BY dr.tx_id ASC) AS rn
-    FROM drep_registration dr
-) AS dr_first_register ON dr_first_register.drep_hash_id = dh.id AND dr_first_register.rn = 1
-LEFT JOIN tx AS tx_first_register ON tx_first_register.id = dr_first_register.tx_id
-LEFT JOIN block AS block_first_register ON block_first_register.id = tx_first_register.block_id
-LEFT JOIN DRepDelegationData dd ON dd.drep_hash_id = dh.id
-WHERE 1=1 ${chainStatusCondition} ${sanitizedSearchCondition} ${nameFilteredDRepCondition} ${campaignStatusCondition} ${typeCondition}
-GROUP BY
-    dh.raw,
-    second_to_newest_drep_registration.voting_anchor_id,
-    dh.view,
-    va.url,
-    voting_power,
-    dh.has_script,
-    DRepActivity.epoch_no,
-    DRepActivity.drep_activity,
-    dr_voting_anchor.tx_hash,
-    newestRegister.time,
-    latestDeposit.deposit,
-    off_chain_vote_drep_data.given_name,
-    off_chain_vote_drep_data.image_url,
-    dd.vote_count,
-    dd.live_stake
-${orderByClause}
-LIMIT ${itemsPerPage}
-OFFSET ${offset}
-`;
 
-export const getTotalResultsQuery = (
-  sanitizedSearchCondition: string,
-  campaignStatusCondition: string,
-  chainStatusCondition: string,
-  typeCondition: string,
-) => `
-    WITH LatestEpoch AS (SELECT MAX(no) AS latest_epoch_no
-                         FROM epoch)
-    SELECT COUNT(DISTINCT dh.id) AS total
-    FROM drep_hash AS dh
-             LEFT JOIN drep_distr AS dd ON dh.id = dd.hash_id
-             LEFT JOIN (SELECT dr.id,
-                               dr.drep_hash_id,
-                               dr.voting_anchor_id,
-                               ROW_NUMBER() OVER (PARTITION BY dr.drep_hash_id ORDER BY dr.tx_id DESC) AS rn, tx.hash AS tx_hash
-                        FROM drep_registration dr
-                                 JOIN tx ON tx.id = dr.tx_id) AS dr_voting_anchor
-                       ON dr_voting_anchor.drep_hash_id = dh.id
-                           AND dr_voting_anchor.rn = 1
-             LEFT JOIN voting_anchor va ON va.id = dr_voting_anchor.voting_anchor_id
-             LEFT JOIN off_chain_vote_data ON off_chain_vote_data.voting_anchor_id = va.id
+             LEFT JOIN DRepRegistrationData AS dr_voting_anchor
+                       ON dr_voting_anchor.drep_hash_id = dh.id AND dr_voting_anchor.newest_register_rn = 1
+             LEFT JOIN DRepRegistrationData AS dr_non_deregister_voting_anchor
+                       ON dr_non_deregister_voting_anchor.drep_hash_id = dh.id AND dr_non_deregister_voting_anchor.non_deregister_voting_anchor_rn = 1
+             LEFT JOIN DRepRegistrationData AS second_to_newest_drep_registration
+                       ON second_to_newest_drep_registration.drep_hash_id = dh.id AND second_to_newest_drep_registration.newest_register_rn = 2
+             LEFT JOIN DRepDistr
+                       ON DRepDistr.hash_id = dh.id AND DRepDistr.rn = 1
+             LEFT JOIN voting_anchor va
+                       ON va.id = dr_voting_anchor.voting_anchor_id
+             LEFT JOIN voting_anchor non_deregister_voting_anchor
+                       ON non_deregister_voting_anchor.id = dr_non_deregister_voting_anchor.voting_anchor_id
+             LEFT JOIN off_chain_vote_data
+                       ON off_chain_vote_data.voting_anchor_id = va.id
              LEFT JOIN off_chain_vote_drep_data
-                       on off_chain_vote_drep_data.off_chain_vote_data_id = off_chain_vote_data.id
-             CROSS JOIN LatestEpoch le
-    WHERE 1=1 ${sanitizedSearchCondition} ${campaignStatusCondition} ${typeCondition}
+                       ON off_chain_vote_drep_data.off_chain_vote_data_id = off_chain_vote_data.id
+             CROSS JOIN DRepActivity
+             LEFT JOIN voting_procedure AS voting_procedure
+                       ON voting_procedure.drep_voter = dh.id
+             LEFT JOIN tx AS tx
+                       ON tx.id = voting_procedure.tx_id
+             LEFT JOIN block AS block
+                       ON block.id = tx.block_id
+             LEFT JOIN DRepRegistrationData AS dr_first_register
+                       ON dr_first_register.drep_hash_id = dh.id AND dr_first_register.first_register_rn = 1
+             LEFT JOIN tx AS tx_first_register
+                       ON tx_first_register.id = dr_first_register.tx_id
+             LEFT JOIN block AS block_first_register
+                       ON block_first_register.id = tx_first_register.block_id
+             LEFT JOIN drepdelegationsummary dd ON dd.drep_hash_id = dh.id
+    WHERE 1=1 ${chainStatusCondition} ${sanitizedSearchCondition} ${nameFilteredDRepCondition} ${campaignStatusCondition} ${typeCondition}
+    GROUP BY
+        dh.raw,
+        second_to_newest_drep_registration.voting_anchor_id,
+        dh.view,
+        va.url,
+        voting_power,
+        dh.has_script,
+        DRepActivity.epoch_no,
+        DRepActivity.drep_activity,
+        dr_voting_anchor.tx_hash,
+        dr_voting_anchor.register_time,
+        off_chain_vote_drep_data.given_name,
+        off_chain_vote_drep_data.image_url,
+        dd.vote_count,
+        dd.live_stake
+
+        ${orderByClause}
+        LIMIT ${itemsPerPage}
+    OFFSET ${offset}
 `;
