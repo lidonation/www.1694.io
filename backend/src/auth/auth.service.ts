@@ -15,7 +15,7 @@ export class AuthService {
   constructor(
     private jwtService: JwtService,
     @InjectDataSource('default')
-    private voltaireService: DataSource
+    private voltaireService: DataSource,
   ) {}
   async signJWT(payload: Payload, tte: number | string) {
     const accessSecret = jwtConstants.secret;
@@ -45,10 +45,14 @@ export class AuthService {
     const existingSig = await this.voltaireService
       .getRepository('Signature')
       .findOne({
-        where: { signature: payload.signature, stakeKey: payload.stakeKey },
+        where: { signature: payload.signature, signatureKey:payload.key, stakeKey: payload.stakeKey, },
       });
     if (existingSig) {
-      return { token, existingSig };
+      //update the signature
+      const updatedSig=await this.voltaireService
+        .getRepository('Signature')
+        .update(existingSig.id, signatureDto)
+      return { token, updatedSig };
     }
     const insertedSig = await this.voltaireService
       .getRepository('Signature')

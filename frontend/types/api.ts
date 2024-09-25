@@ -80,3 +80,11 @@ export type DelegationData = {
   total_stake: string;
   added_power: boolean;
 };
+export interface VoterData{
+  address: string;
+  total_value: number;
+  drep_id: string;
+  stake_address: string;
+  delegationHistory: any[];
+  isDelegated: boolean;
+}

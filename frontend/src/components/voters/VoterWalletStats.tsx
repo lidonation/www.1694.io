@@ -3,9 +3,10 @@ import { Skeleton, Box, Typography, IconButton, Tooltip } from '@mui/material';
 import StatusChip from '../atoms/StatusChip';
 import { convertString, formattedAda } from '@/lib';
 import CopyToClipBoardIcon from '../atoms/svgs/CopyToClipBoardIcon';
+import { VoterData } from '../../../types/api';
 
 type VoterWalletStatsProps = {
-  voterData: any;
+  voterData: VoterData;
   isVoterDataLoading: boolean;
 };
 
@@ -17,7 +18,7 @@ const VoterWalletStats = ({
   const [copiedAddress, setCopiedAddress] = useState(false);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(voterData?.address);
+    navigator.clipboard.writeText(voterData?.stake_address);
     setCopiedAddress(true);
     setTimeout(() => setCopiedAddress(false), 2000);
   };
@@ -29,7 +30,7 @@ const VoterWalletStats = ({
       </Typography>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', px: 1 }}>
         <Box>
-          <Typography variant="body2">Current wallet balance</Typography>
+          <Typography variant="body2">Live Stake</Typography>
           {isVoterDataLoading ? (
             <Skeleton width={200} />
           ) : (
@@ -43,7 +44,7 @@ const VoterWalletStats = ({
               onMouseLeave={() => setIsAddressHovered(false)}
             >
               <Typography variant="h6">
-                {convertString(voterData?.address, false)}
+                {convertString(voterData?.stake_address, false)}
               </Typography>
               {isAddressHovered && (
                 <Tooltip title={copiedAddress ? "Copied!" : "Copy address"}>
@@ -62,7 +63,7 @@ const VoterWalletStats = ({
             <Skeleton width={150} height={60} />
           ) : (
             <Typography variant="h3">
-              ₳{formattedAda(voterData?.total_value, 2)}
+               ₳{formattedAda(voterData?.total_value, 2)}
             </Typography>
           )}
         </Box>

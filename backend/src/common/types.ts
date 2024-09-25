@@ -105,3 +105,11 @@ export type NodeBlockRes = {
   op_cert: string;
   op_cert_counter: string;
 };
+export interface VoterData{
+  address: string;
+  total_value: number;
+  drep_id: string;
+  stake_address: string;
+  delegationHistory: any[];
+  isDelegated: boolean;
+}
