@@ -98,7 +98,7 @@ export const DelegatedTo = ({ className }: DelegatedToProps) => {
           </Box>
         )}
       </Box>
-      <Link href={stakeKey ? `/voters/${stakeKeyBech32}` : '#'}>
+      <Link href={stakeKeyBech32 ? `/voters/${stakeKeyBech32}` : '#'}>
         <Button
           variant="outlined"
           size="small"
