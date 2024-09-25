@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
+import { VoterData } from 'src/common/types';
 import { DrepService } from 'src/drep/drep.service';
 import { getDrepAddrData } from 'src/queries/drepAddrData';
 import { getAddrDataQuery } from 'src/queries/getAddrData';
@@ -13,7 +14,7 @@ export class VoterService {
     @InjectDataSource('dbsync')
     private cexplorerService: DataSource,
   ) {}
-  async getVoter(voterIdentity: string) {
+  async getVoter(voterIdentity: string): Promise<VoterData> {
     let voterData;
     let delegationHistory;
     switch (true) {
@@ -32,7 +33,7 @@ export class VoterService {
         ]);
         delegationHistory = await this.cexplorerService.manager.query(
           getVoterDelegationHistory,
-          [voterIdentity],
+          [voterIdentity], // stakeKey
         );
         break;
       default:
