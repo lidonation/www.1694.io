@@ -41,6 +41,7 @@ import getEpochParams from '@/services/requests/getEpochParams';
 import { generateAnchor } from '@/lib/generateAnchor';
 import { CONFIGURED_NETWORK_ID } from '@/constants';
 import getFirstEpoch from '@/services/requests/getFIrstEpoch';
+import { useGlobalNotifications } from './globalNotificationContext';
 
 interface Props {
   children: React.ReactNode;
@@ -75,7 +76,6 @@ interface CardanoContext {
   };
   dRepIDBech32: string;
   isGettingSignatures: boolean;
-  isMainnet: boolean;
   stakeKey?: string | undefined;
   stakeKeyBech32?: string | undefined;
   setStakeKey: (key: string) => void;
@@ -104,8 +104,6 @@ type Utxos = {
 const CardanoContext = createContext<CardanoContext>({} as CardanoContext);
 CardanoContext.displayName = 'CardanoContext';
 
-const ALLOWED_NET = CONFIGURED_NETWORK_ID;
-
 function CardanoProvider(props: Props) {
   const { sharedState, updateSharedState } = useSharedContext();
   const [isEnabled, setIsEnabled] = useState(false);
@@ -123,7 +121,6 @@ function CardanoProvider(props: Props) {
     null,
   );
   const [stakeKeys, setStakeKeys] = useState<string[]>([]);
-  const [isMainnet, setIsMainnet] = useState<boolean>(false);
   const [isGettingSignatures, setIsGettingSignatures] = useState(false);
   const [loginCredentials, setLoginCredentials] = useState<{
     signature: string;
@@ -147,6 +144,8 @@ function CardanoProvider(props: Props) {
     usedAddress: undefined,
     balance: undefined,
   });
+  const { addErrorAlert } = useGlobalNotifications();
+
   useEffect(() => {
     const existingWalletAPI = getItemFromLocalStorage(`${WALLET_LS_KEY}_api`);
     const currentWalletEnabled = getItemFromLocalStorage(
@@ -329,6 +328,22 @@ function CardanoProvider(props: Props) {
             .catch((e) => {
               throw e.info;
             });
+          
+          // Get the network ID of the connected wallet
+        const network = await enabledApi.getNetworkId();
+        const requiredNetwork = CONFIGURED_NETWORK_ID;
+
+        if (requiredNetwork !== network) {
+          if (requiredNetwork == 1) {
+            addErrorAlert('Mainnet network wallet required, please switch to the mainnet');
+          } else {
+            addErrorAlert('Testnet network wallet required, please switch to the testnet');
+          }
+          setIsEnableLoading(null);
+          setIsEnabling(false);
+          return { status: 'WRONG_NETWORK' };
+        }
+
           await getChangeAddress(enabledApi);
           await getUsedAddresses(enabledApi);
           setIsEnabled(true);
@@ -338,13 +353,7 @@ function CardanoProvider(props: Props) {
           if (!enabledExtensions.some((item) => item.cip === 95)) {
             throw new Error('errors.walletNoCIP95FunctionsEnabled');
           }
-          const network = await enabledApi.getNetworkId();
-          // if (network !== ALLOWED_NET) {
-          //   throw new Error(
-          //     'Currently supported networks are preview and Sancho testnet',
-          //   );
-          // }
-          setIsMainnet(network === 1);
+          
           //Check and set wallet balance
           await getBalance(enabledApi);
           // Check and set wallet address
@@ -685,7 +694,6 @@ function CardanoProvider(props: Props) {
       walletState,
       enable,
       isEnabled,
-      isMainnet,
       disconnectWallet,
       loginSignTransaction,
       loginHardwareWalletTransaction,
@@ -716,7 +724,6 @@ function CardanoProvider(props: Props) {
       isEnabling,
       walletState,
       isEnabled,
-      isMainnet,
       disconnectWallet,
       dRepID,
       dRepIDBech32,
