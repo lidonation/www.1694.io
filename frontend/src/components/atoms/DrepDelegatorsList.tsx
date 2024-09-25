@@ -61,12 +61,19 @@ const DrepDelegatorslist = ({ voterId }: { voterId: string }) => {
                       Epoch {delegator?.delegationEpoch}{' '}
                       {delegator?.delegationEpoch == latestEpoch && '(actual)'}
                     </p>
-                    <p>
+                    <Link
+                      prefetch={false}
+                      href={
+                        delegator.stakeAddress
+                          ? `/voters/${delegator?.stakeAddress}`
+                          : '#'
+                      }
+                    >
                       {convertString(
                         delegator.stakeAddress,
                         isMobile || screenWidth < 1024,
                       )}
-                    </p>
+                    </Link>
                   </div>
 
                   <div className="flex w-40 shrink-0 flex-col items-center justify-start">

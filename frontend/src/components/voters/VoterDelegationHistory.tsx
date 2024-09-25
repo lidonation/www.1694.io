@@ -12,14 +12,17 @@ import {
   IconButton,
   Tooltip,
 } from '@mui/material';
-import HoverText from '../atoms/HoverText';
-import { convertString, formatAsCurrency, formattedAda, lovelaceToAda } from '@/lib';
+import {
+  convertString,
+} from '@/lib';
 import Link from 'next/link';
 import CopyToClipBoardIcon from '../atoms/svgs/CopyToClipBoardIcon';
 import { useScreenDimension } from '@/hooks';
+import { urls } from '@/constants';
+import { VoterData } from '../../../types/api';
 
 interface VoterDelegationHistoryProps {
-  voterData: any;
+  voterData: VoterData;
   isVoterDataLoading: boolean;
 }
 
@@ -30,7 +33,7 @@ const VoterDelegationHistory: React.FC<VoterDelegationHistoryProps> = ({
   const delegationHistory = voterData?.delegationHistory || [];
   const [hoveredRow, setHoveredRow] = useState<number | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const {isMobile, screenWidth} = useScreenDimension();
+  const { isMobile, screenWidth } = useScreenDimension();
 
   const handleCopy = (id: string) => {
     navigator.clipboard.writeText(id);
@@ -99,20 +102,41 @@ const VoterDelegationHistory: React.FC<VoterDelegationHistoryProps> = ({
                 key={index}
                 onMouseEnter={() => setHoveredRow(index)}
                 onMouseLeave={() => setHoveredRow(null)}
+                sx={{
+                  backgroundColor:
+                    index === 0 ? 'rgba(255, 193, 157, 0.25)' : 'transparent',
+                }}
               >
                 <TableCell>
-                  <Typography variant="subtitle1" fontWeight="bold">
+                  <Typography
+                    variant="subtitle1"
+                    fontWeight="bold"
+                    sx={{ textWrap: 'nowrap' }}
+                  >
                     {index === 0 && 'Current'} DRep
                   </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Typography variant='body2'>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Typography variant="body2">
                       <Link prefetch={false} href={`/dreps/${item.drep_id}`}>
-                        {
-                          convertString(item.drep_id, isMobile || screenWidth < 1024)
-                        }
+                        {convertString(
+                          item.drep_id,
+                          isMobile || screenWidth < 1024,
+                        )}
                       </Link>
                     </Typography>
-                    {hoveredRow === index && (
+                    <Box
+                      sx={{
+                        position: 'relative',
+                        right: 0,
+                        display: hoveredRow === index ? 'flex' : 'none',
+                        alignItems: 'center',
+                      }}
+                    >
                       <Tooltip
                         title={
                           copiedId === item.drep_id ? 'Copied!' : 'Copy DRep ID'
@@ -121,24 +145,72 @@ const VoterDelegationHistory: React.FC<VoterDelegationHistoryProps> = ({
                         <IconButton
                           size="small"
                           onClick={() => handleCopy(item.drep_id)}
-                          sx={{ ml: 1 }}
+                          sx={{
+                            ml: 1,
+                            p: 0,
+                            position: 'absolute',
+                          }}
                         >
                           <CopyToClipBoardIcon width={18} height={18} />
                         </IconButton>
                       </Tooltip>
-                    )}
+                    </Box>
                   </Box>
                 </TableCell>
-                <TableCell>
+                <TableCell
+                  sx={{
+                    textWrap: 'nowrap',
+                  }}
+                >
                   <Typography variant="subtitle1" fontWeight="bold">
-                    Voting power
+                    Related Tx
                   </Typography>
-                  <HoverText
-                    shortText={formattedAda(item?.voting_power, 2)}
-                    longText={formatAsCurrency(
-                      lovelaceToAda(item?.voting_power),
-                    )}
-                  />
+                  <Link
+                    prefetch={false}
+                    href={`${urls.cexplorerUrl}/tx/${item.tx_hash}`}
+                    target="_blank"
+                  >
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 1,
+                      }}
+                    >
+                      <Typography variant="body2">
+                        {convertString(item.tx_hash, true)}
+                      </Typography>
+                      <IconButton
+                        size="small"
+                        sx={{
+                          width: 30,
+                        }}
+                      >
+                        <img src="/svgs/external-link.svg" alt="" />
+                      </IconButton>
+                    </Box>
+                  </Link>
+                </TableCell>
+                <TableCell
+                  sx={{
+                    textWrap: 'nowrap',
+                  }}
+                >
+                  <Typography variant="subtitle1" fontWeight="bold">
+                    Date of Delegation
+                  </Typography>
+                  <Typography>
+                    {
+                      new Date(item.time).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: 'numeric',
+                        minute: 'numeric',
+                      })
+                    }
+                  </Typography>
                 </TableCell>
                 <TableCell>
                   <Typography variant="subtitle1" fontWeight="bold">
