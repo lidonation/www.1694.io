@@ -128,7 +128,7 @@ export default function ListSort({ tableType, sortOptions }: ListSortProps) {
       >
         <Box className="bg-extra_gray px-6 py-4">
           <p className="text-sm font-semibold">Sort {tableType} by:</p>
-          <Box className="mt-2 flex flex-col">
+          <Box className="flex flex-col">
             {sortOptions.map((category, index) => (
               <Box key={index} className="mt-2">
                 <FormControl>
