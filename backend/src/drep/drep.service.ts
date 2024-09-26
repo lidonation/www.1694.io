@@ -704,11 +704,25 @@ export class DrepService {
     drepVoterId: string,
     currentPage: number,
     itemsPerPage: number,
+    sort?: string,
+    order?: string,
   ) {
     const offset = (currentPage - 1) * itemsPerPage;
 
+    const sortColumns = {
+      power: 'voting_power',
+      epoch: 'epoch_no'
+    };
+    
+    const sortColumn = sortColumns[sort] || null;
+    const sortOrder = order?.toUpperCase();
+    
+    const orderByClause = (sortColumn && ['ASC', 'DESC'].includes(sortOrder))
+      ? `ORDER BY ${sortColumn} ${sortOrder} NULLS ${sortOrder === 'DESC' ? 'LAST' : 'FIRST'}`
+      : '';
+
     const delegatorsWithVotingPower = await this.cexplorerService.manager.query(
-      getDrepDelegatorsWithVotingPowerQuery(itemsPerPage, offset),
+      getDrepDelegatorsWithVotingPowerQuery(itemsPerPage, offset, orderByClause),
       [drepVoterId],
     );
 

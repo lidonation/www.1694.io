@@ -4,7 +4,7 @@ import { getSingleDRepViaVoterId } from '@/services/requests/getSingleDrepViaVot
 import { useQuery } from 'react-query';
 
 export const useGetSingleDRepQuery = (drepId?: any) => {
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading, refetch, error } = useQuery({
     queryKey: [QUERY_KEYS.getSingleDRepKey],
     queryFn: async () =>
       drepId.includes('drep')
@@ -14,5 +14,5 @@ export const useGetSingleDRepQuery = (drepId?: any) => {
     refetchOnWindowFocus: false,
   });
 
-  return { dRep: data, isDRepLoading: isLoading, refetch };
+  return { dRep: data, isDRepLoading: isLoading, refetch, fetchError: error as any };
 };

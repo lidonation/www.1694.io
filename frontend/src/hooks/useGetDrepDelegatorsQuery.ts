@@ -7,10 +7,13 @@ export const useGetDrepDelegators = (
   voterId: string,
   page?: number,
   perPage?: number,
+  sort?: string,
+  order?: string,
 ) => {
   const { data, isLoading } = useQuery<Delegators>({
-    queryKey: [QUERY_KEYS.getDrepDelegators, voterId, page],
-    queryFn: async () => await getDrepDelegators(voterId, page, perPage),
+    queryKey: [QUERY_KEYS.getDrepDelegators, voterId, page, sort, order],
+    queryFn: async () =>
+      await getDrepDelegators(voterId, page, perPage, sort, order),
     enabled: !!voterId,
     refetchOnWindowFocus: false,
   });

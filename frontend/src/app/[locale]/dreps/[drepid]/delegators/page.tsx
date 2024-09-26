@@ -2,9 +2,13 @@
 import DrepProfileMetrics from '@/components/molecules/DrepProfileMetrics';
 import { useParams } from 'next/navigation';
 
-const DelegatorsPage = () => {
+const page = () => {
   const { drepid } = useParams();
-  return <DrepProfileMetrics voterId={String(drepid)} />;
+  return (
+    <div className="min-h-screen">
+      <DrepProfileMetrics voterId={String(drepid)} />
+    </div>
+  );
 };
 
-export default DelegatorsPage;
+export default page;
