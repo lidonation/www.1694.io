@@ -152,11 +152,15 @@ export class DrepController {
     page: number,
     @Query('perPage', new DefaultValuePipe(24), ParseIntPipe)
     perPage: number,
+    @Query('sort') sort?: string,
+    @Query('order') order?: string,
   ) {
     return this.drepService.getDrepDelegatorsWithVotingPower(
       voterId,
       page,
-      perPage
+      perPage,
+      sort,
+      order
     );
   }
   

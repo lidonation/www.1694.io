@@ -50,7 +50,7 @@ const Header = () => {
         <Link href="/">
           <img
             src={renderLogoOnNetworkChange()}
-            alt="Sancho logo"
+            alt="1694 logo"
             width={isMobile ? 100 : 150}
           />
         </Link>
