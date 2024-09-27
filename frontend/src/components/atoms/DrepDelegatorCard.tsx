@@ -46,7 +46,7 @@ const DrepDelegatorCard = ({ item }: { item: DelegationData }) => {
         href={
           item?.stake_address ? `/voters/${item?.stake_address}` : '#'
         }
-        className="hover:font-bold"
+        className="hover:font-medium"
       >
         <p className="text-base">
           {shortenAddress(item?.stake_address, addressLength)}
