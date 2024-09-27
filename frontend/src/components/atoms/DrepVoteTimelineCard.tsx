@@ -36,7 +36,7 @@ const DrepVoteTimelineCard = ({ item }: { item: any }) => {
     >
       <VoteStatusChip date={item?.time_voted} vote={item?.vote} />
       <hr />
-      <Box className="flex max-w-52 flex-col">
+      <Box className="flex max-w-52 flex-col gap-1">
         <p className="text-lg font-bold">
           For {item?.description?.tag || null}
         </p>
