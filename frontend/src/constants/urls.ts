@@ -5,4 +5,5 @@ export const urls = {
   govToolUrl: process.env.NEXT_PUBLIC_BASE_URL_GOVTOOL || '',
   cexplorerUrl: process.env.NEXT_PUBLIC_BASE_URL_EXPLORER || '',
   ipfsGateway: process.env.NEXT_PUBLIC_IPFS_GATEWAY || '',
+  adaStatusUrl: process.env.NEXT_PUBLIC_BASE_URL_ADASTATUS || ''
 };
