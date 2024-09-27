@@ -18,6 +18,27 @@ export type Delegators = {
   totalPages: number;
 };
 
+export type GovAction = {
+  gov_action_proposal_id: string | null;
+  type: string | null;
+  description: {};
+  vote: string | null;
+  url: string | null;
+  metadata: string | null;
+  epoch_no: number | null;
+  time_voted: string | null;
+  vote_tx_hash: string | null;
+  drep_id: string | null;
+};
+
+export type VoterGovActions = {
+  data: GovAction[];
+  totalItems: number;
+  currentPage: number;
+  itemsPerPage: number;
+  totalPages: number;
+};
+
 export type SingleDRep = {
   drep_deletedAt?: string | null;
   drep_id?: number | null;
@@ -80,7 +101,7 @@ export type DelegationData = {
   total_stake: string;
   added_power: boolean;
 };
-export interface VoterData{
+export interface VoterData {
   address: string;
   total_value: number;
   drep_id: string;

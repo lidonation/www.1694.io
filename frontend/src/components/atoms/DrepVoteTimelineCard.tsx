@@ -19,7 +19,7 @@ const DrepVoteTimelineCard = ({ item }: { item: any }) => {
   return (
     <Box
       id="epoch-card"
-      className="flex max-w-md flex-col gap-3 rounded-xl bg-white p-3 shadow-lg"
+      className="flex w-full flex-col gap-3 rounded-xl bg-white p-3 shadow-lg"
     >
       <VoteStatusChip date={item.time_voted} />
       <hr />

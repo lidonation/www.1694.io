@@ -1,11 +1,17 @@
 import { Tab, Tabs } from '@mui/material';
-import { useParams, useRouter } from 'next/navigation';
-import React, { useState } from 'react';
+import { useParams, usePathname, useRouter } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
 
 const VoterDashboardTabs = () => {
   const { voterId } = useParams();
   const router = useRouter();
+  const pathname = usePathname();
   const [activeTab, setActiveTab] = useState(0);
+
+  useEffect(() => {
+    if (pathname.includes('impact')) setActiveTab(1);
+  }, []);
+  
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
   };

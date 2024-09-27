@@ -1,5 +1,5 @@
 export const getDrepAddrData: string = `
-       WITH LatestRegistration AS (
+WITH LatestRegistration AS (
     SELECT 
       dr.id AS reg_id, 
       dr.drep_hash_id, 
