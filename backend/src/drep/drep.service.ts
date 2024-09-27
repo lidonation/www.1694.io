@@ -528,10 +528,12 @@ export class DrepService {
           SUBSTRING(CAST(prop_creation_tx.hash AS TEXT) FROM 3) AS gov_action_proposal_id,
           prop_creation_bk.time AS prop_inception,
           gp.description,
+          gp.voting_anchor_id,
           vp.vote,
           bk.time AS time_voted,
           prop_creation_bk.epoch_no AS proposal_epoch,
-          bk.epoch_no AS voting_epoch
+          bk.epoch_no AS voting_epoch,
+          va.url
       FROM 
           drep_hash AS dh
       JOIN 
@@ -546,6 +548,8 @@ export class DrepService {
           block AS bk ON tx.block_id = bk.id 
       LEFT JOIN 
           block AS prop_creation_bk ON prop_creation_tx.block_id = prop_creation_bk.id
+      LEFT JOIN
+          voting_anchor as va ON gp.voting_anchor_id = va.id
       WHERE
           dh.view = $1
           AND bk.time::DATE BETWEEN $3::DATE AND $2::DATE
