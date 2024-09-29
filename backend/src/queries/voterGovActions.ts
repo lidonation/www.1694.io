@@ -77,10 +77,10 @@ GovActions AS (
         vp.vote::text,
         va.url,
         ocvd.json AS metadata,
-        b.epoch_no,
+        b.epoch_no AS voting_epoch,
         b.time AS time_voted,
         encode(vt.hash, 'hex') AS vote_tx_hash,
-        dh.view AS drep_id
+        dh.view
     FROM 
         voting_procedure vp
     JOIN 
