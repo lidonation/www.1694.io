@@ -27,8 +27,11 @@ const VoterImpact = () => {
   };
 
   const { voterGovActions, isVoterGovActionsLoading } =
-    useGetVoterGovActionsQuery(convertAddressToBech32(voterId as string), currentPage);
-    
+    useGetVoterGovActionsQuery(
+      convertAddressToBech32(voterId as string),
+      currentPage,
+    );
+
   return (
     <Box className="flex flex-col gap-6">
       <Typography variant="h4" fontWeight="bold">
@@ -54,7 +57,7 @@ const VoterImpact = () => {
           ))}
         </ul>
       )}
-      {!isVoterGovActionsLoading && voterGovActions?.data.length === 0 && (
+      {!isVoterGovActionsLoading && !voterGovActions?.data?.length && (
         <Box sx={{ py: 3 }}>
           <Paper
             elevation={2}
