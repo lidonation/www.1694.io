@@ -110,6 +110,9 @@ const DrepClaimProfileCard = ({
         {drep?.type !== 'scripted' && drep?.type !== 'voting_option' && (
           <StatusChip status="Not claimed" />
         )}
+        {drep?.retired && drep?.type !== 'voting_option' && (
+          <StatusChip status="Retired" />
+        )}
         <StatusChip
           status={drep?.type === 'voting_option' ? 'Active' : status}
         />
