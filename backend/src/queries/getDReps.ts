@@ -57,9 +57,6 @@ export const getAllDRepsQuery = (
         COALESCE(dd.vote_count, 0) AS delegation_vote_count,
         COALESCE(dd.live_stake, null) AS live_stake
     FROM drep_hash dh
-
-LEFT JOIN DRepRegistrationData AS dr_latest_reg_activity
-                       ON dr_latest_reg_activity.drep_hash_id = dh.id 
              LEFT JOIN DRepRegistrationData AS dr_voting_anchor
                        ON dr_voting_anchor.drep_hash_id = dh.id AND dr_voting_anchor.newest_register_rn = 1
              LEFT JOIN DRepRegistrationData AS dr_non_deregister_voting_anchor
