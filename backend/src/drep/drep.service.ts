@@ -181,7 +181,7 @@ export class DrepService {
                   DRepActivity.drep_activity`;
     }
     if (!includeRetired) {
-      chainStatusCondition += `AND dr_latest_reg_activity.deposit >= '0'`;
+      chainStatusCondition += `AND dr_voting_anchor.deposit >= 0`;
     }
 
     let campaignStatusCondition = '';

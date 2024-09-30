@@ -254,7 +254,7 @@ export default function DRepListFilters() {
                     name="include_retired"
                   />
                 }
-                label={`${filtersValue(['include_retired']) === 'true' ? 'Exclude' : 'Include'} Retired DReps`}
+                label={`${filtersValue(['include_retired']) === 'true' ? 'Including' : 'Excluding'} Retired DReps`}
               />
             </FormControl>
           </Box>
