@@ -66,6 +66,7 @@ export class DrepService {
     order?: string,
     onChainStatus?: 'active' | 'inactive',
     campaignStatus?: 'claimed' | 'unclaimed',
+    includeRetired?: true | false,
     type?: 'has_script',
   ) {
     let nameFilteredDRepViews: string[];
@@ -103,6 +104,7 @@ export class DrepService {
       sortOrder,
       onChainStatus,
       campaignStatus,
+      includeRetired,
       dRepViews,
       type,
     );
@@ -153,6 +155,7 @@ export class DrepService {
     sortOrder?: string,
     onChainStatus?: 'active' | 'inactive',
     campaignStatus?: 'claimed' | 'unclaimed',
+    includeRetired?: true | false,
     dRepViews?: string[],
     type?: 'has_script',
   ) {
@@ -176,6 +179,9 @@ export class DrepService {
     } else if (onChainStatus === 'inactive') {
       chainStatusCondition = `AND (DRepActivity.epoch_no - coalesce(block.epoch_no, block_first_register.epoch_no)) >
                   DRepActivity.drep_activity`;
+    }
+    if (!includeRetired) {
+      chainStatusCondition += `AND dr_latest_reg_activity.deposit >= '0'`;
     }
 
     let campaignStatusCondition = '';
@@ -332,9 +338,7 @@ export class DrepService {
     //account for voting options
     if (
       combinedResult?.view.includes('drep_always_abstain') ||
-      combinedResult?.view.includes(
-        'drep_always_no_confidence',
-      )
+      combinedResult?.view.includes('drep_always_no_confidence')
     ) {
       combinedResult['type'] = 'voting_option';
     } else if (!!combinedResult.has_script) {
@@ -719,18 +723,23 @@ export class DrepService {
 
     const sortColumns = {
       power: 'voting_power',
-      epoch: 'epoch_no'
+      epoch: 'epoch_no',
     };
-    
+
     const sortColumn = sortColumns[sort] || null;
     const sortOrder = order?.toUpperCase();
-    
-    const orderByClause = (sortColumn && ['ASC', 'DESC'].includes(sortOrder))
-      ? `ORDER BY ${sortColumn} ${sortOrder} NULLS ${sortOrder === 'DESC' ? 'LAST' : 'FIRST'}`
-      : '';
+
+    const orderByClause =
+      sortColumn && ['ASC', 'DESC'].includes(sortOrder)
+        ? `ORDER BY ${sortColumn} ${sortOrder} NULLS ${sortOrder === 'DESC' ? 'LAST' : 'FIRST'}`
+        : '';
 
     const delegatorsWithVotingPower = await this.cexplorerService.manager.query(
-      getDrepDelegatorsWithVotingPowerQuery(itemsPerPage, offset, orderByClause),
+      getDrepDelegatorsWithVotingPowerQuery(
+        itemsPerPage,
+        offset,
+        orderByClause,
+      ),
       [drepVoterId],
     );
 

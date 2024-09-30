@@ -14,7 +14,6 @@ import { createDrepDto, ValidateMetadataDTO } from 'src/dto';
 import { DrepService } from './drep.service';
 import { VoterService } from 'src/voter/voter.service';
 import { Delegation, StakeKeys } from 'src/common/types';
-import { Response } from 'express';
 
 @Controller('dreps')
 export class DrepController {
@@ -33,6 +32,7 @@ export class DrepController {
     @Query('order') order?: string,
     @Query('onChainStatus') onChainStatus?: 'active' | 'inactive',
     @Query('campaignStatus') campaignStatus?: 'claimed' | 'unclaimed',
+    @Query('includeRetired') includeRetired?: 'true' | 'undefined',
     @Query('type') type?: 'has_script', // add more types if needed
   ) {
     return this.drepService.getAllDReps(
@@ -43,6 +43,7 @@ export class DrepController {
       order,
       onChainStatus,
       campaignStatus,
+      Boolean(includeRetired),
       type
     );
   }
