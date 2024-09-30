@@ -49,7 +49,7 @@ export const getAllDRepsQuery = (
         DRepDistr.amount AS voting_power,
         dh.has_script,
         (DRepActivity.epoch_no - MAX(COALESCE(block.epoch_no, block_first_register.epoch_no))) <= DRepActivity.drep_activity AS active,
-        (dr_voting_anchor.deposit IS NOT NULL AND dr_voting_anchor.deposit < 0) AS retired,
+        (dr_latest_reg_activity.deposit IS NOT NULL AND dr_latest_reg_activity.deposit < 0) AS retired,
         encode(dr_voting_anchor.tx_hash, 'hex') AS tx_hash,
         dr_voting_anchor.register_time AS last_register_time,
         off_chain_vote_drep_data.given_name,
