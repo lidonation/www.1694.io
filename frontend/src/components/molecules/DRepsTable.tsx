@@ -30,6 +30,7 @@ type DRepsTableProps = {
   order?: string;
   onChainStatus?: string;
   campaignStatus?: string;
+  includeRetired?: string;
   type?: string;
 };
 
@@ -47,6 +48,7 @@ const DRepsTable = ({
   order,
   onChainStatus,
   campaignStatus,
+  includeRetired,
   type,
 }: DRepsTableProps) => {
   const { isMobile } = useScreenDimension();
@@ -58,6 +60,7 @@ const DRepsTable = ({
     order,
     onChainStatus,
     campaignStatus,
+    includeRetired,
     type,
   );
 
@@ -95,7 +98,7 @@ const DRepsTable = ({
               </div>
             </th>
             <th className="py-2">
-              <div className="justify-end flex items-center text-left">
+              <div className="flex items-center justify-end text-left">
                 <span>Delegators</span>
                 {sort === 'delegators' &&
                   (order === 'desc' ? (
@@ -163,23 +166,24 @@ const DRepsTable = ({
                       </div>
                     )}
 
-                    {drep?.type !== 'voting_option' && <Box className="flex flex-nowrap items-center">
-                      <Tooltip title="Copy DRep ID">
-                        <IconButton
-                          size="small"
-                          onClick={() => handleCopyText(drep.view)}
-                        >
-                          <CopyToClipBoard width={18} height={18} />
-                        </IconButton>
-                      </Tooltip>
+                    {drep?.type !== 'voting_option' && (
+                      <Box className="flex flex-nowrap items-center">
+                        <Tooltip title="Copy DRep ID">
+                          <IconButton
+                            size="small"
+                            onClick={() => handleCopyText(drep.view)}
+                          >
+                            <CopyToClipBoard width={18} height={18} />
+                          </IconButton>
+                        </Tooltip>
 
-                      <Link href={`/dreps/${drep.view}`} prefetch={false}>
-                        <p className="hover:font-semibold">
-                          {convertString(drep.view, isMobile)}
-                        </p>
-                      </Link>
-                    </Box>
-                    }
+                        <Link href={`/dreps/${drep.view}`} prefetch={false}>
+                          <p className="hover:font-semibold">
+                            {convertString(drep.view, isMobile)}
+                          </p>
+                        </Link>
+                      </Box>
+                    )}
 
                     <Box className="w-30 flex flex-row items-center gap-1.5">
                       {drep.given_name !== null && (
@@ -197,10 +201,13 @@ const DRepsTable = ({
                       )}
 
                       <Tooltip title="DRep onchain status" disableFocusListener>
-                        <button className="hover:cursor-default">
+                        <button className="flex gap-2 hover:cursor-default">
                           <StatusChip
                             status={drep.active ? 'Active' : 'Inactive'}
                           />
+                          {drep.retired && drep?.type !== 'voting_option' && (
+                            <StatusChip status={'Retired'} />
+                          )}
                         </button>
                       </Tooltip>
                     </Box>
@@ -225,20 +232,30 @@ const DRepsTable = ({
                 </td>
 
                 <td className="overflow-auto px-2 py-2">
-                  {drep.live_stake !== null ? (<Box className='flex flex-row flex-nowrap justify-start items-center gap-1.5 w-full'>
+                  {drep.live_stake !== null ? (
+                    <Box className="flex w-full flex-row flex-nowrap items-center justify-start gap-1.5">
                       <Tooltip title={formatAsCurrency(drep.live_stake)}>
                         <Typography>
                           {shortNumber(drep.live_stake, 2)}
                         </Typography>
                       </Tooltip>
-                        {drep.voting_power > 0.00 && <Typography
-                          variant='body1'
-                          className={`font-bolder ${percentageDifference(drep.live_stake, drep.voting_power) > 0.00 ? 'text-success' : percentageDifference(drep.live_stake, drep.voting_power) < 0.00 ? 'text-extra_red' : ''}`}>
-                        {new Intl.NumberFormat("en-US", {
-                          signDisplay: "exceptZero"
-                        }).format(percentageDifference(drep.live_stake, drep.voting_power))}%
-                      </Typography>}
-                      </Box>
+                      {drep.voting_power > 0.0 && (
+                        <Typography
+                          variant="body1"
+                          className={`font-bolder ${percentageDifference(drep.live_stake, drep.voting_power) > 0.0 ? 'text-success' : percentageDifference(drep.live_stake, drep.voting_power) < 0.0 ? 'text-extra_red' : ''}`}
+                        >
+                          {new Intl.NumberFormat('en-US', {
+                            signDisplay: 'exceptZero',
+                          }).format(
+                            percentageDifference(
+                              drep.live_stake,
+                              drep.voting_power,
+                            ),
+                          )}
+                          %
+                        </Typography>
+                      )}
+                    </Box>
                   ) : (
                     <p>-</p>
                   )}

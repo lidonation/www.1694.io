@@ -61,6 +61,7 @@ export const getDrepCexplorerDetailsQuery: string = `
           lr.voting_anchor_id AS reg_voting_anchor_id,  
           lr.metadata_url,
           sa.view AS stake_address,
+          (lr.deposit iS NOT NULL AND lr.deposit < 0) AS retired,
           COALESCE(dd_data.vote_count, 0) AS delegation_vote_count,
           COALESCE(dd_data.live_stake, null) AS live_stake,
           ROW_NUMBER() OVER (PARTITION BY dh.id ORDER BY dd.epoch_no DESC) AS RowNum
@@ -87,6 +88,7 @@ export const getDrepCexplorerDetailsQuery: string = `
         voting_power,
         live_stake,
         epoch_no,
+        retired,
         active_until,
         deposit,
         metadata_url,
