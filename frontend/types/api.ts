@@ -103,7 +103,7 @@ export type DelegationData = {
 };
 export interface VoterData {
   address: string;
-  total_value: number;
+  total_stake: number;
   drep_id: string;
   stake_address: string;
   delegationHistory: any[];

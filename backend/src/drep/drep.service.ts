@@ -181,8 +181,8 @@ export class DrepService {
                   DRepActivity.drep_activity`;
     }
     if (!includeRetired) {
-      chainStatusCondition += `AND dr_voting_anchor.deposit >= 0`;
-    }
+      chainStatusCondition += ` AND (dr_voting_anchor.deposit IS NULL OR dr_voting_anchor.deposit >= 0) `;
+   }
 
     let campaignStatusCondition = '';
     if (dRepViews && dRepViews.length > 0) {
@@ -231,12 +231,14 @@ export class DrepService {
       ),
     );
     const totalResults = await this.cexplorerService.manager.query(
-      getTotalResultsQuery(
-        sanitizedSearchCondition,
-        campaignStatusCondition,
-        chainStatusCondition,
-        typeCondition,
-      ),
+        getTotalResultsQuery(
+          sanitizedSearchCondition,
+          nameFilteredDRepCondition, // Ensure this is included
+          campaignStatusCondition,
+          chainStatusCondition,
+          typeCondition,
+        )
+
     );
 
     return {
