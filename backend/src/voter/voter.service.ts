@@ -23,9 +23,10 @@ export class VoterService {
     let delegationHistory;
     switch (true) {
       case voterIdentity.includes('drep'):
-        voterData = await this.cexplorerService.manager.query(getDrepAddrData, [
-          voterIdentity,
-        ]);
+        voterData = await this.cexplorerService.manager.query(
+          getDrepAddrData,
+          [voterIdentity],
+        );
         delegationHistory = await this.cexplorerService.manager.query(
           getVoterDelegationHistory,
           [voterData[0].stake_address],
