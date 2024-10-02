@@ -34,11 +34,11 @@ const VoterWalletStats = ({
           {isVoterDataLoading ? (
             <Skeleton width={200} />
           ) : (
-            <Box 
-              sx={{ 
-                display: 'flex', 
+            <Box
+              sx={{
+                display: 'flex',
                 alignItems: 'center',
-                position: 'relative'
+                position: 'relative',
               }}
               onMouseEnter={() => setIsAddressHovered(true)}
               onMouseLeave={() => setIsAddressHovered(false)}
@@ -47,13 +47,9 @@ const VoterWalletStats = ({
                 {convertString(voterData?.stake_address, false)}
               </Typography>
               {isAddressHovered && (
-                <Tooltip title={copiedAddress ? "Copied!" : "Copy address"}>
-                  <IconButton 
-                    size="small" 
-                    onClick={handleCopy}
-                    sx={{ ml: 1 }}
-                  >
-                   <CopyToClipBoardIcon width={18} height={18} />
+                <Tooltip title={copiedAddress ? 'Copied!' : 'Copy address'}>
+                  <IconButton size="small" onClick={handleCopy} sx={{ ml: 1 }}>
+                    <CopyToClipBoardIcon width={18} height={18} />
                   </IconButton>
                 </Tooltip>
               )}
@@ -63,7 +59,9 @@ const VoterWalletStats = ({
             <Skeleton width={150} height={60} />
           ) : (
             <Typography variant="h3">
-               ₳{formattedAda(voterData?.total_value, 2)}
+              {voterData?.total_stake
+                ? `₳ ${formattedAda(voterData?.total_stake, 2)}`
+                : '-'}
             </Typography>
           )}
         </Box>
@@ -74,7 +72,9 @@ const VoterWalletStats = ({
           {isVoterDataLoading ? (
             <Skeleton width={100} height={32} />
           ) : (
-            <StatusChip status={voterData?.isDelegated ? "Delegated" : "Not Delegated"} />
+            <StatusChip
+              status={voterData?.isDelegated ? 'Delegated' : 'Not Delegated'}
+            />
           )}
         </Box>
       </Box>
