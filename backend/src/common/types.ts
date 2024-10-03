@@ -144,11 +144,11 @@ export type DRepDelegatorsHistoryRecord = {
   target_drep: string;
   current_drep: string;
   previous_drep: string;
-  timestamp: string; // Assuming timestamp is returned as a string
+  timestamp: string;
   delegation_epoch: number;
   tx_hash: string;
   type: 'delegation';
-  total_stake: string; // Assuming total_stake is returned as a string
+  total_stake: string; 
   added_power: boolean;
 };
 
