@@ -66,7 +66,7 @@ export type IPFSPinStatusResponse = {
  * @remarks
  * This type contains information about a specific block in the Blockfrost blockchain.
  *
- * 
+ *
  * @remarks {height} - block number
  */
 export type BlockfrostBlockRes = {
@@ -105,7 +105,7 @@ export type NodeBlockRes = {
   op_cert: string;
   op_cert_counter: string;
 };
-export interface VoterData{
+export interface VoterData {
   address: string;
   total_stake: number;
   drep_id: string;
@@ -113,3 +113,92 @@ export interface VoterData{
   delegationHistory: any[];
   isDelegated: boolean;
 }
+export type DRepRegistrationData = {
+  drep_hash_id: number;
+  reg_tx_hash: string;
+  date_of_registration: Date;
+  epoch_of_registration: number;
+};
+export type EpochActivityResponse = {
+  start_time: Date;
+  end_time: Date;
+  no: number;
+  type: string;
+};
+export type VotingActivityHistory = {
+  view: string;
+  gov_action_proposal_id: string;
+  prop_inception: Date;
+  type: string;
+  description: string;
+  voting_anchor_id: string;
+  vote: string;
+  metadata: any;
+  time_voted: Date;
+  proposal_epoch: number;
+  voting_epoch: number;
+  url: string;
+};
+export type DRepDelegatorsHistoryRecord = {
+  stake_address: string;
+  target_drep: string;
+  current_drep: string;
+  previous_drep: string;
+  timestamp: string; // Assuming timestamp is returned as a string
+  delegation_epoch: number;
+  tx_hash: string;
+  type: 'delegation';
+  total_stake: string; // Assuming total_stake is returned as a string
+  added_power: boolean;
+};
+
+export type DRepDelegatorsHistoryResponse = DRepDelegatorsHistoryRecord[];
+
+export type VoterNoteResponseRecord = {
+  deletedAt?: Date;
+  id: number;
+  createdAt: Date;
+  note_updatedAt: Date;
+  title: string;
+  tag?: string;
+  content: string;
+  visibility: string;
+  drepId?: number;
+  authorId?: number;
+  comments?: any[];
+  reactions?: any[];
+  type: 'note';
+  timestamp: string;
+};
+export type VoterNoteResponse = VoterNoteResponseRecord[];
+export type ClaimedProfile = {
+  type: 'claimed_profile';
+  drep_id: string;
+  claimingId: string;
+  claimedDRepId: string;
+};
+
+export interface DRepTimelineParams {
+  drep: any;
+  drepVoterId: string;
+  stakeKeyBech32?: string;
+  delegation?: Delegation;
+  beforeDate?: number;
+  tillDate?: number;
+  filterValues?: string[];
+}
+export interface TimelineEntry {
+  type: string;
+  timestamp: string | Date;
+  [key: string]: any;
+}  
+export interface TimelineFilters {
+  includeVotingActivity: boolean;
+  includeDelegations: boolean;
+  includeNotes: boolean;
+  includeClaimedProfile: boolean;
+  includeRegistration: boolean;
+}
+
+
+
