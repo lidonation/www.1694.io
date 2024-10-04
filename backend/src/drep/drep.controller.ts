@@ -44,7 +44,7 @@ export class DrepController {
       onChainStatus,
       campaignStatus,
       Boolean(includeRetired),
-      type
+      type,
     );
   }
   @Get('epochs/latest/parameters')
@@ -93,15 +93,15 @@ export class DrepController {
         await this.voterService.getAdaHolderCurrentDelegation(stakeKey);
     }
 
-    const drepTimeline = await this.drepService.getDrepTimeline(
+    const drepTimeline = await this.drepService.getDrepTimeline({
       drep,
       drepVoterId,
       stakeKeyBech32,
       delegation,
-      startTimeCursor,
-      endTimeCursor,
+      beforeDate: startTimeCursor,
+      tillDate: endTimeCursor,
       filterValues,
-    );
+    });
 
     return drepTimeline;
   }
@@ -124,16 +124,14 @@ export class DrepController {
   getExternalMetadata(@Query('metadataUrl') metadataUrl: string) {
     return this.drepService.getMetadataFromExternalLink(metadataUrl);
   }
-  
+
   @Post('metadata/validate')
   validateMetadata(@Body() metadataBody: ValidateMetadataDTO) {
     return this.drepService.validateMetadata(metadataBody);
   }
 
   @Post('metadata/save')
-  saveMetadata(
-    @Body('metadata') metadata: any,
-  ) {
+  saveMetadata(@Body('metadata') metadata: any) {
     return this.drepService.saveMetadata(metadata);
   }
   @Get(':voterId/stats')
@@ -161,8 +159,7 @@ export class DrepController {
       page,
       perPage,
       sort,
-      order
+      order,
     );
   }
-  
 }

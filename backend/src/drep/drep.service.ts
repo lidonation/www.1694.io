@@ -10,7 +10,16 @@ import { faker } from '@faker-js/faker';
 import * as blake from 'blakejs';
 import { HttpService } from '@nestjs/axios';
 import { AttachmentService } from 'src/attachment/attachment.service';
-import { catchError, firstValueFrom, Observable } from 'rxjs';
+import {
+  catchError,
+  firstValueFrom,
+  Observable,
+  from,
+  of,
+  forkJoin,
+  lastValueFrom,
+  timeout
+} from 'rxjs';
 import { AxiosResponse } from 'axios';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
@@ -18,11 +27,19 @@ import { ReactionsService } from 'src/reactions/reactions.service';
 import { CommentsService } from 'src/comments/comments.service';
 import {
   Delegation,
+  DRepDelegatorsHistoryResponse,
+  DRepRegistrationData,
+  DRepTimelineParams,
+  EpochActivityResponse,
   IPFSResponse,
   LoggerMessage,
   MetadataStandard,
   MetadataValidationStatus,
+  TimelineEntry,
+  TimelineFilters,
   ValidateMetadataResult,
+  VoterNoteResponse,
+  VotingActivityHistory,
 } from 'src/common/types';
 import { AuthService } from 'src/auth/auth.service';
 import { getAllDRepsQuery, getTotalResultsQuery } from 'src/queries/getDReps';
@@ -182,7 +199,7 @@ export class DrepService {
     }
     if (!includeRetired) {
       chainStatusCondition += ` AND (dr_voting_anchor.deposit IS NULL OR dr_voting_anchor.deposit >= 0) `;
-   }
+    }
 
     let campaignStatusCondition = '';
     if (dRepViews && dRepViews.length > 0) {
@@ -231,14 +248,13 @@ export class DrepService {
       ),
     );
     const totalResults = await this.cexplorerService.manager.query(
-        getTotalResultsQuery(
-          sanitizedSearchCondition,
-          nameFilteredDRepCondition, // Ensure this is included
-          campaignStatusCondition,
-          chainStatusCondition,
-          typeCondition,
-        )
-
+      getTotalResultsQuery(
+        sanitizedSearchCondition,
+        nameFilteredDRepCondition, 
+        campaignStatusCondition,
+        chainStatusCondition,
+        typeCondition,
+      ),
     );
 
     return {
@@ -361,7 +377,9 @@ export class DrepService {
     return drepCexplorer[0];
   }
 
-  async getDrepDateofRegistration(drepVoterId: string) {
+  async getDrepDateofRegistration(
+    drepVoterId: string,
+  ): Promise<DRepRegistrationData | null> {
     const drepRegistrationData = await this.cexplorerService.manager.query(
       `SELECT 
               dh.id AS drep_hash_id, 
@@ -382,130 +400,133 @@ export class DrepService {
     );
     return drepRegistrationData[0];
   }
-  async getDrepTimeline(
-    drep: any,
-    drepVoterId: string,
-    stakeKeyBech32?: string,
-    delegation?: Delegation,
-    beforeDate?: number,
-    tillDate?: number,
-    filterValues?: string[] | undefined,
-  ) {
-    const includeVotingActivity = !filterValues || filterValues.includes('va');
-    const includeDelegations = !filterValues || filterValues.includes('d');
-    const includeNotes = !filterValues || filterValues.includes('n');
-    const includeClaimedProfile = !filterValues || filterValues.includes('cp');
-    const includeRegistration = !filterValues || filterValues.includes('r');
 
-    const drepId = drep?.drep_id;
+  private getFilters(filterValues?: string[]): TimelineFilters {
+    return {
+      includeVotingActivity: !filterValues || filterValues.includes('va'),
+      includeDelegations: !filterValues || filterValues.includes('d'),
+      includeNotes: !filterValues || filterValues.includes('n'),
+      includeClaimedProfile: !filterValues || filterValues.includes('cp'),
+      includeRegistration: !filterValues || filterValues.includes('r'),
+    };
+  }
+
+  private getTimeRange(beforeDate?: number, tillDate?: number): { startingTime: Date; endingTime: Date } {
     const startingTime = beforeDate ? new Date(Number(beforeDate)) : new Date();
     const endingTime = tillDate
       ? new Date(Number(tillDate))
-      : new Date(new Date(startingTime).getTime() - 432000000); // 5 days ago
-
-    const epochs = await this.getEpochs(startingTime, endingTime);
-
-    let drepRegData = null;
-    let regDate = null;
-    if (includeRegistration) {
-      drepRegData = await this.getDrepDateofRegistration(drepVoterId);
-      regDate = new Date(drepRegData?.date_of_registration).getTime();
-    }
-
-    let claimDate = null;
-    if (includeClaimedProfile) {
-      claimDate = new Date(drep?.drep_createdAt).getTime();
-    }
-
-    let drepVotingHistory = [];
-    if (includeVotingActivity) {
-      drepVotingHistory = await this.getDrepVotingActivity(
-        drepVoterId,
-        startingTime,
-        endingTime,
-      );
-    }
-
-    let drepDelegatorsHistory = [];
-    if (includeDelegations) {
-      drepDelegatorsHistory = await this.getDrepDelegators(
-        drepVoterId,
-        startingTime,
-        endingTime,
-      );
-    }
-
-    let drepNotes = [];
-    if (includeNotes && drepId) {
-      drepNotes = await this.getDRepNotes(
-        drepId,
-        startingTime,
-        endingTime,
-        stakeKeyBech32,
-        delegation,
-      );
-    }
-
-    const drepActivity = [
-      ...epochs.map((epoch) => ({
-        ...epoch,
-        type: 'epoch',
-        timestamp: epoch.start_time,
-      })),
-      ...drepVotingHistory.map((vote) => ({
-        ...vote,
-        type: 'voting_activity',
-        timestamp: vote.time_voted,
-      })),
-      ...drepNotes.map((note) => ({
-        ...note,
-        type: 'note',
-        timestamp: note.note_updatedAt,
-      })),
-      ...drepDelegatorsHistory,
-    ];
-
-    // Add claimed event if drepId is present and falls within the time range
-    if (
-      includeClaimedProfile &&
-      drepId &&
-      claimDate &&
-      startingTime.getTime() > claimDate &&
-      endingTime.getTime() < claimDate
-    ) {
-      drepActivity.push({
-        type: 'claimed_profile',
-        timestamp: drep.drep_createdAt,
-        claimingId: drepId,
-        claimedDRepId: drepVoterId,
-      });
-    }
-
-    // Add the registration event if it falls within the time range
-    if (
-      includeRegistration &&
-      regDate &&
-      startingTime.getTime() > regDate &&
-      endingTime.getTime() < regDate
-    ) {
-      drepActivity.push({
-        type: 'registration',
-        timestamp: drepRegData.date_of_registration,
-        tx_hash: drepRegData.reg_tx_hash,
-        epoch_no: drepRegData.epoch_of_registration,
-      });
-    }
-
-    // Sort the combined array by timestamp from latest to earliest
-    drepActivity.sort(
-      (a, b) =>
-        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
-    );
-
-    return drepActivity;
+      : new Date(startingTime.getTime() - 432000000); // 5 days ago
+    return { startingTime, endingTime };
   }
 
-  async getEpochs(beforeDate: Date, tillDate: Date) {
+  private createTimelineEntries<T extends { [key: string]: any }>(
+    data: T[],
+    type: string,
+    timestampField: keyof T
+  ): TimelineEntry[] {
+    return data.map(item => ({
+      ...item,
+      type,
+      timestamp: item[timestampField],
+    }));
+  }
+
+  private isWithinTimeRange(timestamp: string | Date, startTime: Date, endTime: Date): boolean {
+    const time = new Date(timestamp).getTime();
+    return startTime.getTime() > time && endTime.getTime() < time;
+  }
+
+  async getDrepTimeline({
+    drep,
+    drepVoterId,
+    stakeKeyBech32,
+    delegation,
+    beforeDate,
+    tillDate,
+    filterValues,
+  }: DRepTimelineParams): Promise<TimelineEntry[]> {
+    const filters = this.getFilters(filterValues);
+    const { startingTime, endingTime } = this.getTimeRange(beforeDate, tillDate);
+    const drepId = drep?.drep_id;
+
+    // Setting up observables for parallel data fetching
+    const queries: Record<string, Observable<any>> = {
+      epochs: from(this.getEpochs(startingTime, endingTime)),
+      regData: filters.includeRegistration
+        ? from(this.getDrepDateofRegistration(drepVoterId))
+        : of(null),
+      votingHistory: filters.includeVotingActivity
+        ? from(this.getDrepVotingActivity(drepVoterId, startingTime, endingTime))
+        : of<VotingActivityHistory[]>([]),
+      delegatorsHistory: filters.includeDelegations
+        ? from(this.getDrepDelegators(drepVoterId, startingTime, endingTime))
+        : of<DRepDelegatorsHistoryResponse>([]),
+      notes: filters.includeNotes && drepId
+        ? from(this.getDRepNotes(drepId, startingTime, endingTime, stakeKeyBech32, delegation))
+        : of<VoterNoteResponse>([]),
+    };
+
+    try {
+      const results = await lastValueFrom(
+        forkJoin(queries).pipe(
+          timeout(100000), // 100 second timeout for mainnet data(may be heavy)
+          catchError(error => {
+            console.error('Error fetching DRep timeline data:', error);
+            throw new Error('Failed to fetch DRep timeline data');
+          })
+        )
+      );
+
+      // Combining all timeline entries
+      let timelineEntries: TimelineEntry[] = [
+        ...this.createTimelineEntries(results.epochs, 'epoch', 'start_time'),
+        ...this.createTimelineEntries(results.votingHistory, 'voting_activity', 'time_voted'),
+        ...this.createTimelineEntries(results.notes, 'note', 'note_updatedAt'),
+        ...results.delegatorsHistory,
+      ];
+      if (
+        filters.includeClaimedProfile &&
+        drepId &&
+        drep?.drep_createdAt &&
+        this.isWithinTimeRange(drep.drep_createdAt, startingTime, endingTime)
+      ) {
+        timelineEntries.push({
+          type: 'claimed_profile',
+          timestamp: drep.drep_createdAt,
+          claimingId: drepId,
+          claimedDRepId: drepVoterId,
+        });
+      }
+      const regDate = results.regData?.date_of_registration;
+      if (
+        filters.includeRegistration &&
+        regDate &&
+        this.isWithinTimeRange(regDate, startingTime, endingTime)
+      ) {
+        timelineEntries.push({
+          type: 'registration',
+          timestamp: regDate,
+          tx_hash: results.regData.reg_tx_hash,
+          epoch_no: results.regData.epoch_of_registration,
+        });
+      }
+
+      // Sort timeline entries by timestamp (latest first)
+      timelineEntries.sort((a, b) => {
+        return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+      });
+
+      return timelineEntries;
+    } catch (error) {
+      console.error('Error processing DRep timeline:', error);
+      throw error;
+    }
+  }
+
+  async getEpochs(
+    beforeDate: Date,
+    tillDate: Date,
+  ): Promise<EpochActivityResponse[]> {
     const epochs = (await this.cexplorerService.manager.query(
       `SELECT 
       start_time, end_time, no
@@ -526,7 +547,7 @@ export class DrepService {
     drepVoterId: string,
     beforeDate: Date,
     tillDate: Date,
-  ) {
+  ): Promise<VotingActivityHistory[]> {
     // Convert the start and end times from seconds to timestamps
     const drepVotingHistory = (await this.cexplorerService.manager.query(
       `SELECT  
@@ -575,13 +596,14 @@ export class DrepService {
       };
     });
   }
+
   async getDRepNotes(
     drepId: number,
     beforeDate: Date,
     tillDate: Date,
     stakeKeyBech32?: string,
     delegation?: any,
-  ) {
+  ): Promise<VoterNoteResponse> {
     const queryBuilder = await this.voltaireService
       .getRepository('Note')
       .createQueryBuilder('note')
@@ -927,7 +949,7 @@ export class DrepService {
     drepVoterId: string,
     beforeDate: Date,
     tillDate: Date,
-  ) {
+  ): Promise<DRepDelegatorsHistoryResponse> {
     const drepHashQuery = `
       SELECT id, view FROM drep_hash WHERE view = $1
     `;
