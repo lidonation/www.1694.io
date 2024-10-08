@@ -1,4 +1,6 @@
+'use client';
 import DRepTableSearch from '@/components/atoms/DRepTableSearch';
+import BreadCrumbs from '@/components/molecules/BreadCrumbs';
 import DRepsTable from '@/components/molecules/DRepsTable';
 import React from 'react';
 
@@ -25,26 +27,39 @@ const page = ({ searchParams }: PageProps) => {
   const type = searchParams?.type || null;
 
   return (
-    <div className="base_container min-h-screen py-10">
-      <section className="mb-12">
-        <h2 className="text-7xl font-black">Available DReps</h2>
-      </section>
-      <section className="mb-10 flex justify-end">
-        <DRepTableSearch />
-      </section>
+    <div>
+      <BreadCrumbs
+        crumbs={[
+          {
+            label: 'DReps',
+            href: `/dreps`,
+          },
+          {
+            label: 'DRep List',
+          },
+        ]}
+      />
+      <div className="base_container min-h-screen py-10">
+        <section className="mb-12">
+          <h2 className="text-7xl font-black">Available DReps</h2>
+        </section>
+        <section className="mb-10 flex justify-end">
+          <DRepTableSearch />
+        </section>
 
-      <section className="rounded-md bg-white p-5 shadow">
-        <DRepsTable
-          query={query}
-          page={page}
-          sort={sort}
-          order={order}
-          onChainStatus={onChainStatus}
-          campaignStatus={campaignStatus}
-          includeRetired={includeRetired}
-          type={type}
-        />
-      </section>
+        <section className="rounded-md bg-white p-5 shadow">
+          <DRepsTable
+            query={query}
+            page={page}
+            sort={sort}
+            order={order}
+            onChainStatus={onChainStatus}
+            campaignStatus={campaignStatus}
+            includeRetired={includeRetired}
+            type={type}
+          />
+        </section>
+      </div>
     </div>
   );
 };

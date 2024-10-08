@@ -1,4 +1,5 @@
 'use client';
+import BreadCrumbs from '@/components/molecules/BreadCrumbs';
 import ViewDraftsButton from '@/components/molecules/ViewDraftsButton';
 import UpdateNoteForm from '@/components/organisms/UpdateNoteForm';
 import { useDRepContext } from '@/context/drepContext';
@@ -9,13 +10,14 @@ import React, { useEffect, useState } from 'react';
 const page = (params: { params: { noteid: number } }) => {
   const { isEnabled } = useCardano();
   const [initialValues, setInitialValues] = useState(null);
-  const { setIsWalletListModalOpen, setHideCloseButtonOnWalletListModal } = useDRepContext();
+  const { setIsWalletListModalOpen, setHideCloseButtonOnWalletListModal } =
+    useDRepContext();
   //displays or hides modal only if in form page
   useEffect(() => {
     const fetchNoteAndCheckLogin = async () => {
       try {
         if (!isEnabled) {
-          setIsWalletListModalOpen(true)
+          setIsWalletListModalOpen(true);
           setHideCloseButtonOnWalletListModal(true);
         }
         const note = await getSingleNote(params.params.noteid);
@@ -31,21 +33,38 @@ const page = (params: { params: { noteid: number } }) => {
     };
   }, []);
   return (
-    <div className="drep_radial_bg flex items-center justify-center">
-      <div className="form_container h-full ">
-        <div className="w-full bg-white p-10">
-          <div className="flex flex-row items-center justify-between">
-            <h2 className="w-[85%] shrink grow basis-0 text-4xl font-bold leading-10">
-              Update Note
-            </h2>
-            <div className="flex w-[15%] items-center justify-center text-center text-base font-medium leading-4">
-              <ViewDraftsButton isUpdating={true} />
+    <div>
+      <BreadCrumbs
+        crumbs={[
+          {
+            label: 'Notes',
+            href: `/dreps/notes`,
+          },
+          ...(initialValues?.title
+            ? [
+                {
+                  label: `Title (${initialValues.title})`,
+                },
+              ]
+            : []),
+        ]}
+      />
+      <div className="drep_radial_bg mt-6 flex items-center justify-center">
+        <div className="form_container h-full ">
+          <div className="w-full bg-white p-10">
+            <div className="flex flex-row items-center justify-between">
+              <h2 className="w-[85%] shrink grow basis-0 text-4xl font-bold leading-10">
+                Update Note
+              </h2>
+              <div className="flex w-[15%] items-center justify-center text-center text-base font-medium leading-4">
+                <ViewDraftsButton isUpdating={true} />
+              </div>
             </div>
+            <UpdateNoteForm
+              noteId={params.params.noteid}
+              initialValues={initialValues}
+            />
           </div>
-          <UpdateNoteForm
-            noteId={params.params.noteid}
-            initialValues={initialValues}
-          />
         </div>
       </div>
     </div>
