@@ -7,6 +7,7 @@ import { useCardano } from '@/context/walletContext';
 import { useGetSingleDRepQuery } from '@/hooks/useGetSingleDRepQuery';
 import { useParams } from 'next/navigation';
 import NotFound from './not-found';
+import BreadCrumbs from '@/components/molecules/BreadCrumbs';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { dRepIDBech32 } = useCardano();
@@ -32,7 +33,23 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <DRepProfileBar isOpen={isOpen} setIsOpen={setIsOpen} />
       )}
       <div className="base_container w-full">
-        <div className="flex h-full w-full flex-col">
+        <BreadCrumbs
+          crumbs={[
+            {
+              label: 'DReps',
+              href: `/dreps`,
+            },
+            {
+              label: 'DReps List',
+              href: `/dreps/list`,
+            },
+            {
+              label: `DRep (${drepid})`,
+              href: `/dreps/${drepid}`,
+            }
+          ]}
+        />
+        <div className="mt-2 flex h-full w-full flex-col">
           <div
             className={`sticky top-0 z-10 flex items-center justify-start bg-blue-50 ${currentUserIsDrep && 'justify-between'}`}
           >
@@ -52,6 +69,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 </IconButton>
               </div>
             )}
+
             <div
               className={
                 currentUserIsDrep

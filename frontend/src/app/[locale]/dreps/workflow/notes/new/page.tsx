@@ -1,4 +1,5 @@
 'use client';
+import BreadCrumbs from '@/components/molecules/BreadCrumbs';
 import ViewDraftsButton from '@/components/molecules/ViewDraftsButton';
 import NewNoteForm from '@/components/organisms/NewNoteForm';
 import { useDRepContext } from '@/context/drepContext';
@@ -17,7 +18,7 @@ const page = () => {
     loginModalOpen,
     currentLocale,
     setHideCloseButtonOnWalletListModal,
-    setHideCloseButtonOnLoginModal
+    setHideCloseButtonOnLoginModal,
   } = useDRepContext();
 
   const checkAccess = useCallback(() => {
@@ -38,18 +39,32 @@ const page = () => {
   }, [checkAccess]);
 
   return (
-    <div className="drep_radial_bg flex items-center justify-center">
-      <div className="form_container h-full ">
-        <div className="w-full bg-white p-10">
-          <div className="flex flex-row items-center justify-between">
-            <h2 className="w-[85%] shrink grow basis-0 text-4xl font-bold leading-10">
-              New Note
-            </h2>
-            <div className="flex w-[15%] items-center justify-center text-center text-base font-medium leading-4">
-              <ViewDraftsButton />
+    <div>
+      <BreadCrumbs
+        crumbs={[
+          {
+            label: 'Notes',
+            href: `/dreps/notes`,
+          },
+          {
+            label: `New`,
+            href: `/dreps/workflow/notes/new`,
+          },
+        ]}
+      />
+      <div className="drep_radial_bg flex items-center justify-center mt-6">
+        <div className="form_container h-full">
+          <div className="w-full bg-white p-10">
+            <div className="flex flex-row items-center justify-between">
+              <h2 className="w-[85%] shrink grow basis-0 text-4xl font-bold leading-10">
+                New Note
+              </h2>
+              <div className="flex w-[15%] items-center justify-center text-center text-base font-medium leading-4">
+                <ViewDraftsButton />
+              </div>
             </div>
+            <NewNoteForm />
           </div>
-          <NewNoteForm />
         </div>
       </div>
     </div>
