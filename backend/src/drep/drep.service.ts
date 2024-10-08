@@ -1,32 +1,16 @@
-import {
-  HttpException,
-  HttpStatus,
-  Injectable,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
-import { createDrepDto, ValidateMetadataDTO } from 'src/dto';
-import { faker } from '@faker-js/faker';
+import {HttpException, HttpStatus, Injectable, Logger, NotFoundException,} from '@nestjs/common';
+import {createDrepDto, ValidateMetadataDTO} from 'src/dto';
+import {faker} from '@faker-js/faker';
 import * as blake from 'blakejs';
-import { HttpService } from '@nestjs/axios';
-import { AttachmentService } from 'src/attachment/attachment.service';
+import {HttpService} from '@nestjs/axios';
+import {AttachmentService} from 'src/attachment/attachment.service';
+import {catchError, firstValueFrom, forkJoin, from, lastValueFrom, Observable, of, timeout,} from 'rxjs';
+import {AxiosResponse} from 'axios';
+import {InjectDataSource} from '@nestjs/typeorm';
+import {DataSource} from 'typeorm';
+import {ReactionsService} from 'src/reactions/reactions.service';
+import {CommentsService} from 'src/comments/comments.service';
 import {
-  catchError,
-  firstValueFrom,
-  Observable,
-  from,
-  of,
-  forkJoin,
-  lastValueFrom,
-  timeout
-} from 'rxjs';
-import { AxiosResponse } from 'axios';
-import { InjectDataSource } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
-import { ReactionsService } from 'src/reactions/reactions.service';
-import { CommentsService } from 'src/comments/comments.service';
-import {
-  Delegation,
   DRepDelegatorsHistoryResponse,
   DRepRegistrationData,
   DRepTimelineParams,
@@ -41,25 +25,21 @@ import {
   VoterNoteResponse,
   VotingActivityHistory,
 } from 'src/common/types';
-import { AuthService } from 'src/auth/auth.service';
-import { getAllDRepsQuery, getTotalResultsQuery } from 'src/queries/getDReps';
-import {
-  getDRepDelegatorsCountQuery,
-  getDRepVotesCountQuery,
-  getDRepVotingPowerQuery,
-} from 'src/queries/drepStats';
-import { getEpochParams } from 'src/queries/getEpochParams';
-import { getDRepDelegatorsHistory } from 'src/queries/drepDelegatorsHistory';
-import { JsonLd } from 'jsonld/jsonld-spec';
-import { Response } from 'express';
-import { getDrepCexplorerDetailsQuery } from 'src/queries/drepCexplorerDetails';
+import {AuthService} from 'src/auth/auth.service';
+import {getAllDRepsQuery, getTotalResultsQuery} from 'src/queries/getDReps';
+import {getDRepDelegatorsCountQuery, getDRepVotesCountQuery, getDRepVotingPowerQuery,} from 'src/queries/drepStats';
+import {getEpochParams} from 'src/queries/getEpochParams';
+import {getDRepDelegatorsHistory} from 'src/queries/drepDelegatorsHistory';
+import {JsonLd} from 'jsonld/jsonld-spec';
+import {Response} from 'express';
+import {getDrepCexplorerDetailsQuery} from 'src/queries/drepCexplorerDetails';
 import {
   getDrepDelegatorsCountQuery,
   getDrepDelegatorsWithVotingPowerQuery,
 } from 'src/queries/drepDelegatorsWithVotingPower';
-import { BlockfrostService } from 'src/blockfrost/blockfrost.service';
-import { drepRegistrationQuery } from 'src/queries/drepRegistration';
-import { getDRepMetadataQuery } from 'src/queries/drepMetadata';
+import {BlockfrostService} from 'src/blockfrost/blockfrost.service';
+import {drepRegistrationQuery} from 'src/queries/drepRegistration';
+import {getDRepMetadataQuery} from 'src/queries/drepMetadata';
 
 @Injectable()
 export class DrepService {
@@ -250,7 +230,7 @@ export class DrepService {
     const totalResults = await this.cexplorerService.manager.query(
       getTotalResultsQuery(
         sanitizedSearchCondition,
-        nameFilteredDRepCondition, 
+        nameFilteredDRepCondition,
         campaignStatusCondition,
         chainStatusCondition,
         typeCondition,
@@ -411,7 +391,10 @@ export class DrepService {
     };
   }
 
-  private getTimeRange(beforeDate?: number, tillDate?: number): { startingTime: Date; endingTime: Date } {
+  private getTimeRange(
+    beforeDate?: number,
+    tillDate?: number,
+  ): { startingTime: Date; endingTime: Date } {
     const startingTime = beforeDate ? new Date(Number(beforeDate)) : new Date();
     const endingTime = tillDate
       ? new Date(Number(tillDate))
@@ -422,16 +405,20 @@ export class DrepService {
   private createTimelineEntries<T extends { [key: string]: any }>(
     data: T[],
     type: string,
-    timestampField: keyof T
+    timestampField: keyof T,
   ): TimelineEntry[] {
-    return data.map(item => ({
+    return data.map((item) => ({
       ...item,
       type,
       timestamp: item[timestampField],
     }));
   }
 
-  private isWithinTimeRange(timestamp: string | Date, startTime: Date, endTime: Date): boolean {
+  private isWithinTimeRange(
+    timestamp: string | Date,
+    startTime: Date,
+    endTime: Date,
+  ): boolean {
     const time = new Date(timestamp).getTime();
     return startTime.getTime() > time && endTime.getTime() < time;
   }
@@ -446,7 +433,10 @@ export class DrepService {
     filterValues,
   }: DRepTimelineParams): Promise<TimelineEntry[]> {
     const filters = this.getFilters(filterValues);
-    const { startingTime, endingTime } = this.getTimeRange(beforeDate, tillDate);
+    const { startingTime, endingTime } = this.getTimeRange(
+      beforeDate,
+      tillDate,
+    );
     const drepId = drep?.drep_id;
 
     // Setting up observables for parallel data fetching
@@ -456,31 +446,46 @@ export class DrepService {
         ? from(this.getDrepDateofRegistration(drepVoterId))
         : of(null),
       votingHistory: filters.includeVotingActivity
-        ? from(this.getDrepVotingActivity(drepVoterId, startingTime, endingTime))
+        ? from(
+            this.getDrepVotingActivity(drepVoterId, startingTime, endingTime),
+          )
         : of<VotingActivityHistory[]>([]),
       delegatorsHistory: filters.includeDelegations
         ? from(this.getDrepDelegators(drepVoterId, startingTime, endingTime))
         : of<DRepDelegatorsHistoryResponse>([]),
-      notes: filters.includeNotes && drepId
-        ? from(this.getDRepNotes(drepId, startingTime, endingTime, stakeKeyBech32, delegation))
-        : of<VoterNoteResponse>([]),
+      notes:
+        filters.includeNotes && drepId
+          ? from(
+              this.getDRepNotes(
+                drepId,
+                startingTime,
+                endingTime,
+                stakeKeyBech32,
+                delegation,
+              ),
+            )
+          : of<VoterNoteResponse>([]),
     };
 
     try {
       const results = await lastValueFrom(
         forkJoin(queries).pipe(
           timeout(100000), // 100 second timeout for mainnet data(may be heavy)
-          catchError(error => {
+          catchError((error) => {
             console.error('Error fetching DRep timeline data:', error);
             throw new Error('Failed to fetch DRep timeline data');
-          })
-        )
+          }),
+        ),
       );
 
       // Combining all timeline entries
-      let timelineEntries: TimelineEntry[] = [
+      const timelineEntries: TimelineEntry[] = [
         ...this.createTimelineEntries(results.epochs, 'epoch', 'start_time'),
-        ...this.createTimelineEntries(results.votingHistory, 'voting_activity', 'time_voted'),
+        ...this.createTimelineEntries(
+          results.votingHistory,
+          'voting_activity',
+          'time_voted',
+        ),
         ...this.createTimelineEntries(results.notes, 'note', 'note_updatedAt'),
         ...results.delegatorsHistory,
       ];
@@ -513,7 +518,9 @@ export class DrepService {
 
       // Sort timeline entries by timestamp (latest first)
       timelineEntries.sort((a, b) => {
-        return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+        return (
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        );
       });
 
       return timelineEntries;
@@ -894,8 +901,7 @@ export class DrepService {
       // Prepare the FormData
       const formData = new FormData();
       formData.append('file', binary as any);
-      const res = await this.attachmentService.uploadAttachmentToIPFS(formData);
-      return res;
+      return await this.attachmentService.uploadAttachmentToIPFS(formData);
     } catch (error) {
       console.error(error);
       throw error;
@@ -903,11 +909,10 @@ export class DrepService {
   }
   async getMetadataFromIPFS(hash: string, res: Response): Promise<JsonLd> {
     try {
-      const response = await this.attachmentService.getAttachmentFromIPFS(
-        hash,
-        res,
+      return await this.attachmentService.getAttachmentFromIPFS(
+          hash,
+          res,
       );
-      return response;
     } catch (error) {
       console.error(error);
       throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -971,11 +976,10 @@ export class DrepService {
       [drepHashId],
     );
     const addrIds = addrIdsResult.map((row) => row.addr_id);
-    const drepDelegations = await this.cexplorerService.manager.query(
+    return await this.cexplorerService.manager.query(
       getDRepDelegatorsHistory(addrIds),
       [drepHashId, drepVoterId, beforeDate, tillDate],
     );
-    return drepDelegations;
   }
 
   async isDrepRegistered(voterId: string) {

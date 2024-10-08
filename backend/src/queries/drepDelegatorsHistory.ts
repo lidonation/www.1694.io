@@ -8,7 +8,6 @@ export const getDRepDelegatorsHistory = (addrIds: []) => {
       : `WHERE
     (current_drep.id = $1 OR previous_drep.id = $1)
     AND b.time::DATE BETWEEN $4::DATE AND $3::DATE`;
-
   return `
       WITH total_stake AS (
           SELECT addr_id, COALESCE(amount, 0) AS amount, NULL AS tx_id FROM reward r WHERE r.type <> 'refund'
@@ -34,9 +33,7 @@ export const getDRepDelegatorsHistory = (addrIds: []) => {
 	CASE 
         WHEN current_drep.view = $2 THEN true
               ELSE false
-      END AS added_power
-
-	
+      END AS added_power	
 FROM 
     delegation_vote dva
     LEFT JOIN delegation_vote dvb ON dva.addr_id = dvb.addr_id AND dvb.tx_id = (
@@ -51,9 +48,7 @@ FROM
     LEFT JOIN block b ON tx.block_id = b.id
     LEFT JOIN drep_hash current_drep ON dva.drep_hash_id = current_drep.id
     LEFT JOIN drep_hash previous_drep ON dvb.drep_hash_id = previous_drep.id
-
       ${addrIdsCondition}
-
       GROUP BY
       sa.view,
       current_drep.view,
