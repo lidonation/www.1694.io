@@ -4,7 +4,6 @@ import Link from 'next/link';
 import React from 'react';
 import BreadCrumbSeparator from '../atoms/svgs/BreadCrumbSeparator';
 import HomeIcon from '../atoms/svgs/HomeIcon';
-import { useDRepContext } from '@/context/drepContext';
 
 type BreadCrumbsProps = {
   crumbs?: {
@@ -15,12 +14,11 @@ type BreadCrumbsProps = {
 
 function BreadCrumbs({ crumbs }: BreadCrumbsProps) {
   const { isMobile, screenWidth } = useScreenDimension();
-  const { currentLocale } = useDRepContext();
 
   return (
-    <nav aria-label="Breadcrumb">
+    <nav aria-label="Breadcrumb" className="w-full border-b border-gray-300 shadow">
       <div className="base_container">
-        <ol className="inline-flex items-center space-x-1 border-b-2 border-black px-1 py-2 md:space-x-2 rtl:space-x-reverse ">
+        <ol className="inline-flex items-center space-x-1 px-1 py-2 md:space-x-2 rtl:space-x-reverse ">
           <li className="inline-flex items-center">
             {crumbs?.length > 0 ? (
               <Link

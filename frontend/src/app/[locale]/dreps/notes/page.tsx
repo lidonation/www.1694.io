@@ -5,20 +5,22 @@ import { Suspense } from 'react';
 
 function Notes() {
   return (
-    <div className="base_container">
-      <Suspense fallback={null}>
-        <BreadCrumbs
-          crumbs={[
-            {
-              label: 'Notes',
-              href: `/dreps/notes`,
-            },
-          ]}
-        />
-        <section className="mt-6">
-          <NotesPage />
-        </section>
-      </Suspense>
+    <div>
+      <BreadCrumbs
+        crumbs={[
+          {
+            label: 'Notes',
+            href: `/dreps/notes`,
+          },
+        ]}
+      />
+      <div className="base_container">
+        <Suspense fallback={null}>
+          <section className="mt-4">
+            <NotesPage />
+          </section>
+        </Suspense>
+      </div>
     </div>
   );
 }
