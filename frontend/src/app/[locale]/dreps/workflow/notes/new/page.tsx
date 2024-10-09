@@ -52,7 +52,7 @@ const page = () => {
           },
         ]}
       />
-      <div className="drep_radial_bg flex items-center justify-center mt-6">
+      <div className="drep_radial_bg flex items-center justify-center mt-4">
         <div className="form_container h-full">
           <div className="w-full bg-white p-10">
             <div className="flex flex-row items-center justify-between">
