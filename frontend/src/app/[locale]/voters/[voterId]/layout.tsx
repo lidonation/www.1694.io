@@ -20,7 +20,7 @@ const layout = ({ children }: { children: React.ReactNode }) => {
           },
         ]}
       />
-      <div className="base_container mt-2 w-full">
+      <div className="base_container mt-4 w-full">
         <VoterDashboardTabs />
         {children}
       </div>

@@ -27,29 +27,29 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     );
   }
   return (
-    <div className="flex">
-      {/* If current user is a drep, the drawer will be available for use */}
-      {currentUserIsDrep && (
-        <DRepProfileBar isOpen={isOpen} setIsOpen={setIsOpen} />
-      )}
-      <div className="base_container w-full">
-        <BreadCrumbs
-          crumbs={[
-            {
-              label: 'DReps',
-              href: `/dreps`,
-            },
-            {
-              label: 'DReps List',
-              href: `/dreps/list`,
-            },
-            {
-              label: `DRep (${drepid})`,
-              href: `/dreps/${drepid}`,
-            }
-          ]}
-        />
-        <div className="mt-2 flex h-full w-full flex-col">
+    <div>
+      <BreadCrumbs
+        crumbs={[
+          {
+            label: 'DReps',
+            href: `/dreps`,
+          },
+          {
+            label: 'DReps List',
+            href: `/dreps/list`,
+          },
+          {
+            label: `DRep (${drepid})`,
+            href: `/dreps/${drepid}`,
+          },
+        ]}
+      />
+      <div className="flex">
+        {/* If current user is a drep, the drawer will be available for use */}
+        {currentUserIsDrep && (
+          <DRepProfileBar isOpen={isOpen} setIsOpen={setIsOpen} />
+        )}
+        <div className="base_container mt-4 flex h-full w-full flex-col">
           <div
             className={`sticky top-0 z-10 flex items-center justify-start bg-blue-50 ${currentUserIsDrep && 'justify-between'}`}
           >

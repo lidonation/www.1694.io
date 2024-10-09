@@ -49,7 +49,7 @@ const page = (params: { params: { noteid: number } }) => {
             : []),
         ]}
       />
-      <div className="drep_radial_bg mt-6 flex items-center justify-center">
+      <div className="drep_radial_bg mt-4 flex items-center justify-center">
         <div className="form_container h-full ">
           <div className="w-full bg-white p-10">
             <div className="flex flex-row items-center justify-between">

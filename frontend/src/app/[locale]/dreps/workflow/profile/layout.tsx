@@ -104,7 +104,7 @@ const Layout = ({ children }: Props) => {
   return (
     <div>
       <BreadCrumbs crumbs={crumbs} />
-      <div className="form_container bg-white px-2 py-10 lg:px-5 mt-6">
+      <div className="form_container bg-white px-2 py-10 lg:px-5 mt-4">
         <div className="flex w-full flex-col items-center justify-center gap-2">
           {pathname !== `/${currentLocale}/dreps/workflow/profile/success` && (
             <SetupProgressBar />
