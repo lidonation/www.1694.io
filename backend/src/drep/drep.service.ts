@@ -445,14 +445,14 @@ export class DrepService {
       regData: filters.includeRegistration
         ? from(this.getDrepDateofRegistration(drepVoterId))
         : of(null),
-      votingHistory: filters.includeVotingActivity
-        ? from(
-            this.getDrepVotingActivity(drepVoterId, startingTime, endingTime),
-          )
-        : of<VotingActivityHistory[]>([]),
-      delegatorsHistory: filters.includeDelegations
-        ? from(this.getDrepDelegators(drepVoterId, startingTime, endingTime))
-        : of<DRepDelegatorsHistoryResponse>([]),
+      // votingHistory: filters.includeVotingActivity
+      //   ? from(
+      //       this.getDrepVotingActivity(drepVoterId, startingTime, endingTime),
+      //     )
+      //   : of<VotingActivityHistory[]>([]),
+      // delegatorsHistory: filters.includeDelegations
+      //   ? from(this.getDrepDelegators(drepVoterId, startingTime, endingTime))
+      //   : of<DRepDelegatorsHistoryResponse>([]),
       notes:
         filters.includeNotes && drepId
           ? from(
@@ -481,13 +481,13 @@ export class DrepService {
       // Combining all timeline entries
       const timelineEntries: TimelineEntry[] = [
         ...this.createTimelineEntries(results.epochs, 'epoch', 'start_time'),
-        ...this.createTimelineEntries(
-          results.votingHistory,
-          'voting_activity',
-          'time_voted',
-        ),
+        // ...this.createTimelineEntries(
+        //   results.votingHistory,
+        //   'voting_activity',
+        //   'time_voted',
+        // ),
         ...this.createTimelineEntries(results.notes, 'note', 'note_updatedAt'),
-        ...results.delegatorsHistory,
+        // ...results.delegatorsHistory,
       ];
       if (
         filters.includeClaimedProfile &&
@@ -958,12 +958,15 @@ export class DrepService {
     const drepHashQuery = `
       SELECT id, view FROM drep_hash WHERE view = $1
     `;
+
     const drepHashResult = await this.cexplorerService.manager.query(
       drepHashQuery,
       [drepVoterId],
     );
-    const drepHashId = drepHashResult[0]?.id;
 
+    
+    const drepHashId = drepHashResult[0]?.id;
+    
     if (!drepHashId) {
       throw new Error(`No DRep found with the view: ${drepVoterId}`);
     }
@@ -971,10 +974,12 @@ export class DrepService {
     const addrIdsQuery = `
       SELECT DISTINCT addr_id FROM delegation_vote WHERE drep_hash_id = $1
     `;
+
     const addrIdsResult = await this.cexplorerService.manager.query(
       addrIdsQuery,
       [drepHashId],
     );
+    
     const addrIds = addrIdsResult.map((row) => row.addr_id);
     return await this.cexplorerService.manager.query(
       getDRepDelegatorsHistory(addrIds),
