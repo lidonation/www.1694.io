@@ -1,15 +1,30 @@
-import {HttpException, HttpStatus, Injectable, Logger, NotFoundException,} from '@nestjs/common';
-import {createDrepDto, ValidateMetadataDTO} from 'src/dto';
-import {faker} from '@faker-js/faker';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
+import { createDrepDto, ValidateMetadataDTO } from 'src/dto';
+import { faker } from '@faker-js/faker';
 import * as blake from 'blakejs';
-import {HttpService} from '@nestjs/axios';
-import {AttachmentService} from 'src/attachment/attachment.service';
-import {catchError, firstValueFrom, forkJoin, from, lastValueFrom, Observable, of, timeout,} from 'rxjs';
-import {AxiosResponse} from 'axios';
-import {InjectDataSource} from '@nestjs/typeorm';
-import {DataSource} from 'typeorm';
-import {ReactionsService} from 'src/reactions/reactions.service';
-import {CommentsService} from 'src/comments/comments.service';
+import { HttpService } from '@nestjs/axios';
+import { AttachmentService } from 'src/attachment/attachment.service';
+import {
+  catchError,
+  firstValueFrom,
+  forkJoin,
+  from,
+  lastValueFrom,
+  Observable,
+  of,
+  timeout,
+} from 'rxjs';
+import { AxiosResponse } from 'axios';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
+import { ReactionsService } from 'src/reactions/reactions.service';
+import { CommentsService } from 'src/comments/comments.service';
 import {
   DRepDelegatorsHistoryResponse,
   DRepRegistrationData,
@@ -25,21 +40,25 @@ import {
   VoterNoteResponse,
   VotingActivityHistory,
 } from 'src/common/types';
-import {AuthService} from 'src/auth/auth.service';
-import {getAllDRepsQuery, getTotalResultsQuery} from 'src/queries/getDReps';
-import {getDRepDelegatorsCountQuery, getDRepVotesCountQuery, getDRepVotingPowerQuery,} from 'src/queries/drepStats';
-import {getEpochParams} from 'src/queries/getEpochParams';
-import {getDRepDelegatorsHistory} from 'src/queries/drepDelegatorsHistory';
-import {JsonLd} from 'jsonld/jsonld-spec';
-import {Response} from 'express';
-import {getDrepCexplorerDetailsQuery} from 'src/queries/drepCexplorerDetails';
+import { AuthService } from 'src/auth/auth.service';
+import { getAllDRepsQuery, getTotalResultsQuery } from 'src/queries/getDReps';
+import {
+  getDRepDelegatorsCountQuery,
+  getDRepVotesCountQuery,
+  getDRepVotingPowerQuery,
+} from 'src/queries/drepStats';
+import { getEpochParams } from 'src/queries/getEpochParams';
+import { getDRepDelegatorsHistory } from 'src/queries/drepDelegatorsHistory';
+import { JsonLd } from 'jsonld/jsonld-spec';
+import { Response } from 'express';
+import { getDrepCexplorerDetailsQuery } from 'src/queries/drepCexplorerDetails';
 import {
   getDrepDelegatorsCountQuery,
   getDrepDelegatorsWithVotingPowerQuery,
 } from 'src/queries/drepDelegatorsWithVotingPower';
-import {BlockfrostService} from 'src/blockfrost/blockfrost.service';
-import {drepRegistrationQuery} from 'src/queries/drepRegistration';
-import {getDRepMetadataQuery} from 'src/queries/drepMetadata';
+import { BlockfrostService } from 'src/blockfrost/blockfrost.service';
+import { drepRegistrationQuery } from 'src/queries/drepRegistration';
+import { getDRepMetadataQuery } from 'src/queries/drepMetadata';
 
 @Injectable()
 export class DrepService {
@@ -701,6 +720,7 @@ export class DrepService {
     await this.voltaireService.getRepository('Drep').insert(modified);
     return modified;
   }
+
   async registerDrep(drepDto: createDrepDto) {
     const insertedDrep = await this.voltaireService
       .getRepository('Drep')
@@ -718,6 +738,7 @@ export class DrepService {
     );
     return { insertedDrep, insertedSig, token };
   }
+
   async getEpochParams() {
     try {
       return await this.blockfrostService.getEpochParameters();
@@ -909,10 +930,7 @@ export class DrepService {
   }
   async getMetadataFromIPFS(hash: string, res: Response): Promise<JsonLd> {
     try {
-      return await this.attachmentService.getAttachmentFromIPFS(
-          hash,
-          res,
-      );
+      return await this.attachmentService.getAttachmentFromIPFS(hash, res);
     } catch (error) {
       console.error(error);
       throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -964,9 +982,8 @@ export class DrepService {
       [drepVoterId],
     );
 
-    
     const drepHashId = drepHashResult[0]?.id;
-    
+
     if (!drepHashId) {
       throw new Error(`No DRep found with the view: ${drepVoterId}`);
     }
@@ -979,7 +996,7 @@ export class DrepService {
       addrIdsQuery,
       [drepHashId],
     );
-    
+
     const addrIds = addrIdsResult.map((row) => row.addr_id);
     return await this.cexplorerService.manager.query(
       getDRepDelegatorsHistory(addrIds),

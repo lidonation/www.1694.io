@@ -1,13 +1,13 @@
 export const getAllDRepsQuery = (
-    sanitizedSearchCondition: string,
-    nameFilteredDRepCondition: string,
-    campaignStatusCondition: string,
-    chainStatusCondition: string,
-    orderByClause: string,
-    itemsPerPage: number,
-    offset: number,
-    typeCondition: string,
-  ) => `
+  sanitizedSearchCondition: string,
+  nameFilteredDRepCondition: string,
+  campaignStatusCondition: string,
+  chainStatusCondition: string,
+  orderByClause: string,
+  itemsPerPage: number,
+  offset: number,
+  typeCondition: string,
+) => `
       WITH DRepDistr AS (
           SELECT *,
                  ROW_NUMBER() OVER (PARTITION BY drep_hash.id ORDER BY drep_distr.epoch_no DESC) AS rn
@@ -112,13 +112,13 @@ export const getAllDRepsQuery = (
           LIMIT ${itemsPerPage}
       OFFSET ${offset}
   `;
-  export const getTotalResultsQuery = (
-      sanitizedSearchCondition: string,
-      nameFilteredDRepCondition: string,
-      campaignStatusCondition: string,
-      chainStatusCondition: string,
-      typeCondition: string,
-    ) => `
+export const getTotalResultsQuery = (
+  sanitizedSearchCondition: string,
+  nameFilteredDRepCondition: string,
+  campaignStatusCondition: string,
+  chainStatusCondition: string,
+  typeCondition: string,
+) => `
         WITH DRepDistr AS (
             SELECT drep_distr.*, 
                    ROW_NUMBER() OVER (PARTITION BY drep_hash.id ORDER BY drep_distr.epoch_no DESC) AS rn
@@ -190,4 +190,3 @@ export const getAllDRepsQuery = (
             ${campaignStatusCondition} 
             ${typeCondition}
     `;
-    
