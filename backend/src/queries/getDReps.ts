@@ -1,13 +1,12 @@
 export const getAllDRepsQuery = (
-    sanitizedSearchCondition: string,
-    nameFilteredDRepCondition: string,
-    campaignStatusCondition: string,
-    chainStatusCondition: string,
-    orderByClause: string,
-    itemsPerPage: number,
-    offset: number,
-    typeCondition: string,
-  ) => `
+  sanitizedSearchCondition: string,
+  campaignStatusCondition: string,
+  chainStatusCondition: string,
+  orderByClause: string,
+  itemsPerPage: number,
+  offset: number,
+  typeCondition: string,
+) => `
       WITH DRepDistr AS (
           SELECT *,
                  ROW_NUMBER() OVER (PARTITION BY drep_hash.id ORDER BY drep_distr.epoch_no DESC) AS rn
@@ -90,7 +89,7 @@ export const getAllDRepsQuery = (
                LEFT JOIN block AS block_first_register
                          ON block_first_register.id = tx_first_register.block_id
                LEFT JOIN drepdelegationsummary dd ON dd.drep_hash_id = dh.id
-      WHERE 1=1 ${chainStatusCondition} ${sanitizedSearchCondition} ${nameFilteredDRepCondition} ${campaignStatusCondition} ${typeCondition}
+      WHERE 1=1 ${chainStatusCondition} ${sanitizedSearchCondition} ${campaignStatusCondition} ${typeCondition}
       GROUP BY
           dh.raw,
           second_to_newest_drep_registration.voting_anchor_id,
@@ -112,13 +111,12 @@ export const getAllDRepsQuery = (
           LIMIT ${itemsPerPage}
       OFFSET ${offset}
   `;
-  export const getTotalResultsQuery = (
-      sanitizedSearchCondition: string,
-      nameFilteredDRepCondition: string,
-      campaignStatusCondition: string,
-      chainStatusCondition: string,
-      typeCondition: string,
-    ) => `
+export const getTotalResultsQuery = (
+  sanitizedSearchCondition: string,
+  campaignStatusCondition: string,
+  chainStatusCondition: string,
+  typeCondition: string,
+) => `
         WITH DRepDistr AS (
             SELECT drep_distr.*, 
                    ROW_NUMBER() OVER (PARTITION BY drep_hash.id ORDER BY drep_distr.epoch_no DESC) AS rn
@@ -186,8 +184,6 @@ export const getAllDRepsQuery = (
         WHERE 1=1 
             ${chainStatusCondition} 
             ${sanitizedSearchCondition} 
-            ${nameFilteredDRepCondition} 
             ${campaignStatusCondition} 
             ${typeCondition}
     `;
-    
