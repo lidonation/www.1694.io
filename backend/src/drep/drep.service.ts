@@ -678,6 +678,7 @@ export class DrepService {
     await this.voltaireService.getRepository('Drep').insert(modified);
     return modified;
   }
+
   async registerDrep(drepDto: createDrepDto) {
     const insertedDrep = await this.voltaireService
       .getRepository('Drep')
@@ -695,6 +696,7 @@ export class DrepService {
     );
     return { insertedDrep, insertedSig, token };
   }
+
   async getEpochParams() {
     try {
       return await this.blockfrostService.getEpochParameters();
