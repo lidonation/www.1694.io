@@ -55,6 +55,8 @@ const DRepAvatarCard: React.FC<DRepAvatarCardProps> = ({ state, imageSrc }) => {
         cancelTokenRef.current.cancel('Component unmounted');
       }
       if (imageUrl) URL.revokeObjectURL(imageUrl);
+      setImageUrl(null);
+      setError(null);
     };
   }, [imageSrc]);
 

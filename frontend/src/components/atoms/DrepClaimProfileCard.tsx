@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Button from './Button';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import StatusChip from './StatusChip';
@@ -7,12 +7,11 @@ import { Skeleton } from '@mui/material';
 import { convertString, formattedAda } from '@/lib';
 import MetadataViewer from './MetadataViewer';
 import { isActive } from '../molecules/DRepsTable';
-import { getExternalMetadata } from '@/services/requests/postExternalMetadataUrl';
 import DRepSocialLinks from './DRepSocialLinks';
 import DRepAvatarCard from './DRepAvatarCard';
 import { useCardano } from '@/context/walletContext';
 import { useDRepContext } from '@/context/drepContext';
-import { getDRepMetadata } from '@/services/requests/getDRepMetadata';
+import { useGetDRepMetadataQuery } from '@/hooks/useGetDRepMetadataQuery';
 
 const DrepClaimProfileCard = ({
   drep,
@@ -21,82 +20,25 @@ const DrepClaimProfileCard = ({
   drep: any;
   state: boolean;
 }) => {
-  const [isMetadataLoading, setIsMetadataLoading] = useState(false);
-  const [metadataError, setMetadataError] = useState<string | null>(null);
-  const [metadata, setMetadata] = useState<any>(null);
-  const [imageSrc, setImageSrc] = useState<string | null>(null);
-  const [metadataUrl, setMetadataUrl] = useState<string | null>(null);
-  const [status, setStatus] = useState<any>('Inactive');
   const { dRepIDBech32 } = useCardano();
-  const [socialLinks, setSocialLinks] = useState<any>(null);
   const { isLoggedIn } = useDRepContext();
-  useEffect(() => {
-    const fetchData = async () => {
-      if(!drep) return;
-      
-      setIsMetadataLoading(true);
-      setMetadataError(null);
+  const { metadata, isMetadataLoading, metadataError } =
+    useGetDRepMetadataQuery(drep?.view);
 
-      const metadataUrl = drep?.metadata_url;
-      setMetadataUrl(metadataUrl);
-      try {
-        try {
-          const voterId = drep?.view;
-          const res = await getDRepMetadata(voterId);
-
-          setMetadataEntries(res?.metadata?.body);
-          setMetadata(res?.metadata);
-        } catch (error) {
-          if (error.response && error.response.status === 404) {
-            const response = await getExternalMetadata({ metadataUrl });
-            const jsonLdData = response;
-
-            setMetadataEntries(jsonLdData?.body);
-            setMetadata(jsonLdData);
-          }
-        }
-      } catch (error) {
-        setMetadata(null);
-        setMetadataError(
-          'Metadata Unprocessable. Probably took long to load or has invalid content',
-        );
-      } finally {
-        setIsMetadataLoading(false);
-      }
-    };
-    const checkStatus = () => {
-      let status;
-      if (drep?.type !== 'voting_option') {
-        status = isActive(
-          drep?.epoch_no,
-          drep?.active_until,
-        )
-          ? 'Active'
-          : 'Inactive';
-        setStatus(status);
-      }
-    };
-    checkStatus();
-    fetchData();
-  }, [drep]);
-
-  const setMetadataEntries = (metadataBody) => {
-    const imageUrl = metadataBody?.image?.contentUrl;
-    if (imageUrl) {
-      setImageSrc(imageUrl);
-    }
-    if (
-      metadataBody?.references &&
-      Array.isArray(metadataBody?.references) &&
-      metadataBody?.references.length > 0
-    ) {
-      setSocialLinks(metadataBody?.references);
+  const checkStatus = () => {
+    if (drep?.type !== 'voting_option') {
+      return isActive(drep?.epoch_no, drep?.active_until)
+        ? 'Active'
+        : 'Inactive';
     }
   };
 
   return (
     <div className="flex flex-col gap-5 bg-white bg-opacity-50 px-5 py-10 ">
-      <DRepAvatarCard state={state} imageSrc={imageSrc} />
+      <DRepAvatarCard
+        state={state}
+        imageSrc={metadata?.body?.image?.contentUrl}
+      />
       {drep?.type !== 'scripted' && drep?.type !== 'voting_option' && (
         <Link className="w-full" href={`/dreps/workflow/profile/new`}>
           <Button className="w-full">Claim this profile</Button>
@@ -114,7 +56,7 @@ const DrepClaimProfileCard = ({
           <StatusChip status="Retired" />
         )}
         <StatusChip
-          status={drep?.type === 'voting_option' ? 'Active' : status}
+          status={drep?.type === 'voting_option' ? 'Active' : checkStatus()}
         />
       </div>
       <div className="flex items-center gap-4">
@@ -172,7 +114,7 @@ const DrepClaimProfileCard = ({
           <img src="/svgs/copy.svg" alt="copy" />
         </CopyToClipboard>
       </div>
-      <DRepSocialLinks links={socialLinks} />
+      <DRepSocialLinks links={metadata?.body?.references} />
       <div>
         {state ? (
           <Skeleton animation={'wave'} width={150} height={20} />
@@ -181,7 +123,7 @@ const DrepClaimProfileCard = ({
             metadata={metadata}
             isMetadataLoading={isMetadataLoading}
             metadataError={metadataError}
-            metadataUrl={metadataUrl}
+            metadataUrl={drep?.metadata_url}
           />
         )}
       </div>

@@ -7,5 +7,6 @@ export const QUERY_KEYS = {
   getDRepStatsKey: 'getDRepStatsKey',
   getDRepTimelineKey: 'getDRepTimelineKey',
   getDrepDelegators: 'getDrepDelegators',
-  getVoterGovActions: 'getVoterGovActions'
+  getVoterGovActions: 'getVoterGovActions',
+  getDRepMetadataKey: 'getDRepMetadataKey'
 };
