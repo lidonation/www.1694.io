@@ -14,6 +14,7 @@ import { createDrepDto, ValidateMetadataDTO } from 'src/dto';
 import { DrepService } from './drep.service';
 import { VoterService } from 'src/voter/voter.service';
 import { Delegation, StakeKeys } from 'src/common/types';
+import { lastValueFrom } from 'rxjs';
 
 @Controller('dreps')
 export class DrepController {
@@ -93,16 +94,18 @@ export class DrepController {
         await this.voterService.getAdaHolderCurrentDelegation(stakeKey);
     }
 
-    const drepTimeline = await this.drepService.getDrepTimeline({
-      drep,
-      drepVoterId,
-      stakeKeyBech32,
-      delegation,
-      beforeDate: startTimeCursor,
-      tillDate: endTimeCursor,
-      filterValues,
-    });
-
+    const drepTimeline = await lastValueFrom(
+      this.drepService.getDrepTimeline({
+        drep,
+        drepVoterId,
+        stakeKeyBech32,
+        delegation,
+        beforeDate: startTimeCursor,
+        tillDate: endTimeCursor,
+        filterValues,
+      })
+    );
+  
     return drepTimeline;
   }
 

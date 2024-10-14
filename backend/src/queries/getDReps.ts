@@ -1,6 +1,5 @@
 export const getAllDRepsQuery = (
   sanitizedSearchCondition: string,
-  nameFilteredDRepCondition: string,
   campaignStatusCondition: string,
   chainStatusCondition: string,
   orderByClause: string,
@@ -90,7 +89,7 @@ export const getAllDRepsQuery = (
                LEFT JOIN block AS block_first_register
                          ON block_first_register.id = tx_first_register.block_id
                LEFT JOIN drepdelegationsummary dd ON dd.drep_hash_id = dh.id
-      WHERE 1=1 ${chainStatusCondition} ${sanitizedSearchCondition} ${nameFilteredDRepCondition} ${campaignStatusCondition} ${typeCondition}
+      WHERE 1=1 ${chainStatusCondition} ${sanitizedSearchCondition} ${campaignStatusCondition} ${typeCondition}
       GROUP BY
           dh.raw,
           second_to_newest_drep_registration.voting_anchor_id,
@@ -114,7 +113,6 @@ export const getAllDRepsQuery = (
   `;
 export const getTotalResultsQuery = (
   sanitizedSearchCondition: string,
-  nameFilteredDRepCondition: string,
   campaignStatusCondition: string,
   chainStatusCondition: string,
   typeCondition: string,
@@ -186,7 +184,6 @@ export const getTotalResultsQuery = (
         WHERE 1=1 
             ${chainStatusCondition} 
             ${sanitizedSearchCondition} 
-            ${nameFilteredDRepCondition} 
             ${campaignStatusCondition} 
             ${typeCondition}
     `;
