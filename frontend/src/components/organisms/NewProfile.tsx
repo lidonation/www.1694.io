@@ -78,7 +78,7 @@ const NewProfile = () => {
       try {
         if (!metadataJsonLd) return;
         const metadataBody = metadataJsonLd?.body;
-        setValue('profileName', renderJsonldValue(metadataBody?.givenName));
+        setValue('profileName', renderJsonldValue(metadataBody?.givenName || metadataBody?.dRepName));
         setValue('profileBio', renderJsonldValue(metadataBody?.bio));
         setValue('profileEmail', renderJsonldValue(metadataBody?.email));
         setValue('motivations', renderJsonldValue(metadataBody?.motivations));
