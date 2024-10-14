@@ -1,6 +1,5 @@
 export const getDRepMetadataQuery = `
-    SELECT dh.view,
-            vd.json AS metadata
+    SELECT vd.json AS metadata
     FROM drep_hash dh
     LEFT JOIN (
         SELECT dr.id,

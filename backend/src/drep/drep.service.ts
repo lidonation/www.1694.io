@@ -811,19 +811,6 @@ export class DrepService {
       .update(drepId, updatedDrep);
   }
 
-  async getMetadataFromExternalLink(metadataUrl: string) {
-    if (!metadataUrl) throw new Error('Inadequate parameters');
-    const { data } = await firstValueFrom(
-      this.httpService.get(metadataUrl).pipe(
-        catchError((err) => {
-          console.log(err);
-          throw new Error('Metadata not found');
-        }),
-      ),
-    );
-
-    return data;
-  }
   async validateMetadata({
     hash,
     url,
@@ -978,17 +965,38 @@ export class DrepService {
   }
 
   async getMetadata(voterId: string) {
-    const metadataRes = await this.cexplorerService.manager.query(
+    const savedMetadata = await this.cexplorerService.manager.query(
       getDRepMetadataQuery,
       [voterId],
     );
 
-    if (!metadataRes || !metadataRes?.[0].metadata) {
-      throw new NotFoundException(
-        `Metadata not found for voter ID: ${voterId}`,
+    if (!savedMetadata || !savedMetadata?.[0].metadata) {
+      const metadataUrl = await this.cexplorerService.manager.query(
+        `SELECT 
+            va.url AS metadata_url
+        FROM 
+            drep_registration AS dr
+        LEFT JOIN 
+            voting_anchor AS va ON dr.voting_anchor_id = va.id
+        JOIN 
+            drep_hash dh ON dr.drep_hash_id = dh.id
+        WHERE dh.view = $1
+        AND dr.tx_id = (SELECT MAX(tx_id) FROM drep_registration WHERE drep_hash_id = dr.drep_hash_id);`,
+        [voterId],
       );
-    }
 
-    return metadataRes?.[0];
+      const { data } = await firstValueFrom(
+        this.httpService.get(metadataUrl?.[0]?.metadata_url).pipe(
+          catchError((err) => {
+            console.log(err);
+            throw new Error('Metadata not found');
+          }),
+        ),
+      );
+
+      return data;
+    } else if (savedMetadata?.[0]) {
+      return savedMetadata?.[0].metadata;
+    }
   }
 }

@@ -123,10 +123,6 @@ export class DrepController {
     return this.drepService.getMetadata(voterId);
   }
 
-  @Get('/metadata/external')
-  getExternalMetadata(@Query('metadataUrl') metadataUrl: string) {
-    return this.drepService.getMetadataFromExternalLink(metadataUrl);
-  }
 
   @Post('metadata/validate')
   validateMetadata(@Body() metadataBody: ValidateMetadataDTO) {
