@@ -72,7 +72,13 @@ const StatusChip = ({ status }: StatusProps) => {
   );
 };
 
-const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
+type DrepProfileCardProps = {
+  drep: any;
+  voterId: string;
+  state: boolean;
+};
+
+const DrepProfileCard = ({ drep, voterId, state }: DrepProfileCardProps) => {
   const { isMobile } = useScreenDimension();
   const { setLoginModalOpen, isLoggedIn } = useDRepContext();
   const { dRepIDBech32 } = useCardano();
@@ -82,7 +88,7 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
   const [hoveredOnWarning, setHoveredOnWarning] = useState(false);
 
   const { metadata, isMetadataLoading, metadataError } =
-    useGetDRepMetadataQuery(drep?.view);
+    useGetDRepMetadataQuery(voterId);
 
   const ctaActions = [
     {
@@ -264,7 +270,7 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
       </div>
       <DRepSocialLinks links={metadata?.body?.references} />
       <div>
-        {state ? (
+        {isMetadataLoading ? (
           <Skeleton animation={'wave'} width={150} height={20} />
         ) : (
           <MetadataViewer

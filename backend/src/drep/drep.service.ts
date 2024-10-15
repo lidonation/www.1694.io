@@ -408,13 +408,14 @@ export class DrepService {
 
   getDrepTimeline({
     drep,
-    drepVoterId,
+    voterId,
     stakeKeyBech32,
     delegation,
     beforeDate,
     tillDate,
     filterValues,
   }: DRepTimelineParams): Observable<TimelineEntry[]> {
+    
     const filters = this.getFilters(filterValues);
     const { startingTime, endingTime } = this.getTimeRange(
       beforeDate,
@@ -426,13 +427,13 @@ export class DrepService {
     const queries: Record<string, Observable<any>> = {
       epochs: this.getEpochs(startingTime, endingTime),
       regData: filters.includeRegistration
-        ? this.getDrepDateofRegistration(drepVoterId)
+        ? this.getDrepDateofRegistration(voterId)
         : of(null),
       votingHistory: filters.includeVotingActivity
-        ? this.getDrepVotingActivity(drepVoterId, startingTime, endingTime)
+        ? this.getDrepVotingActivity(voterId, startingTime, endingTime)
         : of<VotingActivityHistory[]>([]),
       delegatorsHistory: filters.includeDelegations
-        ? this.getDrepDelegators(drepVoterId, startingTime, endingTime)
+        ? this.getDrepDelegators(voterId, startingTime, endingTime)
         : of<DRepDelegatorsHistoryResponse>([]),
       notes:
         filters.includeNotes && drepId
@@ -496,7 +497,7 @@ export class DrepService {
             type: 'claimed_profile',
             timestamp: drep.drep_createdAt,
             claimingId: drepId,
-            claimedDRepId: drepVoterId,
+            claimedDRepId: voterId,
           });
         }
     
@@ -998,5 +999,14 @@ export class DrepService {
     } else if (savedMetadata?.[0]) {
       return savedMetadata?.[0].metadata;
     }
+  }
+
+  async getVoltaireDRepViaVoterID(drepVoterId){
+    return await this.voltaireService
+    .getRepository('Drep')
+    .createQueryBuilder('drep')
+    .leftJoinAndSelect('signature', 'signature', 'signature.drepId = drep.id')
+    .where('signature.voterId = :drepVoterId', { drepVoterId })
+    .getRawOne();
   }
 }

@@ -180,7 +180,7 @@ export type ClaimedProfile = {
 
 export interface DRepTimelineParams {
   drep: any;
-  drepVoterId: string;
+  voterId: string;
   stakeKeyBech32?: string;
   delegation?: Delegation;
   beforeDate?: number;

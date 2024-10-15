@@ -1,5 +1,5 @@
 'use client';
-import React, { memo, useCallback, useEffect, useState } from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import DrepTimelineWaterfall from './DrepTimelineWaterfall';
 import Link from 'next/link';
 import Button from '../atoms/Button';
@@ -46,7 +46,7 @@ const DrepTimeline = ({ drep }: { drep: any }) => {
   const searchParams = useSearchParams();
   const pathName = usePathname();
   const { replace } = useRouter();
-  const params = new URLSearchParams(searchParams);
+  const params = new URLSearchParams(searchParams.toString());
   const { isMobile } = useScreenDimension();
   const startTimeFormatted = formatNumberTimeToReadable(timelineStartTime);
   const endTimeFormatted = formatNumberTimeToReadable(timelineEndTime);
@@ -200,15 +200,12 @@ const DrepTimeline = ({ drep }: { drep: any }) => {
                   onClick={loadNewerData}
                 >
                   <ReloadIcon color="black" width={20} height={18} />
-                  <Typography
-                    variant="body1"
-                    paragraph={true}
-                    className="text-base font-medium text-orange-500 "
-                  >
+                  <p className="text-base font-medium text-orange-500 ">
                     Load Newer
-                  </Typography>
+                  </p>
                 </div>
               )}
+
               <Box className="flex flex-col items-center">
                 {isAtLatestPoint && DRepActivity.length > 0 && (
                   <Typography

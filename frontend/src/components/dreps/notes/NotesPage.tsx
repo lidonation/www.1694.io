@@ -143,7 +143,7 @@ function NotesPage() {
   );
 
   const updateURL = (noteId?: string) => {
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(searchParams.toString());
     if (noteId) params.set('note', noteId);
     router.replace(`?${params.toString()}`, { scroll: false });
   };
