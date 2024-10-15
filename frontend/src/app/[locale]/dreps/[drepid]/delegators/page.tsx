@@ -6,7 +6,7 @@ const page = () => {
   const { drepid } = useParams();
   return (
     <div className="min-h-screen">
-      <DrepProfileMetrics voterId={String(drepid)} />
+      <DrepProfileMetrics voterId={drepid.toString()} />
     </div>
   );
 };

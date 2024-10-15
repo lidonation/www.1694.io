@@ -1,5 +1,5 @@
 'use client';
-import React, { memo, useCallback, useEffect, useState } from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import DrepTimelineWaterfall from './DrepTimelineWaterfall';
 import Link from 'next/link';
 import Button from '../atoms/Button';
@@ -46,7 +46,7 @@ const DrepTimeline = ({ drep }: { drep: any }) => {
   const searchParams = useSearchParams();
   const pathName = usePathname();
   const { replace } = useRouter();
-  const params = new URLSearchParams(searchParams);
+  const params = new URLSearchParams(searchParams.toString());
   const { isMobile } = useScreenDimension();
   const startTimeFormatted = formatNumberTimeToReadable(timelineStartTime);
   const endTimeFormatted = formatNumberTimeToReadable(timelineEndTime);

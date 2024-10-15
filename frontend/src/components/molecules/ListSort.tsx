@@ -40,7 +40,7 @@ export default function ListSort({ tableType, sortOptions }: ListSortProps) {
 
   const setSorts = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(searchParams.toString());
 
     if (value) {
       const [sort, order] = value.split('-');
@@ -75,7 +75,7 @@ export default function ListSort({ tableType, sortOptions }: ListSortProps) {
   };
 
   const resetSort = () => {
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(searchParams.toString());
     params.delete('sort');
     params.delete('order');
     setIsFiltering(false);

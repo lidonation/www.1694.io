@@ -61,33 +61,19 @@ export class DrepController {
     return this.drepService.getSingleDrepViaVoterID(voterId);
   }
 
-  @Get(':idOrVoterId/activity')
+  @Get(':voterId/activity')
   async getDrepActivity(
-    @Param('idOrVoterId') idOrVoterId: string,
+    @Param('voterId') voterId: string,
     @Query('stakeKeys') stakeKeys?: StakeKeys,
     @Query('startTimeCursor') startTimeCursor?: number,
     @Query('endTimeCursor') endTimeCursor?: number,
     @Query('filterValues') filterValues?: string[] | undefined,
   ) {
-    let drepId: number | undefined;
-    let drepVoterId: string | undefined;
-    let drep = null;
+
+    const drep = await this.drepService.getVoltaireDRepViaVoterID(voterId)
     let delegation: Delegation = null;
 
     const { stakeKey, stakeKeyBech32 } = stakeKeys || {};
-
-    if (!isNaN(Number(idOrVoterId))) {
-      drepId = Number(idOrVoterId);
-    } else {
-      drepVoterId = idOrVoterId;
-    }
-
-    if (drepId) {
-      drep = await this.drepService.getSingleDrepViaID(drepId);
-      drepVoterId = drep.signature_voterId;
-    } else if (drepVoterId) {
-      drep = await this.drepService.getSingleDrepViaVoterID(drepVoterId);
-    }
 
     if (stakeKey) {
       delegation =
@@ -97,15 +83,15 @@ export class DrepController {
     const drepTimeline = await lastValueFrom(
       this.drepService.getDrepTimeline({
         drep,
-        drepVoterId,
+        voterId,
         stakeKeyBech32,
         delegation,
         beforeDate: startTimeCursor,
         tillDate: endTimeCursor,
         filterValues,
-      })
+      }),
     );
-  
+
     return drepTimeline;
   }
 
@@ -122,7 +108,6 @@ export class DrepController {
   getMetadata(@Param('voterId') voterId: string) {
     return this.drepService.getMetadata(voterId);
   }
-
 
   @Post('metadata/validate')
   validateMetadata(@Body() metadataBody: ValidateMetadataDTO) {

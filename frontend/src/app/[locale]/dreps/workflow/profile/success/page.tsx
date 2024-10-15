@@ -19,7 +19,7 @@ const page = () => {
   const { addErrorAlert } = useGlobalNotifications();
 
   const searchParams = useSearchParams();
-  const params = new URLSearchParams(searchParams);
+  const params = new URLSearchParams(searchParams.toString());
 
   const txHash = params.get('hash');
 
