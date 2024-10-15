@@ -124,7 +124,7 @@ const DRepsTable = ({
           ) : DReps?.data && DReps?.data.length > 0 ? (
             DReps.data.map((drep) => (
               <tr
-                key={drep.drep_hash_id}
+                key={drep.view}
                 data-testid={`drep-id-${drep.view}`}
                 className={`text-nowrap text-left text-sm hover:bg-gray-50 ${drep.view}`}
               >

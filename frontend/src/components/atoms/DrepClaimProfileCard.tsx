@@ -13,17 +13,21 @@ import { useCardano } from '@/context/walletContext';
 import { useDRepContext } from '@/context/drepContext';
 import { useGetDRepMetadataQuery } from '@/hooks/useGetDRepMetadataQuery';
 
+type DrepClaimProfileCardProps = {
+  drep: any;
+  voterId: string;
+  state: boolean;
+};
+
 const DrepClaimProfileCard = ({
   drep,
+  voterId,
   state,
-}: {
-  drep: any;
-  state: boolean;
-}) => {
+}: DrepClaimProfileCardProps) => {
   const { dRepIDBech32 } = useCardano();
   const { isLoggedIn } = useDRepContext();
   const { metadata, isMetadataLoading, metadataError } =
-    useGetDRepMetadataQuery(drep?.view);
+    useGetDRepMetadataQuery(voterId);
 
   const checkStatus = () => {
     if (drep?.type !== 'voting_option') {
@@ -116,7 +120,7 @@ const DrepClaimProfileCard = ({
       </div>
       <DRepSocialLinks links={metadata?.body?.references} />
       <div>
-        {state ? (
+        {isMetadataLoading ? (
           <Skeleton animation={'wave'} width={150} height={20} />
         ) : (
           <MetadataViewer

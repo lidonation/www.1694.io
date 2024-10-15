@@ -22,7 +22,7 @@ export default function DRepTimeLIneFilters() {
   const pathName = usePathname();
   const { replace } = useRouter();
 
-  const params = new URLSearchParams(searchParams);
+  const params = new URLSearchParams(searchParams.toString());
 
   const handleShow = (event: MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);

@@ -27,7 +27,7 @@ const Pagination = ({
   const isFirstPage = currentPage === 1;
 
   function moveToPage(targetPage: number) {
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(searchParams.toString());
 
     if (currentPage !== targetPage) {
       params.set('page', targetPage.toString());

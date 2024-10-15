@@ -43,7 +43,7 @@ export default function DRepListFilters() {
   };
 
   const updateFilters = (filter: string, value: string) => {
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(searchParams.toString());
 
     if (filter && value) {
       params.set(filter, value);
@@ -74,7 +74,7 @@ export default function DRepListFilters() {
   };
 
   const resetFilters = (filters?: string[]) => {
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(searchParams.toString());
     for (const filter of filters) {
       const value = searchParams.get(filter)?.toString();
       if (value) {

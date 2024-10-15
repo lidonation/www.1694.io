@@ -6,27 +6,19 @@ export const getDrepCexplorerDetailsQuery: string = `
           dr.voting_anchor_id, 
           dr.deposit,
           va.url AS metadata_url,
-          ROW_NUMBER() OVER (PARTITION BY dr.drep_hash_id ORDER BY reg_tx_bk.time DESC) AS RegRowNum
+          ROW_NUMBER() OVER (PARTITION BY dr.drep_hash_id ORDER BY dr.tx_id DESC) AS RegRowNum
         FROM 
           drep_registration AS dr
         LEFT JOIN 
           voting_anchor AS va ON dr.voting_anchor_id = va.id
-        LEFT JOIN 
-          tx AS reg_tx ON dr.tx_id = reg_tx.id 
-        LEFT JOIN 
-          block AS reg_tx_bk ON reg_tx.block_id = reg_tx_bk.id
       ),
       LatestDelegation AS (
           SELECT 
             dv.addr_id,
             dv.drep_hash_id,
-            ROW_NUMBER() OVER (PARTITION BY dv.addr_id ORDER BY b.time DESC) AS row_num
+            ROW_NUMBER() OVER (PARTITION BY dv.addr_id ORDER BY dv.tx_id DESC) AS row_num
           FROM 
             delegation_vote dv
-          JOIN 
-            tx ON dv.tx_id = tx.id
-          JOIN 
-            block b ON tx.block_id = b.id
         ),
       DRepDelegationData AS (
           SELECT 
