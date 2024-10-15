@@ -200,15 +200,12 @@ const DrepTimeline = ({ drep }: { drep: any }) => {
                   onClick={loadNewerData}
                 >
                   <ReloadIcon color="black" width={20} height={18} />
-                  <Typography
-                    variant="body1"
-                    paragraph={true}
-                    className="text-base font-medium text-orange-500 "
-                  >
+                  <p className="text-base font-medium text-orange-500 ">
                     Load Newer
-                  </Typography>
+                  </p>
                 </div>
               )}
+
               <Box className="flex flex-col items-center">
                 {isAtLatestPoint && DRepActivity.length > 0 && (
                   <Typography
