@@ -13,7 +13,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const { dRepIDBech32 } = useCardano();
   const [isOpen, setIsOpen] = useState(false);
   const { drepid } = useParams();
-  const { dRep, isDRepLoading, fetchError } = useGetSingleDRepQuery(drepid);
+  const { dRep, isDRepLoading, fetchError } = useGetSingleDRepQuery(drepid.toString());
 
   const currentUserIsDrep = dRep?.drep_id && dRep?.view == dRepIDBech32;
 
