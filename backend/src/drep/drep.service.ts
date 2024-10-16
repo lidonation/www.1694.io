@@ -972,7 +972,7 @@ export class DrepService {
     );
 
     if (!savedMetadata || !savedMetadata?.[0].metadata) {
-      const metadataUrl = await this.cexplorerService.manager.query(
+      const metadata = await this.cexplorerService.manager.query(
         `SELECT 
             va.url AS metadata_url
         FROM 
@@ -986,11 +986,17 @@ export class DrepService {
         [voterId],
       );
 
+      const metadataUrl = metadata?.[0]?.metadata_url
+
+      if(!metadataUrl){
+        throw new NotFoundException("metadata url not found!")
+      }
+
       const { data } = await firstValueFrom(
-        this.httpService.get(metadataUrl?.[0]?.metadata_url).pipe(
+        this.httpService.get(metadataUrl).pipe(
           catchError((err) => {
             console.log(err);
-            throw new Error('Metadata not found');
+            throw new Error('Metadata url not reachable!');
           }),
         ),
       );
