@@ -11,8 +11,7 @@ import NewProfileForm from '../molecules/NewProfileForm';
 import { usePostNewDrepMutation } from '@/hooks/usePostNewDRepMutation';
 import { drepInput } from '@/models/drep';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
-import { setItemToLocalStorage, sha256 } from '@/lib';
-import { renderJsonldValue } from '../atoms/MetadataViewer';
+import { renderJsonLdValue, setItemToLocalStorage, sha256 } from '@/lib';
 import { submitMetadata } from '@/lib/metadataProcessor';
 import { setItemToIndexedDB } from '@/lib/indexedDb';
 import { postAddAttachmentToIPFS } from '@/services/requests/postAttachmentToIPFS';
@@ -78,27 +77,27 @@ const NewProfile = () => {
       try {
         if (!metadataJsonLd) return;
         const metadataBody = metadataJsonLd?.body;
-        setValue('profileName', renderJsonldValue(metadataBody?.givenName || metadataBody?.dRepName));
-        setValue('profileBio', renderJsonldValue(metadataBody?.bio));
-        setValue('profileEmail', renderJsonldValue(metadataBody?.email));
-        setValue('motivations', renderJsonldValue(metadataBody?.motivations));
+        setValue('profileName', renderJsonLdValue(metadataBody?.givenName || metadataBody?.dRepName));
+        setValue('profileBio', renderJsonLdValue(metadataBody?.bio));
+        setValue('profileEmail', renderJsonLdValue(metadataBody?.email));
+        setValue('motivations', renderJsonLdValue(metadataBody?.motivations));
         setValue(
           'qualifications',
-          renderJsonldValue(metadataBody?.qualifications),
+          renderJsonLdValue(metadataBody?.qualifications),
         );
-        setValue('objectives', renderJsonldValue(metadataBody?.objectives));
+        setValue('objectives', renderJsonLdValue(metadataBody?.objectives));
         setValue(
           'paymentAddress',
-          renderJsonldValue(metadataBody?.paymentAddress) ||
+          renderJsonLdValue(metadataBody?.paymentAddress) ||
             usedAddress ||
             changeAddress,
         );
         setValue(
           'profileUrl',
-          renderJsonldValue(metadataBody?.image?.contentUrl) || '',
+          renderJsonLdValue(metadataBody?.image?.contentUrl) || '',
         );
         setCurrentProfileUrl(
-          renderJsonldValue(metadataBody?.image?.contentUrl) || '',
+          renderJsonLdValue(metadataBody?.image?.contentUrl) || '',
         );
 
         //map through the metadata and set the current metadata for each exisitng field
@@ -107,8 +106,8 @@ const NewProfile = () => {
             setCurrentMetadata((prev: any) => ({
               ...prev,
               [key]: {
-                contentUrl: renderJsonldValue(metadataBody[key]?.contentUrl),
-                sha256: renderJsonldValue(metadataBody[key]?.sha256),
+                contentUrl: renderJsonLdValue(metadataBody[key]?.contentUrl),
+                sha256: renderJsonLdValue(metadataBody[key]?.sha256),
               },
             }));
             continue;
@@ -122,7 +121,7 @@ const NewProfile = () => {
           }
           setCurrentMetadata((prev: any) => ({
             ...prev,
-            [key]: renderJsonldValue(metadataBody[key]),
+            [key]: renderJsonLdValue(metadataBody[key]),
           }));
         }
         return;

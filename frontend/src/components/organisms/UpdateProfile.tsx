@@ -7,8 +7,7 @@ import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import UpdateProfileForm from '../molecules/UpdateProfileForm';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
-import { renderJsonldValue } from '../atoms/MetadataViewer';
-import { getItemFromLocalStorage, setItemToLocalStorage, sha256 } from '@/lib';
+import { getItemFromLocalStorage, renderJsonLdValue, setItemToLocalStorage, sha256 } from '@/lib';
 import {
   submitMetadata,
 } from '@/lib/metadataProcessor';
@@ -59,19 +58,19 @@ const UpdateProfile = () => {
       try {
         if (!metadataJsonLd) return;
         const metadataBody = metadataJsonLd?.body;
-        setValue('profileName', renderJsonldValue(metadataBody?.givenName));
-        setValue('profileBio', renderJsonldValue(metadataBody?.bio));
-        setValue('profileEmail', renderJsonldValue(metadataBody?.email));
-        setValue('motivations', renderJsonldValue(metadataBody?.motivations));
-        setValue('qualifications', renderJsonldValue(metadataBody?.qualifications));
-        setValue('objectives', renderJsonldValue(metadataBody?.objectives));
-        setValue('paymentAddress', renderJsonldValue(metadataBody?.paymentAddress) || usedAddress || changeAddress);
+        setValue('profileName', renderJsonLdValue(metadataBody?.givenName));
+        setValue('profileBio', renderJsonLdValue(metadataBody?.bio));
+        setValue('profileEmail', renderJsonLdValue(metadataBody?.email));
+        setValue('motivations', renderJsonLdValue(metadataBody?.motivations));
+        setValue('qualifications', renderJsonLdValue(metadataBody?.qualifications));
+        setValue('objectives', renderJsonLdValue(metadataBody?.objectives));
+        setValue('paymentAddress', renderJsonLdValue(metadataBody?.paymentAddress) || usedAddress || changeAddress);
         setValue(
           'profileUrl',
-          renderJsonldValue(metadataBody?.image?.contentUrl) || '',
+          renderJsonLdValue(metadataBody?.image?.contentUrl) || '',
         );
         setCurrentProfileUrl(
-          renderJsonldValue(metadataBody?.image?.contentUrl),
+          renderJsonLdValue(metadataBody?.image?.contentUrl),
         );
         //map through the metadata and set the current metadata for each exisitng field
         for (let key in metadataBody) {
@@ -79,8 +78,8 @@ const UpdateProfile = () => {
             setCurrentMetadata((prev: any) => ({
               ...prev,
               [key]: {
-                contentUrl: renderJsonldValue(metadataBody[key]?.contentUrl),
-                sha256: renderJsonldValue(metadataBody[key]?.sha256),
+                contentUrl: renderJsonLdValue(metadataBody[key]?.contentUrl),
+                sha256: renderJsonLdValue(metadataBody[key]?.sha256),
               },
             }));
             continue;
@@ -94,7 +93,7 @@ const UpdateProfile = () => {
           }
           setCurrentMetadata((prev: any) => ({
             ...prev,
-            [key]: renderJsonldValue(metadataBody[key]),
+            [key]: renderJsonLdValue(metadataBody[key]),
           }));
         }
         const isUpdating = getItemFromLocalStorage('isUpdating');
