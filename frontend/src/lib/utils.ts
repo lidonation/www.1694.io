@@ -103,3 +103,13 @@ export function percentageDifference(newNumber: number, oldNumber: number, fixed
 
   return null;
 }
+
+export const renderJsonLdValue = (value: any) => {
+  if (typeof value === 'object') {
+    return value['@value'] ? value['@value'] : 'Empty';
+  }
+  if (typeof value === 'string') {
+    return value;
+  }
+  return JSON.stringify(value);
+};

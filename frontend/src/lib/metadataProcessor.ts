@@ -9,7 +9,7 @@ import { blake2bHex } from 'blakejs';
 import { getExternalMetadata } from '@/services/requests/postExternalMetadataUrl';
 import { v4 as uuidv4 } from 'uuid';
 import { getItemFromLocalStorage, setItemToLocalStorage } from './localStorage';
-import { renderJsonldValue } from '@/components/atoms/MetadataViewer';
+import { renderJsonLdValue } from './utils';
 type StandardReference = typeof CIP_100 | typeof CIP_108 | typeof CIP_119;
 
 type MetadataConfig = {
@@ -77,7 +77,7 @@ export const renderJSONLDToJSON = (jsonld: any) => {
 export const renderJSONLDToJSONArr = (jsonld: any) => {
   const modifiedJsonArr = Object.entries(jsonld.body).map(
     ([key, value]: any[]) => {
-      const valueString = renderJsonldValue(value);
+      const valueString = renderJsonLdValue(value);
       return { id: uuidv4(), key: key, value: valueString };
     },
   );
