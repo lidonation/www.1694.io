@@ -5,6 +5,8 @@ metadata:
   namespace: {{ .Values.namespace }}
   labels:
     service: "{{ .Values.frontend.labels.service }}"
+  annotations:
+    traefik.ingress.kubernetes.io/affinity: "false"
 spec:
   ports:
     - port: 80
