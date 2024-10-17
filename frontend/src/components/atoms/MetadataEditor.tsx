@@ -12,7 +12,7 @@ import {
   AccordionSummary,
   AccordionDetails,
 } from '@mui/material';
-import { getItemFromLocalStorage, setItemToLocalStorage } from '@/lib';
+import { setItemToLocalStorage } from '@/lib';
 import { setItemToIndexedDB } from '@/lib/indexedDb';
 import { useDRepContext } from '@/context/drepContext';
 

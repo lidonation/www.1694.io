@@ -1,35 +1,31 @@
+import { renderJsonLdValue } from '@/lib';
 import { Typography } from '@mui/material';
 import Link from 'next/link';
 import React from 'react';
-export const renderJsonldValue = (value: any) => {
-  if (typeof value === 'object') {
-    return value['@value'] ? value['@value'] : 'Empty';
-  }
-  if (typeof value === 'string') {
-    return value;
-  }
-  return JSON.stringify(value);
+
+type MetadataViewerProps = {
+  isMetadataLoading: boolean;
+  metadataError: any;
+  metadata: any;
+  metadataUrl?: string;
 };
+
 const MetadataViewer = ({
   isMetadataLoading,
   metadataError,
   metadata,
   metadataUrl,
-}: {
-  isMetadataLoading: boolean;
-  metadataError: any;
-  metadata: any;
-  metadataUrl?: string;
-}) => {
+}: MetadataViewerProps) => {
   const capitalizeFirstLetter = (str: string) => {
     if (!str) return '';
     return str.charAt(0).toUpperCase() + str.slice(1);
   };
+  
   const hiddenKeys = ['image', 'paymentAddress'];
 
   const renderContent = () => {
     if (isMetadataLoading) {
-      return <p className="text-sm animate-pulse">Loading...</p>;
+      return <p className="animate-pulse text-sm">Loading...</p>;
     }
 
     if (metadataError) {
@@ -43,27 +39,25 @@ const MetadataViewer = ({
     return Object.entries(metadata.body)
       .filter(([key, value]) => !hiddenKeys.includes(key))
       .map(([key, value]: any[]) => {
-        const valueString = renderJsonldValue(value);
+        const valueString = renderJsonLdValue(value);
         if (key === 'references') {
           const linksArr = value as any[];
           const links =
             Array.isArray(linksArr) && linksArr.length
               ? linksArr.map((link, index) => {
-                const linkLabel = link?.label?.['@value'] || link?.label ;
-                const linkUri = link?.uri?.['@value'] || link?.uri ;
+                  const linkLabel = link?.label?.['@value'] || link?.label;
+                  const linkUri = link?.uri?.['@value'] || link?.uri;
                   return (
                     <div
                       key={index}
                       className="flex w-full flex-col items-start gap-1 text-sm"
                     >
-                      <p className="font-bold ">{capitalizeFirstLetter(linkLabel)}</p>
+                      <p className="font-bold ">
+                        {capitalizeFirstLetter(linkLabel)}
+                      </p>
                       <Link
                         className="w-full break-words font-light"
-                        href={
-                          linkUri
-                            ? linkUri || '#'
-                            : '#'
-                        }
+                        href={linkUri ? linkUri || '#' : '#'}
                         target="_blank"
                       >
                         {linkUri}
@@ -78,7 +72,7 @@ const MetadataViewer = ({
               className="flex flex-col items-start justify-center gap-1 text-sm"
             >
               <Typography variant="h6">References</Typography>
-              <div className="w-full pl-2 space-y-1">
+              <div className="w-full space-y-1 pl-2">
                 {links.length > 0 ? links : 'Empty'}
               </div>
             </div>
@@ -87,10 +81,10 @@ const MetadataViewer = ({
         return (
           <div
             key={key}
-            className="flex flex-col items-start justify-center gap-1 text-sm w-full"
+            className="flex w-full flex-col items-start justify-center gap-1 text-sm"
           >
             <Typography variant="h6">{capitalizeFirstLetter(key)}</Typography>
-            <p className="pl-2 w-full break-words">{valueString}</p>
+            <p className="w-full break-words pl-2">{valueString}</p>
           </div>
         );
       });

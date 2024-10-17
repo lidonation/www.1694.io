@@ -14,6 +14,7 @@ import {
   formattedAda,
   getItemFromLocalStorage,
   removeItemFromLocalStorage,
+  renderJsonLdValue,
 } from '@/lib';
 import { useScreenDimension } from '@/hooks';
 import { useCardano } from '@/context/walletContext';
@@ -114,7 +115,7 @@ const DrepProfileCard = ({ drep, voterId, state }: DrepProfileCardProps) => {
 
   if (!isMetadataLoading && metadata) {
     metadataJson = renderJSONLDToJSONArr(metadata);
-    name = metadata?.body?.givenName || metadata?.body?.dRepName;
+    name = renderJsonLdValue(metadata?.body?.givenName || metadata?.body?.dRepName);
   }
 
   const renderUnsavedChanges = () => {
