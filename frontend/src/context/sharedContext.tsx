@@ -15,6 +15,7 @@ export function SharedProvider({ children }) {
       key:null
     },
     dRepIDBech32: '',
+    stakeKey: '',
   });
 
   const updateSharedState = useCallback((newState) => {

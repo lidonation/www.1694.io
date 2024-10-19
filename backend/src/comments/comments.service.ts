@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
+import { NotificationsService } from 'src/notifications/notifications.service';
 import { ReactionsService } from 'src/reactions/reactions.service';
 import { DataSource } from 'typeorm';
 
@@ -9,6 +10,7 @@ export class CommentsService {
     @InjectDataSource('default')
     private voltaireService: DataSource,
     private reactionsService: ReactionsService,
+    private notificationsService: NotificationsService,
   ) {}
 
   async getComments(parentId: number, parentEntity: string) {
@@ -58,7 +60,57 @@ export class CommentsService {
       }
     }
 
-    return this.voltaireService.getRepository('Comment').save(newComment);
+    const savedComment = await this.voltaireService
+      .getRepository('Comment')
+      .save(newComment);
+    // send notification to the owner of the parent entity
+    switch (parentEntity) {
+      case 'note':
+        const note = await this.voltaireService
+          .getRepository('Note')
+          .createQueryBuilder('note')
+          .leftJoinAndSelect('note.author', 'signature')
+          .where('note.id = :id', { id: parentId })
+          .getOne();
+        if (note) {
+          const owner = note.author?.id;
+          if (voter !== note?.author?.stakeKey) {
+            await this.notificationsService.createNotification(
+              this.notificationsService.newCommentOnNoteNotification(
+                note.id,
+                voter,
+              ),
+              owner,
+            );
+          }
+        }
+        break;
+      case 'comment':
+        const parentComment = await this.voltaireService
+          .getRepository('Comment')
+          .findOne({ where: { id: parentId } });
+
+        if (parentComment) {
+          const owner = parentComment.voter;
+          if (owner !== voter) {
+            const signature = await this.voltaireService
+              .getRepository('Signature')
+              .findOne({ where: { stakeKey: owner } });
+            await this.notificationsService.createNotification(
+              this.notificationsService.newReplyToCommentNotification(
+                parentComment.id,
+                voter,
+              ),
+              signature.id,
+              savedComment.createdAt,
+            );
+          }
+        }
+        break;
+      default:
+        break;
+    }
+    return savedComment;
   }
 
   async removeComment(

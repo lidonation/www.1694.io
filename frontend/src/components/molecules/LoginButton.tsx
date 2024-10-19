@@ -22,7 +22,8 @@ const LoginButton = ({
     stakeKeyBech32,
     dRepIDBech32,
   } = useCardano();
-  const { setIsLoggedIn, setLoginModalOpen, drepId } = useDRepContext();
+  const { setIsLoggedIn, setLoginModalOpen, drepId, setSignatureId } =
+    useDRepContext();
   const { addErrorAlert } = useGlobalNotifications();
   const handleLogin = async () => {
     let signature;
@@ -50,12 +51,14 @@ const LoginButton = ({
           key,
           expiry: loginPeriod,
         };
-        const { token } = await userLogin(loginCredentials);
+        const { token, session } = await userLogin(loginCredentials);
+        setSignatureId(session.id);
         setItemToLocalStorage('signatures', { signature, key });
         setItemToLocalStorage('token', token);
         setIsLoggedIn(true);
         setLoginModalOpen(false);
       }
+      
     } catch (error) {
       console.log(error);
       if (error instanceof Error) {

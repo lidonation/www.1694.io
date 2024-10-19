@@ -2,13 +2,19 @@ import React, { useState } from 'react';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Grow from '@mui/material/Grow';
-import { Box } from '@mui/material';
+import { Box, Badge, Divider } from '@mui/material';
 import { useGetUserNotificationQuery } from '@/hooks/useGetUserNotificationQuery';
 import Typography from '@mui/material/Typography';
+import { useDRepContext } from '@/context/drepContext';
+import NotificationItem from '../atoms/SingleNotification';
+import {
+  postMarkNotificationAsRead,
+  postMarkNotificationAsUnread,
+} from '@/services/requests/postNotificationRequests';
 
 export default function NotificationDrawer() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-
+  const { signatureId } = useDRepContext();
   const open = Boolean(anchorEl);
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -17,11 +23,64 @@ export default function NotificationDrawer() {
   const handleClose = () => {
     setAnchorEl(null);
   };
-  const { notifications: notificationItems = [] } = useGetUserNotificationQuery();
+
+  const { notifications: allNotifications = [], refetch } =
+    useGetUserNotificationQuery({
+      recipientId: signatureId,
+    });
+
+  const inboxNotifications = allNotifications.filter(
+    (n) => !n.isRead && !n.isArchived,
+  );
+
+  const handleMarkAsRead = async (id: number) => {
+    await postMarkNotificationAsRead({ notificationId: String(id) });
+    refetch();
+  };
+  const handleMarkAsUnread = async (id: number) => {
+    await postMarkNotificationAsUnread({ notificationId: String(id) });
+    refetch();
+  };
+
+  const renderNotifications = (notifications: any[]) => {
+    if (notifications.length === 0) {
+      return (
+        <MenuItem>
+          <Box className="mb-4 flex flex-col text-wrap py-2 text-complementary-500">
+            {signatureId ? (
+              <>
+                <Typography variant="subtitle2" className="font-bold">
+                  Mempool Clear
+                </Typography>
+                <Typography variant="body1">You're all caught up.</Typography>
+              </>
+            ) : (
+              <Typography variant="body1">
+                Please login to view notifications
+              </Typography>
+            )}
+          </Box>
+        </MenuItem>
+      );
+    }
+    return notifications.map((item) => (
+      <NotificationItem
+        key={item.id}
+        notification={item}
+        onMarkAsRead={handleMarkAsRead}
+        onMarkAsUnread={handleMarkAsUnread}
+      />
+    ));
+  };
 
   return (
     <div>
-      <div className="cursor-pointer">
+      <Badge
+        className="cursor-pointer"
+        badgeContent={inboxNotifications.length || 0}
+        color="warning"
+        max={10}
+      >
         <img
           src="/svgs/bell.svg"
           id="notification-dropdown"
@@ -31,11 +90,11 @@ export default function NotificationDrawer() {
           onClick={handleClick}
           aria-expanded={open ? 'true' : undefined}
         />
-      </div>
+      </Badge>
       <Menu
         id="notification-drawer"
         MenuListProps={{
-          'aria-labelledby': 'notification-drawer',
+          'aria-labelledby': 'notification-dropdown',
         }}
         anchorEl={anchorEl}
         open={open}
@@ -43,7 +102,7 @@ export default function NotificationDrawer() {
         TransitionComponent={Grow}
         anchorOrigin={{
           vertical: 'bottom',
-          horizontal: 'center',
+          horizontal: 'left',
         }}
         transformOrigin={{
           vertical: 'top',
@@ -54,57 +113,22 @@ export default function NotificationDrawer() {
             borderRadius: '0 0 1rem 1rem',
             boxShadow: '1px 2px 11px 0 rgba(0, 18, 61, 0.37)',
             bgcolor: '#F3F5FF',
+            maxHeight: '80vh',
+            width: '20rem',
+            overflow: 'auto',
           },
-          '.MuiMenu-list': { padding: 0 },
+          '.MuiMenu-list': { padding: 1 },
         }}
       >
-        <Box className="w-72">
-          <Box className="flex w-full items-center justify-between p-2">
-            <Typography variant="h4">Notifications</Typography>
-          </Box>
-          {!!notificationItems && (
-            <Box className="relative flex w-full flex-col">
-              {notificationItems.map((item, index) => (
-                <MenuItem
-                  key={index}
-                  onClick={handleClose}
-                  sx={{
-                    '&:hover': {
-                      backgroundColor: '#FFC19D',
-                    },
-                  }}
-                >
-                  <Box className="flex max-w-60 gap-4">
-                    <Box className="flex flex-col text-wrap text-complementary-500">
-                      <p className="p-0 text-base font-normal">{item.label}</p>
-                      <p className="text-xs font-normal leading-4">
-                        {item.text}
-                      </p>
-                    </Box>
-                  </Box>
-                </MenuItem>
-              ))}
-            </Box>
-          )}
-        </Box>
-        {!notificationItems ||
-          (notificationItems.length <= 0 && (
-            <MenuItem
-              onClick={handleClose}
-              sx={{
-                '&:hover': {
-                  backgroundColor: '#FFC19D',
-                },
-              }}
-            >
-              <Box className="mb-4 flex flex-col text-wrap py-2 text-complementary-500">
-                <Typography variant="subtitle2" className="font-bold">
-                  Mempool Clear
-                </Typography>
-                <Typography variant="body1">You're all caught up.</Typography>
-              </Box>
-            </MenuItem>
-          ))}
+        {/* Header */}
+        <MenuItem
+          disabled
+          className="flex w-full items-center justify-between p-1"
+        >
+          <Typography variant="h6">Notifications</Typography>
+        </MenuItem>
+        <Divider />
+        {renderNotifications(allNotifications)}
       </Menu>
     </div>
   );

@@ -4,8 +4,8 @@ import { CommentsService } from 'src/comments/comments.service';
 import { Delegation } from 'src/common/types';
 import { DrepService } from 'src/drep/drep.service';
 import { createNoteDto } from 'src/dto';
+import { NotificationsService } from 'src/notifications/notifications.service';
 import { ReactionsService } from 'src/reactions/reactions.service';
-import { VoterService } from 'src/voter/voter.service';
 import { DataSource } from 'typeorm';
 @Injectable()
 export class NoteService {
@@ -15,7 +15,7 @@ export class NoteService {
     private drepService: DrepService,
     private reactionsService: ReactionsService,
     private commentsService: CommentsService,
-    private voterService: VoterService,
+    private notificationsService: NotificationsService,
   ) {}
   async getAllNotes(
     stakeKeyBech32?: string,
@@ -81,6 +81,13 @@ export class NoteService {
       const res = await this.voltaireService
         .getRepository('Note')
         .insert(modifiedNoteDto);
+        // add a notification for all delegators if a note is created by the drep and visible to delegators
+        if (isDRepPresent && noteDto.visibility !== 'myself') {
+          await this.notificationsService.processNewNoteNotificationsForDelegators(
+            isDRepPresent.view,
+            new Date(),
+          );
+        }
       return { noteAdded: res.identifiers[0].id };
     } catch (error) {
       console.log(error);

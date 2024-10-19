@@ -43,3 +43,16 @@ export type IPFSResponse = {
   ipfs_hash: string;
   size: number;
 };
+export type NotificationType = 'info' | 'warning' | 'error';  
+export type Notification = {
+  id: number;
+  title: string;
+  message: string;
+  type: NotificationType;
+  createdAt: Date;
+  isRead: boolean;
+  isArchived: boolean;
+  deletedAt: Date;
+  isPersistent: boolean;
+  recipient: string;
+};

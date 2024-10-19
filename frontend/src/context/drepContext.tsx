@@ -15,12 +15,12 @@ import {
   getItemFromLocalStorage,
   removeItemFromLocalStorage,
 } from '@/lib';
-import { processExternalMetadata } from '@/lib/metadataProcessor';
 import { getSingleDRepViaVoterId } from '@/services/requests/getSingleDrepViaVoterId';
 import { getItemFromIndexedDB } from '@/lib/indexedDb';
 import { getDRepRegStatus } from '@/services/requests/getDRepRegStatus';
 import { getDRepMetadata } from '@/services/requests/getDRepMetadata';
 import { blake2bHex } from 'blakejs';
+import { getSession } from '@/services/requests/getSession';
 
 interface DRepContext {
   step1Status: stepStatus['status'];
@@ -29,7 +29,7 @@ interface DRepContext {
   step4Status: stepStatus['status'];
   isLoggedIn: boolean;
   loginModalOpen: boolean;
-  hideCloseButtonOnLoginModal: boolean
+  hideCloseButtonOnLoginModal: boolean;
   isWalletListModalOpen: boolean;
   hideCloseButtonOnWalletListModal: boolean;
   isNotDRepErrorModalOpen: boolean;
@@ -47,7 +47,9 @@ interface DRepContext {
   setCurrentRegistrationStep: React.Dispatch<React.SetStateAction<number>>;
   setIsNotDRepErrorModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsWalletListModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setHideCloseButtonOnWalletListModal: React.Dispatch<React.SetStateAction<boolean>>;
+  setHideCloseButtonOnWalletListModal: React.Dispatch<
+    React.SetStateAction<boolean>
+  >;
   setCurrentLocale: React.Dispatch<React.SetStateAction<string>>;
   setNewDrepId: React.Dispatch<React.SetStateAction<number>>;
   setLoginModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -57,6 +59,8 @@ interface DRepContext {
   metadataJsonHash: any;
   setMetadataJsonHash: React.Dispatch<React.SetStateAction<any>>;
   handleRefresh: () => Promise<void>;
+  signatureId: any;
+  setSignatureId: React.Dispatch<React.SetStateAction<any>>;
 }
 
 interface Props {
@@ -73,21 +77,31 @@ DRepContext.displayName = 'DRepContext';
 
 function DRepProvider(props: Props) {
   const [isWalletListModalOpen, setIsWalletListModalOpen] = useState(false);
-  const [hideCloseButtonOnWalletListModal, setHideCloseButtonOnWalletListModal] = useState(false);
+  const [
+    hideCloseButtonOnWalletListModal,
+    setHideCloseButtonOnWalletListModal,
+  ] = useState(false);
   const { sharedState, updateSharedState } = useSharedContext();
   const [isNotDRepErrorModalOpen, setIsNotDRepErrorModalOpen] = useState(false);
   const [metadataJsonLd, setMetadataJsonLd] = useState(null);
+  const [signatureId, setSignatureId] = useState(null);
   const [metadataJsonHash, setMetadataJsonHash] = useState(null);
   const [isDRepRegistered, setIsDRepRegistered] = useState(false);
-  const [currentRegistrationStep, setCurrentRegistrationStep] = useState<currentRegistrationStep['step']>(1);
+  const [currentRegistrationStep, setCurrentRegistrationStep] =
+    useState<currentRegistrationStep['step']>(1);
   const [drepId, setNewDrepId] = useState<number | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
-  const [hideCloseButtonOnLoginModal, setHideCloseButtonOnLoginModal] = useState(false);
-  const [step1Status, setStep1Status] = useState<stepStatus['status']>('pending');
-  const [step2Status, setStep2Status] = useState<stepStatus['status']>('pending');
-  const [step3Status, setStep3Status] = useState<stepStatus['status']>('pending');
-  const [step4Status, setStep4Status] = useState<stepStatus['status']>('pending');
+  const [hideCloseButtonOnLoginModal, setHideCloseButtonOnLoginModal] =
+    useState(false);
+  const [step1Status, setStep1Status] =
+    useState<stepStatus['status']>('pending');
+  const [step2Status, setStep2Status] =
+    useState<stepStatus['status']>('pending');
+  const [step3Status, setStep3Status] =
+    useState<stepStatus['status']>('pending');
+  const [step4Status, setStep4Status] =
+    useState<stepStatus['status']>('pending');
   //will fix later
   const [currentLocale, setCurrentLocale] = useState<string | null>('en');
   useEffect(() => {
@@ -96,12 +110,18 @@ function DRepProvider(props: Props) {
       isNotDRepErrorModalOpen,
       isLoggedIn,
       isLoginModalOpen: loginModalOpen,
-      hideCloseButtonOnLoginModal: hideCloseButtonOnLoginModal
+      hideCloseButtonOnLoginModal: hideCloseButtonOnLoginModal,
     });
-  }, [isWalletListModalOpen, isNotDRepErrorModalOpen, isLoggedIn, loginModalOpen, hideCloseButtonOnLoginModal]);
+  }, [
+    isWalletListModalOpen,
+    isNotDRepErrorModalOpen,
+    isLoggedIn,
+    loginModalOpen,
+    hideCloseButtonOnLoginModal,
+  ]);
   useEffect(() => {
     persistLogin();
-  }, []);
+  }, [sharedState?.stakeKey]);
   useEffect(() => {
     handleDrepProfileCreationState();
   }, [sharedState?.dRepIDBech32]);
@@ -143,7 +163,11 @@ function DRepProvider(props: Props) {
         if (res) {
           metadataJsonLd = res;
           setMetadataJsonLd(res);
-          const jsonHash = blake2bHex(JSON.stringify(metadataJsonLd), undefined, 32);
+          const jsonHash = blake2bHex(
+            JSON.stringify(metadataJsonLd),
+            undefined,
+            32,
+          );
           setMetadataJsonHash(jsonHash);
         }
       } catch (e) {
@@ -171,7 +195,7 @@ function DRepProvider(props: Props) {
 
       if (!metadataJsonLd) return;
       const metadataBody = metadataJsonLd?.body;
-    
+
       if (metadataBody?.givenName || metadataBody?.bio || metadataBody?.email) {
         setStep1Status('success');
       }
@@ -192,7 +216,7 @@ function DRepProvider(props: Props) {
     }
   };
 
-  const persistLogin = () => {
+  const persistLogin = async () => {
     const token = getItemFromLocalStorage('token');
     if (token) {
       const {
@@ -205,12 +229,23 @@ function DRepProvider(props: Props) {
         removeItemFromLocalStorage('token');
         return;
       }
+      if (!sharedState?.stakeKey) {
+        setIsLoggedIn(true);
+        updateSharedState({ loginCredentials: { signature, key } });
+        return;
+      }
+      //get session data from backend
+      const sessionData = await getSession({
+        payload: { signature, key, stakeKey: sharedState?.stakeKey },
+      });
+      setSignatureId(sessionData?.id);
       setIsLoggedIn(true);
       updateSharedState({ loginCredentials: { signature, key } });
     }
   };
   const logout = useCallback(async () => {
     removeItemFromLocalStorage('token');
+    setSignatureId(null)
     setIsLoggedIn(false);
   }, []);
 
@@ -220,6 +255,8 @@ function DRepProvider(props: Props) {
       isNotDRepErrorModalOpen,
       currentLocale,
       drepId,
+      signatureId,
+      setSignatureId,
       isLoggedIn,
       step1Status,
       step2Status,
@@ -259,6 +296,7 @@ function DRepProvider(props: Props) {
       currentRegistrationStep,
       currentLocale,
       drepId,
+      signatureId,
       loginModalOpen,
       step1Status,
       step2Status,
@@ -276,7 +314,9 @@ function DRepProvider(props: Props) {
       {props.children}
       {sharedState.isWalletListModalOpen && (
         <div className="blur-container absolute left-0 top-0  z-50 flex h-screen w-full items-center justify-center">
-          <ChooseWalletModal hideCloseButton={hideCloseButtonOnWalletListModal} />
+          <ChooseWalletModal
+            hideCloseButton={hideCloseButtonOnWalletListModal}
+          />
         </div>
       )}
       {sharedState.isNotDRepErrorModalOpen && (
