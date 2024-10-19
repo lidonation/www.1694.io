@@ -78,9 +78,6 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
         >
           <Checkbox
             checked={notification.isRead}
-            sx={{
-              borderRadius: '50%',
-            }}
           />
         </HoverChip>
       </IconButton>
