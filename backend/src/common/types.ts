@@ -201,4 +201,10 @@ export interface TimelineFilters {
 }
 
 
-
+export type Metrics = {
+  totalRegisteredDReps: number;
+  totalActiveDReps: number;
+  totalGovernanceActions: number;
+  totalVotingPower: number;
+  totalRegisteredStakeAddresses: number;
+};
