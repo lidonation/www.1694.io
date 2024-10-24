@@ -1,4 +1,5 @@
 'use client';
+import DRepsMetrics from '@/components/atoms/DRepsMetrics';
 import DRepTableSearch from '@/components/atoms/DRepTableSearch';
 import BreadCrumbs from '@/components/molecules/BreadCrumbs';
 import DRepsTable from '@/components/molecules/DRepsTable';
@@ -43,7 +44,8 @@ const page = ({ searchParams }: PageProps) => {
         <section className="mb-12">
           <h2 className="text-7xl font-black">Available DReps</h2>
         </section>
-        <section className="mb-10 flex justify-end">
+        <section className="mb-5 flex flex-col gap-5 lg:flex-row lg:justify-between">
+          <DRepsMetrics />
           <DRepTableSearch />
         </section>
 

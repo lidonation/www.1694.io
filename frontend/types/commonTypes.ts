@@ -43,3 +43,10 @@ export type IPFSResponse = {
   ipfs_hash: string;
   size: number;
 };
+export type Metrics = {
+  totalRegisteredDReps: number;
+  totalActiveDReps: number;
+  totalGovernanceActions: number;
+  totalVotingPower: number;
+  totalRegisteredStakeAddresses: number;
+}

@@ -18,4 +18,8 @@ export class MiscellaneousController {
   getNodeStatus() {
     return this.miscService.getNodeStatus();
   }
+  @Get('/metrics')
+  getMetrics() {
+    return this.miscService.getMetrics();
+  }
 }
