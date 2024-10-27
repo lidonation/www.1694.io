@@ -1,4 +1,9 @@
-export const getTotalActiveDRepsAndVotingPowerQuery=`
+export const getDRepMetricsQuery= (
+    sanitizedSearchCondition = '',  
+    campaignStatusCondition = '',
+    chainStatusCondition = '',
+    typeCondition = ''
+) => `
 WITH DRepDistr AS (
     SELECT drep_distr.*, 
            ROW_NUMBER() OVER (PARTITION BY drep_hash.id ORDER BY drep_distr.epoch_no DESC) AS rn
@@ -34,7 +39,8 @@ DRepRegistrationData AS (
 )
 SELECT 
     COUNT(DISTINCT dh.id) AS total_dreps,
-    SUM(DRepDistr.amount) AS total_voting_power -- Sum of voting power
+    SUM(DRepDistr.amount) AS total_voting_power,
+    SUM(dd.vote_count) AS total_stake_addresses
 FROM drep_hash dh
 LEFT JOIN DRepRegistrationData AS dr_voting_anchor
     ON dr_voting_anchor.drep_hash_id = dh.id AND dr_voting_anchor.newest_register_rn = 1
@@ -66,10 +72,10 @@ LEFT JOIN block AS block_first_register
 LEFT JOIN drepdelegationsummary dd
     ON dd.drep_hash_id = dh.id
 WHERE 1=1 
-    AND (DRepActivity.epoch_no - COALESCE(block.epoch_no, block_first_register.epoch_no)) <=
-        DRepActivity.drep_activity
+${chainStatusCondition} 
+${sanitizedSearchCondition} 
+${campaignStatusCondition} 
+${typeCondition}
 `
 
-export const getTotalDRepsQuery = `SELECT COUNT(*) as count FROM "drep_hash"`;
 export const getTotalGovernanceActionsQuery = `SELECT COUNT(*) as count FROM "gov_action_proposal"`;
-export const getTotalRegisteredStakeAddressesQuery = `SELECT COUNT(*) as count FROM "stake_address"`;
