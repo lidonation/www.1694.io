@@ -7,7 +7,7 @@ export const LoginInfoCard = () => {
   const { loginCredentials } = useCardano();
   const { setIsLoggedIn } = useDRepContext();
   const onClickLogout = () => {
-    removeItemFromLocalStorage('token');
+    removeItemFromLocalStorage('token_1694');
     setIsLoggedIn(false);
   };
 

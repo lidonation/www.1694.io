@@ -54,7 +54,7 @@ const LoginButton = ({
         const { token, session } = await userLogin(loginCredentials);
         setSignatureId(session.id);
         setItemToLocalStorage('signatures', { signature, key });
-        setItemToLocalStorage('token', token);
+        setItemToLocalStorage('token_1694', token);
         setIsLoggedIn(true);
         setLoginModalOpen(false);
       }

@@ -50,6 +50,8 @@ export class ReactionsService {
           content = this.notificationsService.newReactionToNoteNotification(
             createdRxn.type as any,
             voter,
+            parent?.author?.voterId,
+            new Date(parent?.createdAt).getTime()
           );
           await this.notificationsService.createNotification(
             content,

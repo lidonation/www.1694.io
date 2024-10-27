@@ -5,8 +5,8 @@ type Payload = {
   key: string;
 };
 export const getSession = async ({ payload }: { payload: Payload }) => {
-  const response = await axiosInstance.get('auth/session', {
-    data: payload,
+  const response = await axiosInstance.post('auth/session', {
+    payload,
   });
   return response.data;
 };

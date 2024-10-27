@@ -217,7 +217,7 @@ function DRepProvider(props: Props) {
   };
 
   const persistLogin = async () => {
-    const token = getItemFromLocalStorage('token');
+    const token = getItemFromLocalStorage('token_1694');
     if (token) {
       const {
         decoded: { exp, ...rest },
@@ -226,7 +226,8 @@ function DRepProvider(props: Props) {
       //check if token is expired
       if (exp < Date.now() / 1000) {
         setIsLoggedIn(false);
-        removeItemFromLocalStorage('token');
+        removeItemFromLocalStorage('token_1694');
+        removeItemFromLocalStorage('signatures');
         return;
       }
       if (!sharedState?.stakeKey) {
@@ -244,7 +245,8 @@ function DRepProvider(props: Props) {
     }
   };
   const logout = useCallback(async () => {
-    removeItemFromLocalStorage('token');
+    removeItemFromLocalStorage('token_1694');
+    removeItemFromLocalStorage('signatures');
     setSignatureId(null)
     setIsLoggedIn(false);
   }, []);

@@ -184,7 +184,10 @@ export class NotificationsService {
         continue;
       }
       //send notification to each delegator
-      const notificationContent = this.newNoteNotification(note_creation_date.getTime(), drepId);
+      const notificationContent = this.newNoteNotification(
+        note_creation_date.getTime(),
+        drepId,
+      );
       await this.createNotification(notificationContent, signature.id);
     }
     return 'Done';
@@ -197,23 +200,29 @@ export class NotificationsService {
       type: 'info' as 'info',
     };
   }
-  newCommentOnNoteNotification(noteId: string, voterId: string) {
+  newCommentOnNoteNotification(
+    note_creation_date: number,
+    drepId: string,
+    voterId: string,
+  ) {
     return {
       title: 'New Comment',
-      message: `A [voter](/voters/${voterId}) has commented on your [note](/note/${noteId})`,
+      message: `A [voter](/voters/${voterId}) has commented on your [note](/dreps/${drepId}?start=${note_creation_date - 5 * 24 * 60 * 60 * 1000}&end=${note_creation_date})`,
       type: 'info' as 'info',
     };
   }
-  newReplyToCommentNotification(noteId: string, voterId: string) {
+  newReplyToCommentNotification(voterId: string) {
     return {
       title: 'New Reply',
-      message: `A [voter](/voters/${voterId}) has replied to your [comment](/note/${noteId}).`,
+      message: `A [voter](/voters/${voterId}) has replied to your comment.`,
       type: 'info' as 'info',
     };
   }
   newReactionToNoteNotification(
     reactionType: 'like' | 'dislike' | 'love' | 'rocket',
     voterId: string,
+    drepId:string,
+    note_creation_date: number,
   ) {
     const reactionIcons = {
       thumbsup: '👍',
@@ -223,7 +232,7 @@ export class NotificationsService {
     };
     return {
       title: 'Note Reaction',
-      message: `A [voter](/voters/${voterId}) has reacted ${reactionIcons[reactionType]} to your note`,
+      message: `A [voter](/voters/${voterId}) has reacted ${reactionIcons[reactionType]} to your [note](/dreps/${drepId}?start=${note_creation_date - 5 * 24 * 60 * 60 * 1000}&end=${note_creation_date})`,
       type: 'info' as 'info',
     };
   }
@@ -254,10 +263,9 @@ export class NotificationsService {
       type: 'info' as 'info',
     };
   }
-  // @Cron(CronExpression.EVERY_HOUR)
-  @Cron(CronExpression.EVERY_5_SECONDS)
+  //will purge notifications older than 90 days and process vote notifications every hour
+  @Cron(CronExpression.EVERY_HOUR)
   private async notificationProcessAndPurge() {
-    //will purge notifications older than 90 days and process vote notifications
     const synctime = await this.voltaireService
       .getRepository('Synctime')
       .find();

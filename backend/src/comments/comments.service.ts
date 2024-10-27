@@ -77,7 +77,8 @@ export class CommentsService {
           if (voter !== note?.author?.stakeKey) {
             await this.notificationsService.createNotification(
               this.notificationsService.newCommentOnNoteNotification(
-                note.id,
+                new Date(note?.createdAt as Date).getTime(),
+                note?.author?.voterId,
                 voter,
               ),
               owner,
@@ -98,7 +99,6 @@ export class CommentsService {
               .findOne({ where: { stakeKey: owner } });
             await this.notificationsService.createNotification(
               this.notificationsService.newReplyToCommentNotification(
-                parentComment.id,
                 voter,
               ),
               signature.id,

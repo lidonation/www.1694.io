@@ -45,7 +45,7 @@ export default function NotificationDrawer() {
   const renderNotifications = (notifications: any[]) => {
     if (notifications.length === 0) {
       return (
-        <MenuItem>
+        <MenuItem disableRipple className="pointer-events-none">
           <Box className="mb-4 flex flex-col text-wrap py-2 text-complementary-500">
             {signatureId ? (
               <>
