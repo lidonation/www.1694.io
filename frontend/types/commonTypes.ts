@@ -56,3 +56,10 @@ export type Notification = {
   isPersistent: boolean;
   recipient: string;
 };
+export type Metrics = {
+  totalRegisteredDReps: number;
+  totalActiveDReps: number;
+  totalGovernanceActions: number;
+  totalVotingPower: number;
+  totalRegisteredStakeAddresses: number;
+}
