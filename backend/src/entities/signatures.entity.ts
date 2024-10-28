@@ -24,4 +24,7 @@ export class Signature {
 
   @Column({ nullable: true, unique: false, default: null })
   signatureKey: string;
+
+  @Column({ nullable: true, unique: false, default: null })
+  lastSignedIn: Date;
 }

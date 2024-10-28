@@ -47,7 +47,7 @@ const NewNoteForm = () => {
       }
       setIsLoading(true);
       const stakeAddress = Address.from_bytes(
-        Buffer.from(stakeKey, 'hex'),
+        Buffer.from(stakeKey, 'hex') as any,
       ).to_bech32();
       const { postTag, postText, postTitle, postVisibility } = data;
       const newNote = {
@@ -63,7 +63,7 @@ const NewNoteForm = () => {
       addSuccessAlert('Note Created Successfully!');
       setIsLoading(false);
     } catch (error) {
-      addErrorAlert('Note Creation Failed!');
+      addErrorAlert(String(error?.response?.data?.message) || 'Note Creation Failed!');
       console.log(error);
       setIsLoading(false);
     }

@@ -49,3 +49,17 @@ export abstract class BaseEntity extends SoftDeletableBaseEntity {
   @UpdateDateColumn() // TypeORM decorator for update date
   updatedAt?: Date;
 }
+/**
+ * Abstract base entity with common fields for primary key, creation, soft-delete, and more.
+ */
+export abstract class BaseImmutableEntity extends SoftDeletableBaseEntity {
+  // Primary key of UUID type
+  @PrimaryGeneratedColumn()
+  id?: number;
+
+  @CreateDateColumn({
+    update: false,
+  }) // TypeORM decorator for creation date
+  createdAt?: Date;
+
+}

@@ -223,7 +223,7 @@ const NewProfile = () => {
       }
 
       const stakeAddress = Address.from_bytes(
-        Buffer.from(stakeKey, 'hex'),
+        Buffer.from(stakeKey, 'hex') as any,
       ).to_bech32();
       const formData: drepInput = {
         signature,
@@ -238,7 +238,7 @@ const NewProfile = () => {
       setNewDrepId(insertedDrep.raw[0].id);
       setCurrentRegistrationStep(2);
       addSuccessAlert('DRep Profile Created Successfully!');
-      setItemToLocalStorage('token', token);
+      setItemToLocalStorage('token_1694', token);
       setItemToLocalStorage('signatures', { signature, key });
       setIsLoggedIn(true);
       router.push(`/dreps/workflow/profile/update/step2`);

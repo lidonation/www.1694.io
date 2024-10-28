@@ -194,7 +194,7 @@ function CardanoProvider(props: Props) {
     try {
       const raw = await enabledApi.getChangeAddress();
       const changeAddress = Address.from_bytes(
-        Buffer.from(raw, 'hex'),
+        Buffer.from(raw, 'hex') as any,
       ).to_bech32();
       setWalletState((prev) => ({ ...prev, changeAddress }));
     } catch (err) {
@@ -205,20 +205,20 @@ function CardanoProvider(props: Props) {
     try {
       const balanceCBORHex = await enabledApi.getBalance();
       const balance = Number(
-        Value.from_bytes(Buffer.from(balanceCBORHex, 'hex')).coin().to_str(),
+        Value.from_bytes(Buffer.from(balanceCBORHex, 'hex') as any)
+          .coin()
+          .to_str(),
       );
       setWalletState((prev) => ({ ...prev, balance }));
     } catch (err) {
       console.log(err);
-    }
-  };
-
+    }}
   const getUsedAddresses = async (enabledApi: CardanoApiWallet) => {
     try {
       const raw = await enabledApi.getUsedAddresses();
       const rawFirst = raw[0];
       const usedAddress = Address.from_bytes(
-        Buffer.from(rawFirst, 'hex'),
+        Buffer.from(rawFirst, 'hex') as any,
       ).to_bech32();
       setWalletState((prev) => ({ ...prev, usedAddress }));
     } catch (err) {
@@ -236,7 +236,7 @@ function CardanoProvider(props: Props) {
 
       for (const rawUtxo of rawUtxos) {
         const utxo = TransactionUnspentOutput.from_bytes(
-          Buffer.from(rawUtxo, 'hex'),
+          Buffer.from(rawUtxo, 'hex') as any,
         );
         const input = utxo.input();
         const txid = Buffer.from(input.transaction_id().to_bytes()).toString(
@@ -328,21 +328,25 @@ function CardanoProvider(props: Props) {
             .catch((e) => {
               throw e.info;
             });
-          
-          // Get the network ID of the connected wallet
-        const network = await enabledApi.getNetworkId();
-        const requiredNetwork = CONFIGURED_NETWORK_ID;
 
-        if (requiredNetwork !== network) {
-          if (requiredNetwork == 1) {
-            addErrorAlert('Mainnet network wallet required, please switch to the mainnet');
-          } else {
-            addErrorAlert('Testnet network wallet required, please switch to the testnet');
+          // Get the network ID of the connected wallet
+          const network = await enabledApi.getNetworkId();
+          const requiredNetwork = CONFIGURED_NETWORK_ID;
+
+          if (requiredNetwork !== network) {
+            if (requiredNetwork == 1) {
+              addErrorAlert(
+                'Mainnet network wallet required, please switch to the mainnet',
+              );
+            } else {
+              addErrorAlert(
+                'Testnet network wallet required, please switch to the testnet',
+              );
+            }
+            setIsEnableLoading(null);
+            setIsEnabling(false);
+            return { status: 'WRONG_NETWORK' };
           }
-          setIsEnableLoading(null);
-          setIsEnabling(false);
-          return { status: 'WRONG_NETWORK' };
-        }
 
           await getChangeAddress(enabledApi);
           await getUsedAddresses(enabledApi);
@@ -353,7 +357,7 @@ function CardanoProvider(props: Props) {
           if (!enabledExtensions.some((item) => item.cip === 95)) {
             throw new Error('errors.walletNoCIP95FunctionsEnabled');
           }
-          
+
           //Check and set wallet balance
           await getBalance(enabledApi);
           // Check and set wallet address
@@ -414,14 +418,14 @@ function CardanoProvider(props: Props) {
           if (savedStakeKey && stakeKeysList.includes(savedStakeKey)) {
             setStakeKey(savedStakeKey);
             const stakeAddress = Address.from_bytes(
-              Buffer.from(savedStakeKey, 'hex'),
+              Buffer.from(savedStakeKey, 'hex') as any,
             ).to_bech32();
             setStakeKeyBech32(stakeAddress);
             stakeKeySet = true;
           } else if (stakeKeysList.length === 1) {
             setStakeKey(stakeKeysList[0]);
             const stakeAddress = Address.from_bytes(
-              Buffer.from(stakeKeysList[0], 'hex'),
+              Buffer.from(stakeKeysList[0], 'hex') as any,
             ).to_bech32();
             setStakeKeyBech32(stakeAddress);
             setItemToLocalStorage(
@@ -441,6 +445,9 @@ function CardanoProvider(props: Props) {
           updateSharedState({
             isWalletListModalOpen: false,
             dRepIDBech32: dRepIDs?.dRepIDBech32 || '',
+            stakeKey: Address.from_bytes(
+              Buffer.from(stakeKeysList[0], 'hex') as any,
+            ).to_bech32(),
           });
           return { status: 'ok', stakeKey: stakeKeySet };
         } catch (e) {
@@ -564,7 +571,7 @@ function CardanoProvider(props: Props) {
         true,
       );
       txVkeyWitnesses = TransactionWitnessSet.from_bytes(
-        Buffer.from(txVkeyWitnesses, 'hex'),
+        Buffer.from(txVkeyWitnesses, 'hex') as any,
       );
       transactionWitnessSet.set_vkeys(txVkeyWitnesses.vkeys());
       const signedTx = Transaction.new(tx.body(), transactionWitnessSet);
@@ -629,7 +636,7 @@ function CardanoProvider(props: Props) {
         true,
       );
       txVkeyWitnesses = TransactionWitnessSet.from_bytes(
-        Buffer.from(txVkeyWitnesses, 'hex'),
+        Buffer.from(txVkeyWitnesses, 'hex') as any,
       );
       transactionWitnessSet.set_vkeys(txVkeyWitnesses.vkeys());
       const signedTx = Transaction.new(tx.body(), transactionWitnessSet);

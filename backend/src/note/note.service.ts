@@ -1,11 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { CommentsService } from 'src/comments/comments.service';
 import { Delegation } from 'src/common/types';
 import { DrepService } from 'src/drep/drep.service';
 import { createNoteDto } from 'src/dto';
+import { NotificationsService } from 'src/notifications/notifications.service';
 import { ReactionsService } from 'src/reactions/reactions.service';
-import { VoterService } from 'src/voter/voter.service';
 import { DataSource } from 'typeorm';
 @Injectable()
 export class NoteService {
@@ -15,7 +15,7 @@ export class NoteService {
     private drepService: DrepService,
     private reactionsService: ReactionsService,
     private commentsService: CommentsService,
-    private voterService: VoterService,
+    private notificationsService: NotificationsService,
   ) {}
   async getAllNotes(
     stakeKeyBech32?: string,
@@ -71,7 +71,7 @@ export class NoteService {
         .getRepository('Signature')
         .findOne({ where: { stakeKey: noteDto.stake_addr } });
       if (!author) {
-        return new NotFoundException('Author details not found!');
+        throw new NotFoundException('Author details not found!');
       }
       const modifiedNoteDto = {
         ...noteDto,
@@ -81,10 +81,20 @@ export class NoteService {
       const res = await this.voltaireService
         .getRepository('Note')
         .insert(modifiedNoteDto);
+      // add a notification for all delegators if a note is created by the drep and visible to delegators
+      if (isDRepPresent && noteDto.visibility !== 'myself') {
+        await this.notificationsService.processNewNoteNotificationsForDelegators(
+          isDRepPresent.view,
+          new Date(),
+        );
+      }
       return { noteAdded: res.identifiers[0].id };
     } catch (error) {
       console.log(error);
-      return new NotFoundException('DRep associated with note not found!');
+      throw new HttpException(
+        ((error?.code == 23505) && "Duplicate Note found") || error?.message || error?.status || 'An error occured',
+        ((error?.code == 23505) && 409) || 500,
+      );
     }
   }
   async updateNoteInfo(noteId: string, note: createNoteDto) {
