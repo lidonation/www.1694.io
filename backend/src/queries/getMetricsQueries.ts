@@ -1,8 +1,8 @@
-export const getDRepMetricsQuery= (
-    sanitizedSearchCondition = '',  
-    campaignStatusCondition = '',
-    chainStatusCondition = '',
-    typeCondition = ''
+export const getDRepMetricsQuery = (
+  sanitizedSearchCondition = '',
+  campaignStatusCondition = '',
+  chainStatusCondition = '',
+  typeCondition = '',
 ) => `
 WITH DRepDistr AS (
     SELECT drep_distr.*, 
@@ -76,6 +76,10 @@ ${chainStatusCondition}
 ${sanitizedSearchCondition} 
 ${campaignStatusCondition} 
 ${typeCondition}
-`
+`;
 
 export const getTotalGovernanceActionsQuery = `SELECT COUNT(*) as count FROM "gov_action_proposal"`;
+
+export const activeDrepsCondition = `AND (DRepActivity.epoch_no - coalesce(block.epoch_no, block_first_register.epoch_no)) <=
+                  DRepActivity.drep_activity`;
+export const excludeRetiredCondition = `AND (dr_voting_anchor.deposit IS NULL OR dr_voting_anchor.deposit >= 0) `;
