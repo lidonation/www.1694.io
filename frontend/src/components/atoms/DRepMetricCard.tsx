@@ -7,27 +7,50 @@ const Odometer = dynamic(() => import('react-odometerjs'), {
 
 import 'odometer/themes/odometer-theme-default.css';
 import { useEffect, useState } from 'react';
+function shortNumber(value: number, decimals: number = 2) {
+  switch (true) {
+    case Math.abs(Number(value)) >= 1.0e9:
+      return {
+        numValue: Number((Math.abs(Number(value)) / 1.0e9).toFixed(decimals)),
+        annotation: 'B',
+      };
+    case Math.abs(Number(value)) >= 1.0e6:
+      return {
+        numValue: Number((Math.abs(Number(value)) / 1.0e6).toFixed(decimals)),
+        annotation: 'M',
+      };
+    case Math.abs(Number(value)) >= 1.0e3:
+      return {
+        numValue: Number((Math.abs(Number(value)) / 1.0e3).toFixed(decimals)),
+        annotation: 'K',
+      };
+    default:
+      return {
+        numValue: Math.abs(Number(value)),
+        annotation: '',
+      };
+  }
+}
 
-
-const AnimatedOdometer = ({ 
-  value, 
-  duration = 1000, 
+const AnimatedOdometer = ({
+  value,
+  duration = 1000,
   width = 80,
-  height = 40, 
-  className = "",
-  isLoading = false  // Add isLoading prop
+  height = 40,
+  className = '',
+  isLoading = false, // Add isLoading prop
 }) => {
   const [isClientLoaded, setIsClientLoaded] = useState(false);
   const [displayValue, setDisplayValue] = useState(0);
 
   useEffect(() => {
-    setIsClientLoaded(true); 
+    setIsClientLoaded(true);
     if (!isLoading) {
       setTimeout(() => {
         setDisplayValue(value);
       }, 500);
     }
-  }, [value, isLoading]); 
+  }, [value, isLoading]);
 
   return (
     <div className={`relative ${className}`}>
@@ -43,30 +66,39 @@ const AnimatedOdometer = ({
           }}
         />
       ) : (
-        <Odometer 
-          value={displayValue} 
-          width={width}
-          height={height}
-          format="(,ddd)" 
-          duration={duration} 
-        />
+        <div className='flex items-center'>
+          <Odometer
+            value={shortNumber(displayValue).numValue}
+            width={width}
+            height={height}
+            format="(ddd).dd"
+            duration={duration}
+          />
+          <p className='self-center'>
+            {shortNumber(displayValue).annotation}
+          </p>
+        </div>
       )}
     </div>
   );
 };
-export const MetricCard = ({ value, label, width = 80, height = 40, isLoading }) => (
-  <td className="p-0.5">
-    <div className=" flex items-start">
-      <AnimatedOdometer 
-        value={value} 
+export const MetricCard = ({
+  value,
+  label,
+  width = 80,
+  height = 40,
+  isLoading,
+}) => (
+  <td className="w-32 px-1 py-0.5 text-left">
+    <div className="flex items-start">
+      <AnimatedOdometer
+        value={value}
         width={width}
         height={height}
         className="text-xl font-black"
         isLoading={isLoading}
       />
     </div>
-    <div className="text-xs text-wrap text-gray-500 min-h-[22px]"> 
-      {label}
-    </div>
+    <div className="min-h-[22px] text-wrap text-xs text-gray-500">{label}</div>
   </td>
 );
