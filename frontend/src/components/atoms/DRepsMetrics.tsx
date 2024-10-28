@@ -19,10 +19,9 @@ const DRepsMetrics = () => {
   }, [isMetricsLoading, fetchedMetrics]);
 
   return (
-    <TableContainer>
-      <table className="w-full">
-        <tbody>
-          <tr className="text-left flex gap-3">
+    <TableContainer className='drep_metrics'>
+      <table className="w-fit" >
+          <tr className="flex">
             <MetricCard
               value={metrics.totalRegisteredDReps}
               label="Total Registered DReps"
@@ -39,7 +38,7 @@ const DRepsMetrics = () => {
               isLoading={isMetricsLoading}
             />
           </tr>
-          <tr className='flex gap-3'>
+          <tr className='flex'>
             <MetricCard
               value={metrics.totalVotingPower}
               label="Total Voting Power in ₳"
@@ -51,7 +50,6 @@ const DRepsMetrics = () => {
               isLoading={isMetricsLoading}
             />
           </tr>
-        </tbody>
       </table>
     </TableContainer>
   );

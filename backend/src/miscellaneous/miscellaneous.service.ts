@@ -4,10 +4,8 @@ import { BlockfrostService } from 'src/blockfrost/blockfrost.service';
 import { BlockfrostBlockRes, Metrics, NodeBlockRes } from 'src/common/types';
 import { getLatestBlock } from 'src/queries/getLatestBlock';
 import {
-  getTotalActiveDRepsAndVotingPowerQuery,
-  getTotalDRepsQuery,
+  getDRepMetricsQuery,
   getTotalGovernanceActionsQuery,
-  getTotalRegisteredStakeAddressesQuery,
 } from 'src/queries/getMetricsQueries';
 import { DataSource } from 'typeorm';
 
@@ -57,33 +55,28 @@ export class MiscellaneousService {
   }
   async getMetrics(): Promise<Metrics> {
     try {
-      const [
-        totalDReps,
-        totalActiveDRepsAndVotingPower,
-        totalGovernanceActions,
-        totalRegisteredStakeAddresses,
-      ] = await Promise.all([
-        this.cexplorerService.manager.query(getTotalDRepsQuery),
-        this.cexplorerService.manager.query(
-          getTotalActiveDRepsAndVotingPowerQuery,
-        ),
-        this.cexplorerService.manager.query(getTotalGovernanceActionsQuery),
-        this.cexplorerService.manager.query(
-          getTotalRegisteredStakeAddressesQuery,
-        ),
-      ]);
+      const activeDrepsCondition = `AND (DRepActivity.epoch_no - coalesce(block.epoch_no, block_first_register.epoch_no)) <=
+                  DRepActivity.drep_activity`;
+      const excludeRetiredCondition = `AND (dr_voting_anchor.deposit IS NULL OR dr_voting_anchor.deposit >= 0) `;
+      const [totalDRepMetrics, totalActiveDReps, totalGovernanceActions] =
+        await Promise.all([
+          this.cexplorerService.manager.query(
+            getDRepMetricsQuery(excludeRetiredCondition),
+          ),
+          this.cexplorerService.manager.query(
+            getDRepMetricsQuery(activeDrepsCondition, excludeRetiredCondition),
+          ),
+          this.cexplorerService.manager.query(getTotalGovernanceActionsQuery),
+        ]);
 
       const metrics: Metrics = {
-        totalRegisteredDReps: parseInt(totalDReps[0].count),
-        totalActiveDReps: parseInt(
-          totalActiveDRepsAndVotingPower[0].total_dreps,
-        ),
+        totalRegisteredDReps: parseInt(totalDRepMetrics[0].total_dreps),
+        totalActiveDReps: parseInt(totalActiveDReps[0].total_dreps),
         totalGovernanceActions: parseInt(totalGovernanceActions[0].count),
         totalVotingPower:
-          parseInt(totalActiveDRepsAndVotingPower[0].total_voting_power) /
-          1000000, // convert to ADA
+          parseInt(totalDRepMetrics[0].total_voting_power) / 1000000, // convert to ADA
         totalRegisteredStakeAddresses: parseInt(
-          totalRegisteredStakeAddresses[0].count,
+          totalDRepMetrics[0].total_stake_addresses,
         ),
       };
 

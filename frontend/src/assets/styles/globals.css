@@ -140,8 +140,9 @@ body {
   background-repeat: no-repeat, no-repeat;
   background-size: auto, auto;
 }
-table.dreps-table .drep_always_abstain, table.dreps-table .drep_always_no_confidence {
-  @apply border my-1 px-4;
+table.dreps-table .drep_always_abstain,
+table.dreps-table .drep_always_no_confidence {
+  @apply my-1 border px-4;
 }
 
 table.dreps-table .drep_always_abstain > td,
@@ -200,17 +201,58 @@ table.dreps-table .drep_always_no_confidence > td {
   animation: l5 1s infinite linear alternate;
 }
 @keyframes l5 {
-    0%  {box-shadow: 60px 0 #0033AD, -60px 0 #4340ff;background: #0033AD }
-    33% {box-shadow: 60px 0 #0033AD, -60px 0 #4340ff;background: #4340ff}
-    66% {box-shadow: 60px 0 #4340ff,-60px 0 #0033AD; background: #4340ff}
-    100%{box-shadow: 60px 0 #4340ff,-60px 0 #0033AD; background: #0033AD }
+  0% {
+    box-shadow:
+      60px 0 #0033ad,
+      -60px 0 #4340ff;
+    background: #0033ad;
+  }
+  33% {
+    box-shadow:
+      60px 0 #0033ad,
+      -60px 0 #4340ff;
+    background: #4340ff;
+  }
+  66% {
+    box-shadow:
+      60px 0 #4340ff,
+      -60px 0 #0033ad;
+    background: #4340ff;
+  }
+  100% {
+    box-shadow:
+      60px 0 #4340ff,
+      -60px 0 #0033ad;
+    background: #0033ad;
+  }
 }
-
 
 .parsed-content a {
   @apply text-primary-300;
   text-decoration: none;
 }
 .parsed-content a:hover {
-  @apply text-primary-400
+  @apply text-primary-400;
+}
+.drep_metrics {
+  table {
+    border-collapse: collapse;
+  }
+  
+  table tr:first-child,
+  table tr:not(:last-child)  {
+    border-top: 0;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  table tr:last-child  {
+    border-bottom: 0;
+  }
+  table tr td:first-child,
+  table tr td:not(:last-child) {
+    border-right: 1px solid #e0e0e0;
+  }
+  table tr td:last-child {
+    border-right: 0;
+  }
+  
 }
