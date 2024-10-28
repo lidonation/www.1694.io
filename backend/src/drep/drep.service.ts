@@ -64,6 +64,7 @@ import { drepRegistrationQuery } from 'src/queries/drepRegistration';
 import { getDRepMetadataQuery } from 'src/queries/drepMetadata';
 import { getDrepDateOfRegistrationQuery } from 'src/queries/drepDateOfRegistration';
 import { getDrepVotingActivityQuery } from 'src/queries/drepVotingActivity';
+import { Currency } from 'src/common/enums';
 
 @Injectable()
 export class DrepService {
@@ -247,14 +248,14 @@ export class DrepService {
       data: drepList.map((entry) => {
         return {
           ...entry,
-          // deposit: (entry.deposit / 1000000).toFixed(1),
+          // deposit: (entry.deposit / Currency.LOVELACETOADA).toFixed(1),
           voting_power:
             entry.voting_power != null
-              ? (entry.voting_power / 1000000).toFixed(1)
+              ? (entry.voting_power / Currency.LOVELACETOADA).toFixed(1)
               : null,
           live_stake:
             entry.live_stake != null
-              ? (entry.live_stake / 1000000).toFixed(1)
+              ? (entry.live_stake / Currency.LOVELACETOADA).toFixed(1)
               : null,
         };
       }),

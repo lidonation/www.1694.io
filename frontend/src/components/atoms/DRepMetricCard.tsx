@@ -89,7 +89,7 @@ export const MetricCard = ({
   height = 40,
   isLoading,
 }) => (
-  <td className="w-32 px-1 py-0.5 text-left">
+  <td className="w-32 px-2 py-3 text-left">
     <div className="flex items-start">
       <AnimatedOdometer
         value={value}
@@ -99,6 +99,6 @@ export const MetricCard = ({
         isLoading={isLoading}
       />
     </div>
-    <div className="min-h-[22px] text-wrap text-xs text-gray-500">{label}</div>
+    <div className="min-h-5 text-wrap text-xs text-gray-500">{label}</div>
   </td>
 );
