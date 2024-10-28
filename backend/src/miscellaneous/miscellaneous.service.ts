@@ -1,9 +1,12 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { BlockfrostService } from 'src/blockfrost/blockfrost.service';
+import { Currency } from 'src/common/enums';
 import { BlockfrostBlockRes, Metrics, NodeBlockRes } from 'src/common/types';
 import { getLatestBlock } from 'src/queries/getLatestBlock';
 import {
+  activeDrepsCondition,
+  excludeRetiredCondition,
   getDRepMetricsQuery,
   getTotalGovernanceActionsQuery,
 } from 'src/queries/getMetricsQueries';
@@ -55,9 +58,6 @@ export class MiscellaneousService {
   }
   async getMetrics(): Promise<Metrics> {
     try {
-      const activeDrepsCondition = `AND (DRepActivity.epoch_no - coalesce(block.epoch_no, block_first_register.epoch_no)) <=
-                  DRepActivity.drep_activity`;
-      const excludeRetiredCondition = `AND (dr_voting_anchor.deposit IS NULL OR dr_voting_anchor.deposit >= 0) `;
       const [totalDRepMetrics, totalActiveDReps, totalGovernanceActions] =
         await Promise.all([
           this.cexplorerService.manager.query(
@@ -74,7 +74,7 @@ export class MiscellaneousService {
         totalActiveDReps: parseInt(totalActiveDReps[0].total_dreps),
         totalGovernanceActions: parseInt(totalGovernanceActions[0].count),
         totalVotingPower:
-          parseInt(totalDRepMetrics[0].total_voting_power) / 1000000, // convert to ADA
+          parseInt(totalDRepMetrics[0].total_voting_power) / Currency.LOVELACETOADA, // convert to ADA
         totalRegisteredStakeAddresses: parseInt(
           totalDRepMetrics[0].total_stake_addresses,
         ),
@@ -84,7 +84,7 @@ export class MiscellaneousService {
     } catch (error) {
       throw new HttpException(
         error?.message || error || 'An error occured',
-        error?.code || 500,
+        500,
       );
     }
   }

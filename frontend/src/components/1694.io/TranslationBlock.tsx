@@ -1,8 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
-import Button from '../atoms/Button';
-import BecomeADRepButton from './BecomeADRepButton';
-import HoverChip, { HtmlTooltip } from '../atoms/HoverChip';
+import React, {  useState } from 'react';
+import  { HtmlTooltip } from '../atoms/HoverChip';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import {
   Accordion,

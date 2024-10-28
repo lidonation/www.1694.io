@@ -30,7 +30,6 @@ export class AuthService {
       secret: accessSecret,
     });
   }
-  //the payload could consist of the
   async login(payload: Payload, tte: number | string) {
     //basically should check if the user signature is valid in the case of a drep or just provide a token for a normal user.
     const token = await this.signJWT(payload, tte);
@@ -40,26 +39,36 @@ export class AuthService {
       stakeKey: payload.stakeKey,
       signatureKey: payload.key,
       signature: payload.signature,
+      lastSignedIn: new Date(),
     };
     //check for existing signature
     const existingSig = await this.voltaireService
       .getRepository('Signature')
       .findOne({
-        where: { signature: payload.signature, signatureKey:payload.key, stakeKey: payload.stakeKey, },
+        where: { stakeKey: payload.stakeKey },
       });
     if (existingSig) {
       //update the signature
-      const updatedSig=await this.voltaireService
+      const updatedSig = await this.voltaireService
         .getRepository('Signature')
-        .update(existingSig.id, signatureDto)
-      return { token, updatedSig };
+        .update(existingSig.id, signatureDto);
+      return { token, updatedSig, session: existingSig };
     }
     const insertedSig = await this.voltaireService
       .getRepository('Signature')
       .insert(signatureDto);
-    return { token, insertedSig };
+    return { token, insertedSig, session: insertedSig?.raw[0] };
   }
-  async verifyLogin(token: string) {
-    // should check if there is an existing drep signature in the db. Well this is for dreps who have a profile.
+  async getSession(payload: Payload) {
+    const signature = await this.voltaireService
+      .getRepository('Signature')
+      .findOne({
+        where: {
+          signature: payload.signature,
+          signatureKey: payload.key,
+          stakeKey: payload.stakeKey,
+        },
+      });
+    return signature;
   }
 }

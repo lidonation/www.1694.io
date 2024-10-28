@@ -9,7 +9,6 @@ import { z } from 'zod';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { postAddComment } from '@/services/requests/postAddComment';
-import * as marked from 'marked';
 import { useGetSingleNoteQuery } from '@/hooks/useGetSingleNoteQuery';
 import { processContent } from '@/lib/ContentProcessor/processContent';
 import MarkdownEditor from '@/components/atoms/MarkdownEditor';

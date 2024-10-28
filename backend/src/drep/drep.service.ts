@@ -64,6 +64,7 @@ import { drepRegistrationQuery } from 'src/queries/drepRegistration';
 import { getDRepMetadataQuery } from 'src/queries/drepMetadata';
 import { getDrepDateOfRegistrationQuery } from 'src/queries/drepDateOfRegistration';
 import { getDrepVotingActivityQuery } from 'src/queries/drepVotingActivity';
+import { Currency } from 'src/common/enums';
 
 @Injectable()
 export class DrepService {
@@ -247,14 +248,14 @@ export class DrepService {
       data: drepList.map((entry) => {
         return {
           ...entry,
-          // deposit: (entry.deposit / 1000000).toFixed(1),
+          // deposit: (entry.deposit / Currency.LOVELACETOADA).toFixed(1),
           voting_power:
             entry.voting_power != null
-              ? (entry.voting_power / 1000000).toFixed(1)
+              ? (entry.voting_power / Currency.LOVELACETOADA).toFixed(1)
               : null,
           live_stake:
             entry.live_stake != null
-              ? (entry.live_stake / 1000000).toFixed(1)
+              ? (entry.live_stake / Currency.LOVELACETOADA).toFixed(1)
               : null,
         };
       }),
@@ -415,7 +416,6 @@ export class DrepService {
     tillDate,
     filterValues,
   }: DRepTimelineParams): Observable<TimelineEntry[]> {
-    
     const filters = this.getFilters(filterValues);
     const { startingTime, endingTime } = this.getTimeRange(
       beforeDate,
@@ -515,13 +515,25 @@ export class DrepService {
             epoch_no: results.regData.epoch_of_registration,
           });
         }
-    
+
+        // Remove duplicate timeline entries based on a unique identifier (e.g., timestamp and type)
+        const uniqueEntries = Array.from(
+          new Map(
+            timelineEntries.map((entry) => [
+              `${new Date(entry.timestamp).getTime()}-${entry.type}`,
+              entry,
+            ]),
+          ).values(),
+        );
+
         // Sort timeline entries by timestamp (latest first)
-        timelineEntries.sort((a, b) => {
-          return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+        uniqueEntries.sort((a, b) => {
+          return (
+            new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+          );
         });
-    
-        return timelineEntries;
+
+        return uniqueEntries;
       }),
       timeout(100000),
       catchError((error) => {
@@ -591,10 +603,10 @@ export class DrepService {
           tillDate,
         },
       );
-  
+
     // Prepare visibility conditions
     const visibilityConditions = ['note.visibility = :everyone'];
-  
+
     const visibilityParams: {
       everyone: string;
       delegators?: string;
@@ -604,7 +616,7 @@ export class DrepService {
     } = {
       everyone: 'everyone',
     };
-  
+
     // 'delegators' visibility
     if (delegation) {
       visibilityConditions.push(
@@ -613,7 +625,7 @@ export class DrepService {
       visibilityParams.delegators = 'delegators';
       visibilityParams.drepVoterId = delegation.drep_view;
     }
-  
+
     // 'myself' visibility
     if (stakeKeyBech32) {
       visibilityConditions.push(
@@ -622,13 +634,13 @@ export class DrepService {
       visibilityParams.myself = 'myself';
       visibilityParams.stakeKeyBech32 = stakeKeyBech32;
     }
-  
+
     // Combine visibility conditions with OR logic
     queryBuilder.andWhere(
       `(${visibilityConditions.join(' OR ')})`,
       visibilityParams,
     );
-  
+
     // Convert queryBuilder result to an observable
     return from(queryBuilder.getRawMany()).pipe(
       switchMap((allNotes) => {
@@ -636,7 +648,7 @@ export class DrepService {
           // If no notes are found, return an observable emitting an empty array
           return of([]);
         }
-  
+
         // Using forkJoin to run reactions and comments observables for all notes
         const noteObservables = allNotes.map((note) => {
           return forkJoin({
@@ -655,7 +667,7 @@ export class DrepService {
             })),
           );
         });
-  
+
         // Return an observable that emits all notes with reactions and comments
         return forkJoin(noteObservables);
       }),
@@ -664,7 +676,7 @@ export class DrepService {
         return of([]); // Return an empty array on error
       }),
     );
-  }  
+  }
 
   async populateFakeDRepData() {
     const dreps = await this.getAllDRepsCexplorer();
@@ -986,10 +998,10 @@ export class DrepService {
         [voterId],
       );
 
-      const metadataUrl = metadata?.[0]?.metadata_url
+      const metadataUrl = metadata?.[0]?.metadata_url;
 
-      if(!metadataUrl){
-        throw new NotFoundException("metadata url not found!")
+      if (!metadataUrl) {
+        throw new NotFoundException('metadata url not found!');
       }
 
       const { data } = await firstValueFrom(
@@ -1007,12 +1019,12 @@ export class DrepService {
     }
   }
 
-  async getVoltaireDRepViaVoterID(drepVoterId){
+  async getVoltaireDRepViaVoterID(drepVoterId) {
     return await this.voltaireService
-    .getRepository('Drep')
-    .createQueryBuilder('drep')
-    .leftJoinAndSelect('signature', 'signature', 'signature.drepId = drep.id')
-    .where('signature.voterId = :drepVoterId', { drepVoterId })
-    .getRawOne();
+      .getRepository('Drep')
+      .createQueryBuilder('drep')
+      .leftJoinAndSelect('signature', 'signature', 'signature.drepId = drep.id')
+      .where('signature.voterId = :drepVoterId', { drepVoterId })
+      .getRawOne();
   }
 }
