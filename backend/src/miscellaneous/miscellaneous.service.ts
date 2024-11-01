@@ -5,9 +5,9 @@ import { Currency } from 'src/common/enums';
 import { BlockfrostBlockRes, Metrics, NodeBlockRes } from 'src/common/types';
 import { getLatestBlock } from 'src/queries/getLatestBlock';
 import {
-  activeDrepsCondition,
-  excludeRetiredCondition,
-  getDRepMetricsQuery,
+  getActiveDRepsQuery,
+  getTotalDelegatorsQuery,
+  getTotalDrepsAndVotingPower,
   getTotalGovernanceActionsQuery,
 } from 'src/queries/getMetricsQueries';
 import { DataSource } from 'typeorm';
@@ -58,25 +58,28 @@ export class MiscellaneousService {
   }
   async getMetrics(): Promise<Metrics> {
     try {
-      const [totalDRepMetrics, totalActiveDReps, totalGovernanceActions] =
+      const [drepMetricsForAllDReps, totalActiveDReps, totalDelegators, totalGovernanceActions] =
         await Promise.all([
           this.cexplorerService.manager.query(
-            getDRepMetricsQuery(excludeRetiredCondition),
+           getTotalDrepsAndVotingPower
           ),
           this.cexplorerService.manager.query(
-            getDRepMetricsQuery(activeDrepsCondition, excludeRetiredCondition),
+            getActiveDRepsQuery
+          ),
+          this.cexplorerService.manager.query(
+            getTotalDelegatorsQuery
           ),
           this.cexplorerService.manager.query(getTotalGovernanceActionsQuery),
         ]);
 
       const metrics: Metrics = {
-        totalRegisteredDReps: parseInt(totalDRepMetrics[0].total_dreps),
-        totalActiveDReps: parseInt(totalActiveDReps[0].total_dreps),
+        totalRegisteredDReps: parseInt(drepMetricsForAllDReps[0].total_dreps),
+        totalActiveDReps: parseInt(totalActiveDReps[0].total_active_dreps),
         totalGovernanceActions: parseInt(totalGovernanceActions[0].count),
         totalVotingPower:
-          parseInt(totalDRepMetrics[0].total_voting_power) / Currency.LOVELACETOADA, // convert to ADA
+          parseInt(drepMetricsForAllDReps[0].total_active_power) / Currency.LOVELACETOADA, // convert to ADA
         totalRegisteredStakeAddresses: parseInt(
-          totalDRepMetrics[0].total_stake_addresses,
+          totalDelegators[0].total_delegators,
         ),
       };
 
