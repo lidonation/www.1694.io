@@ -111,6 +111,7 @@ export const getAllDRepsQuery = (
           LIMIT ${itemsPerPage}
       OFFSET ${offset}
   `;
+  
 export const getTotalResultsQuery = (
   sanitizedSearchCondition: string,
   campaignStatusCondition: string,

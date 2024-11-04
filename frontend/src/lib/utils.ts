@@ -113,3 +113,7 @@ export const renderJsonLdValue = (value: any) => {
   }
   return JSON.stringify(value);
 };
+
+export const checkStatus = (active: boolean) => {
+  return !!active ? 'Active' : 'Inactive';
+};
