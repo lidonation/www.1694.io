@@ -4,6 +4,7 @@ import React from 'react';
 import StatusChip from '../atoms/StatusChip';
 import { useGetDRepsQuery } from '@/hooks/useGetDRepsQuery';
 import {
+  checkStatus,
   convertString,
   formatAsCurrency,
   handleCopyText,
@@ -203,7 +204,7 @@ const DRepsTable = ({
                       <Tooltip title="DRep onchain status" disableFocusListener>
                         <button className="flex gap-2 hover:cursor-default">
                           <StatusChip
-                            status={drep.active ? 'Active' : 'Inactive'}
+                            status={drep?.type === 'voting_option' ? 'Active' : checkStatus(drep?.active)}
                           />
                           {drep.retired && drep?.type !== 'voting_option' && (
                             <StatusChip status={'Retired'} />

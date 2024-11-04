@@ -10,6 +10,7 @@ import {
 } from '@mui/material';
 import Link from 'next/link';
 import {
+  checkStatus,
   convertString,
   formattedAda,
   getItemFromLocalStorage,
@@ -101,14 +102,6 @@ const DrepProfileCard = ({ drep, voterId, state }: DrepProfileCardProps) => {
       action: () => setLoginModalOpen(true),
     },
   ];
-
-  const checkStatus = () => {
-    if (drep?.type !== 'voting_option') {
-      return isActive(drep?.epoch_no, drep?.active_until)
-        ? 'Active'
-        : 'Inactive';
-    }
-  };
 
   let metadataJson: {};
   let name: string;
@@ -210,7 +203,7 @@ const DrepProfileCard = ({ drep, voterId, state }: DrepProfileCardProps) => {
         </Typography>
       </div>
       <div className="flex flex-row gap-2">
-        <StatusChip status={checkStatus()} />
+        <StatusChip status={checkStatus(drep?.active)} />
         <StatusChip status="Verified" />
       </div>
       <div className="flex items-center gap-4">

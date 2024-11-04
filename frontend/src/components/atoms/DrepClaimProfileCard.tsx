@@ -4,7 +4,7 @@ import { CopyToClipboard } from 'react-copy-to-clipboard';
 import StatusChip from './StatusChip';
 import Link from 'next/link';
 import { Skeleton } from '@mui/material';
-import { convertString, formattedAda } from '@/lib';
+import { checkStatus, convertString, formattedAda } from '@/lib';
 import MetadataViewer from './MetadataViewer';
 import { isActive } from '../molecules/DRepsTable';
 import DRepSocialLinks from './DRepSocialLinks';
@@ -29,14 +29,6 @@ const DrepClaimProfileCard = ({
   const { metadata, isMetadataLoading, metadataError } =
     useGetDRepMetadataQuery(voterId);
 
-  const checkStatus = () => {
-    if (drep?.type !== 'voting_option') {
-      return isActive(drep?.epoch_no, drep?.active_until)
-        ? 'Active'
-        : 'Inactive';
-    }
-  };
-
   return (
     <div className="flex flex-col gap-5 bg-white bg-opacity-50 px-5 py-10 ">
       <DRepAvatarCard
@@ -60,7 +52,7 @@ const DrepClaimProfileCard = ({
           <StatusChip status="Retired" />
         )}
         <StatusChip
-          status={drep?.type === 'voting_option' ? 'Active' : checkStatus()}
+          status={drep?.type === 'voting_option' ? 'Active' : checkStatus(drep?.active)}
         />
       </div>
       <div className="flex items-center gap-4">
