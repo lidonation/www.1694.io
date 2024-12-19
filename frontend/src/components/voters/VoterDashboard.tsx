@@ -11,7 +11,7 @@ const convertAddressToBech32 = (address: string) => {
     address.includes('drep')
   ) {
     return address;
-  } else return Address.from_bytes(Buffer.from(address, 'hex')).to_bech32();
+  } else return Address.from_bytes(Buffer.from(address, 'hex') as any).to_bech32();
 };
 const VoterDashboard = () => {
   const { voterId } = useParams();
