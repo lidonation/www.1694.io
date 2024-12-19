@@ -212,7 +212,8 @@ function CardanoProvider(props: Props) {
       setWalletState((prev) => ({ ...prev, balance }));
     } catch (err) {
       console.log(err);
-    }}
+    }
+  };
   const getUsedAddresses = async (enabledApi: CardanoApiWallet) => {
     try {
       const raw = await enabledApi.getUsedAddresses();
@@ -533,14 +534,14 @@ function CardanoProvider(props: Props) {
   const loginHardwareWalletTransaction = async () => {
     if (!walletApi) throw new Error('Wallet not connected');
     setIsGettingSignatures(true);
+
     try {
       const txBuilder = await initTransactionBuilder();
-      //sample recipient address
       const shelleyOutputAddress = Address.from_bech32(walletState.usedAddress);
       const shelleyChangeAddress = Address.from_bech32(
         walletState.changeAddress,
       );
-      // 1 million lovelace
+
       txBuilder.add_output(
         TransactionOutput.new(
           shelleyOutputAddress,
@@ -548,42 +549,66 @@ function CardanoProvider(props: Props) {
         ),
       );
 
-      // Find the available UTXOs in the wallet and
-      // us them as Inputs
       const utxos = await getUtxos(walletApi);
+      if (!utxos?.length) {
+        throw new Error('No UTXOs found in wallet');
+      }
+
       const txUnspentOutputs = await getTxUnspentOutputs(utxos);
       txBuilder.add_inputs_from(txUnspentOutputs, 1);
-      // calculate the min fee required and send any change to an address
       txBuilder.add_change_if_needed(shelleyChangeAddress);
-      //expiry of 1 minute
-      txBuilder.set_ttl_bignum(BigNum.from_str((1.5 * 60).toString()));
-      // once the transaction is ready, we build it to get the tx body without witnesses
+
+      txBuilder.set_ttl_bignum(BigNum.from_str('1'));
+
       const txBody = txBuilder.build();
-      // Tx witness
       const transactionWitnessSet = TransactionWitnessSet.new();
+
       const tx = Transaction.new(
         txBody,
         TransactionWitnessSet.from_bytes(transactionWitnessSet.to_bytes()),
       );
 
-      let txVkeyWitnesses = await walletApi.signTx(
-        Buffer.from(tx.to_bytes() as any, 'utf8').toString('hex'),
-        true,
-      );
-      txVkeyWitnesses = TransactionWitnessSet.from_bytes(
-        Buffer.from(txVkeyWitnesses, 'hex') as any,
-      );
-      transactionWitnessSet.set_vkeys(txVkeyWitnesses.vkeys());
-      const signedTx = Transaction.new(tx.body(), transactionWitnessSet);
-      const { signature, vkey } = JSON.parse(
-        signedTx.witness_set().vkeys().get(0).to_json(),
-      );
-      setLoginCredentials({ signature, vkey });
-      setIsGettingSignatures(false);
-      return { signature, vkey };
+      try {
+        const txVkeyWitnessesHex = await walletApi.signTx(
+          Buffer.from(tx.to_bytes() as any, 'utf8').toString('hex'),
+          true,
+        );
+
+        const txVkeyWitnesses = TransactionWitnessSet.from_bytes(
+          Buffer.from(txVkeyWitnessesHex, 'hex') as any,
+        );
+
+        console.log('txVkeyWitnesses:', {txVkeyWitnesses});
+
+        if (!txVkeyWitnesses.vkeys()) {
+          throw new Error('No vkey witnesses returned from wallet');
+        }
+
+        transactionWitnessSet.set_vkeys(txVkeyWitnesses.vkeys());
+
+        const signedTx = Transaction.new(tx.body(), transactionWitnessSet);
+        const { signature, vkey } = JSON.parse(
+          signedTx.witness_set().vkeys().get(0).to_json(),
+        );
+
+        setLoginCredentials({ signature, vkey });
+        setIsGettingSignatures(false);
+        return { signature, vkey };
+      } catch (signError) {
+        console.error(
+          'Error during hardware wallet transaction signing:',
+          signError,
+        );
+        throw new Error(
+          `Hardware wallet signing failed: ${signError.message || signError}`,
+        );
+      }
     } catch (error) {
+      console.error('Hardware wallet transaction error:', error);
       setIsGettingSignatures(false);
-      throw new Error(error);
+      throw new Error(
+        `Hardware wallet transaction failed: ${error.message || error}`,
+      );
     }
   };
   const signAndSubmitTransaction = async (certBuilder?: any) => {
@@ -599,13 +624,12 @@ function CardanoProvider(props: Props) {
           txBuilder.set_certs_builder(certBuilder);
         }
       }
-      //sample recipient address
+
       const shelleyOutputAddress = Address.from_bech32(walletState.usedAddress);
       const shelleyChangeAddress = Address.from_bech32(
         walletState.changeAddress,
       );
 
-      // 1 million lovelace/ 1ADA
       txBuilder.add_output(
         TransactionOutput.new(
           shelleyOutputAddress,
@@ -613,44 +637,75 @@ function CardanoProvider(props: Props) {
         ),
       );
 
-      // Find the available UTXOs in the wallet and
-      // use them as Inputs
       const utxos = await getUtxos(walletApi);
+      if (!utxos?.length) {
+        throw new Error('No UTXOs found in wallet');
+      }
+
       const txUnspentOutputs = await getTxUnspentOutputs(utxos);
       txBuilder.add_inputs_from(txUnspentOutputs, 1);
-      // calculate the min fee required and send any change to an address
       txBuilder.add_change_if_needed(shelleyChangeAddress);
-      //expiry of 1 minute
-      //txBuilder.set_ttl_bignum(BigNum.from_str((1.5 * 60).toString()));
-      // once the transaction is ready, we build it to get the tx body without witnesses
+
       const txBody = txBuilder.build();
-      // Tx witness
       const transactionWitnessSet = TransactionWitnessSet.new();
+
+      // Create the transaction with empty witness set
       const tx = Transaction.new(
         txBody,
         TransactionWitnessSet.from_bytes(transactionWitnessSet.to_bytes()),
       );
 
-      let txVkeyWitnesses = await walletApi.signTx(
-        Buffer.from(tx.to_bytes() as any, 'utf8').toString('hex'),
-        true,
-      );
-      txVkeyWitnesses = TransactionWitnessSet.from_bytes(
-        Buffer.from(txVkeyWitnesses, 'hex') as any,
-      );
-      transactionWitnessSet.set_vkeys(txVkeyWitnesses.vkeys());
-      const signedTx = Transaction.new(tx.body(), transactionWitnessSet);
-      // Submit built signed transaction to chain, via wallet's submit transaction endpoint
-      const result = await walletApi.submitTx(signedTx.to_hex());
-      // Set results so they can be rendered
-      const resultHash = result;
-      const { signature, vkey } = JSON.parse(
-        signedTx.witness_set().vkeys().get(0).to_json(),
-      );
-      console.log(signedTx.to_hex(), 'signed tx cbor');
-      return { resultHash, signature, vkey };
+      // Sign the transaction
+      try {
+        const txVkeyWitnessesHex = await walletApi.signTx(
+          Buffer.from(tx.to_bytes()).toString('hex'),
+          true,
+        );
+
+        // Convert the signed witnesses from hex
+        const txVkeyWitnesses = TransactionWitnessSet.from_bytes(
+          Buffer.from(txVkeyWitnessesHex, 'hex') as any,
+        );
+
+        // Check if we received valid witnesses
+        if (!txVkeyWitnesses.vkeys()) {
+          throw new Error('No vkey witnesses returned from wallet');
+        }
+
+        // Set the witnesses in our transaction
+        transactionWitnessSet.set_vkeys(txVkeyWitnesses.vkeys());
+
+        // Create the final signed transaction
+        const signedTx = Transaction.new(txBody, transactionWitnessSet);
+
+        // Submit the transaction
+        const resultHash = await walletApi.submitTx(signedTx.to_hex());
+
+        // Extract signature info for verification
+        const witnessSet = signedTx.witness_set();
+        const vkeyWitnesses = witnessSet.vkeys();
+
+        if (!vkeyWitnesses || vkeyWitnesses.len() === 0) {
+          throw new Error('No vkey witnesses found in signed transaction');
+        }
+
+        const { signature, vkey } = JSON.parse(vkeyWitnesses.get(0).to_json());
+
+        console.log('Transaction submitted successfully:', {
+          txHash: resultHash,
+          witnessSetHex: signedTx.witness_set().to_hex(),
+        });
+
+        return { resultHash, signature, vkey };
+      } catch (signError) {
+        console.error('Error during transaction signing:', signError);
+        throw new Error(
+          `Transaction signing failed: ${signError.message || signError}`,
+        );
+      }
     } catch (error) {
-      throw new Error(error);
+      console.error('Transaction creation/submission error:', error);
+      throw new Error(`Transaction failed: ${error.message || error}`);
     }
   };
   const buildDRepUpdateCert = useCallback(
@@ -659,7 +714,6 @@ function CardanoProvider(props: Props) {
       cip95MetadataHash?: string,
     ): Promise<Certificate> => {
       try {
-        // Get wallet's DRep key
         const dRepKeyHash = Ed25519KeyHash.from_hex(dRepID);
         const dRepCred = Credential.from_keyhash(dRepKeyHash);
 

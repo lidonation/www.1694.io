@@ -1530,10 +1530,10 @@
   resolved "https://registry.npmjs.org/@emotion/weak-memoize/-/weak-memoize-0.3.1.tgz"
   integrity sha512-EsBwpc7hBUJWAsNPBmJy4hxWx12v6bshQsldrVmjxJoc3isbxhOrF2IcCpaXxfvq03NwkI7sbsOLXbYuqF/8Ww==
 
-"@emurgo/cardano-serialization-lib-asmjs@^12.1.0":
-  version "12.1.0"
-  resolved "https://registry.yarnpkg.com/@emurgo/cardano-serialization-lib-asmjs/-/cardano-serialization-lib-asmjs-12.1.0.tgz#d4bf691079a5fb6d41eede6c3980239d41cf5d7a"
-  integrity sha512-LVClEWmZmTvaXTBUpSOdyAYr10PlnfEycG1Z5m96aHWN08mdQH/x2LyZxuCjWVSusrG3ZwFnsOYZCHLel7tu4g==
+"@emurgo/cardano-serialization-lib-asmjs@^13.2.0":
+  version "13.2.0"
+  resolved "https://registry.yarnpkg.com/@emurgo/cardano-serialization-lib-asmjs/-/cardano-serialization-lib-asmjs-13.2.0.tgz#0952b76e581a55af849be87cc984688d6be56de1"
+  integrity sha512-sYj1GYG+TQ4XjMd9FFGFxr1I+IsMjD8GCJYw+X9N0T83OXH5kMLu1LxTmxrTmCa6PqJgLtZu8VXLGH7kAQbqLw==
 
 "@eslint-community/eslint-utils@^4.2.0":
   version "4.4.0"
