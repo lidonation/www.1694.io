@@ -69,7 +69,7 @@ const PageBanner = () => {
         <div>
           <Typography variant="caption">
             {nodeStats &&
-              `Last updated ${new Date(nodeStats?.time).toLocaleString('en-US')}`}
+              `Last updated (latest node tip time): ${new Date(nodeStats?.time).toLocaleString('en-US')}`}
           </Typography>
         </div>
       </Box>

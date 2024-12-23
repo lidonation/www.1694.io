@@ -115,7 +115,7 @@
   "insert_options": {
     "tx_cbor": "enable",
     "tx_out": {
-      "value": "consumed"
+      "value": "enable"
     },
     "ledger": "enable",
     "shelley": {
