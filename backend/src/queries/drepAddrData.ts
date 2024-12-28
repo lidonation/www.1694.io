@@ -32,7 +32,9 @@ FROM
 LEFT JOIN 
     stake_address sa ON dad.stake_addr = sa.view
 LEFT JOIN 
-    tx_out txo ON sa.id = txo.stake_address_id AND txo.consumed_by_tx_id IS NULL
+    tx_out txo ON sa.id = txo.stake_address_id
+LEFT JOIN tx_in txi ON txo.tx_id = txi.tx_out_id AND txo.index = txi.tx_out_index
+WHERE txi.tx_out_id IS NULL
 GROUP BY 
     dad.stake_addr;
       `;

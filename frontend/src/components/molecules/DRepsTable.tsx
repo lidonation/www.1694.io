@@ -295,7 +295,7 @@ const DRepsTable = ({
                             </div>
                             <div className="flex flex-col py-4">
                               <p className="px-3 text-left text-lg font-bold text-red-700">
-                                Opps!!!
+                                Oops!!!
                               </p>
                               <p className="px-3 text-sm font-semibold text-red-700">
                                 An error occurred while fetching the data.
