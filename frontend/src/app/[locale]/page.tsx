@@ -24,18 +24,20 @@ const Page = () => {
   useEffect(() => {
     async function fetchMarkdown() {
       try {
-        const cip = await (
-          await fetch(
-            'https://raw.githubusercontent.com/cardano-foundation/CIPs/master/CIP-1694/README.md',
-          )
-        ).text();
-        const comments = await (
-          await fetch(
-            'https://api.github.com/repos/cardano-foundation/CIPs/issues/380/comments',
-          )
-        ).json();
-        setRaw(cip);
-        setComments(comments);
+        const [cipResult, commentsResult] = await Promise.allSettled([
+          fetch('https://raw.githubusercontent.com/cardano-foundation/CIPs/master/CIP-1694/README.md')
+            .then(res => res.text()),
+          fetch('https://api.github.com/repos/cardano-foundation/CIPs/issues/380/comments')
+            .then(res => res.json())
+        ]);
+
+        if (cipResult.status === 'fulfilled') {
+          setRaw(cipResult.value);
+        }
+
+        if (commentsResult.status === 'fulfilled') {
+          setComments(Array.isArray(commentsResult.value) ? commentsResult.value : []);
+        }
       } catch (error) {
         console.error('Error fetching Markdown:', error);
       }

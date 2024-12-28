@@ -9,7 +9,7 @@ export const getDRepDelegatorsHistory = (addrIds: []) => {
     (current_drep.id = $1 OR previous_drep.id = $1)
     AND b.time::DATE BETWEEN $4::DATE AND $3::DATE`;
   return `
-      SELECT 
+    SELECT 
     sa.view AS stake_address,
 	$2::TEXT AS target_drep,
     current_drep.view AS current_drep,
@@ -26,7 +26,6 @@ export const getDRepDelegatorsHistory = (addrIds: []) => {
         WHEN current_drep.view = $2 THEN true
         ELSE false
     END AS added_power
-
 FROM 
     (
         SELECT 
@@ -59,7 +58,8 @@ LEFT JOIN (
             (
                 SELECT COALESCE(SUM(txo.value), 0)
                 FROM tx_out txo
-                WHERE txo.consumed_by_tx_id IS NULL
+                LEFT JOIN tx_in txi ON txo.tx_id = txi.tx_out_id AND txo.index = txi.tx_out_index
+                WHERE txi.tx_out_id IS NULL
                 AND txo.stake_address_id = sa_inner.id
             )
             + COALESCE(

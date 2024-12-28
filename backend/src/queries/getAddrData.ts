@@ -17,8 +17,10 @@ JOIN
     address_stake ON tx_out.stake_address_id = address_stake.stake_address_id
 JOIN
     stake_address AS sa ON sa.id = tx_out.stake_address_id
+LEFT JOIN 
+    tx_in AS txi ON tx_out.tx_id = txi.tx_out_id AND tx_out.index = txi.tx_out_index
 WHERE 
-    tx_out.consumed_by_tx_id IS NULL
+    txi.tx_out_id IS NULL
 GROUP BY 
     sa.view;
     `;

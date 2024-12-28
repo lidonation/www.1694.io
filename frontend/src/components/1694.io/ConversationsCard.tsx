@@ -31,10 +31,12 @@ const ConversationsCard = ({ conversations }: ConversationsCardProps) => {
 
   return (
     <div className="base_container py-20">
-      <p className="text-4xl lg:text-6xl font-bold text-zinc-800">Conversations</p>
-      <div className="flex flex-col lg:grid grid-cols-3 lg:gap-4 gap-6">
+      <p className="text-4xl font-bold text-zinc-800 lg:text-6xl">
+        Conversations
+      </p>
+      <div className="flex grid-cols-3 flex-col gap-6 lg:grid lg:gap-4">
         {/* Only the first six for now. */}
-        {conversations &&
+        {conversations && conversations.length > 0 &&
           conversations.slice(0, 6).map((item, index) => (
             <div
               key={item.id}
@@ -44,9 +46,8 @@ const ConversationsCard = ({ conversations }: ConversationsCardProps) => {
                 <Avatar
                   src={item.user.avatar_url}
                   alt={item.user.login}
-                  variant='circular'
-                >
-                </Avatar>
+                  variant="circular"
+                ></Avatar>
                 <p className="text-2xl font-bold">{item.user.login}</p>
               </div>
               <p>{item.body}</p>
@@ -62,9 +63,13 @@ const ConversationsCard = ({ conversations }: ConversationsCardProps) => {
       <div className="mt-5 flex flex-row items-center justify-center">
         <Button>
           {conversations ? (
-            <Link href={conversations[0].html_url}>
-              Join The Conversation on Github
-            </Link>
+            conversations.length > 0 ? (
+              <Link href={conversations[0].html_url}>
+                Join The Conversation on Github
+              </Link>
+            ) : (
+              'No conversations available'
+            )
           ) : (
             'Loading conversations...'
           )}

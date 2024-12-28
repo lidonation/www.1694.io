@@ -61,9 +61,11 @@ WITH DelegatedDReps AS (
             delegation_vote AS dv ON dv.addr_id = sa.id
         JOIN 
             drep_hash AS dh ON dh.id = dv.drep_hash_id
+        LEFT JOIN 
+            tx_in AS txi ON txo.tx_id = txi.tx_out_id AND txo.index = txi.tx_out_index
         WHERE 
             txo.address = $1
-            AND txo.consumed_by_tx_id IS NULL
+            AND txi.tx_out_id IS NULL
         GROUP BY
             dh.view
         `
@@ -165,9 +167,11 @@ WITH DelegatedDReps AS (
             delegation_vote AS dv ON dv.addr_id = sa.id
         JOIN 
             drep_hash AS dh ON dh.id = dv.drep_hash_id
+        LEFT JOIN 
+            tx_in AS txi ON txo.tx_id = txi.tx_out_id AND txo.index = tx_in.tx_out_index
         WHERE 
             txo.address = $1
-            AND txo.consumed_by_tx_id IS NULL
+            AND txi.tx_out_id IS NULL
         GROUP BY
             dh.view
         `

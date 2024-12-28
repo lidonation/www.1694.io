@@ -94,7 +94,7 @@ const UpdateProfileStep2 = () => {
         return;
       }
       const stakeAddress = Address.from_bytes(
-        Buffer.from(stakeKey, 'hex'),
+        Buffer.from(stakeKey, 'hex') as any,
       ).to_bech32();
       const formData:drepInput = {
         signature: data.signature,
