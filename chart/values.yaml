@@ -50,6 +50,7 @@ ingress:
     - hosts:
         - "'*.1694.io'"
       secretName: wildcard-1694-tls
+
 labels:
   domain: 1694.io
 

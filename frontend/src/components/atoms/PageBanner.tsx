@@ -51,25 +51,28 @@ const PageBanner = () => {
     <Slide in={showBanner} appear exit direction="down">
       <Box component={'div'} className="flex items-center justify-center gap-2">
         <div className="inline-flex items-center gap-1">
-          <Typography>Epoch:</Typography>
-          <Typography>{nodeStats?.epoch_no || '-'}</Typography>
+          <Typography>You've caught us in a lag:</Typography>
         </div>
         <div className="inline-flex items-center gap-1">
-          <Typography>Slot:</Typography>
-          <Typography>{nodeStats?.epoch_slot_no || '-'}</Typography>
-        </div>
-        <div className="inline-flex items-center gap-1">
-          <Typography>Status:</Typography>
-          <Typography
-            className={`${renderStatus() === 'Offline' && 'text-extra_red'}`}
+          <Typography variant="caption">Node:</Typography>
+          <Typography variant="caption"
+                      className={`${renderStatus() === 'Offline' && 'text-extra_red'}`}
           >
             {renderStatus()}
           </Typography>
         </div>
+        <div className="inline-flex items-center gap-1">
+          <Typography variant="caption">Epoch:</Typography>
+          <Typography variant="caption">{nodeStats?.epoch_no || '-'}</Typography>
+        </div>
+        <div className="inline-flex items-center gap-1">
+          <Typography variant="caption">Slot:</Typography>
+          <Typography variant="caption">{nodeStats?.epoch_slot_no || '-'}</Typography>
+        </div>
         <div>
           <Typography variant="caption">
             {nodeStats &&
-              `Last updated (latest node tip time): ${new Date(nodeStats?.time).toLocaleString('en-US')}`}
+                `Updated up to: ${new Date(nodeStats?.time).toLocaleString('en-US')}`}
           </Typography>
         </div>
       </Box>
