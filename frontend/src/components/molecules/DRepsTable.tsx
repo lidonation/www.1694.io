@@ -5,6 +5,7 @@ import StatusChip from '../atoms/StatusChip';
 import { useGetDRepsQuery } from '@/hooks/useGetDRepsQuery';
 import {
   checkStatus,
+  convertHexToCIP129,
   convertString,
   formatAsCurrency,
   handleCopyText,
@@ -23,6 +24,7 @@ import ArrowUpIcon from '../atoms/svgs/ArrowUpIcon';
 import DatabaseNullIcon from '../atoms/svgs/DatabaseNullIcon';
 import CrossIcon from '../atoms/svgs/CrossIcon';
 import Typography from '@mui/material/Typography';
+import { useGlobalNotifications } from '@/context/globalNotificationContext';
 
 type DRepsTableProps = {
   query?: string;
@@ -53,6 +55,7 @@ const DRepsTable = ({
   type,
 }: DRepsTableProps) => {
   const { isMobile } = useScreenDimension();
+  const { addSuccessAlert } = useGlobalNotifications();
 
   const { DReps, isDRepsLoading, isError } = useGetDRepsQuery(
     query,
@@ -71,7 +74,6 @@ const DRepsTable = ({
         <thead className="mb-2">
           <tr className="overflow-x-auto text-nowrap bg-white text-left text-xl font-black">
             <th className="py-2">DRep</th>
-            {/* <th className="px-4 py-2">Drep Id</th> */}
             <th className="px-4 py-2">
               <div className="flex items-center">
                 <span>Voting Power</span>
@@ -169,18 +171,38 @@ const DRepsTable = ({
 
                     {drep?.type !== 'voting_option' && (
                       <Box className="flex flex-nowrap items-center">
-                        <Tooltip title="Copy DRep ID">
+                        <Tooltip title="Copy DRep ID (CIP-129)">
                           <IconButton
                             size="small"
-                            onClick={() => handleCopyText(drep.view)}
+                            onClick={() =>
+                              handleCopyText(
+                                convertHexToCIP129(
+                                  drep?.has_script,
+                                  drep?.chain_id,
+                                ),
+                                addSuccessAlert,
+                              )
+                            }
                           >
                             <CopyToClipBoard width={18} height={18} />
                           </IconButton>
                         </Tooltip>
 
-                        <Link href={`/dreps/${drep.view}`} prefetch={false}>
+                        <Link
+                          href={`/dreps/${convertHexToCIP129(
+                            drep?.has_script,
+                            drep?.chain_id,
+                          )}`}
+                          prefetch={false}
+                        >
                           <p className="hover:font-semibold">
-                            {convertString(drep.view, isMobile)}
+                            {convertString(
+                              convertHexToCIP129(
+                                drep?.has_script,
+                                drep?.chain_id,
+                              ),
+                              isMobile,
+                            )}
                           </p>
                         </Link>
                       </Box>
@@ -191,7 +213,10 @@ const DRepsTable = ({
                         <Tooltip title="DRep given name">
                           <Link
                             className="inline-flex"
-                            href={`/dreps/${drep?.view}`}
+                            href={`/dreps/${convertHexToCIP129(
+                              drep?.has_script,
+                              drep?.chain_id,
+                            )}`}
                             prefetch={false}
                           >
                             <span className="inline-block overflow-hidden text-ellipsis rounded-xl border border-black px-1.5 py-0.5 text-xs font-black text-black">
@@ -204,7 +229,11 @@ const DRepsTable = ({
                       <Tooltip title="DRep onchain status" disableFocusListener>
                         <button className="flex gap-2 hover:cursor-default">
                           <StatusChip
-                            status={drep?.type === 'voting_option' ? 'Active' : checkStatus(drep?.active)}
+                            status={
+                              drep?.type === 'voting_option'
+                                ? 'Active'
+                                : checkStatus(drep?.active)
+                            }
                           />
                           {drep.retired && drep?.type !== 'voting_option' && (
                             <StatusChip status={'Retired'} />

@@ -4,12 +4,16 @@
 // Additionally, this file may contain functions for testing purposes, providing a toolkit for verifying the correctness and efficiency of larger functions.
 // By centralizing these utilities, we promote a modular and maintainable codebase, facilitating ease of development and testing.
 
+import { bech32 } from 'bech32';
 import { JwtPayload, jwtDecode } from 'jwt-decode';
 import ms from 'ms';
+import { formHexToBech32 } from './getDrepId';
+
 export const sumTestExample = (a, b) => {
   return a + b;
 };
-export function convertString(inputString: string, isMobile: boolean) {
+
+export function convertString(inputString: string, isMobile?: boolean) {
   if (typeof inputString === 'undefined' || inputString?.length <= 10) {
     return inputString; // If the string is too short, no replacement is needed
   }
@@ -20,6 +24,7 @@ export function convertString(inputString: string, isMobile: boolean) {
 
   return inputString.slice(0, 10) + '.......' + inputString.slice(-10);
 }
+
 export function decodeToken(token: string) {
   const decoded = jwtDecode<JwtPayload>(token);
   let isExpired = false;
@@ -64,8 +69,15 @@ export function formatAsCurrency(amount: number | string) {
   return numberAmount.toLocaleString('en-US');
 }
 
-export const handleCopyText = (text: string) => {
-  navigator.clipboard.writeText(text);
+export const handleCopyText = (
+  text: string,
+  addSuccessAlert?: (message: string) => void,
+) => {
+  navigator.clipboard.writeText(text).then(() => {
+    if (addSuccessAlert) {
+      addSuccessAlert('Copied!');
+    }
+  });
 };
 
 export const formatNumberTimeToReadable = (time: number) => {
@@ -95,8 +107,12 @@ export async function sha256(file: File) {
   return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
-export function percentageDifference(newNumber: number, oldNumber: number, fixed = 2) {
-  const percent = (newNumber - oldNumber) / oldNumber * 100;
+export function percentageDifference(
+  newNumber: number,
+  oldNumber: number,
+  fixed = 2,
+) {
+  const percent = ((newNumber - oldNumber) / oldNumber) * 100;
   if (!isNaN(percent)) {
     return Number(percent.toFixed(fixed));
   }
@@ -116,4 +132,88 @@ export const renderJsonLdValue = (value: any) => {
 
 export const checkStatus = (active: boolean) => {
   return !!active ? 'Active' : 'Inactive';
+};
+
+export const convertHexToCIP129 = (isScripted: boolean, hexPhrase: string) => {
+  if (hexPhrase?.startsWith('drep_always')) {
+    return hexPhrase;
+  }
+  return encodeCIP129Identifier({
+    txID: `${isScripted ? '23' : '22'}${hexPhrase}`,
+    bech32Prefix: isScripted ? 'drep_script' : 'drep',
+  });
+};
+
+export const convertDrepPhraseToCIP105 = (phrase: string) => {
+  if (phrase.startsWith('drep_always')) {
+    return phrase;
+  }
+  const hex = dRepPhraseProcessor(phrase);
+  return formHexToBech32(hex);
+};
+
+/**
+ * Processes the search phrase for dRep and returns the dRep ID.
+ * If the phrase starts with "drep_script" or "drep",
+ * it decodes the CIP129 identifier and extracts the transaction ID.
+ * If the DRep ID starts with "22" or "23", it returns the ID without the prefix.
+ * If any error occurs during processing, it returns the original phrase.
+ *
+ * @param phrase - The search phrase to be processed.
+ * @returns The dRep ID extracted from the search phrase or the original phrase if an error occurs.
+ */
+export const dRepPhraseProcessor = (phrase: string) => {
+  let drepIDPhrase = phrase;
+
+  try {
+    if (
+      drepIDPhrase.startsWith('drep_script') ||
+      drepIDPhrase.startsWith('drep')
+    ) {
+      const { txID } = decodeCIP129Identifier(drepIDPhrase);
+
+      drepIDPhrase = txID;
+    }
+    if (drepIDPhrase.length === 58) {
+      return drepIDPhrase.slice(2);
+    }
+
+    return drepIDPhrase;
+  } catch (e) {
+    return phrase;
+  }
+};
+
+/**
+ * Encodes a CIP129 identifier based on the provided transaction ID, index, and bech32 prefix.
+ * @param txID - The transaction ID.
+ * @param index - The index.
+ * @param bech32Prefix - The bech32 prefix.
+ * @returns The generated CIP129 identifier.
+ */
+export const encodeCIP129Identifier = ({
+  txID,
+  index,
+  bech32Prefix,
+}: {
+  txID: string;
+  index?: string;
+  bech32Prefix: string;
+}) => {
+  const govActionBytes = Buffer.from(index ? txID + index : txID, 'hex');
+  const words = bech32.toWords(govActionBytes);
+  return bech32.encode(bech32Prefix, words);
+};
+
+/**
+ * Decodes a CIP129 identifier.
+ * @param cip129Identifier - The CIP129 identifier to decode.
+ * @returns An object containing the decoded transaction ID, index, and prefix.
+ */
+export const decodeCIP129Identifier = (cip129Identifier: string) => {
+  const { prefix, words } = bech32.decode(cip129Identifier);
+  const buffer = Buffer.from(bech32.fromWords(words));
+  const txID = buffer.subarray(0, 32).toString('hex');
+  const index = buffer.subarray(32).toString('hex');
+  return { txID, index, prefix };
 };

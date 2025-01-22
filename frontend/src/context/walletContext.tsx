@@ -344,6 +344,8 @@ function CardanoProvider(props: Props) {
                 'Testnet network wallet required, please switch to the testnet',
               );
             }
+            setStakeKey(undefined);
+            setStakeKeyBech32(undefined);
             setIsEnableLoading(null);
             setIsEnabling(false);
             return { status: 'WRONG_NETWORK' };
