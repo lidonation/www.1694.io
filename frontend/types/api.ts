@@ -1,7 +1,8 @@
 export type currentDelegation = {
   drep_raw: string | null;
   drep_view: string | null;
-  encode: string | null;
+  tx_hash: string | null;
+  has_script: boolean | null;
 } | null;
 
 export type Delegator = {
@@ -93,7 +94,11 @@ export type DelegationData = {
   stake_address: string;
   target_drep: string;
   current_drep: string;
+  current_chain_id: string | null;
+  current_drep_has_script: boolean;
   previous_drep: string | null;
+  previous_chain_id: string | null;
+  previous_drep_has_script: boolean;
   timestamp: string;
   delegation_epoch: number;
   tx_hash: string;

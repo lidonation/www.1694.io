@@ -35,6 +35,7 @@ export const getDrepVotingActivityQuery = `
         AND bk.time::DATE BETWEEN $3::DATE AND $2::DATE
     ORDER BY 
         bk.epoch_no`;
+
 export const getDrepVotingActivityInTimestampQuery = `
     SELECT  
         dh.view, 

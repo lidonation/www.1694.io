@@ -12,9 +12,7 @@ import {
   IconButton,
   Tooltip,
 } from '@mui/material';
-import {
-  convertString,
-} from '@/lib';
+import { convertHexToCIP129, convertString } from '@/lib';
 import Link from 'next/link';
 import CopyToClipBoardIcon from '../atoms/svgs/CopyToClipBoardIcon';
 import { useScreenDimension } from '@/hooks';
@@ -122,9 +120,13 @@ const VoterDelegationHistory: React.FC<VoterDelegationHistoryProps> = ({
                     }}
                   >
                     <Typography variant="body2">
-                      <Link prefetch={false} href={`/dreps/${item.drep_id}`}>
+                      <Link
+                        prefetch={false}
+                        href={`/dreps/${convertHexToCIP129(item.has_script, item.chain_id)}`}
+                      >
+                        (CIP-129){' '}
                         {convertString(
-                          item.drep_id,
+                          convertHexToCIP129(item.has_script, item.chain_id),
                           isMobile || screenWidth < 1024,
                         )}
                       </Link>
@@ -139,12 +141,22 @@ const VoterDelegationHistory: React.FC<VoterDelegationHistoryProps> = ({
                     >
                       <Tooltip
                         title={
-                          copiedId === item.drep_id ? 'Copied!' : 'Copy DRep ID'
+                          copiedId ===
+                          convertHexToCIP129(item.has_script, item.chain_id)
+                            ? 'Copied!'
+                            : 'Copy DRep ID'
                         }
                       >
                         <IconButton
                           size="small"
-                          onClick={() => handleCopy(item.drep_id)}
+                          onClick={() =>
+                            handleCopy(
+                              convertHexToCIP129(
+                                item.has_script,
+                                item.chain_id,
+                              ),
+                            )
+                          }
                           sx={{
                             ml: 1,
                             p: 0,
@@ -201,15 +213,13 @@ const VoterDelegationHistory: React.FC<VoterDelegationHistoryProps> = ({
                     Date of Delegation
                   </Typography>
                   <Typography>
-                    {
-                      new Date(item.time).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        hour: 'numeric',
-                        minute: 'numeric',
-                      })
-                    }
+                    {new Date(item.time).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: 'numeric',
+                      minute: 'numeric',
+                    })}
                   </Typography>
                 </TableCell>
                 <TableCell>

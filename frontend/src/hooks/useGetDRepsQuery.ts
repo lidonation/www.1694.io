@@ -1,4 +1,5 @@
 import { QUERY_KEYS } from '@/constants/queryKeys';
+import { dRepPhraseProcessor } from '@/lib';
 import { getDReps } from '@/services';
 import { useQuery } from 'react-query';
 
@@ -24,8 +25,19 @@ export const useGetDRepsQuery = (
       includeRetired,
       type,
     ],
-    queryFn: async () =>
-      await getDReps(s, page, sort, order, onChainStatus, campaignStatus, includeRetired, type),
+    queryFn: async () => {
+      const searchPhrase = dRepPhraseProcessor(s);
+      return await getDReps(
+        searchPhrase,
+        page,
+        sort,
+        order,
+        onChainStatus,
+        campaignStatus,
+        includeRetired,
+        type,
+      );
+    },
     refetchOnWindowFocus: false,
     enabled: true,
   });

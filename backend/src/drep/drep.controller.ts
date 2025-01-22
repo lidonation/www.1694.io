@@ -34,7 +34,7 @@ export class DrepController {
     @Query('onChainStatus') onChainStatus?: 'active' | 'inactive',
     @Query('campaignStatus') campaignStatus?: 'claimed' | 'unclaimed',
     @Query('includeRetired') includeRetired?: 'true' | 'undefined',
-    @Query('type') type?: 'has_script', // add more types if needed
+    @Query('type') type?: 'has_script',
   ) {
     return this.drepService.getAllDReps(
       s,

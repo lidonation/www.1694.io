@@ -1,7 +1,9 @@
 export const getVoterDelegationHistory = `
 WITH LatestDrepDistr AS (
     SELECT 
-      dh.view AS drep_id, 
+      dh.view AS drep_id,
+      encode(dh.raw, 'hex') AS chain_id,
+      dh.has_script,
       bk.time, 
       bk.epoch_no AS delegation_epoch, 
       dd.epoch_no AS current_epoch,
@@ -27,8 +29,10 @@ SUBSTRING(CAST(tx.hash AS TEXT), 3) as tx_hash,
       
 )
 SELECT 
-tx_hash,
-  drep_id, 
+  tx_hash,
+  drep_id,
+  chain_id,
+  has_script, 
   time, 
   current_epoch, 
   delegation_epoch,
@@ -40,4 +44,4 @@ WHERE
   row_num = 1
 ORDER BY 
   time DESC
-`
+`;
