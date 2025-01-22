@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import Button from './Button';
-import { CopyToClipboard } from 'react-copy-to-clipboard';
 import {
   Typography,
   Skeleton,
@@ -11,6 +10,7 @@ import {
 import Link from 'next/link';
 import {
   checkStatus,
+  convertHexToCIP129,
   convertString,
   formattedAda,
   getItemFromLocalStorage,
@@ -20,7 +20,6 @@ import {
 import { useScreenDimension } from '@/hooks';
 import { useCardano } from '@/context/walletContext';
 import MetadataViewer from './MetadataViewer';
-import { isActive } from '../molecules/DRepsTable';
 import { renderJSONLDToJSONArr } from '@/lib/metadataProcessor';
 import DRepSocialLinks from './DRepSocialLinks';
 import MetadataEditor from './MetadataEditor';
@@ -30,6 +29,7 @@ import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import DRepAvatarCard from './DRepAvatarCard';
 import { useDRepContext } from '@/context/drepContext';
 import { useGetDRepMetadataQuery } from '@/hooks/useGetDRepMetadataQuery';
+import DRepIdHolder from './DRepIdHolder';
 
 interface StatusProps {
   status:
@@ -108,7 +108,9 @@ const DrepProfileCard = ({ drep, voterId, state }: DrepProfileCardProps) => {
 
   if (!isMetadataLoading && metadata) {
     metadataJson = renderJSONLDToJSONArr(metadata);
-    name = renderJsonLdValue(metadata?.body?.givenName || metadata?.body?.dRepName);
+    name = renderJsonLdValue(
+      metadata?.body?.givenName || metadata?.body?.dRepName,
+    );
   }
 
   const renderUnsavedChanges = () => {
@@ -243,25 +245,22 @@ const DrepProfileCard = ({ drep, voterId, state }: DrepProfileCardProps) => {
           )}
         </p>
       </div>
-      <div className="flex w-fit flex-row gap-2 rounded-full border border-blue-100 px-4 py-2">
-        <p className="flex w-full items-center gap-3 ">
-          ID{' '}
-          {state ? (
-            <Skeleton animation={'wave'} width={150} height={20} />
-          ) : (
-            drep?.view && convertString(drep?.view, true)
-          )}
-        </p>
-        <CopyToClipboard
-          text={drep?.view}
-          onCopy={() => {
-            console.log('copied!');
-          }}
-          className="clipboard-text cursor-pointer"
-        >
-          <img src="/svgs/copy.svg" alt="copy" />
-        </CopyToClipboard>
-      </div>
+      <fieldset className="rounded-2xl border border-blue-100 px-2">
+        <legend className="font-bold">DRep ID</legend>
+        <div className="flex flex-col items-start justify-center gap-1 divide-y divide-blue-100 pb-2">
+          <DRepIdHolder
+            state={state}
+            drepId={convertHexToCIP129(drep?.has_script, drep?.chain_id)}
+            isCIP129={true}
+          />
+          <DRepIdHolder
+            state={state}
+            drepId={drep?.view}
+            isCIP129={false}
+            className="pt-1"
+          />
+        </div>
+      </fieldset>
       <DRepSocialLinks links={metadata?.body?.references} />
       <div>
         {isMetadataLoading ? (

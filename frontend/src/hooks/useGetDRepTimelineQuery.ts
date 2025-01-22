@@ -5,7 +5,7 @@ import { useCardano } from '@/context/walletContext';
 import { StakeKeys } from '../../types/commonTypes';
 import { useEffect, useRef, useState } from 'react';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
-import { formatNumberTimeToReadable } from '@/lib';
+import { convertDrepPhraseToCIP105, formatNumberTimeToReadable } from '@/lib';
 
 export const useGetDRepTimelineQuery = (
   idOrVoterId: string | string[] | undefined,
@@ -49,14 +49,16 @@ export const useGetDRepTimelineQuery = (
       queryStartTime,
       filterValues,
     ],
-    queryFn: async () =>
-      await getDRepTimeline(
-        String(idOrVoterId),
+    queryFn: async () => {
+      const cip105Id = convertDrepPhraseToCIP105(idOrVoterId as string);
+      return await getDRepTimeline(
+        cip105Id,
         stakeKeys,
         queryEndTime,
         queryStartTime,
         filterValues,
-      ),
+      );
+    },
     enabled:
       !!idOrVoterId &&
       !!queryEndTime &&

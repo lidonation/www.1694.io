@@ -1,11 +1,12 @@
 export const getCurrentDelegationQuery: string = `
 SELECT
-CASE
-    WHEN drep_hash.raw IS NULL THEN NULL
-    ELSE ENCODE(drep_hash.raw, 'hex')
+    CASE
+        WHEN drep_hash.raw IS NULL THEN NULL
+        ELSE ENCODE(drep_hash.raw, 'hex')
     END AS drep_raw,
     drep_hash.view AS drep_view,
-    ENCODE(tx.hash, 'hex')
+    ENCODE(tx.hash, 'hex') AS tx_hash,
+    drep_hash.has_script
 FROM
     delegation_vote
 JOIN

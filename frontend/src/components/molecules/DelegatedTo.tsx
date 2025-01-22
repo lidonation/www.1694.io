@@ -1,12 +1,18 @@
 import { useCardano } from '@/context/walletContext';
 import { useGetAdaHolderCurrentDelegationQuery } from '@/hooks/useGetAdaHolderCurrentDelegationQuery';
-import { useGetSingleDRepViaVoterIdQuery } from '@/hooks/useGetSingleDRepViaVoterIdQuery';
-import { formattedAda, handleCopyText, shortenAddress } from '@/lib';
+import {
+  convertHexToCIP129,
+  formattedAda,
+  handleCopyText,
+  shortenAddress,
+} from '@/lib';
 import { Box, IconButton, Tooltip, Typography } from '@mui/material';
 import ViewDRepTableBtn from './ViewDRepTableButton';
 import Button from '../atoms/Button';
 import Link from 'next/link';
 import CopyToClipBoardIcon from '../atoms/svgs/CopyToClipBoardIcon';
+import { useGlobalNotifications } from '@/context/globalNotificationContext';
+import { useGetSingleDRepQuery } from '@/hooks/useGetSingleDRepQuery';
 
 type DelegatedToProps = {
   className?: string;
@@ -14,9 +20,13 @@ type DelegatedToProps = {
 
 export const DelegatedTo = ({ className }: DelegatedToProps) => {
   const { stakeKey, stakeKeyBech32 } = useCardano();
+  const { addSuccessAlert } = useGlobalNotifications();
   const { currentDelegation } = useGetAdaHolderCurrentDelegationQuery(stakeKey);
-  const { DRep } = useGetSingleDRepViaVoterIdQuery(
-    currentDelegation?.drep_view,
+  const { dRep } = useGetSingleDRepQuery(currentDelegation?.drep_view);
+
+  const cip129Identifier = convertHexToCIP129(
+    currentDelegation?.has_script,
+    currentDelegation?.drep_raw,
   );
 
   return (
@@ -33,31 +43,53 @@ export const DelegatedTo = ({ className }: DelegatedToProps) => {
         </Typography>
       </Box>
       <Box>
-        {currentDelegation && DRep && (
+        {currentDelegation && dRep && (
           <>
             <Box>
-              {/* Disabled due to model changes */}
-              {/* <Typography fontSize="0.85rem" fontWeight={600}>
-                Delegated to: {DRep?.drep_name ? `(${DRep.drep_name})` : ''}
-              </Typography> */}
               <Typography fontSize="0.85rem" fontWeight={600}>
                 Delegated
               </Typography>
               <Box className="flex items-center overflow-hidden text-gray-300">
-                <Link href={`/dreps/${currentDelegation?.drep_view}`}>
+                <Link href={`/dreps/${cip129Identifier}`}>
                   <Typography fontSize="0.75rem" fontWeight={600}>
-                    {shortenAddress(currentDelegation?.drep_view, 12)}
+                    (CIP-129) {shortenAddress(cip129Identifier, 12)}
                   </Typography>
                 </Link>
                 <Tooltip title="Copy DRep ID">
                   <IconButton
                     size="small"
-                    onClick={() => handleCopyText(currentDelegation?.drep_view)}
+                    onClick={() =>
+                      handleCopyText(cip129Identifier, addSuccessAlert)
+                    }
                   >
                     <CopyToClipBoardIcon
                       color="#d1d5db"
-                      width={14}
-                      height={14}
+                      width={16}
+                      height={16}
+                    />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+              <Box className="flex items-center overflow-hidden text-gray-300">
+                <Link href={`/dreps/${currentDelegation?.drep_view}`}>
+                  <Typography fontSize="0.75rem" fontWeight={600}>
+                    (Legacy) {shortenAddress(currentDelegation?.drep_view, 12)}
+                  </Typography>
+                </Link>
+                <Tooltip title="Copy DRep ID">
+                  <IconButton
+                    size="small"
+                    onClick={() =>
+                      handleCopyText(
+                        currentDelegation?.drep_view,
+                        addSuccessAlert,
+                      )
+                    }
+                  >
+                    <CopyToClipBoardIcon
+                      color="#d1d5db"
+                      width={16}
+                      height={16}
                     />
                   </IconButton>
                 </Tooltip>
@@ -73,7 +105,7 @@ export const DelegatedTo = ({ className }: DelegatedToProps) => {
                 fontWeight={600}
                 className="overflow-hidden text-gray-300"
               >
-                ₳ {formattedAda(DRep?.voting_power, 2)}
+                ₳ {formattedAda(dRep?.voting_power, 2)}
               </Typography>
             </Box>
           </>
@@ -102,7 +134,7 @@ export const DelegatedTo = ({ className }: DelegatedToProps) => {
         <Button
           variant="outlined"
           size="small"
-          className='w-full'
+          className="w-full"
           sx={{
             color: 'white',
             borderColor: 'white',

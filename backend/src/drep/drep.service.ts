@@ -174,7 +174,15 @@ export class DrepService {
     const sanitizedSearch = query ? query.replace(/'/g, "''") : '';
     let sanitizedSearchCondition = '';
     if (sanitizedSearch && sanitizedSearch.length > 0) {
-      sanitizedSearchCondition = `AND (dh.view ILIKE '%${sanitizedSearch}%' OR off_chain_vote_drep_data.given_name ILIKE '%${sanitizedSearch}%')`;
+      sanitizedSearchCondition = `
+        AND (
+          COALESCE('${sanitizedSearch}', '') = '' OR
+          (CASE WHEN LENGTH('${sanitizedSearch}') % 2 = 0 AND '${sanitizedSearch}' ~ '^[0-9a-fA-F]+$' THEN dh.raw = decode('${sanitizedSearch}', 'hex') ELSE false END) OR
+          dh.view ILIKE '%${sanitizedSearch}%' OR
+          off_chain_vote_drep_data.given_name ILIKE '%${sanitizedSearch}%' OR
+          off_chain_vote_drep_data.payment_address ILIKE '%${sanitizedSearch}%'
+        )
+      `;
     }
 
     let chainStatusCondition = '';
@@ -346,11 +354,9 @@ export class DrepService {
     return combinedResult;
   }
   async getDrepCexplorerDetails(drepVoterId: string) {
-    //also get his details from cexplorer
-    const viewParam = drepVoterId;
     const drepCexplorer = await this.cexplorerService.manager.query(
       getDrepCexplorerDetailsQuery,
-      [viewParam],
+      [drepVoterId],
     );
     return drepCexplorer[0];
   }
@@ -462,7 +468,7 @@ export class DrepService {
             ...this.createTimelineEntries(results.epochs, 'epoch', 'start_time'),
           );
         }
-    
+
         // Ensure votingHistory result exists before mapping
         if (results.votingHistory) {
           timelineEntries.push(
@@ -473,19 +479,19 @@ export class DrepService {
             ),
           );
         }
-    
+
         // Ensure notes result exists before mapping
         if (results.notes) {
           timelineEntries.push(
             ...this.createTimelineEntries(results.notes, 'note', 'note_updatedAt'),
           );
         }
-    
+
         // Add delegators history directly
         if (results.delegatorsHistory) {
           timelineEntries.push(...results.delegatorsHistory);
         }
-    
+
         // Process claimed profile
         if (
           filters.includeClaimedProfile &&
@@ -500,7 +506,7 @@ export class DrepService {
             claimedDRepId: voterId,
           });
         }
-    
+
         // Process registration data
         const regDate = results.regData?.date_of_registration;
         if (
@@ -540,8 +546,7 @@ export class DrepService {
         console.error('Error fetching DRep timeline data:', error);
         throw new Error('Failed to fetch DRep timeline data');
       }),
-    );    
-    
+    );
   }
 
   getEpochs(

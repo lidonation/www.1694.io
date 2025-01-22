@@ -42,7 +42,7 @@ export const getAllDRepsQuery = (
           )
   
       SELECT
-          encode(dh.raw, 'hex'),
+          encode(dh.raw, 'hex') AS chain_id,
           dh.view,
           va.url,
           DRepDistr.amount AS voting_power,

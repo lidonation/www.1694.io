@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { formatAsCurrency, lovelaceToAda, shortenAddress } from '@/lib';
-import ArrowRightIcon from './svgs/ArrowRightIcon';
 import Link from 'next/link';
+import ArrowRightIcon from './svgs/ArrowRightIcon';
+import { convertHexToCIP129, formatAsCurrency, lovelaceToAda, shortenAddress } from '@/lib';
 import { urls } from '@/constants';
 import { DelegationData } from '../../../types/api';
 
-const DrepDelegatorCard = ({ item }: { item: DelegationData }) => {
+const useResponsiveLengths = () => {
   const [addressLength, setAddressLength] = useState(10);
   const [drepLength, setDRepLength] = useState(6);
 
@@ -21,11 +21,58 @@ const DrepDelegatorCard = ({ item }: { item: DelegationData }) => {
     };
 
     handleResize();
-
     window.addEventListener('resize', handleResize);
 
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  return { addressLength, drepLength };
+};
+
+const DrepLink = ({ drep, hasScript, chainId, isTarget, drepLength }: any) => {
+  const drepAddress = convertHexToCIP129(hasScript, chainId || drep);
+
+  return isTarget ? (
+    <p className="text-sm font-bold uppercase text-primary-300">
+      {shortenAddress(drepAddress, drepLength)}
+    </p>
+  ) : (
+    <Link href={`/dreps/${drepAddress}`} className="text-sm font-bold uppercase text-yellow-500">
+      {shortenAddress(drepAddress, drepLength)}
+    </Link>
+  );
+};
+
+const StakeAddressLink = ({ stakeAddress, addressLength }: any) => (
+  <Link href={stakeAddress ? `/voters/${stakeAddress}` : '#'} className="hover:font-medium">
+    <p className="text-base">{shortenAddress(stakeAddress, addressLength)}</p>
+  </Link>
+);
+
+const TransactionLink = ({ txHash }: any) => (
+  <Link href={`${urls.cexplorerUrl}/tx/${txHash}`} target="_blank">
+    <div className="flex items-center justify-center gap-2 text-nowrap text-gray-500 hover:cursor-pointer hover:text-gray-800">
+      <img src="/svgs/external-link.svg" alt="external link" />
+      <p>View Tx</p>
+    </div>
+  </Link>
+);
+
+const DrepDelegatorCard = ({ item }: { item: DelegationData }) => {
+  const { addressLength, drepLength } = useResponsiveLengths();
+  const {
+    total_stake,
+    added_power,
+    stake_address,
+    previous_drep,
+    previous_drep_has_script,
+    previous_chain_id,
+    current_drep,
+    current_drep_has_script,
+    current_chain_id,
+    target_drep,
+    tx_hash,
+  } = item;
 
   const formatTotalStake = (stake: string, addedPower: boolean) => {
     const sign = addedPower ? '+' : '-';
@@ -33,62 +80,35 @@ const DrepDelegatorCard = ({ item }: { item: DelegationData }) => {
     return `${sign}${formatAsCurrency(ada)}`;
   };
 
-  const isPreviousTargetDRep = item.previous_drep === item.target_drep;
-  const isCurrentTargetDRep = item.current_drep === item.target_drep;
+  const isPreviousTargetDRep = previous_drep === target_drep;
+  const isCurrentTargetDRep = current_drep === target_drep;
 
   return (
     <div className="flex w-full flex-col gap-2 text-center">
-      <p className="text-sm font-bold">
-        {formatTotalStake(item?.total_stake, item?.added_power)} ₳
-      </p>
-      <Link
-        prefetch={false}
-        href={
-          item?.stake_address ? `/voters/${item?.stake_address}` : '#'
-        }
-        className="hover:font-medium"
-      >
-        <p className="text-base">
-          {shortenAddress(item?.stake_address, addressLength)}
-        </p>
-      </Link>
+      <p className="text-sm font-bold">{formatTotalStake(total_stake, added_power)} ₳</p>
+      <StakeAddressLink stakeAddress={stake_address} addressLength={addressLength} />
       <div className="flex w-full items-center justify-center">
-        {!!item.previous_drep ? (
-          isPreviousTargetDRep ? (
-            <p className="text-sm font-bold uppercase text-primary-300">
-              {shortenAddress(item.previous_drep, drepLength)}
-            </p>
-          ) : (
-            <Link
-              href={`/dreps/${item.previous_drep}`}
-              className="text-sm font-bold uppercase text-yellow-500"
-            >
-              {shortenAddress(item.previous_drep, drepLength)}
-            </Link>
-          )
+        {previous_drep ? (
+          <DrepLink
+            drep={previous_drep}
+            hasScript={previous_drep_has_script}
+            chainId={previous_chain_id}
+            isTarget={isPreviousTargetDRep}
+            drepLength={drepLength}
+          />
         ) : (
           <p className="text-sm font-bold uppercase text-yellow-500">null</p>
         )}
         <ArrowRightIcon color="black" />
-        {isCurrentTargetDRep ? (
-          <p className="text-sm font-bold uppercase text-primary-300">
-            {shortenAddress(item?.current_drep, drepLength)}
-          </p>
-        ) : (
-          <Link
-            href={`/dreps/${item.current_drep}`}
-            className="text-sm font-bold uppercase text-yellow-500"
-          >
-            {shortenAddress(item?.current_drep, drepLength)}
-          </Link>
-        )}
+        <DrepLink
+          drep={current_drep}
+          hasScript={current_drep_has_script}
+          chainId={current_chain_id}
+          isTarget={isCurrentTargetDRep}
+          drepLength={drepLength}
+        />
       </div>
-      <Link href={`${urls.cexplorerUrl}/tx/${item?.tx_hash}`} target="_blank">
-        <div className="flex items-center justify-center gap-2 text-nowrap text-gray-500 hover:cursor-pointer hover:text-gray-800">
-          <img src="/svgs/external-link.svg" alt="" />
-          <p>View Tx</p>
-        </div>
-      </Link>
+      <TransactionLink txHash={tx_hash} />
     </div>
   );
 };

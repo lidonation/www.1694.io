@@ -24,7 +24,7 @@ export const getDrepCexplorerDetailsQuery: string = `
     RankedRows AS (
         SELECT 
           dh.id AS drep_hash_id, 
-          dh.raw, 
+          encode(dh.raw, 'hex') AS chain_id, 
           dh.view,
           dh.has_script, 
           dd.id AS drep_distr_id, 
@@ -58,6 +58,7 @@ export const getDrepCexplorerDetailsQuery: string = `
       )
       SELECT 
         r.drep_hash_id,
+        r.chain_id,
         r.view,
         r.delegation_vote_count,
         r.stake_address,
