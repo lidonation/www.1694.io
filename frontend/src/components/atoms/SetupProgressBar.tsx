@@ -3,13 +3,16 @@ import { useRouter, usePathname } from 'next/navigation';
 import { StepStatus, useDRepContext } from '@/context/drepContext';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { Tabs, Tab, Box } from '@mui/material';
+import { ProfileWorkflowStepKey } from '@/lib/enums';
 
-const STEPS = [
-  { number: 1, key: 'profile', label: 'Profile set up' },
-  { number: 2, key: 'signatures', label: 'Verify DRep profile' },
-  { number: 3, key: 'socials', label: 'References/Links' },
-  { number: 4, key: 'review', label: 'Metadata setup' },
+export const STEPS = [
+  { number: 1, key: ProfileWorkflowStepKey.PROFILE, label: 'Profile set up' },
+  { number: 2, key:  ProfileWorkflowStepKey.SIGNATURES, label: 'Verify DRep profile' },
+  { number: 3, key:  ProfileWorkflowStepKey.SOCIALS, label: 'References/Links' },
+  { number: 4, key:  ProfileWorkflowStepKey.REVIEW, label: 'Metadata setup' },
 ] as const;
+
+const stepPathnameRegex = /\/dreps\/workflow\/profile\/update\/step(\d+)/;
 
 const StepIcon = ({ step, status }: { step: number; status: StepStatus }) => {
   if (status === 'success' || status === 'update') {
@@ -43,12 +46,12 @@ const SetupProgressBar = () => {
   const pathname = usePathname();
   const { addWarningAlert } = useGlobalNotifications();
 
-  const activeStep = Math.max(
-    STEPS.findIndex(
-      (step) => steps[step.key] === 'active' || steps[step.key] === 'update',
-    ),
-    0,
-  );
+  // Get step from URL - returns 1-based number
+  const match = stepPathnameRegex.exec(pathname);
+  const urlStep = match ? Number(match[1]) : 1; // Default to 1 if no match
+
+  // Convert to 0-based for MUI Tabs
+  const activeStep = urlStep - 1;
 
   const handleStepChange = (_: any, newStep: number) => {
     if (pathname === `/${currentLocale}/dreps/workflow/profile/new`) {
@@ -56,10 +59,11 @@ const SetupProgressBar = () => {
       return;
     }
 
+    // newStep is 0-based from MUI, convert to 1-based for URL/state
     const stepNumber = newStep + 1;
-    const currentStepMatch = pathname.match(
-      /\/dreps\/workflow\/profile\/update\/step(\d+)/,
-    );
+    const stepKey = STEPS[newStep].key;
+
+    const currentStepMatch = stepPathnameRegex.exec(pathname);
     const currentStep = currentStepMatch ? Number(currentStepMatch[1]) : 0;
 
     if (drepClaimMismatch && currentStep === 2 && stepNumber > 2) {
@@ -67,15 +71,13 @@ const SetupProgressBar = () => {
       return;
     }
 
-    updateStep(STEPS[newStep].key, 'active');
+    updateStep(stepKey, 'active');
     setCurrentRegistrationStep(stepNumber);
     router.push(`/dreps/workflow/profile/update/step${stepNumber}`);
   };
 
   useEffect(() => {
-    const match = pathname.match(
-      /\/dreps\/workflow\/profile\/update\/step(\d+)/,
-    );
+    const match = stepPathnameRegex.exec(pathname);
     if (match) {
       const stepNumber = Number(match[1]);
       updateStep(STEPS[stepNumber - 1].key, 'active');
@@ -84,7 +86,7 @@ const SetupProgressBar = () => {
   }, [pathname]);
 
   return (
-    <Box sx={{ width: '100%', overflowX: 'auto' }}>
+    <Box sx={{ width: '100%', overflowX: 'auto', marginX: 'auto' }}>
       <Tabs
         value={activeStep}
         onChange={handleStepChange}

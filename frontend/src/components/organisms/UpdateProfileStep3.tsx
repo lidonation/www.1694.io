@@ -14,6 +14,7 @@ import { setItemToIndexedDB } from '@/lib/indexedDb';
 import { HtmlTooltip } from '../atoms/HoverChip';
 import Button from '../atoms/Button';
 import CopyToClipboard from '../atoms/CopyToClipboard';
+import { ProfileWorkflowStepKey } from '@/lib/enums';
 const UpdateProfileStep3 = () => {
   const { dRepIDBech32, loginSignTransaction } = useCardano();
 
@@ -49,8 +50,8 @@ const UpdateProfileStep3 = () => {
           addSuccessAlert('Draft restored!');
         }
         if (referencesArr.length > 0) {
-          updateStep('socials', 'update');
-        } else updateStep('socials', 'active');
+          updateStep(ProfileWorkflowStepKey.SOCIALS, 'update');
+        } else updateStep(ProfileWorkflowStepKey.SOCIALS, 'active');
         return;
       } catch (error) {
         console.log(error);
@@ -59,10 +60,11 @@ const UpdateProfileStep3 = () => {
     getDRep();
     return () => {
       if (referencesArr.length > 0) {
-        updateStep('socials', 'success');
-      } else updateStep('socials', 'pending');
+        updateStep(ProfileWorkflowStepKey.SOCIALS, 'success');
+      } else updateStep(ProfileWorkflowStepKey.SOCIALS, 'pending');
     };
   }, [metadataJsonLd]);
+
   const handleAddReference = () => {
     setReferencesArr([...referencesArr, { id: uuidv4(), key: '', value: '' }]);
   };
@@ -242,23 +244,23 @@ const UpdateProfileStep3 = () => {
                   <img src="/svgs/trash.svg" alt="delete" className="h-5 w-5" />
                 </div>
                 {errors[id] && (errors[id].key || errors[id].value) && (
-                    <HtmlTooltip
-                      title={
-                        <div className="text-sm text-red-500">
-                          {errors[id].key && <p>{errors[id].key}</p>}
-                          {errors[id].value && <p>{errors[id].value}</p>}
-                        </div>
-                      }
-                      arrow
-                      placement="top"
-                    >
-                      <img
-                        src="/svgs/alert-circle.svg"
-                        alt="error"
-                        className="h-5 w-5"
-                      />
-                    </HtmlTooltip>
-                  )}
+                  <HtmlTooltip
+                    title={
+                      <div className="text-sm text-red-500">
+                        {errors[id].key && <p>{errors[id].key}</p>}
+                        {errors[id].value && <p>{errors[id].value}</p>}
+                      </div>
+                    }
+                    arrow
+                    placement="top"
+                  >
+                    <img
+                      src="/svgs/alert-circle.svg"
+                      alt="error"
+                      className="h-5 w-5"
+                    />
+                  </HtmlTooltip>
+                )}
               </div>
             </div>
           ))}

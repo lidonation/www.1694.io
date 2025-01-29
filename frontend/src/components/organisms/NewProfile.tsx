@@ -23,6 +23,7 @@ import { DRepMetadata, IPFSResponse } from '../../../types/commonTypes';
 import CopyToClipboard from '../atoms/CopyToClipboard';
 import { Typography } from '@mui/material';
 import { drepInput } from '@/models/drep';
+import { ProfileWorkflowStepKey } from '@/lib/enums';
 
 const FormSchema = z.object({
   profileName: z.string().min(1, { message: 'Profile name is required' }),
@@ -85,6 +86,7 @@ const NewProfile = () => {
     handleActionModalClose,
     drepToBeClaimed,
     drepClaimMismatch,
+    updateStep,
   } = useDRepContext();
 
   useEffect(() => {
@@ -337,6 +339,8 @@ const NewProfile = () => {
           ? 'Profile saved locally!'
           : 'DRep Profile created successfully!',
       );
+      updateStep(ProfileWorkflowStepKey.PROFILE, 'success');
+      updateStep(ProfileWorkflowStepKey.SIGNATURES, 'active');
       setItemToLocalStorage('signatures', { signature, key });
       setIsLoggedIn(true);
       router.push(`/dreps/workflow/profile/update/step2`);

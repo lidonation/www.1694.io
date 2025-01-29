@@ -5,6 +5,7 @@ import {
   BigNum,
   Certificate,
   CertificatesBuilder,
+  ChangeConfig,
   LinearFee,
   Transaction,
   TransactionBuilder,
@@ -19,7 +20,7 @@ import {
 } from '@emurgo/cardano-serialization-lib-asmjs';
 import { useCallback, useState } from 'react';
 import { useGetNodeStatusQuery } from './useGetNodeStatusQuery';
-import {  getItemFromLocalStorage } from '@/lib';
+import { getItemFromLocalStorage } from '@/lib';
 import { getAddressUtxos } from '@/services/requests/getAddressUtxos';
 
 interface GetUtxosOptions {
@@ -69,7 +70,7 @@ export function useTransactionHandler({
     disableSigning: false,
   });
 
-  const { NodeStatus, refetch } = useGetNodeStatusQuery({ disablePolling: true });
+  const { refetch } = useGetNodeStatusQuery({ disablePolling: true });
 
   const getUtxos = async (
     enabledApi: CardanoApiWallet,
@@ -180,14 +181,6 @@ export function useTransactionHandler({
     return txOutputs;
   }, []);
 
-  const estimateTxFees = (
-    txBytes: number,
-    minFee: number,
-    fixedFee: number,
-  ) => {
-    return minFee + txBytes * fixedFee; //in lovelace
-  };
-
   const prepExpiredTxn = async (
     txBuilder: TransactionBuilder,
     walletApi: CardanoApiWallet,
@@ -231,6 +224,226 @@ export function useTransactionHandler({
     }
   };
 
+  const buildDummyTx = async (
+    walletApi: CardanoApiWallet,
+    certBuilder?: any,
+    options?: { deriveUtxosFrom?: string },
+  ) => {
+    try {
+      if (!walletState.usedAddress || !walletState.changeAddress) {
+        throw new Error('Wallet addresses not available');
+      }
+
+      const protocolParams = getItemFromLocalStorage(
+        'protocolParams',
+      ) as Protocol;
+      if (!protocolParams) throw new Error('No protocol params found');
+
+      const shelleyOutputAddress = Address.from_bech32(
+        options?.deriveUtxosFrom || walletState.usedAddress,
+      );
+      const shelleyChangeAddress = Address.from_bech32(
+        options?.deriveUtxosFrom || walletState.changeAddress,
+      );
+
+      const utxos = await getUtxos(walletApi, {
+        address: options?.deriveUtxosFrom,
+        external: Boolean(options?.deriveUtxosFrom),
+      });
+      if (!utxos?.length) throw new Error('No UTXOs available');
+
+      const txUnspentOutputs = await getTxUnspentOutputs(utxos);
+      const { data } = await refetch();
+      let currentNodeStatus = data;
+      const currentSlot = parseInt(currentNodeStatus?.slot_no);
+      const ttl = currentSlot + DEFAULT_TXN_TTL;
+
+      const dummyTxBuilder = TransactionBuilder.new(
+        TransactionBuilderConfigBuilder.new()
+          .fee_algo(
+            LinearFee.new(
+              BigNum.from_str(String(protocolParams.min_fee_a)),
+              BigNum.from_str(String(protocolParams.min_fee_b)),
+            ),
+          )
+          .pool_deposit(BigNum.from_str(protocolParams.pool_deposit))
+          .key_deposit(BigNum.from_str(protocolParams.key_deposit))
+          .coins_per_utxo_byte(
+            BigNum.from_str(String(protocolParams.coins_per_utxo_size)),
+          )
+          .max_value_size(protocolParams.max_val_size)
+          .max_tx_size(protocolParams.max_tx_size)
+          .prefer_pure_change(true)
+          .build(),
+      );
+
+      if (certBuilder) {
+        const newCertBuilder =
+          certBuilder instanceof Certificate
+            ? (() => {
+                const builder = CertificatesBuilder.new();
+                builder.add(certBuilder);
+                return builder;
+              })()
+            : certBuilder;
+        dummyTxBuilder.set_certs_builder(newCertBuilder);
+      }
+      
+      dummyTxBuilder.set_ttl_bignum(BigNum.from_str(ttl.toString()));
+      // dummyTxBuilder.add_output(
+      //   TransactionOutput.new(
+      //     shelleyOutputAddress,
+      //     Value.new(BigNum.from_str('1000000')),
+      //   ),
+      // );
+      // dummyTxBuilder.add_inputs_from(txUnspentOutputs, 1);
+      // dummyTxBuilder.add_change_if_needed(shelleyChangeAddress);
+
+      const changeConfig = ChangeConfig.new(shelleyChangeAddress);
+      // Use UTxO selection strategy 3
+      try {
+        dummyTxBuilder.add_inputs_from_and_change(
+          txUnspentOutputs,
+          3,
+          changeConfig,
+        );
+      } catch (e) {
+        console.error(e);
+        // Use UTxO selection strategy 2 if strategy 3 fails
+        dummyTxBuilder.add_inputs_from_and_change(
+          txUnspentOutputs,
+          2,
+          changeConfig,
+        );
+      }
+
+      const dummyBody = dummyTxBuilder.build();
+      const txSize = dummyBody.to_bytes().length;
+      return { dummyBody, txSize };
+    } catch (error) {
+      console.error('Error building dummy transaction:', error);
+      throw error;
+    }
+  };
+
+  const buildFinalTx = async (
+    walletApi: CardanoApiWallet,
+    certBuilder?: any,
+    // dummyTxSize?: number,
+    options?: { deriveUtxosFrom?: string },
+  ) => {
+    try {
+      if (!walletState.usedAddress || !walletState.changeAddress) {
+        throw new Error('Wallet addresses not available');
+      }
+
+      const protocolParams = getItemFromLocalStorage(
+        'protocolParams',
+      ) as Protocol;
+      if (!protocolParams) throw new Error('No protocol params found');
+
+      const shelleyOutputAddress = Address.from_bech32(
+        options?.deriveUtxosFrom || walletState.usedAddress,
+      );
+      const shelleyChangeAddress = Address.from_bech32(
+        options?.deriveUtxosFrom || walletState.changeAddress,
+      );
+
+      const utxos = await getUtxos(walletApi, {
+        address: options?.deriveUtxosFrom,
+        external: Boolean(options?.deriveUtxosFrom),
+      });
+      if (!utxos?.length) throw new Error('No UTXOs available');
+
+      const txUnspentOutputs = await getTxUnspentOutputs(utxos);
+      const { data } = await refetch();
+      let currentNodeStatus = data;
+      const currentSlot = parseInt(currentNodeStatus?.slot_no);
+      const ttl = currentSlot + DEFAULT_TXN_TTL;
+
+      const finalTxBuilder = TransactionBuilder.new(
+        TransactionBuilderConfigBuilder.new()
+          .fee_algo(
+            LinearFee.new(
+              BigNum.from_str(String(protocolParams.min_fee_a)),
+              BigNum.from_str(String(protocolParams.min_fee_b)),
+            ),
+          )
+          .pool_deposit(BigNum.from_str(protocolParams.pool_deposit))
+          .key_deposit(BigNum.from_str(protocolParams.key_deposit))
+          .coins_per_utxo_byte(
+            BigNum.from_str(String(protocolParams.coins_per_utxo_size)),
+          )
+          .max_value_size(protocolParams.max_val_size)
+          .max_tx_size(protocolParams.max_tx_size)
+          .prefer_pure_change(true)
+          .build(),
+      );
+
+      if (certBuilder) {
+        const newCertBuilder =
+          certBuilder instanceof Certificate
+            ? (() => {
+                const builder = CertificatesBuilder.new();
+                builder.add(certBuilder);
+                return builder;
+              })()
+            : certBuilder;
+        finalTxBuilder.set_certs_builder(newCertBuilder);
+      }
+      finalTxBuilder.set_ttl_bignum(BigNum.from_str(ttl.toString()));
+
+      // finalTxBuilder.add_output(
+      //   TransactionOutput.new(
+      //     shelleyOutputAddress,
+      //     Value.new(BigNum.from_str('1000000')),
+      //   ),
+      // );
+      // const baseMinFee = BigNum.from_str(
+      //   String(protocolParams.min_fee_a),
+      // ).checked_mul(BigNum.from_str(dummyTxSize.toString()));
+      // const constantFee = BigNum.from_str(String(protocolParams.min_fee_b));
+      // const buffer = BigNum.from_str('10000');
+      // const totalFee = baseMinFee.checked_add(constantFee).checked_add(buffer);
+
+      // finalTxBuilder.set_fee(totalFee);
+      // finalTxBuilder.add_inputs_from(txUnspentOutputs, 1);
+      // finalTxBuilder.add_change_if_needed(shelleyChangeAddress);
+
+     
+
+      const changeConfig = ChangeConfig.new(shelleyChangeAddress);
+      // Use UTxO selection strategy 3
+      try {
+        finalTxBuilder.add_inputs_from_and_change(
+          txUnspentOutputs,
+          3,
+          changeConfig,
+        );
+      } catch (e) {
+        console.error(e);
+        // Use UTxO selection strategy 2 if strategy 3 fails
+        finalTxBuilder.add_inputs_from_and_change(
+          txUnspentOutputs,
+          2,
+          changeConfig,
+        );
+      }
+
+      const finalTx = finalTxBuilder.build_tx();
+      const transactionWitnessSet = TransactionWitnessSet.new();
+      const transaction = Transaction.new(
+        finalTx.body(),
+        TransactionWitnessSet.from_bytes(transactionWitnessSet.to_bytes()),
+      );
+
+      return { transaction };
+    } catch (error) {
+      console.error('Error building final transaction:', error);
+      throw error;
+    }
+  };
+
   const prepareTxBody = async (
     pendingTx: PendingTransaction,
     walletApi: CardanoApiWallet,
@@ -245,125 +458,17 @@ export function useTransactionHandler({
       }
 
       if (pendingTx.type === 'regular') {
-        if (!walletState.usedAddress || !walletState.changeAddress) {
-          throw new Error('Wallet addresses not available');
-        }
-
-        const protocolParams = getItemFromLocalStorage(
-          'protocolParams',
-        ) as Protocol;
-        if (!protocolParams) throw new Error('No protocol params found');
-
-        // First build with initial config
-        let txBuilder = pendingTx.txBuilder;
-        if (pendingTx.certBuilder) {
-          const certBuilder =
-            pendingTx.certBuilder instanceof Certificate
-              ? (() => {
-                  const builder = CertificatesBuilder.new();
-                  builder.add(pendingTx.certBuilder);
-                  return builder;
-                })()
-              : pendingTx.certBuilder;
-          txBuilder.set_certs_builder(certBuilder);
-        }
-
-        const shelleyOutputAddress = Address.from_bech32(
-          options?.deriveUtxosFrom || walletState.usedAddress,
-        );
-        const shelleyChangeAddress = Address.from_bech32(
-          options?.deriveUtxosFrom || walletState.changeAddress,
-        );
-
-        const utxos = await getUtxos(walletApi, {
-          address: options?.deriveUtxosFrom,
-          external: Boolean(options?.deriveUtxosFrom),
-        });
-        if (!utxos?.length) throw new Error('No UTXOs available');
-
-        const txUnspentOutputs = await getTxUnspentOutputs(utxos);
-        let currentNodeStatus = NodeStatus
-        if (!NodeStatus) {
-          //try to fetch node status again
-          const {data}=await refetch();
-          currentNodeStatus=data
-        }
-        const currentSlot = parseInt(currentNodeStatus?.slot_no);
-        const ttl = currentSlot + DEFAULT_TXN_TTL;
-
-        // Build first time for size calculation
-        txBuilder.add_output(
-          TransactionOutput.new(
-            shelleyOutputAddress,
-            Value.new(BigNum.from_str('1000000')),
-          ),
-        );
-        txBuilder.add_inputs_from(txUnspentOutputs, 1);
-        txBuilder.add_change_if_needed(shelleyChangeAddress);
-        txBuilder.set_ttl_bignum(BigNum.from_str(ttl.toString()));
-
-        const dummyBody = txBuilder.build();
-        const txSize = dummyBody.to_bytes().length;
-        // Initializing new builder with same config
-        const newBuilder = TransactionBuilder.new(
-          TransactionBuilderConfigBuilder.new()
-            .fee_algo(
-              LinearFee.new(
-                BigNum.from_str(String(protocolParams.min_fee_a)),
-                BigNum.from_str(String(protocolParams.min_fee_b)),
-              ),
-            )
-            .pool_deposit(BigNum.from_str(protocolParams.pool_deposit))
-            .key_deposit(BigNum.from_str(protocolParams.key_deposit))
-            .coins_per_utxo_byte(
-              BigNum.from_str(String(protocolParams.coins_per_utxo_size)),
-            )
-            .max_value_size(protocolParams.max_val_size)
-            .max_tx_size(protocolParams.max_tx_size)
-            .prefer_pure_change(true)
-            .build(),
-        );
-
-        // Rebuild with all components
-        if (pendingTx.certBuilder) {
-          const certBuilder =
-            pendingTx.certBuilder instanceof Certificate
-              ? (() => {
-                  const builder = CertificatesBuilder.new();
-                  builder.add(pendingTx.certBuilder);
-                  return builder;
-                })()
-              : pendingTx.certBuilder;
-          newBuilder.set_certs_builder(certBuilder);
-        }
-
-        newBuilder.add_output(
-          TransactionOutput.new(
-            shelleyOutputAddress,
-            Value.new(BigNum.from_str('1000000')),
-          ),
-        );
-        newBuilder.add_inputs_from(txUnspentOutputs, 1);
-
-        const baseMinFee = BigNum.from_str(
-          String(protocolParams.min_fee_a),
-        ).checked_mul(BigNum.from_str(txSize.toString()));
-        const constantFee = BigNum.from_str(String(protocolParams.min_fee_b));
-        const buffer = BigNum.from_str('10000');
-        const totalFee = baseMinFee
-          .checked_add(constantFee)
-          .checked_add(buffer);
-
-        newBuilder.set_fee(totalFee);
-        newBuilder.add_change_if_needed(shelleyChangeAddress);
-        newBuilder.set_ttl_bignum(BigNum.from_str(ttl.toString()));
-
-        const finalTxBody = newBuilder.build_tx();
-
-        const transactionWitnessSet = TransactionWitnessSet.new();
-        const transaction = Transaction.new(
-          finalTxBody.body(),
-          TransactionWitnessSet.from_bytes(transactionWitnessSet.to_bytes()),
+        // a problem wirh fee calculation, resulted in this attempt to get the fee from the dummy transaction
+        // const { txSize } = await buildDummyTx(
+        //   walletApi,
+        //   pendingTx.certBuilder,
+        //   options,
+        // );
+        const { transaction } = await buildFinalTx(
+          walletApi,
+          pendingTx.certBuilder,
+          // txSize,
+          options,
         );
 
         return { transaction };
@@ -540,7 +645,9 @@ export function useTransactionHandler({
     try {
       const fileContent = await signedTxFile.text();
       const cborHex = (JSON.parse(fileContent) as TxBody).cborHex;
-      const signedTx = Transaction.from_hex(Buffer.from(cborHex, 'hex').toString('hex'));
+      const signedTx = Transaction.from_hex(
+        Buffer.from(cborHex, 'hex').toString('hex'),
+      );
 
       if (txnModalState.resolve) {
         switch (txnModalState.type) {

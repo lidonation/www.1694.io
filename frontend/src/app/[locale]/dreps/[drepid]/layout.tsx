@@ -8,14 +8,16 @@ import { useGetSingleDRepQuery } from '@/hooks/useGetSingleDRepQuery';
 import { useParams } from 'next/navigation';
 import NotFound from './not-found';
 import BreadCrumbs from '@/components/molecules/BreadCrumbs';
+import { useGetOwnership } from '@/hooks/useGetOwnership';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { dRepIDBech32 } = useCardano();
   const [isOpen, setIsOpen] = useState(false);
   const { drepid } = useParams();
   const { dRep, isDRepLoading, fetchError } = useGetSingleDRepQuery(drepid.toString());
+  const {ownership}=useGetOwnership({drepId: drepid.toString(), voterId: dRepIDBech32});
 
-  const currentUserIsDrep = dRep?.drep_id && dRep?.view == dRepIDBech32;
+  const currentUserIsDrep = dRep?.drep_id && ownership?.result && ownership?.result === true;
 
   if (!isDRepLoading && fetchError?.response?.status === 404) {
     return (

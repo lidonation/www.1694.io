@@ -18,6 +18,7 @@ import { useRouter } from 'next/navigation';
 import { renderJSONLDToJSONArr } from '@/lib/metadataProcessor';
 import { deleteItemFromIndexedDB } from '@/lib/indexedDb';
 import CopyToClipboard from '../atoms/CopyToClipboard';
+import { ProfileWorkflowStepKey } from '@/lib/enums';
 const FormSchema = z.object({
   metadata: z.string().optional(),
 });
@@ -51,8 +52,8 @@ const UpdateProfileStep4 = () => {
         setValue('metadata', JSON.stringify(convertedMetadata));
         setIsMetadataLoading(false);
         if (metadataJsonLd) {
-          updateStep('review', 'update');
-        } else updateStep('review', 'active');
+          updateStep(ProfileWorkflowStepKey.REVIEW, 'update');
+        } else updateStep(ProfileWorkflowStepKey.REVIEW, 'active');
         setIsMetadataLoading(false);
         return;
       } catch (error) {
@@ -64,6 +65,11 @@ const UpdateProfileStep4 = () => {
       }
     };
     processMetadata();
+    return () => {
+      if (metadata) {
+        updateStep(ProfileWorkflowStepKey.REVIEW, 'success');
+      } else updateStep(ProfileWorkflowStepKey.REVIEW, 'pending');
+    };
   }, [metadataJsonLd, refresh]);
   
   const resetDraft = async () => {
