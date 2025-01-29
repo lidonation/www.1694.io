@@ -3,7 +3,15 @@ import { ModalContents, ModalHeader, ModalWrapper } from '../atoms';
 import { useDRepContext } from '@/context/drepContext';
 import Link from 'next/link';
 import { urls } from '@/constants';
-export function NotDRepErrorModal() {
+import Button from '../atoms/Button';
+interface NotDRepErrorModalProps {
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+export function NotDRepErrorModal({
+  onConfirm = () => {},
+  onCancel = () => {},
+}: NotDRepErrorModalProps) {
   const { setIsNotDRepErrorModalOpen } = useDRepContext();
 
   return (
@@ -39,9 +47,31 @@ export function NotDRepErrorModal() {
             className="text-center font-semibold text-black"
             data-testid="not-a-drep-message"
           >
-            Unfortunately you cannot access this feature since you are not a
-            DRep...yet.
+            You seem to not have yet registered as a DRep as your DRep ID is
+            required to proceed. <br />
+            <span className='text-sm font-bold'>
+              You may still proceed with the registration process but keep in
+              mind that you will be required to identify yourself as a DRep.
+            </span>
           </Typography>
+          <Box>
+            <Box className="flex justify-center gap-4">
+              <Button
+                handleClick={onConfirm}
+                className="rounded-md bg-blue-300 px-6 py-2 text-sm font-semibold text-white"
+                data-testid="confirm-button"
+              >
+                Proceed
+              </Button>
+              <Button
+                handleClick={onCancel}
+                className="ml-4 rounded-md bg-gray-300 px-6 py-2 text-sm font-semibold text-black"
+                data-testid="cancel-button"
+              >
+                Cancel
+              </Button>
+            </Box>
+          </Box>
           <Typography
             color="dimgray"
             variant="subtitle2"

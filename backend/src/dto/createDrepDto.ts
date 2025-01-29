@@ -7,6 +7,10 @@ export class createDrepDto extends FormData {
   profileUrl?: string;
   stake_addr?: string;
   voter_id?: string;
-  signature?: string;
-  key?: string;
+  drep_bech32?: string;
+  signatures: {
+    signature: string;
+    key: string;
+    type
+  }[];
 }

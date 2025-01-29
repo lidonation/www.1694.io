@@ -2,45 +2,69 @@
 import NewProfile from '@/components/organisms/NewProfile';
 import { useDRepContext } from '@/context/drepContext';
 import { useCardano } from '@/context/walletContext';
+import { compareDRepIDs } from '@/lib';
 import { getSingleDRepViaVoterId } from '@/services/requests/getSingleDrepViaVoterId';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import React, { useEffect } from 'react';
 
-const page = () => {
-  const { setIsWalletListModalOpen, setStep1Status, setNewDrepId, setHideCloseButtonOnWalletListModal } =
-    useDRepContext();
+const Page = () => {
+  const {
+    setIsWalletListModalOpen,
+    updateStep,
+    setNewDrepId,
+    setHideCloseButtonOnWalletListModal,
+    setDrepToBeClaimed,
+    drepToBeClaimed,
+  } = useDRepContext();
+
   const { isEnabled, dRepIDBech32 } = useCardano();
   const router = useRouter();
+  const pathname=usePathname();
+  const params = useSearchParams();
+
+  useEffect(() => {
+    if (params.has('drep')) {
+      setDrepToBeClaimed(params.get('drep'));
+    }
+  }, [params, pathname]);
+
   useEffect(() => {
     if (!isEnabled) {
       setIsWalletListModalOpen(true);
-      setHideCloseButtonOnWalletListModal(true)
+      setHideCloseButtonOnWalletListModal(true);
     } else if (dRepIDBech32) {
       const checkIfExistingDRep = async () => {
         try {
           const drep = await getSingleDRepViaVoterId(dRepIDBech32);
           if (drep?.drep_id) {
             setNewDrepId(drep.drep_id);
-            setStep1Status('update');
+            updateStep('profile', 'update');
             router.push(`/dreps/workflow/profile/update/step1`);
-          } else setStep1Status('active');
+          } else {
+            updateStep('profile', 'active');
+          }
         } catch (error) {
           if (
             error.response?.status === 404 &&
             error.response?.data?.message === 'Drep not found!'
           ) {
-            setStep1Status('active');
+            updateStep('profile', 'active');
           }
         }
       };
-      checkIfExistingDRep();
+
+      if (drepToBeClaimed && compareDRepIDs(drepToBeClaimed, dRepIDBech32)) {
+        checkIfExistingDRep();
+      }
     }
+
     return () => {
       setIsWalletListModalOpen(false);
       setHideCloseButtonOnWalletListModal(false);
     };
-  }, [isEnabled, dRepIDBech32]);
+  }, [isEnabled, dRepIDBech32, drepToBeClaimed]);
+
   return <NewProfile />;
 };
 
-export default page;
+export default Page;

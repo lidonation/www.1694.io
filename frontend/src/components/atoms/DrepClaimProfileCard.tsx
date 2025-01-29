@@ -1,7 +1,5 @@
 import React from 'react';
-import Button from './Button';
 import StatusChip from './StatusChip';
-import Link from 'next/link';
 import { Skeleton } from '@mui/material';
 import { checkStatus, convertHexToCIP129, formattedAda } from '@/lib';
 import MetadataViewer from './MetadataViewer';
@@ -11,6 +9,7 @@ import { useCardano } from '@/context/walletContext';
 import { useDRepContext } from '@/context/drepContext';
 import { useGetDRepMetadataQuery } from '@/hooks/useGetDRepMetadataQuery';
 import DRepIdHolder from './DRepIdHolder';
+import ClaimProfileButton from './ClaimProfileButton';
 
 type DrepClaimProfileCardProps = {
   drep: any;
@@ -35,9 +34,10 @@ const DrepClaimProfileCard = ({
         imageSrc={metadata?.body?.image?.contentUrl}
       />
       {drep?.type !== 'scripted' && drep?.type !== 'voting_option' && (
-        <Link className="w-full" href={`/dreps/workflow/profile/new`}>
-          <Button className="w-full">Claim this profile</Button>
-        </Link>
+        <ClaimProfileButton
+          label="Claim this profile"
+          drepToBeClaimed={drep?.view}
+        />
       )}
       <div className="flex flex-row gap-2">
         {drep?.type === 'scripted' && <StatusChip status="Scripted" />}
@@ -127,9 +127,10 @@ const DrepClaimProfileCard = ({
         drep?.signature_voterId == dRepIDBech32) &&
         isLoggedIn && (
           <div className="flex max-w-prose flex-col gap-2">
-            <Link href={`/dreps/workflow/profile/new`}>
-              <Button className="w-full">Claim your profile to update</Button>
-            </Link>
+            <ClaimProfileButton
+              label="Claim your profile to update"
+              drepToBeClaimed={drep?.view}
+            />
           </div>
         )}
     </div>

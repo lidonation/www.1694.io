@@ -6,7 +6,6 @@
 
 import { bech32 } from 'bech32';
 import { JwtPayload, jwtDecode } from 'jwt-decode';
-import ms from 'ms';
 import { formHexToBech32 } from './getDrepId';
 
 export const sumTestExample = (a, b) => {

@@ -1,6 +1,5 @@
-import React, {  useState } from 'react';
-import  { HtmlTooltip } from '../atoms/HoverChip';
-import { CopyToClipboard } from 'react-copy-to-clipboard';
+import React, { useState } from 'react';
+import { HtmlTooltip } from '../atoms/HoverChip';
 import {
   Accordion,
   AccordionDetails,
@@ -8,13 +7,13 @@ import {
   Typography,
 } from '@mui/material';
 import { useScreenDimension } from '@/hooks/useScreenDimension';
+import CopyToClipboard from '../atoms/CopyToClipboard';
 
 const TranslationBlock = () => {
-  
-  const {isMobile} = useScreenDimension();
+  const { isMobile } = useScreenDimension();
   const [isTooltipActive, setIsTooltipActive] = useState(false);
   const [isAccordionExpanded, setIsAccordionExpanded] = useState(false);
-  
+
   const toggleTooltip = () => {
     setIsTooltipActive(!isTooltipActive);
   };
@@ -78,15 +77,10 @@ const TranslationBlock = () => {
                     <Typography color="inherit">
                       Translations done through rewarded bounties at the
                       Catalyst Swarm Bounty Board. Donations to Catalyst Swarm
-                      can be done through: Addr1qxhxg0mwzahfv8x4nr5s9zmffssxueqsnxxv282kz2c30nykg8fw8x99crukwyc7yftwfgxmhsu2xx0n8elfvj7mljlqm45kgs
+                      can be done through:
+                      Addr1qxhxg0mwzahfv8x4nr5s9zmffssxueqsnxxv282kz2c30nykg8fw8x99crukwyc7yftwfgxmhsu2xx0n8elfvj7mljlqm45kgs
                     </Typography>
-                    <CopyToClipboard
-                      textToCopy="Addr1qxhxg0mwzahfv8x4nr5s9zmffssxueqsnxxv282kz2c30nykg8fw8x99crukwyc7yftwfgxmhsu2xx0n8elfvj7mljlqm45kgs"
-                      onCopy={() => {
-                        console.log('copied!');
-                      }}
-                      className="clipboard-text cursor-pointer"
-                    >
+                    <CopyToClipboard text="Addr1qxhxg0mwzahfv8x4nr5s9zmffssxueqsnxxv282kz2c30nykg8fw8x99crukwyc7yftwfgxmhsu2xx0n8elfvj7mljlqm45kgs">
                       <img src="/svgs/copy.svg" alt="copy" />
                     </CopyToClipboard>
                   </React.Fragment>
@@ -125,16 +119,15 @@ const TranslationBlock = () => {
                         <Typography color="inherit">
                           Translations done through rewarded bounties at the
                           Catalyst Swarm Bounty Board. Donations to Catalyst
-                          Swarm can be done through: Addr1qxhxg0mwzahfv8x4nr5s9zmffssxueqsnxxv282kz2c30nykg8fw8x99crukwyc7yftwfgxmhsu2xx0n8elfvj7mljlqm45kgs
+                          Swarm can be done through:
+                          Addr1qxhxg0mwzahfv8x4nr5s9zmffssxueqsnxxv282kz2c30nykg8fw8x99crukwyc7yftwfgxmhsu2xx0n8elfvj7mljlqm45kgs
                         </Typography>
-                        <CopyToClipboard
-                          textToCopy="Addr1qxhxg0mwzahfv8x4nr5s9zmffssxueqsnxxv282kz2c30nykg8fw8x99crukwyc7yftwfgxmhsu2xx0n8elfvj7mljlqm45kgs"
-                          onCopy={() => {
-                            console.log('copied!');
-                          }}
-                          className="clipboard-text cursor-pointer"
-                        >
-                          <img src="/svgs/copy.svg" alt="copy" onClick={toggleTooltip} />
+                        <CopyToClipboard text="Addr1qxhxg0mwzahfv8x4nr5s9zmffssxueqsnxxv282kz2c30nykg8fw8x99crukwyc7yftwfgxmhsu2xx0n8elfvj7mljlqm45kgs">
+                          <img
+                            src="/svgs/copy.svg"
+                            alt="copy"
+                            onClick={toggleTooltip}
+                          />
                         </CopyToClipboard>
                       </React.Fragment>
                     }
@@ -142,7 +135,11 @@ const TranslationBlock = () => {
                     arrow
                     open={isTooltipActive}
                   >
-                    <img src="/svgs/info-circle.svg" alt="info" onClick={toggleTooltip} />
+                    <img
+                      src="/svgs/info-circle.svg"
+                      alt="info"
+                      onClick={toggleTooltip}
+                    />
                   </HtmlTooltip>
                 </div>
               </AccordionSummary>

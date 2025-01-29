@@ -4,7 +4,7 @@ declare global {
       [key: string]: CardanoBrowserWallet;
     };
     Sprig: any;
-    UserLeap:any;
+    UserLeap: any;
   }
 }
 
@@ -105,4 +105,10 @@ export interface CardanoApiWallet {
   onNetworkChange(arg0: (network: number) => void): Promise<void>;
   getActivePubStakeKeys(): Promise<string[]>;
   getExtensions(): Promise<Extension[]>;
+}
+
+export interface TxBody {
+  type: string;
+  description: string;
+  cborHex: string;
 }

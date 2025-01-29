@@ -2,9 +2,9 @@ import { urls } from '@/constants';
 import { convertString } from '@/lib';
 import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
-import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { Box } from '@mui/material';
 import axios from 'axios';
+import CopyToClipboard from './CopyToClipboard';
 
 const VoteStatusChip = ({ date, vote }: { date: string; vote: string }) => {
   const [bgcolor, setBgColor] = useState('complementary-100');
@@ -117,10 +117,6 @@ const DrepVoteTimelineCard = ({ item }: { item: any }) => {
           <p>{convertString(item?.gov_action_proposal_id, true) || null}</p>
           <CopyToClipboard
             text={item?.gov_action_proposal_id}
-            onCopy={() => {
-              console.log('copied!');
-            }}
-            className="clipboard-text cursor-pointer"
           >
             <img src="/svgs/copy.svg" alt="copy" />
           </CopyToClipboard>

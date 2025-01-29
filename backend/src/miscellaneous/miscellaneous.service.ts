@@ -11,6 +11,8 @@ import {
   getTotalGovernanceActionsQuery,
 } from 'src/queries/getMetricsQueries';
 import { DataSource } from 'typeorm';
+import { BlockfrostUTXO, DbSyncUTXO, StandardizedUTXO } from './misc.types';
+import { getAddrUtxosQuery } from 'src/queries/getAddressUtxos';
 
 @Injectable()
 export class MiscellaneousService {
@@ -58,26 +60,25 @@ export class MiscellaneousService {
   }
   async getMetrics(): Promise<Metrics> {
     try {
-      const [drepMetricsForAllDReps, totalActiveDReps, totalDelegators, totalGovernanceActions] =
-        await Promise.all([
-          this.cexplorerService.manager.query(
-           getTotalDrepsAndVotingPower
-          ),
-          this.cexplorerService.manager.query(
-            getActiveDRepsQuery
-          ),
-          this.cexplorerService.manager.query(
-            getTotalDelegatorsQuery
-          ),
-          this.cexplorerService.manager.query(getTotalGovernanceActionsQuery),
-        ]);
+      const [
+        drepMetricsForAllDReps,
+        totalActiveDReps,
+        totalDelegators,
+        totalGovernanceActions,
+      ] = await Promise.all([
+        this.cexplorerService.manager.query(getTotalDrepsAndVotingPower),
+        this.cexplorerService.manager.query(getActiveDRepsQuery),
+        this.cexplorerService.manager.query(getTotalDelegatorsQuery),
+        this.cexplorerService.manager.query(getTotalGovernanceActionsQuery),
+      ]);
 
       const metrics: Metrics = {
         totalRegisteredDReps: parseInt(drepMetricsForAllDReps[0].total_dreps),
         totalActiveDReps: parseInt(totalActiveDReps[0].total_active_dreps),
         totalGovernanceActions: parseInt(totalGovernanceActions[0].count),
         totalVotingPower:
-          parseInt(drepMetricsForAllDReps[0].total_active_power) / Currency.LOVELACETOADA, // convert to ADA
+          parseInt(drepMetricsForAllDReps[0].total_active_power) /
+          Currency.LOVELACETOADA, // convert to ADA
         totalRegisteredStakeAddresses: parseInt(
           totalDelegators[0].total_delegators,
         ),
@@ -89,6 +90,54 @@ export class MiscellaneousService {
         error?.message || error || 'An error occured',
         500,
       );
+    }
+  }
+
+  transformDbSyncUtxos(dbUtxos: DbSyncUTXO[]): BlockfrostUTXO[] {
+    return dbUtxos.map((utxo) => {
+      // Convert Buffer hash to hex string
+      const txHash = utxo.hash;
+
+      return {
+        address: utxo.address,
+        tx_hash: txHash,
+        output_index: utxo.index,
+        amount: [
+          {
+            unit: 'lovelace',
+            quantity: utxo.value,
+          },
+        ],
+        block: utxo.block_id.toString(),
+        data_hash: utxo.data_hash,
+        inline_datum: null,
+        reference_script_hash: null,
+      };
+    });
+  }
+
+  async getAddressUtxos(address: string): Promise<StandardizedUTXO[]> {
+    try {
+      // First query blockfrost to get the utxos
+      const utxos = await this.blockfrostService.getAddressUtxos(address);
+      return utxos;
+    } catch (error) {
+      // Try fetching from the local database
+      try {
+        const dbUtxos = (await this.cexplorerService.manager.query(
+          getAddrUtxosQuery,
+          [address],
+        )) as DbSyncUTXO[];
+
+        // Transform db response to match Blockfrost format
+        return this.transformDbSyncUtxos(dbUtxos);
+      } catch (dbError) {
+        console.log(dbError);
+        throw new HttpException(
+          dbError?.message || dbError || 'An error occurred',
+          500,
+        );
+      }
     }
   }
 }
