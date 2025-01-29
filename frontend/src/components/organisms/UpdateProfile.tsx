@@ -19,6 +19,7 @@ import { postAddAttachmentToIPFS } from '@/services/requests/postAttachmentToIPF
 import { urls } from '@/constants';
 import { PREDEFINED_KEYS } from './NewProfile';
 import CopyToClipboard from '../atoms/CopyToClipboard';
+import { ProfileWorkflowStepKey } from '@/lib/enums';
 const FormSchema = z.object({
   profileName: z.string().min(1, { message: 'Profile name is required' }),
   profileEmail: z.string().optional(),
@@ -50,12 +51,8 @@ const UpdateProfile = () => {
     null,
   );
   const [currentMetadata, setCurrentMetadata] = useState(null);
-  const {
-    updateStep,
-    metadataJsonLd,
-    handleRefresh,
-    drepToBeClaimed
-  } = useDRepContext();
+  const { updateStep, metadataJsonLd, handleRefresh, drepToBeClaimed } =
+    useDRepContext();
   const { addSuccessAlert } = useGlobalNotifications();
 
   useEffect(() => {
@@ -114,8 +111,8 @@ const UpdateProfile = () => {
           addSuccessAlert('Draft restored!');
         }
         if (Boolean(getValues('profileName'))) {
-          updateStep('profile', 'update')
-        } else updateStep('profile', 'active')
+          updateStep(ProfileWorkflowStepKey.PROFILE, 'update');
+        } else updateStep(ProfileWorkflowStepKey.PROFILE, 'active');
         return;
       } catch (error) {
         console.log(error);
@@ -123,7 +120,7 @@ const UpdateProfile = () => {
     };
     getDRep();
     return () => {
-     updateStep('profile', 'success')
+      updateStep(ProfileWorkflowStepKey.PROFILE, 'success');
     };
   }, [metadataJsonLd]);
 

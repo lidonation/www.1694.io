@@ -30,6 +30,7 @@ import DRepAvatarCard from './DRepAvatarCard';
 import { useDRepContext } from '@/context/drepContext';
 import { useGetDRepMetadataQuery } from '@/hooks/useGetDRepMetadataQuery';
 import DRepIdHolder from './DRepIdHolder';
+import { useGetOwnership } from '@/hooks/useGetOwnership';
 
 interface StatusProps {
   status:
@@ -83,12 +84,11 @@ type DrepProfileCardProps = {
 const DrepProfileCard = ({ drep, voterId, state }: DrepProfileCardProps) => {
   const { isMobile } = useScreenDimension();
   const { setLoginModalOpen, isLoggedIn } = useDRepContext();
-  const { dRepIDBech32 } = useCardano();
   const [canEdit, setCanEdit] = useState(false);
   const { addSuccessAlert } = useGlobalNotifications();
   const [isSubmittingMetadata, setIsSubmittingMetadata] = useState(false);
   const [hoveredOnWarning, setHoveredOnWarning] = useState(false);
-
+  const {ownership} =useGetOwnership({drepId: drep?.view, voterId});
   const { metadata, isMetadataLoading, metadataError } =
     useGetDRepMetadataQuery(voterId);
 
@@ -297,12 +297,10 @@ const DrepProfileCard = ({ drep, voterId, state }: DrepProfileCardProps) => {
             }}
           />
         )}
-        {(drep?.view == dRepIDBech32 ||
-          drep?.signature_voterId == dRepIDBech32) &&
+        {(ownership?.result && ownership?.result === true) &&
           renderUnsavedChanges()}
       </div>
-      {(drep?.view == dRepIDBech32 ||
-        drep?.signature_voterId == dRepIDBech32) && (
+      {(ownership?.result && ownership?.result === true) && (
         <div className="flex max-w-prose flex-col gap-2">
           <Button
             handleClick={

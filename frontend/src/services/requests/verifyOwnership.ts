@@ -14,6 +14,7 @@ export interface VerifyOwnershipPayloadResponse {
     type: 'drep' | 'signer';
   };
 }
+
 export const verifyOwnership = async (
   payload: VerifyOwnershipPayloadRequest,
 ) => {

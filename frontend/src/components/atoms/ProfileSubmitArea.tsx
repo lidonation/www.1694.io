@@ -3,6 +3,8 @@ import Button from './Button';
 import { useCardano } from '@/context/walletContext';
 import { useDRepContext } from '@/context/drepContext';
 import { useRouter } from 'next/navigation';
+import { ProfileWorkflowStepKey } from '@/lib/enums';
+import { STEPS } from './SetupProgressBar';
 
 interface ProfileSubmitAreaProps {
   isUpdate?: boolean;
@@ -10,18 +12,15 @@ interface ProfileSubmitAreaProps {
   preNavigationCheck?: () => Promise<boolean> | boolean;
 }
 
-const ProfileSubmitArea = ({ 
-  isUpdate, 
+const ProfileSubmitArea = ({
+  isUpdate,
   isDisabled = false,
-  preNavigationCheck 
+  preNavigationCheck,
 }: ProfileSubmitAreaProps) => {
   const { isEnabled } = useCardano();
   const router = useRouter();
-  const {
-    currentRegistrationStep,
-    setCurrentRegistrationStep,
-    updateStep
-  } = useDRepContext();
+  const { currentRegistrationStep, setCurrentRegistrationStep, updateStep } =
+    useDRepContext();
 
   const handleNavigate = async () => {
     if (preNavigationCheck) {
@@ -44,23 +43,18 @@ const ProfileSubmitArea = ({
     ) as HTMLButtonElement;
     submitButton.click();
 
-    const stepMap = {
-      1: 'profile',
-      2: 'signatures',
-      3: 'socials',
-      4: 'review'
-    } as const;
-
     if (currentRegistrationStep === 4) {
-      updateStep('review', 'success');
+      updateStep(ProfileWorkflowStepKey.REVIEW, 'success');
       return;
     }
 
-    const nextStep = stepMap[currentRegistrationStep as keyof typeof stepMap];
+    const nextStep = STEPS[currentRegistrationStep - 1]?.key;
     if (nextStep) {
       updateStep(nextStep, 'active');
       setCurrentRegistrationStep(currentRegistrationStep + 1);
-      router.push(`/dreps/workflow/profile/update/step${currentRegistrationStep + 1}`);
+      router.push(
+        `/dreps/workflow/profile/update/step${currentRegistrationStep + 1}`,
+      );
     }
   };
 

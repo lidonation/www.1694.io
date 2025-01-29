@@ -29,6 +29,7 @@ import {
 import { usePathname } from 'next/navigation';
 import { SingleDRep } from '../../types/api';
 import { useGetOwnership } from '@/hooks/useGetOwnership';
+import { ProfileWorkflowStepKey } from '@/lib/enums';
 
 export type StepStatus = 'success' | 'active' | 'pending' | 'update';
 
@@ -233,7 +234,7 @@ function DRepProvider(props: Props) {
         setNewDrepId(drep?.drep_id);
       }
       if (drep?.signature_signature) {
-        updateStep('signatures', 'success');
+        updateStep(ProfileWorkflowStepKey.SIGNATURES, 'success');
       }
       setDrepEntityToBeClaimed(drep);
 
@@ -271,16 +272,17 @@ function DRepProvider(props: Props) {
       const metadataBody = metadataJsonLd?.body;
 
       if (metadataBody?.givenName || metadataBody?.bio || metadataBody?.email) {
-        updateStep('profile', 'success');
+        updateStep(ProfileWorkflowStepKey.PROFILE, 'success');
       }
       if (metadataBody?.references?.length > 0) {
         const currentSocialLinks = ['x', 'github', 'instagram', 'facebook'];
         const hasSocialLinks = metadataBody.references.some((ref: any) =>
           currentSocialLinks.includes(ref?.label?.['@value'] || ref?.label),
         );
-        if (hasSocialLinks) updateStep('socials', 'success');
+        if (hasSocialLinks)
+          updateStep(ProfileWorkflowStepKey.SOCIALS, 'success');
       }
-      if (metadataBody) updateStep('review', 'success');
+      if (metadataBody) updateStep(ProfileWorkflowStepKey.REVIEW, 'success');
     } catch (error) {
       console.log(error);
     }

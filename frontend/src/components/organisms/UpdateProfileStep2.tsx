@@ -9,7 +9,11 @@ import { usePostUpdateDrepMutation } from '@/hooks/usePostUpdateDRepMutation';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import ProfileSubmitArea from '../atoms/ProfileSubmitArea';
 import { Box, Typography } from '@mui/material';
-import { convertDrepPhraseToCIP105, convertString, setItemToLocalStorage } from '@/lib';
+import {
+  convertDrepPhraseToCIP105,
+  convertString,
+  setItemToLocalStorage,
+} from '@/lib';
 import WalletConnectButton from '../molecules/WalletConnectButton';
 import LoginButton from '../molecules/LoginButton';
 import { getSwitchWithTextTrack } from './UserLoginModal';
@@ -18,6 +22,7 @@ import CopyToClipboard from '../atoms/CopyToClipboard';
 import { useVerifyTransactionWitness } from '@/hooks/useGetWitnessVerification';
 import { usePostNewDrepMutation } from '@/hooks/usePostNewDRepMutation';
 import { drepInput } from '@/models/drep';
+import { ProfileWorkflowStepKey } from '@/lib/enums';
 
 const FormSchema = z.object({
   signature: z.string(),
@@ -208,8 +213,8 @@ const UpdateProfileStep2 = () => {
         }));
         setValue('signature', signature);
         setValue('key', vkey);
-        updateStep('signatures', 'update');
-      }else updateStep('signatures', 'active');
+        updateStep(ProfileWorkflowStepKey.SIGNATURES, 'update');
+      } else updateStep(ProfileWorkflowStepKey.SIGNATURES, 'active');
     } catch (error) {
       console.log(error);
       addErrorAlert(
@@ -219,9 +224,9 @@ const UpdateProfileStep2 = () => {
 
     return () => {
       if (loginCredentials) {
-        updateStep('signatures', 'success');
+        updateStep(ProfileWorkflowStepKey.SIGNATURES, 'success');
       } else {
-        updateStep('signatures', 'pending');
+        updateStep(ProfileWorkflowStepKey.SIGNATURES, 'pending');
       }
     };
   }, [loginCredentials]);

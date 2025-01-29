@@ -3,9 +3,11 @@ import NewProfile from '@/components/organisms/NewProfile';
 import { useDRepContext } from '@/context/drepContext';
 import { useCardano } from '@/context/walletContext';
 import { compareDRepIDs } from '@/lib';
+import { ProfileWorkflowStepKey } from '@/lib/enums';
 import { getSingleDRepViaVoterId } from '@/services/requests/getSingleDrepViaVoterId';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { usePathname,  useRouter, useSearchParams } from 'next/navigation';
 import React, { useEffect } from 'react';
+
 
 const Page = () => {
   const {
@@ -19,7 +21,7 @@ const Page = () => {
 
   const { isEnabled, dRepIDBech32 } = useCardano();
   const router = useRouter();
-  const pathname=usePathname();
+  const pathname = usePathname();
   const params = useSearchParams();
 
   useEffect(() => {
@@ -38,20 +40,24 @@ const Page = () => {
           const drep = await getSingleDRepViaVoterId(dRepIDBech32);
           if (drep?.drep_id) {
             setNewDrepId(drep.drep_id);
-            updateStep('profile', 'update');
+            updateStep(ProfileWorkflowStepKey.PROFILE, 'update');
             router.push(`/dreps/workflow/profile/update/step1`);
           } else {
-            updateStep('profile', 'active');
+            updateStep(ProfileWorkflowStepKey.PROFILE, 'active');
           }
         } catch (error) {
           if (
             error.response?.status === 404 &&
             error.response?.data?.message === 'Drep not found!'
           ) {
-            updateStep('profile', 'active');
+            updateStep(ProfileWorkflowStepKey.PROFILE, 'active');
           }
         }
       };
+
+      if (drepToBeClaimed && compareDRepIDs(drepToBeClaimed, dRepIDBech32)) {
+        checkIfExistingDRep();
+      }
 
       if (drepToBeClaimed && compareDRepIDs(drepToBeClaimed, dRepIDBech32)) {
         checkIfExistingDRep();
