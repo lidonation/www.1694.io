@@ -47,8 +47,7 @@ const LoginButton = ({
           drepId,
           voterId: dRepIDBech32,
           stakeKey: stakeKeyBech32,
-          signature,
-          key,
+          signatures: [{ signature, key, type: 'signer' }],
           expiry: loginPeriod,
         };
         const { token, session } = await userLogin(loginCredentials);
@@ -58,7 +57,6 @@ const LoginButton = ({
         setIsLoggedIn(true);
         setLoginModalOpen(false);
       }
-      
     } catch (error) {
       console.log(error);
       if (error instanceof Error) {

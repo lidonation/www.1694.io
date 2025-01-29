@@ -1,4 +1,5 @@
-import {  BaseImmutableEntity } from 'src/global';
+
+import { BaseImmutableEntity } from '../global';
 import { Column, Entity,  PrimaryGeneratedColumn } from 'typeorm';
 
 

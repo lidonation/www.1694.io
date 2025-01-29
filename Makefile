@@ -44,6 +44,13 @@ build:
 sh-backend:
 	docker-compose exec backend sh
 
+generate-migration:
+	@if [ -z "$(MIGRATION_NAME)" ]; then \
+		echo "Error: MIGRATION_NAME is required. Usage: make generate-migration MIGRATION_NAME=YourMigrationName"; \
+		exit 1; \
+	fi
+	docker-compose exec backend npx ts-node ./node_modules/.bin/typeorm migration:generate -d ./src/typeorm.config.ts ./src/migrations/$(MIGRATION_NAME)
+
 .PHONY: sh-cardano
 sh-cardano:
 	docker-compose exec cardano-node sh

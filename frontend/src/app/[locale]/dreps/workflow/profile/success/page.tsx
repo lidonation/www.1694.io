@@ -4,7 +4,7 @@ import TimerCountDown from '@/components/atoms/TimerCountDown';
 import { urls } from '@/constants';
 import { useDRepContext } from '@/context/drepContext';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
-import { useCardano } from '@/context/walletContext';
+import { ProfileWorkflowStepKey } from '@/lib/enums';
 import { checkTxExists } from '@/services/requests/checkTxExists';
 import { Grow } from '@mui/material';
 import Link from 'next/link';
@@ -14,8 +14,7 @@ import React, { useEffect, useState } from 'react';
 
 const page = () => {
   const [isTxSynced, setIsTxSynced] = useState(false);
-  const { setStep1Status } = useDRepContext();
-  const { dRepIDBech32 } = useCardano();
+  const { updateStep, drepToBeClaimed } = useDRepContext();
   const { addErrorAlert } = useGlobalNotifications();
 
   const searchParams = useSearchParams();
@@ -76,7 +75,7 @@ const page = () => {
         <Link href={`${urls.cexplorerUrl}/tx/${txHash}`} target="_blank">
           <div className="flex flex-col items-center justify-center gap-2 text-wrap text-gray-600 hover:cursor-pointer hover:text-gray-800">
             <p className="underline">{txHash}</p>
-            <div className='flex items-center gap-2'>
+            <div className="flex items-center gap-2">
               <img src="/svgs/external-link.svg" alt="" />
               <p>View Tx</p>
             </div>
@@ -97,14 +96,16 @@ const page = () => {
         <Button
           variant="outlined"
           bgcolor="transparent"
-          handleClick={() => setStep1Status('update')}
+          handleClick={() =>
+            updateStep(ProfileWorkflowStepKey.PROFILE, 'update')
+          }
         >
           <Link className="w-fit" href="/dreps/workflow/profile/update/step1">
             Make Changes
           </Link>
         </Button>
         <Button>
-          <Link className="w-fit" href={`/dreps/${dRepIDBech32}`}>
+          <Link className="w-fit" href={`/dreps/${drepToBeClaimed}`}>
             View your Profile
           </Link>
         </Button>

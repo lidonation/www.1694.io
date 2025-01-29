@@ -7,7 +7,7 @@ import {
   useMemo,
   useState,
 } from 'react';
-import { Snackbar, Alert } from '@mui/material';
+import { Snackbar, Alert, CircularProgress } from '@mui/material';
 import { SnackbarSeverity } from '@/models/snackbar';
 import { useScreenDimension } from '@/hooks';
 
@@ -16,17 +16,19 @@ interface ProviderProps {
 }
 
 interface GlobalNotificationContext {
-  addSuccessAlert: (message: string, autoHideDuration?: number) => void;
-  addErrorAlert: (message: string, autoHideDuration?: number) => void;
-  addWarningAlert: (message: string, autoHideDuration?: number) => void;
+  addSuccessAlert: (message: string, autoHide?: boolean, autoHideDuration?: number) => void;
+  addErrorAlert: (message: string, autoHide?: boolean, autoHideDuration?: number) => void;
+  addWarningAlert:(message: string, autoHide?: boolean, autoHideDuration?: number) => void;
   addChangesSavedAlert: () => void;
+  addPendingAlert: (message: string, autoHide?: boolean, autoHideDuration?: number) => void;
 }
 
 interface GlobalMessage {
   key: number;
   message: string;
   severity: SnackbarSeverity;
-  autoHideDuration: number;
+  autoHideDuration: number | null;
+  iconOverride?: React.ReactNode;
 }
 
 interface State {
@@ -53,13 +55,18 @@ function GlobalNotificationsProvider({ children }: ProviderProps) {
   const [notifsPack, setNotifsPack] = useState<readonly GlobalMessage[]>([]);
   const [{ messageInfo, open }, setState] = useState(defaultState);
   const { isMobile } = useScreenDimension();
+
   const addWarningAlert = useCallback(
-    (message: string, autoHideDuration = DEFAULT_AUTO_HIDE_DURATION) =>
+    (
+      message: string,
+      autoHide = true,
+      autoHideDuration = DEFAULT_AUTO_HIDE_DURATION,
+    ) =>
       setNotifsPack((prev) => [
         ...prev,
         {
           message,
-          autoHideDuration,
+          autoHideDuration: autoHide ? autoHideDuration : null,
           severity: 'warning',
           key: new Date().getTime(),
         },
@@ -68,12 +75,16 @@ function GlobalNotificationsProvider({ children }: ProviderProps) {
   );
 
   const addSuccessAlert = useCallback(
-    (message: string, autoHideDuration = DEFAULT_AUTO_HIDE_DURATION) =>
+    (
+      message: string,
+      autoHide = true,
+      autoHideDuration = DEFAULT_AUTO_HIDE_DURATION,
+    ) =>
       setNotifsPack((prev) => [
         ...prev,
         {
           message,
-          autoHideDuration,
+          autoHideDuration: autoHide ? autoHideDuration : null,
           severity: 'success',
           key: new Date().getTime(),
         },
@@ -81,13 +92,36 @@ function GlobalNotificationsProvider({ children }: ProviderProps) {
     [],
   );
 
-  const addErrorAlert = useCallback(
-    (message: string, autoHideDuration = DEFAULT_AUTO_HIDE_DURATION) =>
+  const addPendingAlert = useCallback(
+    (
+      message: string,
+      autoHide = true,
+      autoHideDuration = DEFAULT_AUTO_HIDE_DURATION,
+    ) =>
       setNotifsPack((prev) => [
         ...prev,
         {
           message,
-          autoHideDuration,
+          autoHideDuration: autoHide ? autoHideDuration : null,
+          severity: 'info',
+          key: new Date().getTime(),
+          iconOverride: <CircularProgress size={24} />,
+        },
+      ]),
+    [],
+  );
+
+  const addErrorAlert = useCallback(
+    (
+      message: string,
+      autoHide = true,
+      autoHideDuration = DEFAULT_AUTO_HIDE_DURATION,
+    ) =>
+      setNotifsPack((prev) => [
+        ...prev,
+        {
+          message,
+          autoHideDuration: autoHide ? autoHideDuration : null,
           severity: 'error',
           key: new Date().getTime(),
         },
@@ -106,8 +140,15 @@ function GlobalNotificationsProvider({ children }: ProviderProps) {
       addErrorAlert,
       addChangesSavedAlert,
       addWarningAlert,
+      addPendingAlert,
     }),
-    [addSuccessAlert, addErrorAlert, addChangesSavedAlert, addWarningAlert],
+    [
+      addSuccessAlert,
+      addErrorAlert,
+      addChangesSavedAlert,
+      addWarningAlert,
+      addPendingAlert,
+    ],
   );
 
   useEffect(() => {
@@ -117,7 +158,7 @@ function GlobalNotificationsProvider({ children }: ProviderProps) {
       setNotifsPack((prev) => prev.slice(1));
     } else if (notifsPack.length && messageInfo && open) {
       // Close an active snack when a new one is added
-      // setState((prev) => ({ ...prev, open: false }));
+      setState((prev) => ({ ...prev, open: false }));
     }
   }, [notifsPack, messageInfo, open]);
 
@@ -153,6 +194,7 @@ function GlobalNotificationsProvider({ children }: ProviderProps) {
             onClose={handleClose}
             severity={messageInfo.severity}
             variant="filled"
+            icon={messageInfo.iconOverride}
             sx={{
               minWidth: isMobile ? '90%' : '30vw',
               backgroundColor:

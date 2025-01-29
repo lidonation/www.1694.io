@@ -14,12 +14,15 @@ export const getDrepCexplorerDetailsQuery: string = `
           dr.voting_anchor_id, 
           dr.deposit,
           dr.tx_id,
+          txo.address AS reg_address,
           va.url AS metadata_url,
           ROW_NUMBER() OVER (PARTITION BY dr.drep_hash_id ORDER BY dr.tx_id DESC) AS RegRowNum
         FROM 
           drep_registration AS dr
         LEFT JOIN 
           voting_anchor AS va ON dr.voting_anchor_id = va.id
+        LEFT JOIN 
+          tx_out txo ON dr.tx_id = txo.tx_id
     ),
     RankedRows AS (
         SELECT 
@@ -36,6 +39,7 @@ export const getDrepCexplorerDetailsQuery: string = `
           lr.voting_anchor_id AS reg_voting_anchor_id,  
           lr.metadata_url,
           lr.tx_id,
+          lr.reg_address,
           sa.view AS stake_address,
           (lr.deposit IS NOT NULL AND lr.deposit < 0) AS retired,
           COALESCE(dd_data.vote_count, 0) AS delegation_vote_count,
@@ -70,6 +74,7 @@ export const getDrepCexplorerDetailsQuery: string = `
         r.deposit,
         r.metadata_url,
         r.has_script,
+        r.reg_address,
         (da.epoch_no - COALESCE(
           (SELECT b.epoch_no 
            FROM voting_procedure vp 

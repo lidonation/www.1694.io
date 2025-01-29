@@ -3,5 +3,5 @@ import { postNewDRep } from '@/services/requests/postAddDRep';
 import { useMutation } from 'react-query';
 
 export const usePostNewDrepMutation = () => {
-  return useMutation(({ drep }: { drep: drepInput }) => postNewDRep(drep));
+  return useMutation(({ drep }: { drep:drepInput }) => postNewDRep(drep));
 };

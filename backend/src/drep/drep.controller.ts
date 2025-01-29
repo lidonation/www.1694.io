@@ -7,7 +7,6 @@ import {
   ParseIntPipe,
   Post,
   Query,
-  Res,
 } from '@nestjs/common';
 
 import { createDrepDto, ValidateMetadataDTO } from 'src/dto';
@@ -48,6 +47,15 @@ export class DrepController {
       type,
     );
   }
+  
+  @Get('verify-ownership')
+  verifyDrepOwnership(
+    @Query('voterId') voterId: string,
+    @Query('drepId') drepId: string
+  ) {
+    return this.drepService.verifyOwnership(voterId, drepId);
+  }
+
   @Get('epochs/latest/parameters')
   getEpochParams() {
     return this.drepService.getEpochParams();

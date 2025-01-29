@@ -3,11 +3,13 @@ import { useCardano } from '@/context/walletContext';
 import { useDRepContext } from '@/context/drepContext';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import ProfileSubmitArea from '../atoms/ProfileSubmitArea';
-import { getItemFromLocalStorage, removeItemFromLocalStorage } from '@/lib';
+import {
+  getItemFromLocalStorage,
+  removeItemFromLocalStorage,
+} from '@/lib';
 import MetadataEditor from '../atoms/MetadataEditor';
 import MetadataViewer from '../atoms/MetadataViewer';
 import Button from '../atoms/Button';
@@ -15,6 +17,8 @@ import SubmitMetadataModal from '../atoms/SubmitMetadataModal';
 import { useRouter } from 'next/navigation';
 import { renderJSONLDToJSONArr } from '@/lib/metadataProcessor';
 import { deleteItemFromIndexedDB } from '@/lib/indexedDb';
+import CopyToClipboard from '../atoms/CopyToClipboard';
+import { ProfileWorkflowStepKey } from '@/lib/enums';
 const FormSchema = z.object({
   metadata: z.string().optional(),
 });
@@ -25,11 +29,11 @@ const UpdateProfileStep4 = () => {
     resolver: zodResolver(FormSchema),
   });
   const { dRepIDBech32 } = useCardano();
-  const { setIsNotDRepErrorModalOpen, setStep4Status, metadataJsonLd } =
+  const { setIsNotDRepErrorModalOpen, updateStep, metadataJsonLd } =
     useDRepContext();
   const router = useRouter();
   const [canEdit, setCanEdit] = useState(false);
-  const [isAwaitingSubmission, setIsAwaitingSubmission] = useState(false);
+  const [, setIsAwaitingSubmission] = useState(false);
   const { addChangesSavedAlert, addSuccessAlert } = useGlobalNotifications();
   const [isMetadataLoading, setIsMetadataLoading] = useState(false);
   const [metadataJson, setMetadataJson] = useState(null);
@@ -48,8 +52,8 @@ const UpdateProfileStep4 = () => {
         setValue('metadata', JSON.stringify(convertedMetadata));
         setIsMetadataLoading(false);
         if (metadataJsonLd) {
-          setStep4Status('update');
-        } else setStep4Status('active');
+          updateStep(ProfileWorkflowStepKey.REVIEW, 'update');
+        } else updateStep(ProfileWorkflowStepKey.REVIEW, 'active');
         setIsMetadataLoading(false);
         return;
       } catch (error) {
@@ -61,8 +65,13 @@ const UpdateProfileStep4 = () => {
       }
     };
     processMetadata();
+    return () => {
+      if (metadata) {
+        updateStep(ProfileWorkflowStepKey.REVIEW, 'success');
+      } else updateStep(ProfileWorkflowStepKey.REVIEW, 'pending');
+    };
   }, [metadataJsonLd, refresh]);
-
+  
   const resetDraft = async () => {
     removeItemFromLocalStorage('isUpdating');
     await deleteItemFromIndexedDB('metadataJsonLd');
@@ -111,15 +120,9 @@ const UpdateProfileStep4 = () => {
         <h1 className="text-4xl font-bold text-zinc-800">Your metadata</h1>
         {dRepIDBech32 && (
           <div className="flex flex-row flex-wrap gap-1 lg:flex-nowrap">
-            <span className="w-full break-words text-slate-500 lg:w-fit">
-              {dRepIDBech32}
-            </span>
             <CopyToClipboard
               text={dRepIDBech32}
-              onCopy={() => {
-                console.log('copied!');
-              }}
-              className="clipboard-text cursor-pointer"
+              textStyles="w-full break-words text-slate-500 lg:w-fit"
             >
               <img src="/svgs/copy.svg" alt="copy" />
             </CopyToClipboard>

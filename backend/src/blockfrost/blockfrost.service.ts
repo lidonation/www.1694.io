@@ -3,6 +3,8 @@ import { HttpException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 import { lastValueFrom } from 'rxjs';
+import { BlockfrostUTXO } from 'src/miscellaneous/misc.types';
+
 
 @Injectable()
 export class BlockfrostService {
@@ -74,6 +76,26 @@ export class BlockfrostService {
         }),
       );
       return response.data;
+    } catch (error) {
+      console.log(error);
+      throw new HttpException(
+        error?.response?.data || 'An error occured',
+        error?.response?.status || 500,
+      );
+    }
+  }
+
+  async getAddressUtxos(address: string) {
+    try {
+      const apiUrl = `${this.blockfrostAPIURL}/api/v0/addresses/${address}/utxos`;
+      const response = await lastValueFrom(
+        this.httpService.get(apiUrl, {
+          headers: {
+            project_id: this.blockfrostAPIProjectID,
+          },
+        }),
+      );
+      return response.data as BlockfrostUTXO[];
     } catch (error) {
       console.log(error);
       throw new HttpException(

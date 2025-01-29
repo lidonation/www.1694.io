@@ -1,7 +1,20 @@
 import React, { createContext, useContext, useState, useMemo, useCallback } from 'react';
 
 const SharedContext = createContext(null);
-
+export interface SharedState {
+  isWalletListModalOpen: boolean;
+  isLoginModalOpen: boolean;
+  isLoggedIn: boolean;
+  isNotDRepErrorModalOpen: boolean;
+  isMobileDrawerOpen: boolean;
+  hideCloseButtonOnLoginModal: boolean;
+  loginCredentials:{
+    signature:string | null,
+    key:string | null
+  };
+  dRepIDBech32: string;
+  stakeKey: string;
+}
 export function SharedProvider({ children }) {
   const [sharedState, setSharedState] = useState({
     isWalletListModalOpen: false,

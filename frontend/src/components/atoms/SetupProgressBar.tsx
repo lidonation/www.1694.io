@@ -1,160 +1,131 @@
-import React, { useRef, useEffect, useContext } from 'react';
-import { useRouter } from 'next/navigation';
-import { stepStatus, useDRepContext } from '@/context/drepContext';
-import { usePathname } from 'next/navigation';
+import React, { useEffect } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
+import { StepStatus, useDRepContext } from '@/context/drepContext';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
-const stepStatusChip = (stepNumber, stepText, stepStatus, handleClick) => {
-  const baseClasses =
-    'flex flex-col items-center justify-center gap-1 px-16 py-3 cursor-pointer';
-  const activeClasses = 'border-b-2 border-b-blue-800';
-  const inactiveClasses = 'border-b-2 border-b-gray-300';
-  const numberClasses = 'h-8 w-8 rounded-full text-center text-white p-1';
-  const onClick = () => handleClick(stepNumber);
-  if (stepStatus === 'active') {
+import { Tabs, Tab, Box } from '@mui/material';
+import { ProfileWorkflowStepKey } from '@/lib/enums';
+
+export const STEPS = [
+  { number: 1, key: ProfileWorkflowStepKey.PROFILE, label: 'Profile set up' },
+  { number: 2, key:  ProfileWorkflowStepKey.SIGNATURES, label: 'Verify DRep profile' },
+  { number: 3, key:  ProfileWorkflowStepKey.SOCIALS, label: 'References/Links' },
+  { number: 4, key:  ProfileWorkflowStepKey.REVIEW, label: 'Metadata setup' },
+] as const;
+
+const stepPathnameRegex = /\/dreps\/workflow\/profile\/update\/step(\d+)/;
+
+const StepIcon = ({ step, status }: { step: number; status: StepStatus }) => {
+  if (status === 'success' || status === 'update') {
     return (
-      <div className={`${baseClasses} ${activeClasses}`} onClick={onClick}>
-        <p className={`${numberClasses} bg-blue-800`}>{stepNumber}</p>
-        <p className="text-center">{stepText}</p>
-      </div>
-    );
-  } else if (stepStatus === 'success' || stepStatus === 'update') {
-    return (
-      <div
-        className={`${baseClasses} ${stepStatus === 'update' ? activeClasses : inactiveClasses}`}
-        onClick={onClick}
-      >
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-lime-300 text-white">
-          <img src="/svgs/check.svg" alt="check" className="h-8 w-8" />
-        </div>
-        <p className="text-center">{stepText}</p>
-      </div>
-    );
-  } else {
-    return (
-      <div className={`${baseClasses} ${inactiveClasses}`} onClick={onClick}>
-        <p className={`${numberClasses} bg-gray-300`}>{stepNumber}</p>
-        <p className="text-center">{stepText}</p>
+      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-lime-300 text-white">
+        <img src="/svgs/check.svg" alt="check" className="h-8 w-8" />
       </div>
     );
   }
+
+  return (
+    <div
+      className={`flex h-8 w-8 items-center justify-center rounded-full ${
+        status === 'active' ? 'bg-blue-800' : 'bg-gray-300'
+      } text-white`}
+    >
+      {step}
+    </div>
+  );
 };
 
 const SetupProgressBar = () => {
   const {
-    step1Status,
-    step2Status,
-    step3Status,
-    step4Status,
-    setStep1Status,
-    setStep2Status,
-    setStep3Status,
-    setStep4Status,
+    steps,
+    updateStep,
     setCurrentRegistrationStep,
     currentLocale,
+    drepClaimMismatch,
   } = useDRepContext();
-  const pathname = usePathname();
   const router = useRouter();
-  const containerRef = useRef(null);
-  const stepRefs = [
-    useRef(null),
-    useRef(null),
-    useRef(null),
-    useRef(null),
-  ];
+  const pathname = usePathname();
   const { addWarningAlert } = useGlobalNotifications();
-  const handleNavigate = (step) => {
+
+  // Get step from URL - returns 1-based number
+  const match = stepPathnameRegex.exec(pathname);
+  const urlStep = match ? Number(match[1]) : 1; // Default to 1 if no match
+
+  // Convert to 0-based for MUI Tabs
+  const activeStep = urlStep - 1;
+
+  const handleStepChange = (_: any, newStep: number) => {
     if (pathname === `/${currentLocale}/dreps/workflow/profile/new`) {
       addWarningAlert('You need to complete this step first.');
       return;
     }
-    if (step === 1) {
-      setStep1Status('active');
-      setCurrentRegistrationStep(1);
-      router.push(`/dreps/workflow/profile/update/step${step}`);
-    } else if (step === 2) {
-      setStep2Status('active');
-      setCurrentRegistrationStep(2);
-      router.push(`/dreps/workflow/profile/update/step${step}`)
-    } else if (step === 3) {
-      setStep3Status('active');
-      setCurrentRegistrationStep(3);
-      router.push(`/dreps/workflow/profile/update/step${step}`);
-    } else if (step === 4) {
-      setStep4Status('active');
-      setCurrentRegistrationStep(4);
-      router.push(`/dreps/workflow/profile/update/step${step}`);
+
+    // newStep is 0-based from MUI, convert to 1-based for URL/state
+    const stepNumber = newStep + 1;
+    const stepKey = STEPS[newStep].key;
+
+    const currentStepMatch = stepPathnameRegex.exec(pathname);
+    const currentStep = currentStepMatch ? Number(currentStepMatch[1]) : 0;
+
+    if (drepClaimMismatch && currentStep === 2 && stepNumber > 2) {
+      addWarningAlert('You need to verify your DRep profile first.');
+      return;
     }
+
+    updateStep(stepKey, 'active');
+    setCurrentRegistrationStep(stepNumber);
+    router.push(`/dreps/workflow/profile/update/step${stepNumber}`);
   };
+
   useEffect(() => {
-    const setStepOnPathChange = () => {
-      const match = pathname.match(
-        /\/dreps\/workflow\/profile\/update\/step(\d+)/,
-      );
-      if (match) {
-        const step = Number(match[1]);
-        switch (step) {
-          case 1:
-            setStep1Status('active');
-            setCurrentRegistrationStep(1);
-            break;
-          case 2:
-            setStep2Status('active');
-            setCurrentRegistrationStep(2);
-            break;
-          case 3:
-            setStep3Status('active');
-            setCurrentRegistrationStep(3);
-            break;
-          case 4:
-            setStep4Status('active');
-            setCurrentRegistrationStep(4);
-            break;
-        }
-      }
-    };
-    setStepOnPathChange();
+    const match = stepPathnameRegex.exec(pathname);
+    if (match) {
+      const stepNumber = Number(match[1]);
+      updateStep(STEPS[stepNumber - 1].key, 'active');
+      setCurrentRegistrationStep(stepNumber);
+    }
   }, [pathname]);
 
-  useEffect(() => {
-    const activeIndex = [
-      step1Status,
-      step2Status,
-      step3Status,
-      step4Status,
-    ].findIndex((status) => status === 'active');
-    if (activeIndex !== -1 && stepRefs[activeIndex].current) {
-      const activeStep = stepRefs[activeIndex].current;
-      const container = containerRef.current;
-
-      const containerWidth = container.offsetWidth;
-      const stepWidth = activeStep.offsetWidth;
-      const stepOffsetLeft = activeStep.offsetLeft;
-
-      container.scrollTo({
-        left: stepOffsetLeft - containerWidth / 2 + stepWidth / 2,
-        behavior: 'smooth',
-      });
-    }
-  }, [step1Status, step2Status, step3Status, step4Status]);
-
   return (
-    <div
-      className="progress_bar inline-flex w-full gap-5 overflow-x-scroll whitespace-nowrap"
-      ref={containerRef}
-    >
-      <div ref={stepRefs[0]}>
-        {stepStatusChip(1, 'Profile set up', step1Status, handleNavigate)}
-      </div>
-      <div ref={stepRefs[1]}>
-        {stepStatusChip(2, 'Verify DRep profile', step2Status, handleNavigate)}
-      </div>
-      <div ref={stepRefs[2]}>
-        {stepStatusChip(3, 'References/Links', step3Status, handleNavigate)}
-      </div>
-      <div ref={stepRefs[3]}>
-        {stepStatusChip(4, 'Metadata setup', step4Status, handleNavigate)}
-      </div>
-    </div>
+    <Box sx={{ width: '100%', overflowX: 'auto', marginX: 'auto' }}>
+      <Tabs
+        value={activeStep}
+        onChange={handleStepChange}
+        variant="scrollable"
+        scrollButtons="auto"
+        allowScrollButtonsMobile
+        sx={{
+          '& .MuiTab-root': {
+            minWidth: 'auto',
+            padding: '12px 64px',
+            borderBottom: '2px solid',
+            borderColor: 'grey.300',
+            '&.Mui-selected': {
+              borderColor: 'primary.dark',
+            },
+          },
+          '& .MuiTabs-indicator': {
+            display: 'none',
+          },
+        }}
+      >
+        {STEPS.map((step) => (
+          <Tab
+            key={step.number}
+            label={
+              <div className="flex flex-col items-center gap-1">
+                <StepIcon step={step.number} status={steps[step.key]} />
+                <span className="text-center capitalize">{step.label}</span>
+              </div>
+            }
+            sx={{
+              '&.Mui-selected': {
+                color: 'inherit',
+              },
+            }}
+          />
+        ))}
+      </Tabs>
+    </Box>
   );
 };
 

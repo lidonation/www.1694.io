@@ -181,10 +181,10 @@ const MetadataEditor = ({
   };
 
   const modalContent = (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2 max-h-[550px] overflow-auto">
       <div className="flex flex-col gap-4 ">
         <h2 className="text-xl font-bold">Edit Metadata</h2>
-        <div className="max-h-[550px] overflow-y-scroll">
+        <div>
           {metadata &&
             metadata.map(({ id, key, value }, index) => (
               <div key={index} className="mb-4">

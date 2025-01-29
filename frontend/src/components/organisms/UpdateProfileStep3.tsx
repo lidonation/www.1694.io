@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useCardano } from '@/context/walletContext';
 import { useDRepContext } from '@/context/drepContext';
 import { v4 as uuidv4 } from 'uuid';
-import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import ProfileSubmitArea from '../atoms/ProfileSubmitArea';
 import { getItemFromLocalStorage, setItemToLocalStorage } from '@/lib';
@@ -14,6 +13,8 @@ import {
 import { setItemToIndexedDB } from '@/lib/indexedDb';
 import { HtmlTooltip } from '../atoms/HoverChip';
 import Button from '../atoms/Button';
+import CopyToClipboard from '../atoms/CopyToClipboard';
+import { ProfileWorkflowStepKey } from '@/lib/enums';
 const UpdateProfileStep3 = () => {
   const { dRepIDBech32, loginSignTransaction } = useCardano();
 
@@ -21,9 +22,9 @@ const UpdateProfileStep3 = () => {
   const [referencesArr, setReferencesArr] = useState([]);
   const {
     setIsNotDRepErrorModalOpen,
-    setStep3Status,
     metadataJsonLd,
     handleRefresh,
+    updateStep,
   } = useDRepContext();
   const { addChangesSavedAlert, addSuccessAlert } = useGlobalNotifications();
 
@@ -49,8 +50,8 @@ const UpdateProfileStep3 = () => {
           addSuccessAlert('Draft restored!');
         }
         if (referencesArr.length > 0) {
-          setStep3Status('update');
-        } else setStep3Status('active');
+          updateStep(ProfileWorkflowStepKey.SOCIALS, 'update');
+        } else updateStep(ProfileWorkflowStepKey.SOCIALS, 'active');
         return;
       } catch (error) {
         console.log(error);
@@ -59,10 +60,11 @@ const UpdateProfileStep3 = () => {
     getDRep();
     return () => {
       if (referencesArr.length > 0) {
-        setStep3Status('success');
-      } else setStep3Status('pending');
+        updateStep(ProfileWorkflowStepKey.SOCIALS, 'success');
+      } else updateStep(ProfileWorkflowStepKey.SOCIALS, 'pending');
     };
   }, [metadataJsonLd]);
+
   const handleAddReference = () => {
     setReferencesArr([...referencesArr, { id: uuidv4(), key: '', value: '' }]);
   };
@@ -198,15 +200,9 @@ const UpdateProfileStep3 = () => {
         <h1 className="text-4xl font-bold text-zinc-800">Social Media</h1>
         {dRepIDBech32 && (
           <div className="flex flex-row flex-wrap gap-1 lg:flex-nowrap">
-            <span className="w-full break-words text-slate-500 lg:w-fit">
-              {dRepIDBech32}
-            </span>
             <CopyToClipboard
               text={dRepIDBech32}
-              onCopy={() => {
-                console.log('copied!');
-              }}
-              className="clipboard-text cursor-pointer"
+              textStyles="w-full break-words text-slate-500 lg:w-fit"
             >
               <img src="/svgs/copy.svg" alt="copy" />
             </CopyToClipboard>
@@ -248,23 +244,23 @@ const UpdateProfileStep3 = () => {
                   <img src="/svgs/trash.svg" alt="delete" className="h-5 w-5" />
                 </div>
                 {errors[id] && (errors[id].key || errors[id].value) && (
-                    <HtmlTooltip
-                      title={
-                        <div className="text-sm text-red-500">
-                          {errors[id].key && <p>{errors[id].key}</p>}
-                          {errors[id].value && <p>{errors[id].value}</p>}
-                        </div>
-                      }
-                      arrow
-                      placement="top"
-                    >
-                      <img
-                        src="/svgs/alert-circle.svg"
-                        alt="error"
-                        className="h-5 w-5"
-                      />
-                    </HtmlTooltip>
-                  )}
+                  <HtmlTooltip
+                    title={
+                      <div className="text-sm text-red-500">
+                        {errors[id].key && <p>{errors[id].key}</p>}
+                        {errors[id].value && <p>{errors[id].value}</p>}
+                      </div>
+                    }
+                    arrow
+                    placement="top"
+                  >
+                    <img
+                      src="/svgs/alert-circle.svg"
+                      alt="error"
+                      className="h-5 w-5"
+                    />
+                  </HtmlTooltip>
+                )}
               </div>
             </div>
           ))}

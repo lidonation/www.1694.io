@@ -1,6 +1,6 @@
 'use client';
 import SetupProgressBar from '@/components/atoms/SetupProgressBar';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useDRepContext } from '@/context/drepContext';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
@@ -13,33 +13,25 @@ interface Props {
 
 const Layout = ({ children }: Props) => {
   const pathname = usePathname();
+  const [isMounted, setIsMounted] = useState(false);
   const {
     currentLocale,
-    isLoggedIn,
-    setLoginModalOpen,
-    loginModalOpen,
     isWalletListModalOpen,
-    setHideCloseButtonOnLoginModal,
-    setHideCloseButtonOnWalletListModal,
+    setIsWalletListModalOpen,
+    handleCleanup,
   } = useDRepContext();
   const { addWarningAlert } = useGlobalNotifications();
-  const { dRepIDBech32 } = useCardano();
+  const { dRepIDBech32, isEnabled } = useCardano();
 
   useEffect(() => {
     if (
-      !isLoggedIn &&
       !isWalletListModalOpen &&
+      !isEnabled &&
       pathname.includes(`/${currentLocale}/dreps/workflow/profile/update`)
     ) {
-      setLoginModalOpen(true);
-      setHideCloseButtonOnLoginModal(true);
+      setIsWalletListModalOpen(true);
     }
-    if ((isLoggedIn && loginModalOpen) || isWalletListModalOpen) {
-      setLoginModalOpen(false);
-      setHideCloseButtonOnWalletListModal(true);
-      setHideCloseButtonOnLoginModal(false);
-    }
-  }, [loginModalOpen, isLoggedIn, isWalletListModalOpen]);
+  }, [isWalletListModalOpen]);
 
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
@@ -55,6 +47,17 @@ const Layout = ({ children }: Props) => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, []);
+
+  useEffect(() => {
+    if (!isMounted) {
+      setIsMounted(true);
+      return
+    }
+    //allow cleanup on unmount only
+    return () => {
+      handleCleanup();
+    };
+  }, [isMounted]);
 
   const generateCrumbs = () => {
     const pathSegments = pathname
@@ -104,7 +107,7 @@ const Layout = ({ children }: Props) => {
   return (
     <div>
       <BreadCrumbs crumbs={crumbs} />
-      <div className="form_container bg-white px-2 py-10 lg:px-5 mt-4">
+      <div className="form_container mt-4 bg-white px-2 py-10 lg:px-5">
         <div className="flex w-full flex-col items-center justify-center gap-2">
           {pathname !== `/${currentLocale}/dreps/workflow/profile/success` && (
             <SetupProgressBar />
