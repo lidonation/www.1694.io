@@ -3,19 +3,22 @@ import { useCardano } from '@/context/walletContext';
 import { useDRepContext } from '@/context/drepContext';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import UpdateProfileForm from '../molecules/UpdateProfileForm';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
-import { getItemFromLocalStorage, renderJsonLdValue, setItemToLocalStorage, sha256 } from '@/lib';
 import {
-  submitMetadata,
-} from '@/lib/metadataProcessor';
+  getItemFromLocalStorage,
+  renderJsonLdValue,
+  setItemToLocalStorage,
+  sha256,
+} from '@/lib';
+import { submitMetadata } from '@/lib/metadataProcessor';
 import { DRepMetadata, IPFSResponse } from '../../../types/commonTypes';
 import { setItemToIndexedDB } from '@/lib/indexedDb';
 import { postAddAttachmentToIPFS } from '@/services/requests/postAttachmentToIPFS';
 import { urls } from '@/constants';
 import { PREDEFINED_KEYS } from './NewProfile';
+import CopyToClipboard from '../atoms/CopyToClipboard';
 const FormSchema = z.object({
   profileName: z.string().min(1, { message: 'Profile name is required' }),
   profileEmail: z.string().optional(),
@@ -25,7 +28,6 @@ const FormSchema = z.object({
   motivations: z.string().optional(),
   qualifications: z.string().optional(),
   paymentAddress: z.string().optional(),
-
 });
 type InputType = z.infer<typeof FormSchema>;
 
@@ -36,20 +38,23 @@ const UpdateProfile = () => {
     control,
     formState: { errors },
     setValue,
-    getValues
+    getValues,
   } = useForm<InputType>({
     resolver: zodResolver(FormSchema),
   });
-  const { dRepIDBech32, loginSignTransaction, walletState:{usedAddress, changeAddress} } = useCardano();
+  const {
+    loginSignTransaction,
+    walletState: { usedAddress, changeAddress },
+  } = useCardano();
   const [currentProfileUrl, setCurrentProfileUrl] = useState<string | null>(
     null,
   );
   const [currentMetadata, setCurrentMetadata] = useState(null);
   const {
-    setIsNotDRepErrorModalOpen,
-    setStep1Status,
+    updateStep,
     metadataJsonLd,
     handleRefresh,
+    drepToBeClaimed
   } = useDRepContext();
   const { addSuccessAlert } = useGlobalNotifications();
 
@@ -62,9 +67,17 @@ const UpdateProfile = () => {
         setValue('profileBio', renderJsonLdValue(metadataBody?.bio));
         setValue('profileEmail', renderJsonLdValue(metadataBody?.email));
         setValue('motivations', renderJsonLdValue(metadataBody?.motivations));
-        setValue('qualifications', renderJsonLdValue(metadataBody?.qualifications));
+        setValue(
+          'qualifications',
+          renderJsonLdValue(metadataBody?.qualifications),
+        );
         setValue('objectives', renderJsonLdValue(metadataBody?.objectives));
-        setValue('paymentAddress', renderJsonLdValue(metadataBody?.paymentAddress) || usedAddress || changeAddress);
+        setValue(
+          'paymentAddress',
+          renderJsonLdValue(metadataBody?.paymentAddress) ||
+            usedAddress ||
+            changeAddress,
+        );
         setValue(
           'profileUrl',
           renderJsonLdValue(metadataBody?.image?.contentUrl) || '',
@@ -100,9 +113,9 @@ const UpdateProfile = () => {
         if (isUpdating) {
           addSuccessAlert('Draft restored!');
         }
-        if(Boolean(getValues('profileName'))){
-          setStep1Status('update');
-        }else setStep1Status('active');
+        if (Boolean(getValues('profileName'))) {
+          updateStep('profile', 'update')
+        } else updateStep('profile', 'active')
         return;
       } catch (error) {
         console.log(error);
@@ -110,17 +123,12 @@ const UpdateProfile = () => {
     };
     getDRep();
     return () => {
-      setStep1Status('success');
+     updateStep('profile', 'success')
     };
   }, [metadataJsonLd]);
 
-
   const saveProfile: SubmitHandler<InputType> = async (data) => {
     try {
-      if (!dRepIDBech32 || dRepIDBech32 == '') {
-        setIsNotDRepErrorModalOpen(true);
-        return;
-      }
       //if previous data doesnt match with current data, set isUpdating to true
       if (
         currentMetadata?.givenName !== data.profileName ||
@@ -227,17 +235,11 @@ const UpdateProfile = () => {
         <h1 className="text-4xl font-bold text-zinc-800">
           Update your Profile
         </h1>
-        {dRepIDBech32 && (
+        {drepToBeClaimed && (
           <div className="flex flex-row flex-wrap gap-1 lg:flex-nowrap">
-            <span className="w-full break-words text-slate-500 lg:w-fit">
-              {dRepIDBech32}
-            </span>
             <CopyToClipboard
-              text={dRepIDBech32}
-              onCopy={() => {
-                console.log('copied!');
-              }}
-              className="clipboard-text cursor-pointer"
+              text={drepToBeClaimed}
+              textStyles="w-full break-words text-slate-500 lg:w-fit"
             >
               <img src="/svgs/copy.svg" alt="copy" />
             </CopyToClipboard>

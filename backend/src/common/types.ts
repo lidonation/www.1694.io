@@ -171,6 +171,7 @@ export type VoterNoteResponseRecord = {
   timestamp: string;
 };
 export type VoterNoteResponse = VoterNoteResponseRecord[];
+
 export type ClaimedProfile = {
   type: 'claimed_profile';
   drep_id: string;

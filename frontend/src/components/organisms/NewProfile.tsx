@@ -4,19 +4,26 @@ import { useDRepContext } from '@/context/drepContext';
 import { Address } from '@emurgo/cardano-serialization-lib-asmjs';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import NewProfileForm from '../molecules/NewProfileForm';
 import { usePostNewDrepMutation } from '@/hooks/usePostNewDRepMutation';
-import { drepInput } from '@/models/drep';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
-import { renderJsonLdValue, setItemToLocalStorage, sha256 } from '@/lib';
+import {
+  convertDrepPhraseToCIP105,
+  renderJsonLdValue,
+  setItemToLocalStorage,
+  sha256,
+} from '@/lib';
 import { submitMetadata } from '@/lib/metadataProcessor';
 import { setItemToIndexedDB } from '@/lib/indexedDb';
 import { postAddAttachmentToIPFS } from '@/services/requests/postAttachmentToIPFS';
 import { urls } from '@/constants';
 import { DRepMetadata, IPFSResponse } from '../../../types/commonTypes';
+import CopyToClipboard from '../atoms/CopyToClipboard';
+import { Typography } from '@mui/material';
+import { drepInput } from '@/models/drep';
+
 const FormSchema = z.object({
   profileName: z.string().min(1, { message: 'Profile name is required' }),
   profileEmail: z.string().optional(),
@@ -27,7 +34,9 @@ const FormSchema = z.object({
   qualifications: z.string().optional(),
   paymentAddress: z.string().optional(),
 });
+
 type InputType = z.infer<typeof FormSchema>;
+
 export const PREDEFINED_KEYS = [
   'givenName',
   'bio',
@@ -39,6 +48,7 @@ export const PREDEFINED_KEYS = [
   'motivations',
   'qualifications',
 ];
+
 const NewProfile = () => {
   const {
     register,
@@ -46,14 +56,16 @@ const NewProfile = () => {
     control,
     formState: { errors },
     setValue,
+    getValues,
+    reset,
   } = useForm<InputType>({
     resolver: zodResolver(FormSchema),
   });
   const {
-    dRepIDBech32,
     stakeKey,
     loginSignTransaction,
     walletState: { usedAddress, changeAddress },
+    dRepIDBech32,
   } = useCardano();
   const { addSuccessAlert, addErrorAlert } = useGlobalNotifications();
   const [currentMetadata, setCurrentMetadata] = useState(null);
@@ -63,13 +75,16 @@ const NewProfile = () => {
   const router = useRouter();
   const newDRepMutation = usePostNewDrepMutation();
   const {
-    setIsNotDRepErrorModalOpen,
     setNewDrepId,
     setCurrentRegistrationStep,
     setIsLoggedIn,
     metadataJsonLd,
     handleRefresh,
     isDRepRegistered,
+    handleActionModalOpen,
+    handleActionModalClose,
+    drepToBeClaimed,
+    drepClaimMismatch,
   } = useDRepContext();
 
   useEffect(() => {
@@ -77,7 +92,10 @@ const NewProfile = () => {
       try {
         if (!metadataJsonLd) return;
         const metadataBody = metadataJsonLd?.body;
-        setValue('profileName', renderJsonLdValue(metadataBody?.givenName || metadataBody?.dRepName));
+        setValue(
+          'profileName',
+          renderJsonLdValue(metadataBody?.givenName || metadataBody?.dRepName),
+        );
         setValue('profileBio', renderJsonLdValue(metadataBody?.bio));
         setValue('profileEmail', renderJsonLdValue(metadataBody?.email));
         setValue('motivations', renderJsonLdValue(metadataBody?.motivations));
@@ -100,7 +118,6 @@ const NewProfile = () => {
           renderJsonLdValue(metadataBody?.image?.contentUrl) || '',
         );
 
-        //map through the metadata and set the current metadata for each exisitng field
         for (let key in metadataBody) {
           if (key === 'image') {
             setCurrentMetadata((prev: any) => ({
@@ -130,15 +147,94 @@ const NewProfile = () => {
       }
     };
     getDRep();
+    return () => {
+      reset();
+      setCurrentMetadata(null);
+      setCurrentProfileUrl(null);
+    };
   }, [metadataJsonLd]);
+
+  const renderModal = () => {
+    switch (true) {
+      //case where the user tries to claim a retired or unknown DRep
+      case !isDRepRegistered && drepClaimMismatch:
+        handleActionModalOpen({
+          title: 'Invalid DRep Claim',
+          severity: 'error',
+          children: (
+            <Typography
+              variant="subtitle2"
+              className="text-center font-semibold text-gray-700"
+              data-testid="invalid-drep-claim"
+            >
+              The DRep Profile you are trying to claim is either not registered
+              or most likely retired.
+            </Typography>
+          ),
+          actionButtons: [],
+          handleClose: handleActionModalClose,
+        });
+        return true;
+
+      //case where the user tries to claim a DRep that is already registered but doesn't match the user's DRep ID
+      case isDRepRegistered && drepClaimMismatch:
+        handleActionModalOpen({
+          title: 'DRep Claim Mismatch',
+          severity: 'warning',
+          children: (
+            <Typography
+              variant="subtitle2"
+              className="text-center font-semibold text-gray-700"
+              data-testid="invalid-drep-claim"
+            >
+              The DRep Profile you are trying to claim seems to not match the
+              identity of the DRep you are currently logged in with via wallet.
+              <br />
+              <span>
+                Note that you may still proceed with this workflow but you will
+                be required to prove that the DRep you are trying to claim is
+                yours.
+              </span>
+            </Typography>
+          ),
+          actionButtons: [
+            {
+              label: 'Proceed',
+              handleClick: () => {
+                saveProfile(getValues());
+                handleActionModalClose();
+              },
+            },
+            {
+              label: 'Cancel',
+              handleClick: () => {
+                handleActionModalClose();
+              },
+            },
+          ],
+          handleClose: handleActionModalClose,
+        });
+        return true;
+      default:
+        return false;
+    }
+  };
+
+  const handleSubmitForm = () => {
+    const modalShown = renderModal();
+    if (!modalShown) {
+      saveProfile(getValues());
+    }
+  };
 
   const saveProfile: SubmitHandler<InputType> = async (data) => {
     try {
-      if (!isDRepRegistered) {
-        setIsNotDRepErrorModalOpen(true);
-        return;
+      const signatureResult = await loginSignTransaction(drepToBeClaimed);
+      if (!signatureResult?.signature || !signatureResult?.key) {
+        throw new Error('Failed to get signature');
       }
-      const { signature, key } = await loginSignTransaction();
+
+      const { signature, key } = signatureResult;
       if (
         currentMetadata?.givenName !== data.profileName ||
         currentMetadata?.bio !== data.profileBio ||
@@ -177,30 +273,27 @@ const NewProfile = () => {
                 imageFile = data.profileUrl[0];
               }
             } else {
-              // instance of File object
               imageFile = data.profileUrl;
             }
           }
 
           if (imageFile) {
-            // upload image to ipfs first (File format)
             const formData = new FormData();
             formData.append('attachment', imageFile);
             const { ipfs_hash }: IPFSResponse = await postAddAttachmentToIPFS({
               attachment: formData,
             });
             const imageUrl = `${urls.ipfsGateway}/ipfs/${ipfs_hash}`;
-            // hash the image to sha256
             const imageHash = await sha256(imageFile);
             metadataJson['image'] = {
               contentUrl: imageUrl,
               sha256: imageHash,
             };
           } else if (typeof data.profileUrl === 'string') {
-            // If it's a string, assume it's an existing URL
+            // if the user is updating the profile and the image is not changed
             metadataJson['image'] = {
               contentUrl: data.profileUrl,
-              sha256: '',
+              sha256: data?.profileUrl ? currentMetadata?.image?.sha256 : '',
             };
           }
         }
@@ -209,7 +302,6 @@ const NewProfile = () => {
           signature,
           vkey: key,
         };
-        //submit the metadata
         const { jsonHash, jsonld } = await submitMetadata(
           metadataKeys,
           metadataJson as any,
@@ -221,24 +313,30 @@ const NewProfile = () => {
         setItemToLocalStorage('isUpdating', 'true');
         await handleRefresh();
       }
-
-      const stakeAddress = Address.from_bytes(
-        Buffer.from(stakeKey, 'hex') as any,
-      ).to_bech32();
-      const formData: drepInput = {
-        signature,
-        stake_addr: stakeAddress,
-        key,
-        voter_id: dRepIDBech32,
-      };
-      const res = await newDRepMutation.mutateAsync({
-        drep: formData as any,
-      });
-      const { insertedDrep, token } = res;
-      setNewDrepId(insertedDrep.raw[0].id);
+      //we are confident that the DRep being claimed is the same as the user's DRep ID
+      if (!drepClaimMismatch) {
+        const stakeAddress = Address.from_bytes(
+          Buffer.from(stakeKey, 'hex') as any,
+        ).to_bech32();
+        const formData: drepInput = {
+          signatures: [{ signature, key, type: 'drep' }],
+          stake_addr: stakeAddress,
+          voter_id: convertDrepPhraseToCIP105(dRepIDBech32),
+          drep_bech32: convertDrepPhraseToCIP105(drepToBeClaimed),
+        };
+        const res = await newDRepMutation.mutateAsync({
+          drep: formData as any,
+        });
+        const { insertedDrep, token } = res;
+        setNewDrepId(insertedDrep.raw[0].id);
+        setItemToLocalStorage('token_1694', token);
+      }
       setCurrentRegistrationStep(2);
-      addSuccessAlert('DRep Profile Created Successfully!');
-      setItemToLocalStorage('token_1694', token);
+      addSuccessAlert(
+        drepClaimMismatch
+          ? 'Profile saved locally!'
+          : 'DRep Profile created successfully!',
+      );
       setItemToLocalStorage('signatures', { signature, key });
       setIsLoggedIn(true);
       router.push(`/dreps/workflow/profile/update/step2`);
@@ -256,17 +354,11 @@ const NewProfile = () => {
         <h1 className="text-4xl font-bold text-zinc-800">
           Create Your DRep Campaign
         </h1>
-        {dRepIDBech32 && (
+        {drepToBeClaimed && (
           <div className="flex flex-row flex-wrap gap-1 lg:flex-nowrap">
-            <span className="w-full break-words text-slate-500 lg:w-fit">
-              {dRepIDBech32}
-            </span>
             <CopyToClipboard
-              text={dRepIDBech32}
-              onCopy={() => {
-                console.log('copied!');
-              }}
-              className="clipboard-text cursor-pointer"
+              text={drepToBeClaimed}
+              textStyles="w-full break-words text-slate-500 lg:w-fit"
             >
               <img src="/svgs/copy.svg" alt="copy" />
             </CopyToClipboard>
@@ -278,7 +370,7 @@ const NewProfile = () => {
         </p>
       </div>
       <form
-        onSubmit={handleSubmit(saveProfile, onError)}
+        onSubmit={handleSubmit(handleSubmitForm, onError)}
         encType="multipart/form-data"
       >
         <NewProfileForm

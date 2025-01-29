@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import Jimp from 'jimp';
 import {
   Attachment,
@@ -219,8 +219,11 @@ export class AttachmentService {
         state: ipfsPinStatus.state,
       };
     } catch (error) {
-      console.error(error.response.data || error.response || error);
-      throw new HttpException(error.response.data, error.response.status);
+      console.error(error?.response?.data || error?.response || error);
+      throw new HttpException(
+        error?.response?.data || 'An error occured',
+        error?.response?.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
   async pinAttachmentToIPFS(hash: string): Promise<IPFSPinResponse> {

@@ -3,7 +3,6 @@ import { Drep } from './drep.entity';
 
 @Entity()
 export class Signature {
-  //can belong to a Drep or voter
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -13,8 +12,11 @@ export class Signature {
   })
   drep: Drep;
 
+  @Column({ nullable: true, unique: false, default: null })
+  drep_bech32: string;
+
   @Column({ nullable: true })
-  voterId: string;
+  voterId: string; //drepbech32
 
   @Column({ nullable: true })
   stakeKey: string;
@@ -27,4 +29,7 @@ export class Signature {
 
   @Column({ nullable: true, unique: false, default: null })
   lastSignedIn: Date;
+
+  @Column({ nullable: true, unique: false, default: null })
+  type: string;
 }

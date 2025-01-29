@@ -25,6 +25,7 @@ import DatabaseNullIcon from '../atoms/svgs/DatabaseNullIcon';
 import CrossIcon from '../atoms/svgs/CrossIcon';
 import Typography from '@mui/material/Typography';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
+import ClaimProfileButton from '../atoms/ClaimProfileButton';
 
 type DRepsTableProps = {
   query?: string;
@@ -158,14 +159,12 @@ const DRepsTable = ({
                       </Link>
                     ) : (
                       <div className="flex items-center gap-4">
-                        <Link
-                          href={`/dreps/workflow/profile/new`}
-                          prefetch={false}
-                        >
-                          <Button size="extraSmall" width={4}>
-                            Claim
-                          </Button>
-                        </Link>
+                        <ClaimProfileButton
+                          drepToBeClaimed={drep?.view}
+                          label="Claim"
+                          size='extraSmall'
+                          width={4}
+                        />
                       </div>
                     )}
 

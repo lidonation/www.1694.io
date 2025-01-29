@@ -65,6 +65,7 @@ import { getDRepMetadataQuery } from 'src/queries/drepMetadata';
 import { getDrepDateOfRegistrationQuery } from 'src/queries/drepDateOfRegistration';
 import { getDrepVotingActivityQuery } from 'src/queries/drepVotingActivity';
 import { Currency } from 'src/common/enums';
+import { Signature } from 'src/entities/signatures.entity';
 
 @Injectable()
 export class DrepService {
@@ -104,7 +105,7 @@ export class DrepService {
 
     if (campaignStatus) {
       const voltaireDReps = (await this.getAllDRepsVoltaire()) ?? [];
-      dRepViews = voltaireDReps.map((drep) => drep.signature_voterId);
+      dRepViews = voltaireDReps.map((drep) => drep.signature_drepId);
     }
 
     const drepList = await this.getAllDRepsCexplorer(
@@ -123,12 +124,13 @@ export class DrepService {
     const drepViews = drepList.data.map((drep) => drep.view);
 
     const voltaireDReps = await this.getVoltaireDRepsByViews(drepViews);
+    console.log('voltaireDReps', { voltaireDReps });
 
     const totalPages = Math.ceil(drepList.totalItems / itemsPerPage);
 
     const mergedDRepsData = drepList.data.map((drep) => {
       const voltaireDrep = voltaireDReps.find(
-        (voltaireDrep) => voltaireDrep.signature_voterId === drep.view,
+        (voltaireDrep) => voltaireDrep.signature_drep_bech32 === drep.view,
       );
       //account for voting options
       if (
@@ -285,7 +287,7 @@ export class DrepService {
       .getRepository('Drep')
       .createQueryBuilder('drep')
       .leftJoinAndSelect('drep.signatures', 'signature')
-      .where('signature.voterId IN (:...views)', { views })
+      .where('signature.drep_bech32 IN (:...views)', { views })
       .getRawMany();
   }
   async getSingleDrepViaID(drepId: number) {
@@ -296,7 +298,7 @@ export class DrepService {
       .where('drep.id = :drepId', { drepId })
       .getRawMany();
     let drepVoterId;
-    if (drep.length > 0) drepVoterId = drep[0].signature_voterId;
+    if (drep.length > 0) drepVoterId = drep[0].signature_drep_bech32;
     const drepCexplorer = await this.getDrepCexplorerDetails(drepVoterId);
 
     const combinedResult = {
@@ -326,7 +328,7 @@ export class DrepService {
       .getRepository('Drep')
       .createQueryBuilder('drep')
       .leftJoinAndSelect('signature', 'signature', 'signature.drepId = drep.id')
-      .where('signature.voterId = :drepVoterId', { drepVoterId })
+      .where('signature.drep_bech32 = :drepVoterId', { drepVoterId })
       .getRawMany();
     const drepCexplorer = await this.getDrepCexplorerDetails(drepVoterId);
     const combinedResult = {
@@ -379,6 +381,52 @@ export class DrepService {
       includeClaimedProfile: !filterValues || filterValues.includes('cp'),
       includeRegistration: !filterValues || filterValues.includes('r'),
     };
+  }
+
+  async verifyOwnership(
+    voterId: string,
+    drepId: string,
+  ): Promise<{ result: boolean; message: string; signatures?: Signature[] }> {
+    try {
+      if (!voterId || !drepId) {
+        throw new Error(
+          'Too few arguments, both voterId and drepId are required',
+        );
+      }
+      const res = (await this.voltaireService
+        .getRepository('Signature')
+        .findOne({
+          where: { voterId, drep_bech32: drepId },
+        })) as Signature;
+
+      if (!res) {
+        return {
+          result: false,
+          message: 'No signature found for this voterId',
+          signatures: null,
+        };
+      }
+
+      if (res.drep_bech32 !== drepId) {
+        return {
+          result: false,
+          message: 'Ownership verification failed',
+          signatures: Array.isArray(res) ? res : [res],
+        };
+      }
+
+      return {
+        result: true,
+        message: 'Ownership verified',
+        signatures: Array.isArray(res) ? res : [res],
+      };
+    } catch (error) {
+      console.error('Error verifying ownership:', error);
+      throw new HttpException(
+        'Failed to verify ownership',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   private getTimeRange(
@@ -455,17 +503,24 @@ export class DrepService {
 
     return from(Object.keys(queries)).pipe(
       mergeMap((key) => queries[key].pipe(map((result) => ({ key, result })))),
-      scan((acc, { key, result }) => {
-        acc[key] = result;
-        return acc;
-      }, {} as Record<string, any>),
+      scan(
+        (acc, { key, result }) => {
+          acc[key] = result;
+          return acc;
+        },
+        {} as Record<string, any>,
+      ),
       map((results) => {
         const timelineEntries: TimelineEntry[] = [];
-    
+
         // Ensure epochs result exists before mapping
         if (results.epochs) {
           timelineEntries.push(
-            ...this.createTimelineEntries(results.epochs, 'epoch', 'start_time'),
+            ...this.createTimelineEntries(
+              results.epochs,
+              'epoch',
+              'start_time',
+            ),
           );
         }
 
@@ -483,7 +538,11 @@ export class DrepService {
         // Ensure notes result exists before mapping
         if (results.notes) {
           timelineEntries.push(
-            ...this.createTimelineEntries(results.notes, 'note', 'note_updatedAt'),
+            ...this.createTimelineEntries(
+              results.notes,
+              'note',
+              'note_updatedAt',
+            ),
           );
         }
 
@@ -625,7 +684,7 @@ export class DrepService {
     // 'delegators' visibility
     if (delegation) {
       visibilityConditions.push(
-        'note.visibility = :delegators AND signature.voterId = :drepVoterId',
+        'note.visibility = :delegators AND signature.drep_bech32 = :drepVoterId',
       );
       visibilityParams.delegators = 'delegators';
       visibilityParams.drepVoterId = delegation.drep_view;
@@ -698,21 +757,29 @@ export class DrepService {
   }
 
   async registerDrep(drepDto: createDrepDto) {
-    const insertedDrep = await this.voltaireService
-      .getRepository('Drep')
-      .insert(drepDto);
-    const signatureDto = {
-      drepId: insertedDrep.identifiers[0].id,
-      voterId: drepDto?.voter_id,
-      stakeKey: drepDto?.stake_addr,
-      key: drepDto?.key,
-      signature: drepDto?.signature,
-    };
-    const { token, insertedSig } = await this.authService.login(
-      signatureDto,
-      10000,
-    );
-    return { insertedDrep, insertedSig, token };
+    try {
+      const insertedDrep = await this.voltaireService
+        .getRepository('Drep')
+        .insert(drepDto);
+      const signatureDto = {
+        drepId: insertedDrep.identifiers[0].id,
+        voterId: drepDto?.voter_id,
+        stakeKey: drepDto?.stake_addr,
+        signatures: drepDto?.signatures,
+        drep_bech32: drepDto?.drep_bech32,
+      };
+      const { token, insertedSig } = await this.authService.login(
+        signatureDto,
+        10000,
+      );
+      return { insertedDrep, insertedSig, token };
+    } catch (error) {
+      console.error('Error registering DRep:', error);
+      throw new HttpException(
+        'Failed to register DRep',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   async getEpochParams() {
@@ -802,18 +869,26 @@ export class DrepService {
     if (!foundDrep) {
       throw new NotFoundException('Drep to be updated not found!');
     }
-    if (drep.signature) {
-      await this.voltaireService
-        .getRepository('Signature')
-        .update(
-          { drep: foundDrep[0].drep_id },
-          { signatureKey: drep.key, signature: drep.signature },
-        );
-      delete drep.signature;
-      delete drep.key;
-      delete drep.stake_addr;
-      delete drep.voter_id;
-    }
+    //disabled for now due to conflicts
+    // if (drep.signatures && drep.signatures.length > 0) {
+    //   await this.voltaireService
+    //     .getRepository('Signature')
+    //     .update(
+    //       { drep: foundDrep[0].drep_id },
+    //       {
+    //         signatureKey: drep.signatures[0].key,
+    //         signature: drep.signatures[0].signature,
+    //       },
+    //     );
+    //   delete drep.signatures;
+    //   delete drep.stake_addr;
+    //   delete drep.voter_id;
+    //   delete drep.drep_bech32;
+    // }
+    delete drep.signatures;
+    delete drep.stake_addr;
+    delete drep.voter_id;
+    delete drep.drep_bech32;
     const updatedDrep = Object.keys(drep).reduce((acc, key) => {
       let value = drep[key];
       try {
@@ -1029,7 +1104,7 @@ export class DrepService {
       .getRepository('Drep')
       .createQueryBuilder('drep')
       .leftJoinAndSelect('signature', 'signature', 'signature.drepId = drep.id')
-      .where('signature.voterId = :drepVoterId', { drepVoterId })
+      .where('signature.drep_bech32 = :drepVoterId', { drepVoterId })
       .getRawOne();
   }
 }

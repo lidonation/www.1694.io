@@ -1,6 +1,6 @@
 'use client';
 import { useScreenDimension } from '@/hooks';
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode } from 'react';
 
 export const Background = ({
   children,

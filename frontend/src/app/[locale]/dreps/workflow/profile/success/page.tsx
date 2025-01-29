@@ -14,8 +14,7 @@ import React, { useEffect, useState } from 'react';
 
 const page = () => {
   const [isTxSynced, setIsTxSynced] = useState(false);
-  const { setStep1Status } = useDRepContext();
-  const { dRepIDBech32 } = useCardano();
+  const { updateStep, drepToBeClaimed } = useDRepContext();
   const { addErrorAlert } = useGlobalNotifications();
 
   const searchParams = useSearchParams();
@@ -97,14 +96,14 @@ const page = () => {
         <Button
           variant="outlined"
           bgcolor="transparent"
-          handleClick={() => setStep1Status('update')}
+          handleClick={() => updateStep('profile', 'update')}
         >
           <Link className="w-fit" href="/dreps/workflow/profile/update/step1">
             Make Changes
           </Link>
         </Button>
         <Button>
-          <Link className="w-fit" href={`/dreps/${dRepIDBech32}`}>
+          <Link className="w-fit" href={`/dreps/${drepToBeClaimed}`}>
             View your Profile
           </Link>
         </Button>

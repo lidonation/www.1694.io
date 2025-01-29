@@ -3,16 +3,23 @@ import { ModalWrapper } from './modal/ModalWrapper';
 import Button from './Button';
 import { downloadJson } from '@/lib/jsonutils';
 import { postMetadata } from '@/services/requests/postMetadata';
-import {  MetadataSaveResponse, MetadataStandard } from '../../../types/commonTypes';
+import {
+  MetadataSaveResponse,
+  MetadataStandard,
+} from '../../../types/commonTypes';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { useCardano } from '@/context/walletContext';
 import { CircularProgress, Tabs, Tab } from '@mui/material';
 import { urls } from '@/constants';
 import { getItemFromIndexedDB } from '@/lib/indexedDb';
 import { postAddMetadataAttachment } from '@/services/requests/postAddMetadataAttachment';
+import { useDRepContext } from '@/context/drepContext';
 
 const SubmitMetadataModal = ({ onClose, onSuccessfulSubmit }) => {
-  const { signAndSubmitTransaction, buildDRepUpdateCert } = useCardano();
+  const { signAndSubmitTransaction, buildDRepUpdateCert, dRepIDBech32 } =
+    useCardano();
+  const { drepClaimMismatch, drepToBeClaimed, drepEntityToBeClaimed } =
+    useDRepContext();
   const [isValidatingSubmission, setIsValidatingSubmission] = useState(false);
   const [activeTab, setActiveTab] = useState('selfHost');
   const [jsonld, setJsonld] = useState<any>(null);
@@ -70,11 +77,11 @@ const SubmitMetadataModal = ({ onClose, onSuccessfulSubmit }) => {
       const { content } = (await postAddMetadataAttachment({
         metadata: jsonld,
       })) as MetadataSaveResponse;
-      if(!content) {
+      if (!content) {
         console.log('Error saving metadata, hash not received');
         throw new Error('Error saving metadata');
       }
-      if(!urls.ipfsGateway) {
+      if (!urls.ipfsGateway) {
         console.log('IPFS Gateway not available in environment');
         throw new Error('Error occured while saving metadata');
       }
@@ -102,10 +109,16 @@ const SubmitMetadataModal = ({ onClose, onSuccessfulSubmit }) => {
       const updateDRepMetadataCert = await buildDRepUpdateCert(
         currentHostedUrl,
         jsonHash,
+        drepToBeClaimed !== dRepIDBech32 ? drepToBeClaimed : dRepIDBech32, // if drepClaimMismatch, use drepToBeClaimed
       );
-      const res = await signAndSubmitTransaction(updateDRepMetadataCert);
-      onSuccessfulSubmit(res.resultHash);
       onClose();
+      const res = await signAndSubmitTransaction(updateDRepMetadataCert, {
+        disableSigning: drepClaimMismatch || drepToBeClaimed !== dRepIDBech32,
+        deriveUtxosFrom:
+          (drepClaimMismatch || drepToBeClaimed !== dRepIDBech32) &&
+          drepEntityToBeClaimed?.reg_address, // if drepClaimMismatch, derive utxos from reg_address
+      });
+      onSuccessfulSubmit(res.resultHash);
     } catch (error) {
       console.log(error);
       addErrorAlert(String(error));

@@ -3,51 +3,67 @@ import Button from './Button';
 import { useCardano } from '@/context/walletContext';
 import { useDRepContext } from '@/context/drepContext';
 import { useRouter } from 'next/navigation';
+
 interface ProfileSubmitAreaProps {
   isUpdate?: boolean;
-  isDisabled?: boolean; 
+  isDisabled?: boolean;
+  preNavigationCheck?: () => Promise<boolean> | boolean;
 }
-const ProfileSubmitArea = ({ isUpdate, isDisabled=false }: ProfileSubmitAreaProps) => {
+
+const ProfileSubmitArea = ({ 
+  isUpdate, 
+  isDisabled = false,
+  preNavigationCheck 
+}: ProfileSubmitAreaProps) => {
   const { isEnabled } = useCardano();
   const router = useRouter();
   const {
     currentRegistrationStep,
     setCurrentRegistrationStep,
-    setStep1Status,
-    setStep2Status,
-    setStep3Status,
-    setStep4Status,
+    updateStep
   } = useDRepContext();
 
-  const handleNavigate = (step: number) => {
+  const handleNavigate = async () => {
+    if (preNavigationCheck) {
+      try {
+        const canProceed = await preNavigationCheck();
+        if (!canProceed) return;
+      } catch (error) {
+        console.error('Pre-navigation check failed:', error);
+        return;
+      }
+    }
+
     if (!isUpdate) {
       router.push('/dreps');
-      return
-    };
+      return;
+    }
+
     const submitButton = document.getElementById(
-      'profile-submit-button',
+      'profile-submit-button'
     ) as HTMLButtonElement;
     submitButton.click();
-    if (currentRegistrationStep === 1) {
-      setStep2Status('active');
-      setCurrentRegistrationStep(2);
-      router.push(
-        `/dreps/workflow/profile/update/step${currentRegistrationStep + 1}`,
-      );
-    } else if (currentRegistrationStep === 2) {
-      setStep3Status('active');
-      setCurrentRegistrationStep(3);
-      router.push(
-        `/dreps/workflow/profile/update/step${currentRegistrationStep + 1}`,
-      );
-    } else if (currentRegistrationStep === 3) {
-      setStep4Status('active');
-      setCurrentRegistrationStep(4);
-      router.push(`/dreps/workflow/profile/update/step${currentRegistrationStep + 1}`)
-    } else if (currentRegistrationStep === 4) {
-      setStep4Status('success');
+
+    const stepMap = {
+      1: 'profile',
+      2: 'signatures',
+      3: 'socials',
+      4: 'review'
+    } as const;
+
+    if (currentRegistrationStep === 4) {
+      updateStep('review', 'success');
+      return;
+    }
+
+    const nextStep = stepMap[currentRegistrationStep as keyof typeof stepMap];
+    if (nextStep) {
+      updateStep(nextStep, 'active');
+      setCurrentRegistrationStep(currentRegistrationStep + 1);
+      router.push(`/dreps/workflow/profile/update/step${currentRegistrationStep + 1}`);
     }
   };
+
   return (
     <div className="mt-4 flex flex-row items-center justify-center md:justify-end">
       <div className="flex flex-row items-center justify-center gap-2">
@@ -55,9 +71,9 @@ const ProfileSubmitArea = ({ isUpdate, isDisabled=false }: ProfileSubmitAreaProp
           type="submit"
           id="profile-submit-button"
           data-testid="profile-submit-button"
-          sx={(!isEnabled || isDisabled)  && { pointerEvents: 'none' } }
+          sx={(!isEnabled || isDisabled) && { pointerEvents: 'none' }}
         >
-          <p className="px-5 text-center text-sm font-medium leading-4  text-white">
+          <p className="px-5 text-center text-sm font-medium leading-4 text-white">
             {!isUpdate ? 'Create' : 'Update'}
           </p>
         </Button>

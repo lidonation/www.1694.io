@@ -13,7 +13,7 @@ import {
 import { AttachmentService } from './attachment.service';
 import { Response } from 'express';
 import { Attachment } from 'src/entities/attachment.entity';
-import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('attachments')
 export class AttachmentController {
