@@ -7,3 +7,8 @@ export enum AutomatedVotingOptionDelegationId {
   abstain = 'abstain',
   no_confidence = 'no_confidence',
 }
+
+export enum Networks {
+  mainnet = 1,
+  testnet = 0,
+}
