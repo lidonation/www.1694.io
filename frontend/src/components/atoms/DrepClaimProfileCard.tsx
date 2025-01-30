@@ -1,7 +1,12 @@
 import React from 'react';
 import StatusChip from './StatusChip';
 import { Skeleton } from '@mui/material';
-import { checkStatus, convertHexToCIP129, formattedAda } from '@/lib';
+import {
+  checkStatus,
+  compareDRepIDs,
+  convertHexToCIP129,
+  formattedAda,
+} from '@/lib';
 import MetadataViewer from './MetadataViewer';
 import DRepSocialLinks from './DRepSocialLinks';
 import DRepAvatarCard from './DRepAvatarCard';
@@ -9,7 +14,10 @@ import { useCardano } from '@/context/walletContext';
 import { useDRepContext } from '@/context/drepContext';
 import { useGetDRepMetadataQuery } from '@/hooks/useGetDRepMetadataQuery';
 import DRepIdHolder from './DRepIdHolder';
+import { useDelegateTodRep } from '@/hooks/useDelegateToDRep';
 import ClaimProfileButton from './ClaimProfileButton';
+import Button from './Button';
+import { useGetAdaHolderCurrentDelegationQuery } from '@/hooks/useGetAdaHolderCurrentDelegationQuery';
 
 type DrepClaimProfileCardProps = {
   drep: any;
@@ -22,10 +30,12 @@ const DrepClaimProfileCard = ({
   voterId,
   state,
 }: DrepClaimProfileCardProps) => {
-  const { dRepIDBech32 } = useCardano();
+  const { dRepIDBech32, stakeKey } = useCardano();
   const { isLoggedIn } = useDRepContext();
+  const { delegate, isDelegating } = useDelegateTodRep();
   const { metadata, isMetadataLoading, metadataError } =
     useGetDRepMetadataQuery(voterId);
+  const { currentDelegation } = useGetAdaHolderCurrentDelegationQuery(stakeKey);
 
   return (
     <div className="flex flex-col gap-5 bg-white bg-opacity-50 px-5 py-10">
@@ -38,6 +48,17 @@ const DrepClaimProfileCard = ({
           label="Claim this profile"
           drepToBeClaimed={drep?.view}
         />
+      )}
+      {!compareDRepIDs(drep?.view, currentDelegation?.drep_view) && (
+        <Button
+          className="w-full"
+          disabled={!!isDelegating}
+          handleClick={() => {
+            delegate(drep?.view, { isRetired: drep?.retired });
+          }}
+        >
+          Delegate
+        </Button>
       )}
       <div className="flex flex-row gap-2">
         {drep?.type === 'scripted' && <StatusChip status="Scripted" />}

@@ -161,7 +161,7 @@ const CardanoTxModal = ({
               <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
                 cardano-cli transaction sign \ --tx-file tx.raw \
                 --signing-key-file payment.skey \ --signing-key-file drep.skey \
-                --testnet-magic 1097911063 \ --out-file tx.signed
+                --testnet-magic 2 \ --out-file tx.signed
               </pre>
               <IconButton
                 size="small"
