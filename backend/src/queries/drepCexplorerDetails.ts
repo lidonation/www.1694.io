@@ -24,6 +24,14 @@ export const getDrepCexplorerDetailsQuery: string = `
         LEFT JOIN 
           tx_out txo ON dr.tx_id = txo.tx_id
     ),
+    IsRegisteredAsSoleVoter AS (
+      SELECT
+          (LatestRegistration.deposit IS NULL
+              OR LatestRegistration.deposit > 0)
+          AND LatestRegistration.voting_anchor_id IS NULL AS value
+      FROM
+          LatestRegistration
+    ),
     RankedRows AS (
         SELECT 
           dh.id AS drep_hash_id, 
@@ -32,6 +40,7 @@ export const getDrepCexplorerDetailsQuery: string = `
           dh.has_script, 
           dd.id AS drep_distr_id, 
           COALESCE(dd.amount, null) AS voting_power,
+          irasv.value AS is_registered_as_sole_voter,
           dd.epoch_no, 
           dd.active_until,
           lr.deposit, 
@@ -57,6 +66,8 @@ export const getDrepCexplorerDetailsQuery: string = `
           stake_address AS sa ON dv.addr_id = sa.id
         LEFT JOIN 
           drepdelegationsummary dd_data ON dd_data.drep_hash_id = dh.id 
+        CROSS JOIN
+          IsRegisteredAsSoleVoter irasv
         WHERE 
           dh.view = $1
       )
@@ -65,6 +76,7 @@ export const getDrepCexplorerDetailsQuery: string = `
         r.chain_id,
         r.view,
         r.delegation_vote_count,
+        r.is_registered_as_sole_voter,
         r.stake_address,
         r.voting_power,
         r.live_stake,

@@ -73,6 +73,7 @@ export type SingleDRep = {
   drep_hash_id: string | null;
   view: string | null;
   delegation_vote_count: string | null;
+  is_registered_as_sole_voter: boolean;
   stake_address: string | null;
   voting_power: string | null;
   live_stake: string | null;

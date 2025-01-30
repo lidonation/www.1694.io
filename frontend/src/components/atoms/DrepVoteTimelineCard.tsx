@@ -114,9 +114,9 @@ const DrepVoteTimelineCard = ({ item }: { item: any }) => {
 
         <Box className="flex w-fit items-center gap-2 rounded-full border px-3 py-1 text-sm">
           <p className="">Action ID:</p>
-          <p>{convertString(item?.gov_action_proposal_id, true) || null}</p>
           <CopyToClipboard
             text={item?.gov_action_proposal_id}
+            truncate
           >
             <img src="/svgs/copy.svg" alt="copy" />
           </CopyToClipboard>

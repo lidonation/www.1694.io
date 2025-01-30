@@ -20,6 +20,11 @@ import {
   Ed25519KeyHash,
   DRepUpdate,
   Credential,
+  DRep,
+  StakeRegistration,
+  ScriptHash,
+  VoteDelegation,
+  DRepDeregistration,
 } from '@emurgo/cardano-serialization-lib-asmjs';
 import { Buffer } from 'buffer';
 
@@ -38,8 +43,10 @@ import { generateAnchor } from '@/lib/generateAnchor';
 import { CONFIGURED_NETWORK_ID } from '@/constants';
 import getFirstEpoch from '@/services/requests/getFIrstEpoch';
 import { useGlobalNotifications } from './globalNotificationContext';
+import { AutomatedVotingOptionDelegationId } from '@/models/enums';
 import CardanoTxModal from '@/components/atoms/TxnModal';
 import { useTransactionHandler } from '@/hooks/useTransactionHandler';
+import { checkTxExists } from '@/services/requests/checkTxExists';
 
 interface Props {
   children: React.ReactNode;
@@ -68,6 +75,7 @@ interface CardanoContext {
     changeAddress: undefined | string;
     balance: number | undefined;
   };
+  registeredStakeKeysListState: string[];
   loginCredentials: {
     signature: string | undefined;
     vkey: string | undefined;
@@ -78,11 +86,15 @@ interface CardanoContext {
   stakeKeyBech32?: string | undefined;
   setStakeKey: (key: string) => void;
   loginSignTransaction: (drepToVerify?: string) => Promise<any>;
+  pollTransaction: (txHash: string) => Promise<boolean>;
   loginHardwareWalletTransaction: (options?: {
     disableSigning?: boolean;
     disableDownload?: boolean;
     autoLogin?: boolean;
   }) => Promise<any>;
+  buildStakeKeyRegCert: () => Promise<Certificate>;
+  buildVoteDelegationCert: (target: string) => Promise<Certificate>;
+  buildDRepRetirementCert: (voterDeposit: string) => Promise<Certificate>;
   buildDRepUpdateCert: (
     cip95MetadataURL?: string,
     cip95MetadataHash?: string,
@@ -90,7 +102,11 @@ interface CardanoContext {
   ) => Promise<Certificate>;
   signAndSubmitTransaction: (
     certBuilder?: any,
-    options?: { disableSigning?: boolean; disableDownload?: boolean, deriveUtxosFrom?: string },
+    options?: {
+      disableSigning?: boolean;
+      disableDownload?: boolean;
+      deriveUtxosFrom?: string;
+    },
   ) => Promise<any>;
   stakeKeys: string[];
   walletApi?: CardanoApiWallet;
@@ -135,7 +151,8 @@ function CardanoProvider(props: Props) {
 
   const [latestEpoch, setLatestEpoch] = useState<number>(0);
   const [firstEpoch, setFirstEpoch] = useState<number>(0);
-  const [, setRegisteredPubStakeKeysState] = useState<string[]>([]);
+  const [registeredStakeKeysListState, setRegisteredPubStakeKeysState] =
+    useState<string[]>([]);
   const [error, setError] = useState<string | undefined>(undefined);
   const [delegatedDRepID, setDelegatedDRepID] = useState<string | undefined>(
     undefined,
@@ -157,7 +174,7 @@ function CardanoProvider(props: Props) {
     handleTransaction,
     handleWalletSign,
     handleDownloadUnsigned,
-    handleSubmitSignedTx,
+    handleSubmitSignedTxFile,
     closeTxnModal,
   } = useTransactionHandler({ walletState });
 
@@ -506,13 +523,88 @@ function CardanoProvider(props: Props) {
       throw error;
     }
   };
+  const buildStakeKeyRegCert = useCallback(async (): Promise<Certificate> => {
+    try {
+      if (!stakeKey) {
+        throw new Error('No stake key selected');
+      }
+      const stakeKeyHash = Ed25519KeyHash.from_hex(stakeKey.substring(2));
+      const epochParams = await getEpochParams();
+      const stakeCred = Credential.from_keyhash(stakeKeyHash);
+      const stakeKeyRegCert = StakeRegistration.new_with_explicit_deposit(
+        stakeCred,
+        BigNum.from_str(`${epochParams.key_deposit}`),
+      );
+      return Certificate.new_stake_registration(stakeKeyRegCert);
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+  }, [stakeKey]);
+
+  const buildVoteDelegationCert = useCallback(
+    async (target: string): Promise<Certificate> => {
+      try {
+        // Build Vote Delegation Certificate
+        if (!stakeKey) {
+          throw new Error('No stake key selected');
+        }
+        // Remove network tag from stake key hash
+        const stakeKeyHash = Ed25519KeyHash.from_hex(stakeKey.substring(2));
+        const stakeCred = Credential.from_keyhash(stakeKeyHash);
+
+        // Create correct DRep
+        let targetDRep;
+        if (target === AutomatedVotingOptionDelegationId.abstain) {
+          targetDRep = DRep.new_always_abstain();
+        } else if (target === AutomatedVotingOptionDelegationId.no_confidence) {
+          targetDRep = DRep.new_always_no_confidence();
+        } else if (target.includes('drep1')) {
+          targetDRep = DRep.new_key_hash(Ed25519KeyHash.from_bech32(target));
+        } else if (target.includes('drep_script1')) {
+          targetDRep = DRep.new_script_hash(ScriptHash.from_hex(target));
+        } else {
+          targetDRep = DRep.new_key_hash(Ed25519KeyHash.from_hex(target));
+        }
+        // Create cert object
+        const voteDelegationCert = VoteDelegation.new(stakeCred, targetDRep);
+        // add cert to tbuilder
+        return Certificate.new_vote_delegation(voteDelegationCert);
+      } catch (e) {
+        console.error(e);
+        throw e;
+      }
+    },
+    [stakeKey],
+  );
+
+  const buildDRepRetirementCert = useCallback(
+    async (voterDeposit: string): Promise<Certificate> => {
+      try {
+        // Get wallet's DRep key
+        const dRepKeyHash = Ed25519KeyHash.from_hex(dRepID);
+        const dRepCred = Credential.from_keyhash(dRepKeyHash);
+
+        const dRepRetirementCert = DRepDeregistration.new(
+          dRepCred,
+          BigNum.from_str(voterDeposit),
+        );
+
+        return Certificate.new_drep_deregistration(dRepRetirementCert);
+      } catch (e) {
+        console.error(e);
+        throw e;
+      }
+    },
+    [dRepID],
+  );
 
   const signAndSubmitTransaction = async (
     certBuilder?: any,
     options?: {
       disableSigning?: boolean;
       disableDownload?: boolean;
-      deriveUtxosFrom?: string
+      deriveUtxosFrom?: string;
     },
   ) => {
     if (!walletApi) throw new Error('Wallet not connected');
@@ -530,6 +622,26 @@ function CardanoProvider(props: Props) {
       throw error;
     }
   };
+
+  const pollTransaction = async (txHash: string) => {
+    const maxAttempts = 30; // 5 minutes total
+    let attempts = 0;
+
+    while (attempts < maxAttempts) {
+      try {
+        const isTxAvailable = await checkTxExists(txHash);
+        if (isTxAvailable) {
+          return true;
+        }
+      } catch (error) {
+        console.error('Polling error:', error);
+      } finally {
+        attempts++;
+        await new Promise((resolve) => setTimeout(resolve, 10000));
+      }
+    }
+    return false;
+};
 
   const buildDRepUpdateCert = useCallback(
     async (
@@ -598,12 +710,17 @@ function CardanoProvider(props: Props) {
       setStakeKey,
       stakeKeys,
       walletApi,
+      registeredStakeKeysListState,
+      pollTransaction,
       error,
       delegatedDRepID,
       setDelegatedDRepID,
       isEnableLoading,
       isEnabling,
       sharedState,
+      buildVoteDelegationCert,
+      buildStakeKeyRegCert,
+      buildDRepRetirementCert,
     }),
     [
       address,
@@ -640,7 +757,7 @@ function CardanoProvider(props: Props) {
         onWalletSign={() => handleWalletSign(walletApi)}
         onDownloadUnsigned={() => handleDownloadUnsigned()}
         onSubmitSignedTx={(signedTxHash: File) =>
-          handleSubmitSignedTx(signedTxHash, walletApi)
+          handleSubmitSignedTxFile(signedTxHash, walletApi)
         }
         error={txnModalState.error}
         disableDownload={userActionState.disableDownload}
