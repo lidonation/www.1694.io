@@ -12,6 +12,7 @@ import {
 import Button from './Button';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { handleCopyText } from '@/lib';
+import { Networks } from '@/models/enums';
 
 interface CardanoTxModalProps {
   open?: boolean;
@@ -24,6 +25,7 @@ interface CardanoTxModalProps {
   txHash?: string;
   txType?: string;
   error?: string;
+  currentNetwork?: number;
   isLoading?: boolean;
 }
 
@@ -39,6 +41,7 @@ const CardanoTxModal = ({
   error = '',
   txType = '',
   isLoading = false,
+  currentNetwork
 }: CardanoTxModalProps) => {
   const [step, setStep] = useState<'initial' | 'download'>('initial');
   const ETA = txType === 'hardwareWallet' ? 0 : 30;
@@ -79,6 +82,21 @@ const CardanoTxModal = ({
     onClose();
   };
 
+  
+
+  const getNetworkFlag = (network: number) => {
+    switch (network) {
+      case Networks.mainnet:
+        return '--mainnet';
+      case Networks.testnet:
+        return '--testnet-magic 2';
+      default:
+        return '--testnet-magic 2'; 
+    }
+  };
+
+
+
   const handleDownloadChoice = async () => {
     setStep('download');
     await onDownloadUnsigned();
@@ -94,8 +112,9 @@ const CardanoTxModal = ({
   };
 
   const handleCopyHelperSnippet = () => {
+    
     const textToCopy =
-      'cardano-cli transaction sign --tx-file tx.raw --signing-key-file payment.skey --signing-key-file drep.skey --testnet-magic 2 --out-file tx.signed';
+      `cardano-cli transaction sign --tx-file tx.draft --signing-key-file payment.skey --signing-key-file drep.skey ${getNetworkFlag(currentNetwork)} --out-file tx.signed`;
     handleCopyText(textToCopy);
   };
 
@@ -159,9 +178,9 @@ const CardanoTxModal = ({
               }}
             >
               <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
-                cardano-cli transaction sign \ --tx-file tx.raw \
+                cardano-cli transaction sign \ --tx-file tx.draft \
                 --signing-key-file payment.skey \ --signing-key-file drep.skey \
-                --testnet-magic 2 \ --out-file tx.signed
+                {getNetworkFlag(currentNetwork)} \ --out-file tx.signed
               </pre>
               <IconButton
                 size="small"
