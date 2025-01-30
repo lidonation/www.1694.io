@@ -68,6 +68,7 @@ interface CardanoContext {
   isEnabling: boolean;
   error?: string;
   isEnabled: boolean;
+  enabledNetwork: number | null;
   pubDRepKey: string;
   dRepID: string;
   walletState: {
@@ -130,6 +131,7 @@ function CardanoProvider(props: Props) {
   const { sharedState, updateSharedState } = useSharedContext();
   const [isEnabled, setIsEnabled] = useState(false);
   const [isEnableLoading, setIsEnableLoading] = useState<string | null>(null);
+  const [enabledNetwork, setEnabledNetwork] = useState<number | null>(null);
   const [walletApi, setWalletApi] = useState<CardanoApiWallet | undefined>(
     undefined,
   );
@@ -315,6 +317,7 @@ function CardanoProvider(props: Props) {
             setIsEnabling(false);
             return { status: 'WRONG_NETWORK' };
           }
+          setEnabledNetwork(network);
 
           await getChangeAddress(enabledApi);
           await getUsedAddresses(enabledApi);
@@ -693,6 +696,7 @@ function CardanoProvider(props: Props) {
       walletState,
       enable,
       isEnabled,
+      enabledNetwork,
       disconnectWallet,
       loginSignTransaction,
       loginHardwareWalletTransaction,
@@ -726,6 +730,7 @@ function CardanoProvider(props: Props) {
       address,
       enable,
       isEnabling,
+      enabledNetwork,
       walletState,
       isEnabled,
       disconnectWallet,
@@ -759,6 +764,7 @@ function CardanoProvider(props: Props) {
         onSubmitSignedTx={(signedTxHash: File) =>
           handleSubmitSignedTxFile(signedTxHash, walletApi)
         }
+        currentNetwork={enabledNetwork}
         error={txnModalState.error}
         disableDownload={userActionState.disableDownload}
         disableSigning={userActionState.disableSigning}
