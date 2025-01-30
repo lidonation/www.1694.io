@@ -105,7 +105,7 @@ export class DrepService {
 
     if (campaignStatus) {
       const voltaireDReps = (await this.getAllDRepsVoltaire()) ?? [];
-      dRepViews = voltaireDReps.map((drep) => drep.signature_drepId);
+      dRepViews = voltaireDReps.map((drep) => drep.signature_drep_bech32);
     }
 
     const drepList = await this.getAllDRepsCexplorer(
@@ -124,7 +124,6 @@ export class DrepService {
     const drepViews = drepList.data.map((drep) => drep.view);
 
     const voltaireDReps = await this.getVoltaireDRepsByViews(drepViews);
-    console.log('voltaireDReps', { voltaireDReps });
 
     const totalPages = Math.ceil(drepList.totalItems / itemsPerPage);
 

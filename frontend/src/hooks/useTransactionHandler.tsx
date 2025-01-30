@@ -342,9 +342,9 @@ export function useTransactionHandler({
       ) as Protocol;
       if (!protocolParams) throw new Error('No protocol params found');
 
-      const shelleyOutputAddress = Address.from_bech32(
-        options?.deriveUtxosFrom || walletState.usedAddress,
-      );
+      // const shelleyOutputAddress = Address.from_bech32(
+      //   options?.deriveUtxosFrom || walletState.usedAddress,
+      // );
       const shelleyChangeAddress = Address.from_bech32(
         options?.deriveUtxosFrom || walletState.changeAddress,
       );
@@ -405,12 +405,9 @@ export function useTransactionHandler({
       // const constantFee = BigNum.from_str(String(protocolParams.min_fee_b));
       // const buffer = BigNum.from_str('10000');
       // const totalFee = baseMinFee.checked_add(constantFee).checked_add(buffer);
-
       // finalTxBuilder.set_fee(totalFee);
       // finalTxBuilder.add_inputs_from(txUnspentOutputs, 1);
       // finalTxBuilder.add_change_if_needed(shelleyChangeAddress);
-
-     
 
       const changeConfig = ChangeConfig.new(shelleyChangeAddress);
       // Use UTxO selection strategy 3
@@ -544,25 +541,25 @@ export function useTransactionHandler({
         throw new Error('Transaction not prepared');
       }
 
-      if (pendingTx.type === 'hardwareWallet') {
-        try {
-          const transactionWitnessSet = TransactionWitnessSet.new();
-          const txHex = pendingTx.transaction.to_hex();
-          const txVkeyWitnessesHex = await walletApi.signTx(txHex, true);
-          const txVkeyWitnesses = TransactionWitnessSet.from_bytes(
-            Buffer.from(txVkeyWitnessesHex, 'hex') as any,
-          );
+      try {
+        const transactionWitnessSet = TransactionWitnessSet.new();
+        const txHex = pendingTx.transaction.to_hex();
+        const txVkeyWitnessesHex = await walletApi.signTx(txHex, true);
+        const txVkeyWitnesses = TransactionWitnessSet.from_bytes(
+          Buffer.from(txVkeyWitnessesHex, 'hex') as any,
+        );
 
-          if (!txVkeyWitnesses.vkeys()) {
-            throw new Error('No vkey witnesses returned from wallet');
-          }
+        if (!txVkeyWitnesses.vkeys()) {
+          throw new Error('No vkey witnesses returned from wallet');
+        }
 
-          transactionWitnessSet.set_vkeys(txVkeyWitnesses.vkeys());
+        transactionWitnessSet.set_vkeys(txVkeyWitnesses.vkeys());
 
-          const signedTx = Transaction.new(
-            pendingTx.transaction.body(),
-            transactionWitnessSet,
-          );
+        const signedTx = Transaction.new(
+          pendingTx.transaction.body(),
+          transactionWitnessSet,
+        );
+        if (pendingTx.type === 'hardwareWallet') {
           const { signature, vkey } = JSON.parse(
             signedTx.witness_set().vkeys().get(0).to_json(),
           );
@@ -570,25 +567,25 @@ export function useTransactionHandler({
           if (txnModalState.resolve) {
             txnModalState.resolve({ signature, vkey });
           }
-
           closeTxnModal();
           return { signature, vkey };
-        } catch (error) {
-          console.error('Wallet signing failed:', error);
-          throw error;
-        } finally {
-          setIsLoading(false);
         }
-      }
 
-      const txHex = pendingTx.transaction.to_hex();
-      const txResult = await walletApi.signTx(txHex, true);
-      if (txnModalState.resolve) {
-        txnModalState.resolve(txResult);
+        if (pendingTx.type === 'regular') {
+          //submit transaction after signing
+          const txHash = await walletApi.submitTx(signedTx.to_hex());
+          if (txnModalState.resolve) {
+            txnModalState.resolve({ resultHash: txHash });
+          }
+          closeTxnModal();
+          return { resultHash: txHash };
+        }
+      } catch (error) {
+        console.error('Wallet signing failed:', error);
+        throw error;
+      } finally {
+        setIsLoading(false);
       }
-
-      closeTxnModal();
-      return txResult;
     } catch (error) {
       console.error('Wallet signing failed:', error);
       throw error;
@@ -640,7 +637,10 @@ export function useTransactionHandler({
     }
   };
 
-  const handleSubmitSignedTx = async (signedTxFile: File, walletApi: any) => {
+  const handleSubmitSignedTxFile = async (
+    signedTxFile: File,
+    walletApi: any,
+  ) => {
     setIsLoading(true);
     try {
       const fileContent = await signedTxFile.text();
@@ -756,7 +756,7 @@ export function useTransactionHandler({
     handleTransaction,
     handleWalletSign,
     handleDownloadUnsigned,
-    handleSubmitSignedTx,
+    handleSubmitSignedTxFile,
     closeTxnModal,
   };
 }

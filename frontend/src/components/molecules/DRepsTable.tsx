@@ -2,9 +2,11 @@
 
 import React from 'react';
 import StatusChip from '../atoms/StatusChip';
+import { useRouter } from 'next/navigation';
 import { useGetDRepsQuery } from '@/hooks/useGetDRepsQuery';
 import {
   checkStatus,
+  compareDRepIDs,
   convertHexToCIP129,
   convertString,
   formatAsCurrency,
@@ -25,7 +27,10 @@ import DatabaseNullIcon from '../atoms/svgs/DatabaseNullIcon';
 import CrossIcon from '../atoms/svgs/CrossIcon';
 import Typography from '@mui/material/Typography';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
+import { useDelegateTodRep } from '@/hooks/useDelegateToDRep';
 import ClaimProfileButton from '../atoms/ClaimProfileButton';
+import { useCardano } from '@/context/walletContext';
+import { useGetAdaHolderCurrentDelegationQuery } from '@/hooks/useGetAdaHolderCurrentDelegationQuery';
 
 type DRepsTableProps = {
   query?: string;
@@ -56,7 +61,11 @@ const DRepsTable = ({
   type,
 }: DRepsTableProps) => {
   const { isMobile } = useScreenDimension();
+  const { stakeKey } = useCardano();
+  const router = useRouter();
   const { addSuccessAlert } = useGlobalNotifications();
+  const { delegate, isDelegating } = useDelegateTodRep();
+  const { currentDelegation } = useGetAdaHolderCurrentDelegationQuery(stakeKey);
 
   const { DReps, isDRepsLoading, isError } = useGetDRepsQuery(
     query,
@@ -68,6 +77,16 @@ const DRepsTable = ({
     includeRetired,
     type,
   );
+  const handleViewOrDelegate = (drep: any) => {
+    if (compareDRepIDs(drep?.view, currentDelegation?.drep_view)) {
+      // View DRep
+      router.push(`/dreps/${drep?.view}`);
+      return;
+    }
+    // Delegate to DRep
+    delegate(drep?.view, { isRetired: drep?.retired });
+    return;
+  };
 
   return (
     <div className="dreps-table-wrapper flex flex-col overflow-x-auto">
@@ -148,21 +167,25 @@ const DRepsTable = ({
                         </p>
                       </Link>
                     ) : drep?.drep_id ? (
-                      <Link
-                        className="flex items-center gap-4"
-                        href={`/dreps/${drep?.view}`}
-                        prefetch={false}
+                      <Button
+                        size="extraSmall"
+                        className='w-fit'
+                        handleClick={() => handleViewOrDelegate(drep)}
+                        disabled={!!isDelegating}
                       >
-                        <Button size="extraSmall" width={4}>
-                          View
-                        </Button>
-                      </Link>
+                        {compareDRepIDs(
+                          drep?.view,
+                          currentDelegation?.drep_view,
+                        )
+                          ? 'View'
+                          : 'Delegate'}
+                      </Button>
                     ) : (
                       <div className="flex items-center gap-4">
                         <ClaimProfileButton
                           drepToBeClaimed={drep?.view}
                           label="Claim"
-                          size='extraSmall'
+                          size="extraSmall"
                           width={4}
                         />
                       </div>

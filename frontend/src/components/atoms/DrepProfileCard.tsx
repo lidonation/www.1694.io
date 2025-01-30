@@ -10,6 +10,7 @@ import {
 import Link from 'next/link';
 import {
   checkStatus,
+  compareDRepIDs,
   convertHexToCIP129,
   convertString,
   formattedAda,
@@ -31,6 +32,8 @@ import { useDRepContext } from '@/context/drepContext';
 import { useGetDRepMetadataQuery } from '@/hooks/useGetDRepMetadataQuery';
 import DRepIdHolder from './DRepIdHolder';
 import { useGetOwnership } from '@/hooks/useGetOwnership';
+import { useGetAdaHolderCurrentDelegationQuery } from '@/hooks/useGetAdaHolderCurrentDelegationQuery';
+import { useDelegateTodRep } from '@/hooks/useDelegateToDRep';
 
 interface StatusProps {
   status:
@@ -83,14 +86,18 @@ type DrepProfileCardProps = {
 
 const DrepProfileCard = ({ drep, voterId, state }: DrepProfileCardProps) => {
   const { isMobile } = useScreenDimension();
+  const { stakeKey } = useCardano();
   const { setLoginModalOpen, isLoggedIn } = useDRepContext();
   const [canEdit, setCanEdit] = useState(false);
   const { addSuccessAlert } = useGlobalNotifications();
   const [isSubmittingMetadata, setIsSubmittingMetadata] = useState(false);
   const [hoveredOnWarning, setHoveredOnWarning] = useState(false);
-  const {ownership} =useGetOwnership({drepId: drep?.view, voterId});
+  const { ownership } = useGetOwnership({ drepId: drep?.view, voterId });
   const { metadata, isMetadataLoading, metadataError } =
     useGetDRepMetadataQuery(voterId);
+  const { currentDelegation } = useGetAdaHolderCurrentDelegationQuery(stakeKey);
+
+  const { delegate, isDelegating } = useDelegateTodRep();
 
   const ctaActions = [
     {
@@ -208,6 +215,19 @@ const DrepProfileCard = ({ drep, voterId, state }: DrepProfileCardProps) => {
         <StatusChip status={checkStatus(drep?.active)} />
         <StatusChip status="Verified" />
       </div>
+      <div>
+        {!compareDRepIDs(drep?.view, currentDelegation?.drep_view) && (
+          <Button
+            className="w-full"
+            disabled={!!isDelegating}
+            handleClick={() => {
+              delegate(drep?.view, { isRetired: drep?.retired });
+            }}
+          >
+            Delegate
+          </Button>
+        )}
+      </div>
       <div className="flex items-center gap-4">
         <div>
           <Typography variant="h6">Voting power</Typography>
@@ -297,10 +317,11 @@ const DrepProfileCard = ({ drep, voterId, state }: DrepProfileCardProps) => {
             }}
           />
         )}
-        {(ownership?.result && ownership?.result === true) &&
+        {ownership?.result &&
+          ownership?.result === true &&
           renderUnsavedChanges()}
       </div>
-      {(ownership?.result && ownership?.result === true) && (
+      {ownership?.result && ownership?.result === true && (
         <div className="flex max-w-prose flex-col gap-2">
           <Button
             handleClick={
