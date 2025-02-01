@@ -123,21 +123,21 @@ const DrepVoteTimelineCard = ({ item }: { item: any }) => {
         </Box>
       </Box>
       <Box className="flex flex-col gap-1">
-        <p className="text-sm">View Governance Action:</p>
-        <Box className="ml-2 flex flex-col gap-1">
+        <p className="text-sm">View Action on:</p>
+        <Box className="flex flex-row gap-2">
           <Link
             href={`${urls.govToolUrl}/governance_actions/${item?.gov_action_proposal_id}#0`}
             target="_blank"
             className="text-sm text-blue-800"
           >
-            Cardano Govtool
+            Govtool
           </Link>
           <Link
-            href={`${urls.adaStatusUrl}/governances/${item?.gov_action_proposal_id}`}
+            href={`${urls.adaStatUrl}/governances/${item?.gov_action_proposal_id}`}
             target="_blank"
             className="text-sm text-blue-800"
           >
-            Ada Status
+            ADASTAT
           </Link>
         </Box>
       </Box>

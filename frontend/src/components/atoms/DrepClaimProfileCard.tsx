@@ -72,13 +72,6 @@ const DrepClaimProfileCard = ({
         {drep?.retired && drep?.type !== 'voting_option' && (
           <StatusChip status="Retired" />
         )}
-        {isDelegated && (
-          <Tooltip title="You have delegated to this DRep">
-            <button>
-              <StatusChip status="Delegated" />
-            </button>
-          </Tooltip>
-        )}
         <StatusChip
           status={
             drep?.type === 'voting_option'
@@ -86,6 +79,13 @@ const DrepClaimProfileCard = ({
               : checkStatus(drep?.active)
           }
         />
+        {isDelegated && (
+          <Tooltip title="You have delegated to this DRep">
+              <button>
+                  <StatusChip status="Your DRep" />
+              </button>
+          </Tooltip>
+        )}
       </div>
       <div className="flex items-center gap-4">
         <div>
