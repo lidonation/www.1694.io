@@ -16,7 +16,7 @@ import { postAddMetadataAttachment } from '@/services/requests/postAddMetadataAt
 import { useDRepContext } from '@/context/drepContext';
 
 const SubmitMetadataModal = ({ onClose, onSuccessfulSubmit }) => {
-  const { signAndSubmitTransaction, buildDRepUpdateCert, dRepIDBech32 } =
+  const { signAndSubmitTransaction, buildDRepUpdateCert, dRepIDBech32  } =
     useCardano();
   const { drepClaimMismatch, drepToBeClaimed, drepEntityToBeClaimed } =
     useDRepContext();
@@ -24,8 +24,9 @@ const SubmitMetadataModal = ({ onClose, onSuccessfulSubmit }) => {
   const [activeTab, setActiveTab] = useState('selfHost');
   const [jsonld, setJsonld] = useState<any>(null);
   const [jsonHash, setJsonHash] = useState(null);
-  const { addErrorAlert, addSuccessAlert } = useGlobalNotifications();
+  const { addErrorAlert, addSuccessAlert, addPendingAlert } = useGlobalNotifications();
   const [metadataUrl, setMetadataUrl] = useState('');
+  const [isSubmittingToIPFS, setIsSubmittingToIPFS] = useState(false);
 
   useEffect(() => {
     const initiateMetadata = async () => {
@@ -73,6 +74,7 @@ const SubmitMetadataModal = ({ onClose, onSuccessfulSubmit }) => {
   };
   const postSaveMetadata = async () => {
     try {
+      setIsSubmittingToIPFS(true);
       //upload metadata to db
       const { content } = (await postAddMetadataAttachment({
         metadata: jsonld,
@@ -86,9 +88,11 @@ const SubmitMetadataModal = ({ onClose, onSuccessfulSubmit }) => {
         throw new Error('Error occured while saving metadata');
       }
       const hostedUrl = `${urls.ipfsGateway}/ipfs/${content}`;
+      setIsSubmittingToIPFS(false);
       return hostedUrl;
     } catch (error) {
       console.log(error);
+      setIsSubmittingToIPFS(false);
       throw new Error(error);
     }
   };
@@ -111,13 +115,17 @@ const SubmitMetadataModal = ({ onClose, onSuccessfulSubmit }) => {
         jsonHash,
         drepToBeClaimed !== dRepIDBech32 ? drepToBeClaimed : dRepIDBech32, // if drepClaimMismatch, use drepToBeClaimed
       );
-      onClose();
-      const res = await signAndSubmitTransaction(updateDRepMetadataCert, {
-        disableSigning: drepClaimMismatch || drepToBeClaimed !== dRepIDBech32,
-        deriveUtxosFrom:
-          (drepClaimMismatch || drepToBeClaimed !== dRepIDBech32) &&
-          drepEntityToBeClaimed?.reg_address, // if drepClaimMismatch, derive utxos from reg_address
-      });
+      onClose();      
+      const res = await signAndSubmitTransaction(
+        'submitMetadataTxn',
+        updateDRepMetadataCert,
+        {
+          disableSigning: drepClaimMismatch || drepToBeClaimed !== dRepIDBech32,
+          deriveUtxosFrom:
+            (drepClaimMismatch || drepToBeClaimed !== dRepIDBech32) &&
+            drepEntityToBeClaimed?.reg_address, // if drepClaimMismatch, derive utxos from reg_address
+        },
+      );
       onSuccessfulSubmit(res.resultHash);
     } catch (error) {
       console.log(error);
@@ -164,7 +172,10 @@ const SubmitMetadataModal = ({ onClose, onSuccessfulSubmit }) => {
   const renderHostForMeOnIPFSContent = () => (
     <div className="flex flex-col gap-4">
       <p>This is the final step. We'll host the metadata for you in IPFS.</p>
-      <Button handleClick={onSubmit}>Submit</Button>
+      <Button handleClick={onSubmit}>
+        {' '}
+        {isSubmittingToIPFS ? <CircularProgress size={20} color='inherit'  className='text-white'/> : 'Submit'}
+      </Button>
     </div>
   );
 

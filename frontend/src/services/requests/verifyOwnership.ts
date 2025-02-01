@@ -4,15 +4,15 @@ export interface VerifyOwnershipPayloadRequest {
   drepId: string;
   voterId: string;
 }
-
+export type SignatureType = 'drep' | 'signer';
 export interface VerifyOwnershipPayloadResponse {
   result: boolean;
   message: string;
   signatures: {
-    signature: string;
-    key: string;
-    type: 'drep' | 'signer';
-  };
+    signature: string,
+    key: string,
+    type: SignatureType,
+  }[];
 }
 
 export const verifyOwnership = async (

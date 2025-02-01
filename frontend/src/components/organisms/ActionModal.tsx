@@ -10,6 +10,7 @@ interface ActionButton {
 
 export interface ActionModalProps {
   title: string;
+  hideCloseButton?: boolean;
   severity: 'success' | 'error' | 'warning' | 'info';
   children: React.ReactNode;
   actionButtons: ActionButton[];
@@ -24,6 +25,7 @@ export function ActionModal({
   actionButtons,
   handleClose,
   footer,
+  hideCloseButton,
 }: ActionModalProps) {
   const renderIconsOnSeverity = () => {
     switch (severity) {
@@ -38,7 +40,7 @@ export function ActionModal({
     }
   };
   return (
-    <ModalWrapper dataTestId="action-modal" onClose={handleClose}>
+    <ModalWrapper dataTestId="action-modal" onClose={handleClose} hideCloseButton={hideCloseButton}>
       <ModalHeader
         sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
       >

@@ -17,6 +17,8 @@ const Page = () => {
     setHideCloseButtonOnWalletListModal,
     setDrepToBeClaimed,
     drepToBeClaimed,
+    handleActionModalOpen,
+    handleActionModalClose
   } = useDRepContext();
 
   const { isEnabled, dRepIDBech32 } = useCardano();
@@ -25,8 +27,30 @@ const Page = () => {
   const params = useSearchParams();
 
   useEffect(() => {
-    if (params.has('drep')) {
+    if (params.has('drep') && params.get('drep') !== '' && params.get('drep') !== null) {
       setDrepToBeClaimed(params.get('drep'));
+    }else {
+      setDrepToBeClaimed(null);
+      //show eror modal
+      handleActionModalOpen({
+        title: 'Unidentifiable DRep ID',
+        severity: 'error',
+        hideCloseButton: true,
+        children: 'It seems there is an issue with the DRep ID you are trying to claim. Try selecting one from the DRep list.',
+        actionButtons: [
+          {
+            label: 'Go to DRep List',
+            handleClick: () => {
+              handleActionModalClose();
+              router.push('/dreps/list');
+            },
+          },
+        ],
+        handleClose: () => {
+          router.push('/dreps/list');
+          handleActionModalClose();
+        },
+      });
     }
   }, [params, pathname]);
 
@@ -55,9 +79,6 @@ const Page = () => {
         }
       };
 
-      if (drepToBeClaimed && compareDRepIDs(drepToBeClaimed, dRepIDBech32)) {
-        checkIfExistingDRep();
-      }
 
       if (drepToBeClaimed && compareDRepIDs(drepToBeClaimed, dRepIDBech32)) {
         checkIfExistingDRep();

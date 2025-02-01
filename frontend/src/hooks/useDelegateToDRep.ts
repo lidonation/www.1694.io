@@ -53,7 +53,7 @@ export const useDelegateTodRep = () => {
       const voteDelegationCert = await buildVoteDelegationCert(dRepId);
       certBuilder.add(voteDelegationCert);
 
-      const txResult = await signAndSubmitTransaction(certBuilder, {
+      const txResult = await signAndSubmitTransaction('delegationTxn', certBuilder, {
         disableDownload: true,
       });
       if (txResult?.resultHash) {

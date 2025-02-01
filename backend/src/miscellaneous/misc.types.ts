@@ -23,6 +23,10 @@ export interface DbSyncUTXO {
   valid_contract: boolean;
   script_size: number;
   treasury_donation: string;
+  tokens: Array<{
+    unit: string;
+    quantity: string;
+  }> | null;
 }
 
 export interface BlockfrostUTXO {

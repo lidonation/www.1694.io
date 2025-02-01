@@ -8,12 +8,14 @@ import { STEPS } from './SetupProgressBar';
 
 interface ProfileSubmitAreaProps {
   isUpdate?: boolean;
+  autoSubmit?: boolean;
   isDisabled?: boolean;
   preNavigationCheck?: () => Promise<boolean> | boolean;
 }
 
 const ProfileSubmitArea = ({
   isUpdate,
+  autoSubmit= true,
   isDisabled = false,
   preNavigationCheck,
 }: ProfileSubmitAreaProps) => {
@@ -38,10 +40,12 @@ const ProfileSubmitArea = ({
       return;
     }
 
+   if (autoSubmit) {
     const submitButton = document.getElementById(
-      'profile-submit-button'
+      'profile-submit-button',
     ) as HTMLButtonElement;
     submitButton.click();
+  }
 
     if (currentRegistrationStep === 4) {
       updateStep(ProfileWorkflowStepKey.REVIEW, 'success');
@@ -63,22 +67,22 @@ const ProfileSubmitArea = ({
       <div className="flex flex-row items-center justify-center gap-2">
         <Button
           type="submit"
+          variant="outlined"
+          bgcolor="transparent"
           id="profile-submit-button"
           data-testid="profile-submit-button"
           sx={(!isEnabled || isDisabled) && { pointerEvents: 'none' }}
         >
-          <p className="px-5 text-center text-sm font-medium leading-4 text-white">
+          <p className="px-5 text-center text-sm font-medium leading-4 text-blue-800">
             {!isUpdate ? 'Create' : 'Update'}
           </p>
         </Button>
         <Button
-          variant="outlined"
-          bgcolor="transparent"
           handleClick={handleNavigate}
           id="next_button"
           sx={(!isEnabled || isDisabled) && { pointerEvents: 'none' }}
         >
-          <p className="px-5 text-center text-sm font-medium leading-4 text-blue-800">
+          <p className="px-5 text-center text-sm font-medium leading-4 text-white">
             {isUpdate ? 'Next' : 'Cancel'}
           </p>
         </Button>

@@ -7,15 +7,17 @@ import {
   Typography,
   Box,
   CircularProgress,
-  IconButton,
 } from '@mui/material';
 import Button from './Button';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
-import { handleCopyText } from '@/lib';
-import { Networks } from '@/models/enums';
+import CopySnippet from './CopySnippet';
+import { TxnTypes } from '@/hooks/useTransactionHandler';
+import { helperSnippets } from '@/models/helperSnippets';
 
 interface CardanoTxModalProps {
   open?: boolean;
+  isPrepping?: boolean;
+  fileToDownload?: string;
   onClose?: () => void;
   onWalletSign?: () => Promise<any>;
   onDownloadUnsigned?: () => Promise<any>;
@@ -23,7 +25,7 @@ interface CardanoTxModalProps {
   disableSigning?: boolean;
   disableDownload?: boolean;
   txHash?: string;
-  txType?: string;
+  txType?: TxnTypes;
   error?: string;
   currentNetwork?: number;
   isLoading?: boolean;
@@ -31,6 +33,8 @@ interface CardanoTxModalProps {
 
 const CardanoTxModal = ({
   open = false,
+  isPrepping = false,
+  fileToDownload = 'tx.raw',
   onClose = () => {},
   onWalletSign,
   onDownloadUnsigned,
@@ -39,12 +43,12 @@ const CardanoTxModal = ({
   disableSigning = false,
   txHash = '',
   error = '',
-  txType = '',
+  txType,
+  currentNetwork,
   isLoading = false,
-  currentNetwork
 }: CardanoTxModalProps) => {
   const [step, setStep] = useState<'initial' | 'download'>('initial');
-  const ETA = txType === 'hardwareWallet' ? 0 : 30;
+  const ETA = txType === 'loginViaExpiredTxnSigning' ? 0 : 60; //usually expired
   const [timeLeft, setTimeLeft] = useState(ETA * 60);
   const { addErrorAlert } = useGlobalNotifications();
   const [signedTxFile, setSignedTxFile] = useState<File | null>(null);
@@ -66,6 +70,30 @@ const CardanoTxModal = ({
     return () => clearInterval(timer);
   }, [step, timeLeft]);
 
+  useEffect(() => {
+    setTimeLeft(ETA * 60);
+  }, [ETA, txType]);
+
+  const renderPreppingContent = () => (
+    <>
+      <DialogTitle>Preparing Transaction</DialogTitle>
+      <DialogContent>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 2,
+            py: 4,
+          }}
+        >
+          <CircularProgress size={40} />
+          <Typography>Preparing your transaction...</Typography>
+        </Box>
+      </DialogContent>
+    </>
+  );
+
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
@@ -82,21 +110,6 @@ const CardanoTxModal = ({
     onClose();
   };
 
-  
-
-  const getNetworkFlag = (network: number) => {
-    switch (network) {
-      case Networks.mainnet:
-        return '--mainnet';
-      case Networks.testnet:
-        return '--testnet-magic 2';
-      default:
-        return '--testnet-magic 2'; 
-    }
-  };
-
-
-
   const handleDownloadChoice = async () => {
     setStep('download');
     await onDownloadUnsigned();
@@ -111,16 +124,22 @@ const CardanoTxModal = ({
     }
   };
 
-  const handleCopyHelperSnippet = () => {
-    
-    const textToCopy =
-      `cardano-cli transaction sign --tx-file tx.draft --signing-key-file payment.skey --signing-key-file drep.skey ${getNetworkFlag(currentNetwork)} --out-file tx.signed`;
-    handleCopyText(textToCopy);
-  };
-
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       setSignedTxFile(event.target.files[0]);
+    }
+  };
+
+  const renderSnippetContent = (txnType: TxnTypes) => {
+    switch (txnType) {
+      case 'loginViaExpiredTxnSigning':
+        return helperSnippets.find((s) => s.type === 'signExpiredTxn');
+      case 'delegationTxn':
+        return helperSnippets.find((s) => s.type === 'signDelegationTxn');
+      case 'submitMetadataTxn':
+        return helperSnippets.find((s) => s.type === 'signUpdateMetadataTxn');
+      default:
+        return null;
     }
   };
 
@@ -137,7 +156,20 @@ const CardanoTxModal = ({
   };
 
   const renderErrorContent = (error: string) => {
-    const isMissingSignatures = error.includes('Transaction is missing signatures from');
+    // const attemptRenderErrorHelperSnippet = () => {
+    //   if (!error) {
+    //     return null;
+    //   }
+
+    //   switch (true) {
+    //     case error.includes('Transaction is missing signatures from'):
+    //       return helperSnippets
+    //         .find((s) => s.type === 'inadequateSignatures')
+    //         ?.snippetToCopy(currentNetwork, fileToDownload);
+    //     default:
+    //       return null;
+    //   }
+    // };
 
     return (
       <Box
@@ -151,52 +183,13 @@ const CardanoTxModal = ({
           borderRadius: 1,
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <img src="/svgs/alert-circle.svg" alt="error" />
-          <Typography variant="body2" color="error">
-            {isMissingSignatures
-              ? 'Transaction requires multiple signatures'
-              : error}
-          </Typography>
+        <Box sx={{ display: 'flex', flexDirection:'column',  gap: 1 }}>
+          <CopySnippet
+            extraText={error}
+            isError
+            // snippetToCopy={attemptRenderErrorHelperSnippet()}
+          />
         </Box>
-
-        {isMissingSignatures && (
-          <>
-            <Typography variant="body2">
-              This transaction requires both DRep and payment key signatures.
-              Use the following cardano-cli command:
-            </Typography>
-            <Box
-              sx={{
-                bgcolor: 'background.paper',
-                p: 2,
-                borderRadius: 1,
-                fontFamily: 'monospace',
-                fontSize: '0.875rem',
-                position: 'relative',
-                border: '1px solid rgba(0, 0, 0, 0.12)',
-              }}
-            >
-              <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
-                cardano-cli transaction sign \ --tx-file tx.draft \
-                --signing-key-file payment.skey \ --signing-key-file drep.skey \
-                {getNetworkFlag(currentNetwork)} \ --out-file tx.signed
-              </pre>
-              <IconButton
-                size="small"
-                sx={{ 
-                  position: 'absolute', 
-                  top: 4, 
-                  right: 4,
-                  bgcolor: 'transparent' 
-                }}
-                onClick={handleCopyHelperSnippet}
-              >
-                <img src="/svgs/copy.svg" alt="copy" />
-              </IconButton>
-            </Box>
-          </>
-        )}
       </Box>
     );
   };
@@ -243,9 +236,15 @@ const CardanoTxModal = ({
           <img src="/svgs/info-circle.svg" alt="info-circle" />
           <Typography variant="body2" color="warning.main">
             Time remaining: {formatTime(timeLeft)}{' '}
-            {txType === 'hardwareWallet' ? '(Expired)' : ''}
+            {txType === 'loginViaExpiredTxnSigning' ? '(Expired)' : ''}
           </Typography>
         </Box>
+        <CopySnippet
+          snippetToCopy={renderSnippetContent(txType)?.snippetToCopy(
+            currentNetwork, fileToDownload
+          )}
+          extraText={renderSnippetContent(txType)?.extraText}
+        />
         <Typography variant="body2" sx={{ mb: 2 }}>
           Your unsigned transaction has been downloaded. You have {ETA} minutes
           to sign and submit it back to the platform before it expires.
@@ -264,10 +263,9 @@ const CardanoTxModal = ({
             style={{ display: 'none' }}
           />
           <Button
-            variant="outlined"
+            variant="contained"
             handleClick={() => fileInputRef.current?.click()}
-            className="mb-2 w-full text-white hover:text-blue-600"
-            color="inherit"
+            className="mb-2 w-full text-white"
           >
             <img
               src="/svgs/download.svg"
@@ -300,13 +298,17 @@ const CardanoTxModal = ({
     <Dialog
       open={open}
       sx={{ zIndex: 9999 }}
-      onClose={isLoading ? undefined : handleClose}
+      onClose={isLoading || isPrepping ? undefined : handleClose}
       maxWidth="sm"
       fullWidth
     >
-      {step === 'initial' ? renderInitialContent() : renderDownloadContent()}
+      {isPrepping
+        ? renderPreppingContent()
+        : step === 'initial'
+          ? renderInitialContent()
+          : renderDownloadContent()}
       <DialogActions>
-        <Button handleClick={handleClose} disabled={isLoading}>
+        <Button handleClick={handleClose} disabled={isLoading || isPrepping}>
           Cancel
         </Button>
       </DialogActions>

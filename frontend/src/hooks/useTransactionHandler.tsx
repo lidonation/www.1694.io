@@ -27,18 +27,25 @@ interface GetUtxosOptions {
   address?: string;
   external?: boolean;
 }
+export type TxnTypes =
+  | 'loginViaMessageSigning'
+  | 'loginViaExpiredTxnSigning'
+  | 'delegationTxn'
+  | 'submitMetadataTxn';
 interface TxnModalState {
   isOpen: boolean;
+  isPrepping: boolean;
+  fileToDownload?: string;
   pendingTx: PendingTransaction | null;
   txHash?: string;
   resolve: ((value: any) => void) | null;
   reject: ((reason?: any) => void) | null;
-  type: 'login' | 'hardwareWallet' | 'regular';
+  type: TxnTypes;
   error?: string;
 }
 
 interface PendingTransaction {
-  type: 'login' | 'hardwareWallet' | 'regular';
+  type: TxnTypes;
   txBuilder?: any;
   certBuilder?: any;
   dRepId?: string;
@@ -52,17 +59,18 @@ interface TransactionHandlerProps {
     balance: number | undefined;
   };
 }
-export const DEFAULT_TXN_TTL = 30 * 60; // 30 minutes
+export const DEFAULT_TXN_TTL = 60 * 60; // 60 minutes
 export function useTransactionHandler({
   walletState,
 }: TransactionHandlerProps) {
   const [txnModalState, setTxnModalState] = useState<TxnModalState>({
     isOpen: false,
+    isPrepping: false,
     pendingTx: null,
     txHash: '',
     resolve: null,
     reject: null,
-    type: 'regular',
+    type: 'submitMetadataTxn',
   });
   const [isLoading, setIsLoading] = useState(false);
   const [userActionState, setUserActionState] = useState({
@@ -80,7 +88,6 @@ export function useTransactionHandler({
 
     try {
       if (options?.external && options?.address) {
-        console.log('Fetching UTXOs from blockfrost');
         const blockfrostUtxos = await getAddressUtxos(options.address);
 
         rawUtxos = blockfrostUtxos.map((utxo) => {
@@ -107,7 +114,6 @@ export function useTransactionHandler({
           return Buffer.from(bytes).toString('hex');
         });
       } else {
-        console.log('Fetching UTXOs from wallet');
         // Get UTXOs from connected wallet
         rawUtxos = await enabledApi.getUtxos();
       }
@@ -224,112 +230,33 @@ export function useTransactionHandler({
     }
   };
 
-  const buildDummyTx = async (
-    walletApi: CardanoApiWallet,
-    certBuilder?: any,
-    options?: { deriveUtxosFrom?: string },
-  ) => {
-    try {
-      if (!walletState.usedAddress || !walletState.changeAddress) {
-        throw new Error('Wallet addresses not available');
-      }
+  const filterUtxosByTokenType = (
+    utxos: TransactionUnspentOutputs,
+  ): TransactionUnspentOutputs => {
+    const utxosArray = Array.from({ length: utxos.len() }, (_, i) =>
+      utxos.get(i),
+    );
 
-      const protocolParams = getItemFromLocalStorage(
-        'protocolParams',
-      ) as Protocol;
-      if (!protocolParams) throw new Error('No protocol params found');
+    // Filter UTXOs to only include those without any native tokens/NFTs
+    const nativeTokenUtxos = utxosArray.filter((utxo) => {
+      const value = utxo.output().amount();
+      const multiAsset = value.multiasset();
 
-      const shelleyOutputAddress = Address.from_bech32(
-        options?.deriveUtxosFrom || walletState.usedAddress,
-      );
-      const shelleyChangeAddress = Address.from_bech32(
-        options?.deriveUtxosFrom || walletState.changeAddress,
-      );
+      // If no multiasset (only ADA), include it
+      if (!multiAsset) return true;
 
-      const utxos = await getUtxos(walletApi, {
-        address: options?.deriveUtxosFrom,
-        external: Boolean(options?.deriveUtxosFrom),
-      });
-      if (!utxos?.length) throw new Error('No UTXOs available');
+      // If has any tokens, exclude it
+      return false;
+    });
 
-      const txUnspentOutputs = await getTxUnspentOutputs(utxos);
-      const { data } = await refetch();
-      let currentNodeStatus = data;
-      const currentSlot = parseInt(currentNodeStatus?.slot_no);
-      const ttl = currentSlot + DEFAULT_TXN_TTL;
-
-      const dummyTxBuilder = TransactionBuilder.new(
-        TransactionBuilderConfigBuilder.new()
-          .fee_algo(
-            LinearFee.new(
-              BigNum.from_str(String(protocolParams.min_fee_a)),
-              BigNum.from_str(String(protocolParams.min_fee_b)),
-            ),
-          )
-          .pool_deposit(BigNum.from_str(protocolParams.pool_deposit))
-          .key_deposit(BigNum.from_str(protocolParams.key_deposit))
-          .coins_per_utxo_byte(
-            BigNum.from_str(String(protocolParams.coins_per_utxo_size)),
-          )
-          .max_value_size(protocolParams.max_val_size)
-          .max_tx_size(protocolParams.max_tx_size)
-          .prefer_pure_change(true)
-          .build(),
-      );
-
-      if (certBuilder) {
-        const newCertBuilder =
-          certBuilder instanceof Certificate
-            ? (() => {
-                const builder = CertificatesBuilder.new();
-                builder.add(certBuilder);
-                return builder;
-              })()
-            : certBuilder;
-        dummyTxBuilder.set_certs_builder(newCertBuilder);
-      }
-      
-      dummyTxBuilder.set_ttl_bignum(BigNum.from_str(ttl.toString()));
-      // dummyTxBuilder.add_output(
-      //   TransactionOutput.new(
-      //     shelleyOutputAddress,
-      //     Value.new(BigNum.from_str('1000000')),
-      //   ),
-      // );
-      // dummyTxBuilder.add_inputs_from(txUnspentOutputs, 1);
-      // dummyTxBuilder.add_change_if_needed(shelleyChangeAddress);
-
-      const changeConfig = ChangeConfig.new(shelleyChangeAddress);
-      // Use UTxO selection strategy 3
-      try {
-        dummyTxBuilder.add_inputs_from_and_change(
-          txUnspentOutputs,
-          3,
-          changeConfig,
-        );
-      } catch (e) {
-        console.error(e);
-        // Use UTxO selection strategy 2 if strategy 3 fails
-        dummyTxBuilder.add_inputs_from_and_change(
-          txUnspentOutputs,
-          2,
-          changeConfig,
-        );
-      }
-
-      const dummyBody = dummyTxBuilder.build();
-      const txSize = dummyBody.to_bytes().length;
-      return { dummyBody, txSize };
-    } catch (error) {
-      console.error('Error building dummy transaction:', error);
-      throw error;
-    }
+    const result = TransactionUnspentOutputs.new();
+    nativeTokenUtxos.forEach((utxo) => result.add(utxo));
+    return result;
   };
 
   const buildFinalTx = async (
     walletApi: CardanoApiWallet,
     certBuilder?: any,
-    // dummyTxSize?: number,
     options?: { deriveUtxosFrom?: string },
   ) => {
     try {
@@ -342,9 +269,6 @@ export function useTransactionHandler({
       ) as Protocol;
       if (!protocolParams) throw new Error('No protocol params found');
 
-      // const shelleyOutputAddress = Address.from_bech32(
-      //   options?.deriveUtxosFrom || walletState.usedAddress,
-      // );
       const shelleyChangeAddress = Address.from_bech32(
         options?.deriveUtxosFrom || walletState.changeAddress,
       );
@@ -358,7 +282,11 @@ export function useTransactionHandler({
       const txUnspentOutputs = await getTxUnspentOutputs(utxos);
       const { data } = await refetch();
       let currentNodeStatus = data;
-      const currentSlot = parseInt(currentNodeStatus?.slot_no);
+      const currentSlot = parseInt(
+        Number(currentNodeStatus?.behindBy) > 100
+          ? currentNodeStatus.comparedLatestSlotNo?.toString()
+          : currentNodeStatus?.slot_no,
+      );
       const ttl = currentSlot + DEFAULT_TXN_TTL;
 
       const finalTxBuilder = TransactionBuilder.new(
@@ -393,27 +321,14 @@ export function useTransactionHandler({
       }
       finalTxBuilder.set_ttl_bignum(BigNum.from_str(ttl.toString()));
 
-      // finalTxBuilder.add_output(
-      //   TransactionOutput.new(
-      //     shelleyOutputAddress,
-      //     Value.new(BigNum.from_str('1000000')),
-      //   ),
-      // );
-      // const baseMinFee = BigNum.from_str(
-      //   String(protocolParams.min_fee_a),
-      // ).checked_mul(BigNum.from_str(dummyTxSize.toString()));
-      // const constantFee = BigNum.from_str(String(protocolParams.min_fee_b));
-      // const buffer = BigNum.from_str('10000');
-      // const totalFee = baseMinFee.checked_add(constantFee).checked_add(buffer);
-      // finalTxBuilder.set_fee(totalFee);
-      // finalTxBuilder.add_inputs_from(txUnspentOutputs, 1);
-      // finalTxBuilder.add_change_if_needed(shelleyChangeAddress);
-
+      //attempt to use only ADA UTXOs for building the transaction
+      const nativeTokenUtxos = filterUtxosByTokenType(txUnspentOutputs);
+      // const nativeTokenUtxos = txUnspentOutputs
       const changeConfig = ChangeConfig.new(shelleyChangeAddress);
       // Use UTxO selection strategy 3
       try {
         finalTxBuilder.add_inputs_from_and_change(
-          txUnspentOutputs,
+          nativeTokenUtxos,
           3,
           changeConfig,
         );
@@ -421,7 +336,7 @@ export function useTransactionHandler({
         console.error(e);
         // Use UTxO selection strategy 2 if strategy 3 fails
         finalTxBuilder.add_inputs_from_and_change(
-          txUnspentOutputs,
+          nativeTokenUtxos,
           2,
           changeConfig,
         );
@@ -447,24 +362,21 @@ export function useTransactionHandler({
     options?: { deriveUtxosFrom?: string },
   ): Promise<{ transaction?: Transaction; dRepId?: string }> => {
     try {
-      if (pendingTx.type === 'login') return { dRepId: pendingTx.dRepId };
-      if (pendingTx.type === 'hardwareWallet') {
+      if (pendingTx.type === 'loginViaMessageSigning')
+        return { dRepId: pendingTx.dRepId };
+      if (pendingTx.type === 'loginViaExpiredTxnSigning') {
         if (!pendingTx.txBuilder || !walletApi)
           throw new Error('Arguments not ready');
         return prepExpiredTxn(pendingTx.txBuilder, walletApi);
       }
 
-      if (pendingTx.type === 'regular') {
-        // a problem wirh fee calculation, resulted in this attempt to get the fee from the dummy transaction
-        // const { txSize } = await buildDummyTx(
-        //   walletApi,
-        //   pendingTx.certBuilder,
-        //   options,
-        // );
+      if (
+        pendingTx.type === 'delegationTxn' ||
+        pendingTx.type === 'submitMetadataTxn'
+      ) {
         const { transaction } = await buildFinalTx(
           walletApi,
           pendingTx.certBuilder,
-          // txSize,
           options,
         );
 
@@ -477,25 +389,38 @@ export function useTransactionHandler({
       throw error;
     }
   };
+
   const openTxnModal = async (
     pendingTx: PendingTransaction,
     walletApi: CardanoApiWallet,
     options?: { deriveUtxosFrom?: string },
   ): Promise<any> => {
     try {
+      setTxnModalState((prev) => ({
+        ...prev,
+        isOpen: true,
+        isPrepping: true,
+        pendingTx,
+        type: pendingTx.type,
+      }));
+
       const preparedTx = await prepareTxBody(pendingTx, walletApi, options);
 
       return new Promise((resolve, reject) => {
         setTxnModalState((prev) => ({
           ...prev,
-          isOpen: true,
+          isPrepping: false,
           pendingTx: { ...pendingTx, ...preparedTx },
           resolve,
           reject,
-          type: pendingTx.type,
         }));
       });
     } catch (error) {
+      setTxnModalState((prev) => ({
+        ...prev,
+        isPrepping: false,
+        error: error.message,
+      }));
       console.error('Error opening transaction modal:', error);
       throw error;
     }
@@ -507,11 +432,12 @@ export function useTransactionHandler({
     }
     setTxnModalState({
       isOpen: false,
+      isPrepping: false,
       pendingTx: null,
       txHash: '',
       resolve: null,
       reject: null,
-      type: 'regular',
+      type: 'submitMetadataTxn',
     });
     setIsLoading(false);
   };
@@ -521,7 +447,7 @@ export function useTransactionHandler({
     try {
       const { pendingTx } = txnModalState;
 
-      if (pendingTx.type === 'login') {
+      if (pendingTx.type === 'loginViaMessageSigning') {
         const payloadBuffer = Buffer.from(`Verify DRep`).toString('hex');
         const signResult = await walletApi.signData(
           pendingTx.dRepId,
@@ -559,7 +485,7 @@ export function useTransactionHandler({
           pendingTx.transaction.body(),
           transactionWitnessSet,
         );
-        if (pendingTx.type === 'hardwareWallet') {
+        if (pendingTx.type === 'loginViaExpiredTxnSigning') {
           const { signature, vkey } = JSON.parse(
             signedTx.witness_set().vkeys().get(0).to_json(),
           );
@@ -571,7 +497,10 @@ export function useTransactionHandler({
           return { signature, vkey };
         }
 
-        if (pendingTx.type === 'regular') {
+        if (
+          pendingTx.type === 'delegationTxn' ||
+          pendingTx.type === 'submitMetadataTxn'
+        ) {
           //submit transaction after signing
           const txHash = await walletApi.submitTx(signedTx.to_hex());
           if (txnModalState.resolve) {
@@ -615,9 +544,10 @@ export function useTransactionHandler({
         type: 'application/json',
       });
       const url = window.URL.createObjectURL(blob);
+      const fileName = `tx${Date.now()}.draft`;
       const a = document.createElement('a');
       a.href = url;
-      a.download = `tx${Date.now()}.draft`;
+      a.download = fileName;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -625,6 +555,7 @@ export function useTransactionHandler({
 
       setTxnModalState((prev) => ({
         ...prev,
+        fileToDownload: fileName,
         txHash: pendingTx.transaction.to_hex(),
       }));
 
@@ -651,13 +582,14 @@ export function useTransactionHandler({
 
       if (txnModalState.resolve) {
         switch (txnModalState.type) {
-          case 'login':
+          case 'loginViaMessageSigning':
             txnModalState.resolve(signedTx.to_json());
             break;
-          case 'hardwareWallet':
+          case 'loginViaExpiredTxnSigning':
             txnModalState.resolve(signedTx.to_js_value().witness_set.vkeys[0]);
             break;
-          case 'regular':
+          case 'delegationTxn':
+          case 'submitMetadataTxn':
             try {
               const txHash = await walletApi.submitTx(signedTx.to_hex());
               txnModalState.resolve({ resultHash: txHash });
@@ -715,7 +647,7 @@ export function useTransactionHandler({
   };
   const handleTransaction = async (
     walletApi: CardanoApiWallet,
-    type: 'login' | 'hardwareWallet' | 'regular',
+    type: TxnTypes,
     params?: any,
     options?: {
       disableSigning?: boolean;
@@ -728,12 +660,6 @@ export function useTransactionHandler({
         disableSigning: options?.disableSigning ?? false,
         disableDownload: options?.disableDownload ?? false,
       });
-
-      setTxnModalState((prev) => ({
-        ...prev,
-        type,
-      }));
-
       const result = await openTxnModal(
         {
           type,
