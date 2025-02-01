@@ -21,12 +21,13 @@ export const useGetOwnership = ({ drepId, voterId }: UseGetOwnershipProps) => {
         } as VerifyOwnershipPayloadResponse;
       }
 
-      if (compareDRepIDs(drepId, voterId)) {
-        return {
-          result: true,
-          message: '',
-        } as VerifyOwnershipPayloadResponse;
-      }
+      //disabled for now
+      // if (compareDRepIDs(drepId, voterId)) {
+      //   return {
+      //     result: true,
+      //     message: '',
+      //   } as VerifyOwnershipPayloadResponse;
+      // }
 
       return verifyOwnership({ drepId, voterId });
     },

@@ -394,9 +394,9 @@ export class DrepService {
       }
       const res = (await this.voltaireService
         .getRepository('Signature')
-        .findOne({
+        .find({
           where: { voterId, drep_bech32: drepId },
-        })) as Signature;
+        })) as Signature[];
 
       if (!res) {
         return {
@@ -406,11 +406,11 @@ export class DrepService {
         };
       }
 
-      if (res.drep_bech32 !== drepId) {
+      if (!res.some(signature => signature.drep_bech32 == drepId)) {
         return {
           result: false,
           message: 'Ownership verification failed',
-          signatures: Array.isArray(res) ? res : [res],
+          signatures: res,
         };
       }
 

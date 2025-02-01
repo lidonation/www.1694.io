@@ -1,6 +1,6 @@
 import React from 'react';
 import StatusChip from './StatusChip';
-import { Skeleton } from '@mui/material';
+import { Skeleton, Tooltip } from '@mui/material';
 import {
   checkStatus,
   compareDRepIDs,
@@ -36,6 +36,7 @@ const DrepClaimProfileCard = ({
   const { metadata, isMetadataLoading, metadataError } =
     useGetDRepMetadataQuery(voterId);
   const { currentDelegation } = useGetAdaHolderCurrentDelegationQuery(stakeKey);
+  const isDelegated = compareDRepIDs(drep?.view, currentDelegation?.drep_view);
 
   return (
     <div className="flex flex-col gap-5 bg-white bg-opacity-50 px-5 py-10">
@@ -49,7 +50,7 @@ const DrepClaimProfileCard = ({
           drepToBeClaimed={drep?.view}
         />
       )}
-      {!compareDRepIDs(drep?.view, currentDelegation?.drep_view) && (
+      {!isDelegated && (
         <Button
           className="w-full"
           disabled={!!isDelegating}
@@ -70,6 +71,13 @@ const DrepClaimProfileCard = ({
         )}
         {drep?.retired && drep?.type !== 'voting_option' && (
           <StatusChip status="Retired" />
+        )}
+        {isDelegated && (
+          <Tooltip title="You have delegated to this DRep">
+            <button>
+              <StatusChip status="Delegated" />
+            </button>
+          </Tooltip>
         )}
         <StatusChip
           status={

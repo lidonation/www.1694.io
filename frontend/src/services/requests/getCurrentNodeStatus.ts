@@ -3,6 +3,7 @@ import axiosInstance from "../axiosInstance";
 export type NodeStatusResponse = {
     hash: string;
     epoch_no: number;
+    comparedLatestSlotNo: number;
     slot_no: string;
     epoch_slot_no: number;
     block_no: number;

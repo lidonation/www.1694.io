@@ -6,6 +6,7 @@ import {
   AccordionSummary,
   Accordion,
   AccordionDetails,
+  Tooltip,
 } from '@mui/material';
 import Link from 'next/link';
 import {
@@ -34,6 +35,7 @@ import DRepIdHolder from './DRepIdHolder';
 import { useGetOwnership } from '@/hooks/useGetOwnership';
 import { useGetAdaHolderCurrentDelegationQuery } from '@/hooks/useGetAdaHolderCurrentDelegationQuery';
 import { useDelegateTodRep } from '@/hooks/useDelegateToDRep';
+import StatusChip from './StatusChip';
 
 interface StatusProps {
   status:
@@ -44,39 +46,6 @@ interface StatusProps {
     | 'Inactive'
     | 'Not claimed';
 }
-const StatusChip = ({ status }: StatusProps) => {
-  let statusClass = '';
-  switch (status) {
-    case 'Verified':
-      statusClass = 'bg-blue-800 text-white';
-      break;
-    case 'Unverified':
-      statusClass = 'bg-gray-800 text-white';
-      break;
-    case 'Not claimed':
-      statusClass = 'bg-orange-500 text-white';
-      break;
-    case 'Claimed':
-      statusClass = 'bg-teal-100 text-zinc-800';
-      break;
-    case 'Active':
-      statusClass = 'bg-teal-100 text-zinc-800';
-      break;
-    case 'Inactive':
-      statusClass = 'bg-gray-800 text-white';
-      break;
-    default:
-      statusClass = 'bg-gray-800 text-white'; // Default to gray if status is not recognized
-  }
-
-  return (
-    <div
-      className={`text-nowrap rounded-full px-2 py-1 text-center text-sm font-normal ${statusClass}`}
-    >
-      {status}
-    </div>
-  );
-};
 
 type DrepProfileCardProps = {
   drep: any;
@@ -86,16 +55,21 @@ type DrepProfileCardProps = {
 
 const DrepProfileCard = ({ drep, voterId, state }: DrepProfileCardProps) => {
   const { isMobile } = useScreenDimension();
-  const { stakeKey } = useCardano();
-  const { setLoginModalOpen, isLoggedIn } = useDRepContext();
+  const { stakeKey, dRepIDBech32 } = useCardano();
+  const { setLoginModalOpen, isLoggedIn, setDrepToBeClaimed } =
+    useDRepContext();
   const [canEdit, setCanEdit] = useState(false);
   const { addSuccessAlert } = useGlobalNotifications();
   const [isSubmittingMetadata, setIsSubmittingMetadata] = useState(false);
   const [hoveredOnWarning, setHoveredOnWarning] = useState(false);
-  const { ownership } = useGetOwnership({ drepId: drep?.view, voterId });
+  const { ownership } = useGetOwnership({
+    drepId: drep?.view,
+    voterId: dRepIDBech32,
+  });
   const { metadata, isMetadataLoading, metadataError } =
     useGetDRepMetadataQuery(voterId);
   const { currentDelegation } = useGetAdaHolderCurrentDelegationQuery(stakeKey);
+  const isDelegated = compareDRepIDs(drep?.view, currentDelegation?.drep_view);
 
   const { delegate, isDelegating } = useDelegateTodRep();
 
@@ -120,6 +94,9 @@ const DrepProfileCard = ({ drep, voterId, state }: DrepProfileCardProps) => {
     );
   }
 
+  const handleEdit = () => {
+    setDrepToBeClaimed(drep?.view);
+  };
   const renderUnsavedChanges = () => {
     const slider = (
       <Accordion>
@@ -214,9 +191,16 @@ const DrepProfileCard = ({ drep, voterId, state }: DrepProfileCardProps) => {
       <div className="flex flex-row gap-2">
         <StatusChip status={checkStatus(drep?.active)} />
         <StatusChip status="Verified" />
+        {isDelegated && (
+          <Tooltip title="You have delegated to this DRep">
+            <button>
+              <StatusChip status="Delegated" />
+            </button>
+          </Tooltip>
+        )}
       </div>
       <div>
-        {!compareDRepIDs(drep?.view, currentDelegation?.drep_view) && (
+        {!isDelegated && (
           <Button
             className="w-full"
             disabled={!!isDelegating}
@@ -332,7 +316,10 @@ const DrepProfileCard = ({ drep, voterId, state }: DrepProfileCardProps) => {
             {isLoggedIn ? ctaActions[0].label : ctaActions[1].label}
           </Button>
           {isLoggedIn && (
-            <Link href={`/dreps/workflow/profile/update/step1`}>
+            <Link
+              href={`/dreps/workflow/profile/update/step1`}
+              onClick={handleEdit}
+            >
               <Button
                 className="w-full"
                 variant="outlined"

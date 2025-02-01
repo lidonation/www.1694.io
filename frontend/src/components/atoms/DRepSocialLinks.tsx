@@ -1,3 +1,4 @@
+import { parseURL } from '@/lib/helpers';
 import Link from 'next/link';
 import React from 'react';
 
@@ -7,20 +8,28 @@ const DRepSocialLinks = ({ links }: { links: any[] }) => {
     let uri = '#';
 
     const matchingLink = links.find((ref) => {
-      const label = (ref.label?.['@value'] || ref?.label || "") as string;
-      return label.includes(link);
+      const label = (ref.label?.['@value'] || ref?.label || '') as string;
+      return label?.toLowerCase()?.includes(link);
     });
     if (matchingLink) {
       uri = matchingLink.uri?.['@value'] || matchingLink?.uri;
     }
-    return uri;
+    if (uri && uri !== '' && uri !== '#') {
+      try {
+        return parseURL(uri)
+      } catch (error) {
+        console.log(error);
+        return uri;
+      }
+    }
+    return '#';
   };
   return (
     <div className="flex flex-row gap-2">
       <Link href={retrieveLink('github')}>
         <img className="w-full" src="/svgs/github-dark.svg" alt="" />
       </Link>
-      <Link href={retrieveLink('x')}>
+      <Link href={retrieveLink('x') || retrieveLink('twitter')}>
         <img className="w-full" src="/svgs/twitter.svg" alt="" />
       </Link>
       <Link href={retrieveLink('facebook')}>

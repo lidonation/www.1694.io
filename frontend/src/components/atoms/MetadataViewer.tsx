@@ -1,4 +1,5 @@
 import { renderJsonLdValue } from '@/lib';
+import { parseURL } from '@/lib/helpers';
 import { Typography } from '@mui/material';
 import Link from 'next/link';
 import React from 'react';
@@ -46,7 +47,7 @@ const MetadataViewer = ({
             Array.isArray(linksArr) && linksArr.length
               ? linksArr.map((link, index) => {
                   const linkLabel = link?.label?.['@value'] || link?.label;
-                  const linkUri = link?.uri?.['@value'] || link?.uri;
+                  const linkUri = parseURL(link?.uri?.['@value'] || link?.uri);
                   return (
                     <div
                       key={index}

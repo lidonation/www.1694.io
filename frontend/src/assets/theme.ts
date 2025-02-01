@@ -11,6 +11,11 @@ const poppins = Poppins({
 export type Theme = typeof theme;
 
 const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#0033AD',
+    }
+  },
   components: {
     MuiButton: {
       styleOverrides: {
