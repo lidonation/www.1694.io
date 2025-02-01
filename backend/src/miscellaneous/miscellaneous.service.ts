@@ -51,6 +51,7 @@ export class MiscellaneousService {
       //compare the block number
       return {
         ...nodeLatestBlock[0],
+        comparedLatestSlotNo: confirmationLatestBlock.slot,
         behindBy: confirmationLatestBlock.height - nodeLatestBlock[0].block_no,
       };
     } catch (error) {
@@ -95,19 +96,25 @@ export class MiscellaneousService {
 
   transformDbSyncUtxos(dbUtxos: DbSyncUTXO[]): BlockfrostUTXO[] {
     return dbUtxos.map((utxo) => {
-      // Convert Buffer hash to hex string
       const txHash = utxo.hash;
+
+      const amount = [
+        {
+          unit: 'lovelace',
+          quantity: utxo.value,
+        },
+      ];
+
+      if (utxo.tokens && utxo.tokens.length > 0) {
+        const validTokens = utxo.tokens.filter(token => token !== null);
+        amount.push(...validTokens);
+      }
 
       return {
         address: utxo.address,
         tx_hash: txHash,
         output_index: utxo.index,
-        amount: [
-          {
-            unit: 'lovelace',
-            quantity: utxo.value,
-          },
-        ],
+        amount,
         block: utxo.block_id.toString(),
         data_hash: utxo.data_hash,
         inline_datum: null,

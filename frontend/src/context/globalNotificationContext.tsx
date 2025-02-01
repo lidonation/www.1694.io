@@ -103,7 +103,7 @@ function GlobalNotificationsProvider({ children }: ProviderProps) {
         {
           message,
           autoHideDuration: autoHide ? autoHideDuration : null,
-          severity: 'info',
+          severity: 'success',
           key: new Date().getTime(),
           iconOverride: <CircularProgress size={24} />,
         },

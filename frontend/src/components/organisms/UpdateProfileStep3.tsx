@@ -20,16 +20,13 @@ const UpdateProfileStep3 = () => {
 
   const [errors, setErrors] = useState({});
   const [referencesArr, setReferencesArr] = useState([]);
-  const {
-    setIsNotDRepErrorModalOpen,
-    metadataJsonLd,
-    handleRefresh,
-    updateStep,
-  } = useDRepContext();
+  const { metadataJsonLd, handleRefresh, updateStep, ownership } =
+    useDRepContext();
   const { addChangesSavedAlert, addSuccessAlert } = useGlobalNotifications();
 
   useEffect(() => {
     const getDRep = () => {
+      let availableReferences = [];
       try {
         if (!metadataJsonLd) return;
         const metadataJson = renderJSONLDToJSONArr(metadataJsonLd);
@@ -38,18 +35,18 @@ const UpdateProfileStep3 = () => {
         );
         if (referencesData) {
           try {
-            setReferencesArr(referencesData.value);
+            availableReferences = referencesData.value;
+            setReferencesArr(availableReferences);
           } catch (error) {
             console.error('Error parsing references:', error);
             setReferencesArr([]);
           }
         }
         //map through the metadata and set the current metadata for each exisitng field
-        const isUpdating = getItemFromLocalStorage('isUpdating');
-        if (isUpdating) {
+        if (getItemFromLocalStorage('isUpdating')) {
           addSuccessAlert('Draft restored!');
         }
-        if (referencesArr.length > 0) {
+        if (availableReferences.length > 0) {
           updateStep(ProfileWorkflowStepKey.SOCIALS, 'update');
         } else updateStep(ProfileWorkflowStepKey.SOCIALS, 'active');
         return;
@@ -80,9 +77,12 @@ const UpdateProfileStep3 = () => {
   const handleDeleteReference = (id) => {
     setReferencesArr(referencesArr.filter((item) => item.id !== id));
   };
-  const validateAndSave = async (e) => {
+
+  const validateAndSave = async (e?: React.FormEvent) => {
     try {
-      e.preventDefault();
+      if (e?.preventDefault) {
+        e.preventDefault();
+      }
       const newErrors = {};
       let hasErrors = false;
       referencesArr.forEach((item) => {
@@ -102,20 +102,25 @@ const UpdateProfileStep3 = () => {
 
       setErrors(newErrors);
       if (!hasErrors) {
-        saveProfile();
+        await saveProfile();
+        return true;
       }
+      return false;
     } catch (error) {
       console.log(error);
+      return false;
     }
   };
 
   const saveProfile = async () => {
     try {
       let toBeSubmittedMetadataJsonLd = metadataJsonLd;
-      if (!dRepIDBech32 || dRepIDBech32 == '') {
-        setIsNotDRepErrorModalOpen(true);
-        return;
-      }
+      const signatures = ownership?.signatures.map((sig) => {
+        return {
+          signature: sig.signature,
+          vkey: sig.key,
+        };
+      })?.[0];
       const references = [];
       const links = referencesArr.reduce((acc, item) => {
         acc[item.key] = item.value;
@@ -144,6 +149,7 @@ const UpdateProfileStep3 = () => {
           metadataKeys,
           toBeSubmittedMetadata as any,
           loginSignTransaction,
+          signatures
         );
         setItemToLocalStorage('isUpdating', 'true');
         await setItemToIndexedDB('metadataJsonLd', jsonld);
@@ -182,6 +188,7 @@ const UpdateProfileStep3 = () => {
           metadataKeys,
           toBeSubmittedMetadata as any,
           loginSignTransaction,
+          signatures
         );
         setItemToLocalStorage('isUpdating', 'true');
         await setItemToIndexedDB('metadataJsonLd', jsonld);
@@ -213,7 +220,7 @@ const UpdateProfileStep3 = () => {
           your profile. This will be a part of your metadata.
         </p>
       </div>
-      <form id="profile_form" onSubmit={validateAndSave}>
+      <form id="profile_form">
         {referencesArr &&
           referencesArr.map(({ id, key, value }, index) => (
             <div key={index} className="mb-4">
@@ -233,7 +240,7 @@ const UpdateProfileStep3 = () => {
                   onChange={(e) =>
                     handleReferenceChange(id, 'value', e.target.value)
                   }
-                  placeholder="Value (e.g., https://x.com/username)"
+                  placeholder="Value (e.g., x.com/username)"
                   className="flex-grow rounded border p-2"
                 />
                 <div
@@ -274,7 +281,11 @@ const UpdateProfileStep3 = () => {
           <img src="/svgs/circle-plus.svg" alt="add" className="h-5 w-5" />
           <p>Add reference</p>
         </Button>
-        <ProfileSubmitArea isUpdate />
+        <ProfileSubmitArea
+          isUpdate
+          autoSubmit={false}
+          preNavigationCheck={() => validateAndSave()}
+        />
       </form>
     </div>
   );

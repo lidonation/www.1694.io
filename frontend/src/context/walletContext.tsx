@@ -45,7 +45,7 @@ import getFirstEpoch from '@/services/requests/getFIrstEpoch';
 import { useGlobalNotifications } from './globalNotificationContext';
 import { AutomatedVotingOptionDelegationId } from '@/models/enums';
 import CardanoTxModal from '@/components/atoms/TxnModal';
-import { useTransactionHandler } from '@/hooks/useTransactionHandler';
+import { TxnTypes, useTransactionHandler } from '@/hooks/useTransactionHandler';
 import { checkTxExists } from '@/services/requests/checkTxExists';
 
 interface Props {
@@ -102,6 +102,7 @@ interface CardanoContext {
     drepToUpdate?: string,
   ) => Promise<Certificate>;
   signAndSubmitTransaction: (
+    type: TxnTypes,
     certBuilder?: any,
     options?: {
       disableSigning?: boolean;
@@ -509,7 +510,7 @@ function CardanoProvider(props: Props) {
       const txBuilder = await initTransactionBuilder();
       const result = await handleTransaction(
         walletApi,
-        'hardwareWallet',
+        'loginViaExpiredTxnSigning',
         { txBuilder },
         options,
       );
@@ -603,6 +604,7 @@ function CardanoProvider(props: Props) {
   );
 
   const signAndSubmitTransaction = async (
+    type: TxnTypes,
     certBuilder?: any,
     options?: {
       disableSigning?: boolean;
@@ -615,7 +617,7 @@ function CardanoProvider(props: Props) {
       const txBuilder = await initTransactionBuilder();
       const result = await handleTransaction(
         walletApi,
-        'regular',
+        type,
         { txBuilder, certBuilder },
         options,
       );
@@ -758,12 +760,14 @@ function CardanoProvider(props: Props) {
       {props.children}
       <CardanoTxModal
         open={txnModalState.isOpen}
+        isPrepping={txnModalState.isPrepping}
         onClose={closeTxnModal}
         onWalletSign={() => handleWalletSign(walletApi)}
-        onDownloadUnsigned={() => handleDownloadUnsigned()}
+        onDownloadUnsigned={handleDownloadUnsigned}
         onSubmitSignedTx={(signedTxHash: File) =>
           handleSubmitSignedTxFile(signedTxHash, walletApi)
         }
+        fileToDownload={txnModalState.fileToDownload}
         currentNetwork={enabledNetwork}
         error={txnModalState.error}
         disableDownload={userActionState.disableDownload}

@@ -47,7 +47,6 @@ const UpdateProfileStep2 = () => {
     address,
     isEnabled,
     stakeKey,
-    loginCredentials,
     loginHardwareWalletTransaction,
     dRepIDBech32,
   } = useCardano();
@@ -64,7 +63,9 @@ const UpdateProfileStep2 = () => {
     drepEntityToBeClaimed,
     setNewDrepId,
     updateStep,
+    ownership,
   } = useDRepContext();
+
 
   const {
     addChangesSavedAlert,
@@ -205,15 +206,36 @@ const UpdateProfileStep2 = () => {
 
   useEffect(() => {
     try {
-      if (loginCredentials?.signature || loginCredentials?.vkey) {
-        const { signature, vkey } = loginCredentials;
-        setSignatures((prev) => ({
-          ...prev,
-          current: { signature, key: vkey },
-        }));
-        setValue('signature', signature);
-        setValue('key', vkey);
-        updateStep(ProfileWorkflowStepKey.SIGNATURES, 'update');
+      if (ownership && ownership.result === true) {
+        ownership.signatures.map((sig) => {
+          if (sig.type === 'drep') {
+            setSignatures((prev) => ({
+              ...prev,
+              verification: {
+                signature: sig.signature,
+                key: sig.key,
+              },
+            }));
+            setValue('verificationSignature', sig.signature);
+            setValue('verificationKey', sig.key);
+          }
+
+          if (sig.type === 'signer') {
+            setSignatures((prev) => ({
+              ...prev,
+              current: {
+                signature: sig.signature,
+                key: sig.key,
+              },
+            }));
+            setValue('signature', sig.signature);
+            setValue('key', sig.key);
+          }
+        });
+
+        if (ownership.signatures.length > 0) {
+          updateStep(ProfileWorkflowStepKey.SIGNATURES, 'update');
+        }
       } else updateStep(ProfileWorkflowStepKey.SIGNATURES, 'active');
     } catch (error) {
       console.log(error);
@@ -223,13 +245,13 @@ const UpdateProfileStep2 = () => {
     }
 
     return () => {
-      if (loginCredentials) {
+      if (ownership && ownership.result === true) {
         updateStep(ProfileWorkflowStepKey.SIGNATURES, 'success');
       } else {
         updateStep(ProfileWorkflowStepKey.SIGNATURES, 'pending');
       }
     };
-  }, [loginCredentials]);
+  }, [ownership]);
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     setIsHardware(!event.target.checked);

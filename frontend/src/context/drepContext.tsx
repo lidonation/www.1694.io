@@ -30,6 +30,7 @@ import { usePathname } from 'next/navigation';
 import { SingleDRep } from '../../types/api';
 import { useGetOwnership } from '@/hooks/useGetOwnership';
 import { ProfileWorkflowStepKey } from '@/lib/enums';
+import { VerifyOwnershipPayloadResponse } from '@/services/requests/verifyOwnership';
 
 export type StepStatus = 'success' | 'active' | 'pending' | 'update';
 
@@ -42,6 +43,7 @@ interface Steps {
 
 interface DRepContext extends SharedState {
   steps: Steps;
+  ownership: VerifyOwnershipPayloadResponse | null;
   updateStep: (step: keyof Steps, status: StepStatus) => void;
   isLoggedIn: boolean;
   loginModalOpen: boolean;
@@ -139,6 +141,10 @@ function DRepProvider(props: Props) {
   }, []);
 
   useEffect(() => {
+    handleDrepProfileCreationState();
+  }, [drepToBeClaimed]);
+
+  useEffect(() => {
     updateSharedState({
       isWalletListModalOpen,
       isNotDRepErrorModalOpen,
@@ -155,25 +161,28 @@ function DRepProvider(props: Props) {
   ]);
 
   useEffect(() => {
-    const drepToBeClaimed = getItemFromLocalStorage('drepToBeClaimed');
-    if (drepToBeClaimed) {
-      setDrepToBeClaimed(drepToBeClaimed);
+    const cachedDRep = getItemFromLocalStorage('drepToBeClaimed');
+    const cachedDRepEntity = getItemFromLocalStorage('drepEntityToBeClaimed');
+    if (cachedDRep) {
+      setDrepToBeClaimed(cachedDRep);
     }
-  }, []);
+    if (cachedDRepEntity) {
+      setDrepEntityToBeClaimed(cachedDRepEntity);
+    }
+}, []);
 
   useEffect(() => {
     persistLogin();
   }, [sharedState?.stakeKey]);
 
   useEffect(() => {
-    handleDrepProfileCreationState();
-  }, [drepToBeClaimed]);
-
-  useEffect(() => {
     if (drepToBeClaimed) {
       setItemToLocalStorage('drepToBeClaimed', drepToBeClaimed);
     }
-  }, [drepToBeClaimed]);
+    if (drepEntityToBeClaimed) {
+      setItemToLocalStorage('drepEntityToBeClaimed', drepEntityToBeClaimed);
+    }
+  }, [drepToBeClaimed, drepEntityToBeClaimed]);
 
   useEffect(() => {
     // check if drepId is not the same as the one in the shared state and ownership is false
@@ -221,55 +230,63 @@ function DRepProvider(props: Props) {
 
   const handleDrepProfileCreationState = async () => {
     try {
-      let metadataJsonLd = null;
-      const drepId = drepToBeClaimed;
-      if (!drepId) return;
+      let availabledMetadataJsonLd = null;
+      const isUpdating =
+        getItemFromLocalStorage('isUpdating') &&
+        pathname.includes('/workflow/profile/update');
+      if (!isUpdating) {
+        const drepId = drepToBeClaimed;
+        if (!drepId) return;
 
-      const isDRepRegistered = await getDRepRegStatus(drepId);
-      if (!isDRepRegistered) return;
-      setIsDRepRegistered(true);
+        const isDRepRegistered = await getDRepRegStatus(drepId);
+        if (!isDRepRegistered) return;
+        setIsDRepRegistered(true);
 
-      const drep = await getSingleDRepViaVoterId(drepId);
-      if (drep?.drep_id) {
-        setNewDrepId(drep?.drep_id);
-      }
-      if (drep?.signature_signature) {
-        updateStep(ProfileWorkflowStepKey.SIGNATURES, 'success');
-      }
-      setDrepEntityToBeClaimed(drep);
-
-      try {
-        const res = await getDRepMetadata(drep?.view);
-        if (res) {
-          metadataJsonLd = res;
-          setMetadataJsonLd(res);
-          const jsonHash = blake2bHex(
-            JSON.stringify(metadataJsonLd),
-            undefined,
-            32,
-          );
-          setMetadataJsonHash(jsonHash);
+        const drep = await getSingleDRepViaVoterId(drepId);
+        if (drep?.drep_id) {
+          setNewDrepId(drep?.drep_id);
         }
-      } catch (e) {
-        if (e.response?.status === 404) {
-          console.log('Metadata not found');
-        } else {
-          console.log(e);
+        if (drep?.signature_signature) {
+          updateStep(ProfileWorkflowStepKey.SIGNATURES, 'success');
+        }
+        setDrepEntityToBeClaimed(drep);
+
+        //if just getting started to update the profile
+        try {
+          const res = await getDRepMetadata(drep?.view);
+          if (res) {
+            availabledMetadataJsonLd = res;
+            setMetadataJsonLd(res);
+            const jsonHash = blake2bHex(
+              JSON.stringify(availabledMetadataJsonLd),
+              undefined,
+              32,
+            );
+            setMetadataJsonHash(jsonHash);
+          }
+        } catch (e) {
+          if (e.response?.status === 404) {
+            console.log('Metadata not found');
+          } else {
+            console.log(e);
+          }
+        }
+      } else {
+        //is in the process of updating the profile
+        if (!availabledMetadataJsonLd) {
+          const locallySavedJsonld =
+            await getItemFromIndexedDB('metadataJsonLd');
+          const locallySavedHash =
+            await getItemFromIndexedDB('metadataJsonHash');
+          if (locallySavedHash) setMetadataJsonHash(locallySavedHash);
+          if (locallySavedJsonld) {
+            availabledMetadataJsonLd = locallySavedJsonld;
+            setMetadataJsonLd(locallySavedJsonld);
+          }
         }
       }
-
-      if (!metadataJsonLd && pathname.includes('/workflow/profile/update')) {
-        const locallySavedJsonld = await getItemFromIndexedDB('metadataJsonLd');
-        const locallySavedHash = await getItemFromIndexedDB('metadataJsonHash');
-        if (locallySavedHash) setMetadataJsonHash(locallySavedHash);
-        if (locallySavedJsonld) {
-          metadataJsonLd = locallySavedJsonld;
-          setMetadataJsonLd(locallySavedJsonld);
-        }
-      }
-
-      if (!metadataJsonLd) return;
-      const metadataBody = metadataJsonLd?.body;
+      if (!availabledMetadataJsonLd) return;
+      const metadataBody = availabledMetadataJsonLd?.body;
 
       if (metadataBody?.givenName || metadataBody?.bio || metadataBody?.email) {
         updateStep(ProfileWorkflowStepKey.PROFILE, 'success');
@@ -377,6 +394,7 @@ function DRepProvider(props: Props) {
       handleActionModalOpen,
       handleActionModalClose,
       handleCleanup,
+      ownership,
       ...sharedState,
     }),
     [
@@ -386,6 +404,7 @@ function DRepProvider(props: Props) {
       currentRegistrationStep,
       currentLocale,
       drepId,
+      ownership,
       signatureId,
       loginModalOpen,
       steps,
