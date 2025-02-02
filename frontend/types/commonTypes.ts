@@ -58,6 +58,7 @@ export type Notification = {
 };
 export type Metrics = {
   totalRegisteredDReps: number;
+  totalLiveStake: number;
   totalActiveDReps: number;
   totalGovernanceActions: number;
   totalVotingPower: number;

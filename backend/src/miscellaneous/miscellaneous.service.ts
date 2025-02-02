@@ -6,6 +6,7 @@ import { BlockfrostBlockRes, Metrics, NodeBlockRes } from 'src/common/types';
 import { getLatestBlock } from 'src/queries/getLatestBlock';
 import {
   getActiveDRepsQuery,
+  getLiveStakeQuery,
   getTotalDelegatorsQuery,
   getTotalDrepsAndVotingPower,
   getTotalGovernanceActionsQuery,
@@ -66,16 +67,20 @@ export class MiscellaneousService {
         totalActiveDReps,
         totalDelegators,
         totalGovernanceActions,
+        totalLiveStake,
       ] = await Promise.all([
         this.cexplorerService.manager.query(getTotalDrepsAndVotingPower),
         this.cexplorerService.manager.query(getActiveDRepsQuery),
         this.cexplorerService.manager.query(getTotalDelegatorsQuery),
         this.cexplorerService.manager.query(getTotalGovernanceActionsQuery),
+        this.cexplorerService.manager.query(getLiveStakeQuery),
       ]);
 
       const metrics: Metrics = {
         totalRegisteredDReps: parseInt(drepMetricsForAllDReps[0].total_dreps),
         totalActiveDReps: parseInt(totalActiveDReps[0].total_active_dreps),
+        totalLiveStake: parseInt(totalLiveStake[0].total_live_stake) /
+          Currency.LOVELACETOADA, // convert to ADA
         totalGovernanceActions: parseInt(totalGovernanceActions[0].count),
         totalVotingPower:
           parseInt(drepMetricsForAllDReps[0].total_active_power) /

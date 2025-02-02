@@ -24,7 +24,7 @@ const SubmitMetadataModal = ({ onClose, onSuccessfulSubmit }) => {
   const [activeTab, setActiveTab] = useState('selfHost');
   const [jsonld, setJsonld] = useState<any>(null);
   const [jsonHash, setJsonHash] = useState(null);
-  const { addErrorAlert, addSuccessAlert, addPendingAlert } = useGlobalNotifications();
+  const { addErrorAlert, addSuccessAlert } = useGlobalNotifications();
   const [metadataUrl, setMetadataUrl] = useState('');
   const [isSubmittingToIPFS, setIsSubmittingToIPFS] = useState(false);
 
