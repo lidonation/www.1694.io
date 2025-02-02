@@ -16,8 +16,8 @@ registered_dreps AS (
     LEFT JOIN
         latest_registration r ON h.id = r.drep_hash_id
     WHERE
-        (r.rn = 1 AND (r.deposit = 500000000 OR r.deposit IS NULL))
-        OR r.drep_hash_id IS NULL  -- Include DReps with no registration entry
+        (r.rn = 1 AND (r.deposit = 500000000))
+        -- OR r.drep_hash_id IS NULL  -- Include DReps with no registration entry
 ),
 latest_epoch AS (
     SELECT
