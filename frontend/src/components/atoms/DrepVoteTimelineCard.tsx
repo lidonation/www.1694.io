@@ -133,7 +133,7 @@ const DrepVoteTimelineCard = ({ item }: { item: any }) => {
             Govtool
           </Link>
           <Link
-            href={`${urls.adaStatUrl}/governances/${item?.gov_action_proposal_id}`}
+            href={`${urls.adaStatUrl}/governances/${item?.gov_action_proposal_id}00`}
             target="_blank"
             className="text-sm text-blue-800"
           >
