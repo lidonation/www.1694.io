@@ -42,6 +42,10 @@ export const getTotalDelegatorsQuery = `
 With delegation_summary as (SELECT * from "drepdelegationsummary")
 select SUM(vote_count) as total_delegators
 from delegation_summary`;
+export const getLiveStakeQuery = `
+With delegation_summary as (SELECT * from "drepdelegationsummary")
+select SUM(live_stake) as total_live_stake
+from delegation_summary`;
 export const getTotalGovernanceActionsQuery = `SELECT COUNT(*) as count FROM "gov_action_proposal"`;
 export const getActiveDRepsQuery=`
 WITH latest_epoch AS (

@@ -156,22 +156,7 @@ const CardanoTxModal = ({
   };
 
   const renderErrorContent = (error: string) => {
-    // const attemptRenderErrorHelperSnippet = () => {
-    //   if (!error) {
-    //     return null;
-    //   }
-
-    //   switch (true) {
-    //     case error.includes('Transaction is missing signatures from'):
-    //       return helperSnippets
-    //         .find((s) => s.type === 'inadequateSignatures')
-    //         ?.snippetToCopy(currentNetwork, fileToDownload);
-    //     default:
-    //       return null;
-    //   }
-    // };
-
-    return (
+       return (
       <Box
         sx={{
           display: 'flex',
@@ -187,7 +172,6 @@ const CardanoTxModal = ({
           <CopySnippet
             extraText={error}
             isError
-            // snippetToCopy={attemptRenderErrorHelperSnippet()}
           />
         </Box>
       </Box>
