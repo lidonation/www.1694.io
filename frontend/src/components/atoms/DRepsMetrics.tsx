@@ -10,6 +10,7 @@ const DRepsMetrics = () => {
     totalGovernanceActions: 0,
     totalVotingPower: 0,
     totalRegisteredStakeAddresses: 0,
+    totalLiveStake: 0,
   });
   const { metrics: fetchedMetrics, isMetricsLoading } = useGetMetricsQuery();
   useEffect(() => {
@@ -43,6 +44,11 @@ const DRepsMetrics = () => {
             <MetricCard
               value={metrics.totalVotingPower}
               label="Total Voting Power in ₳"
+              isLoading={isMetricsLoading}
+            />
+            <MetricCard
+              value={metrics.totalLiveStake}
+              label="Total Live Stake in ₳"
               isLoading={isMetricsLoading}
             />
             <MetricCard
