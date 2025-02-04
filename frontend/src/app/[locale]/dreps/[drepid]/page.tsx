@@ -14,9 +14,9 @@ const page = () => {
       <div className="flex flex-col lg:flex-row">
         <div className="lg:sticky lg:top-10 lg:w-[30%] lg:self-start lg:!scroll-smooth">
           {dRep?.drep_id ? (
-            <DrepProfileCard drep={dRep} voterId={drepid.toString()} state={isDRepLoading} />
+            <DrepProfileCard drep={dRep} voterId={drepid.toString()} loading={isDRepLoading} />
           ) : (
-            <DrepClaimProfileCard drep={dRep} voterId={drepid.toString()} state={isDRepLoading} />
+            <DrepClaimProfileCard drep={dRep} voterId={drepid.toString()} loading={isDRepLoading} />
           )}
         </div>
         <div className="lg:w-[70%]">

@@ -50,6 +50,7 @@ export const getPubDRepID = async (walletApi: CardanoApiWallet) => {
 
 
 export const compareDRepIDs = (dRepID1: string, dRepID2: string) => {
+  if (!dRepID1 || !dRepID2) return false  
   //first make them one
   const drep1Hex = dRepPhraseProcessor(dRepID1);
   const drep2Hex = dRepPhraseProcessor(dRepID2);

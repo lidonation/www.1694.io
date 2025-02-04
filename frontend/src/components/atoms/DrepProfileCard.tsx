@@ -50,10 +50,10 @@ interface StatusProps {
 type DrepProfileCardProps = {
   drep: any;
   voterId: string;
-  state: boolean;
+  loading: boolean;
 };
 
-const DrepProfileCard = ({ drep, voterId, state }: DrepProfileCardProps) => {
+const DrepProfileCard = ({ drep, voterId, loading }: DrepProfileCardProps) => {
   const { isMobile } = useScreenDimension();
   const { stakeKey, dRepIDBech32 } = useCardano();
   const { setLoginModalOpen, isLoggedIn, setDrepToBeClaimed } =
@@ -164,7 +164,7 @@ const DrepProfileCard = ({ drep, voterId, state }: DrepProfileCardProps) => {
   return (
     <div className="flex w-full flex-col gap-5 bg-white bg-opacity-50 px-5 py-10">
       <DRepAvatarCard
-        state={state}
+        loading={loading}
         imageSrc={metadata?.body?.image?.contentUrl}
       />
       <div className="w-full">
@@ -175,7 +175,7 @@ const DrepProfileCard = ({ drep, voterId, state }: DrepProfileCardProps) => {
             wordBreak: 'break-word',
           }}
         >
-          {state ? (
+          {loading ? (
             <Skeleton
               animation={'wave'}
               variant="text"
@@ -216,7 +216,7 @@ const DrepProfileCard = ({ drep, voterId, state }: DrepProfileCardProps) => {
         <div>
           <Typography variant="h6">Voting power</Typography>
           <p className="flex items-center gap-3 font-normal">
-            {state ? (
+            {loading ? (
               <Skeleton animation={'wave'} width={50} height={20} />
             ) : drep?.voting_power != null ? (
               `₳ ${formattedAda(drep?.voting_power, 2)}`
@@ -228,7 +228,7 @@ const DrepProfileCard = ({ drep, voterId, state }: DrepProfileCardProps) => {
         <div>
           <Typography variant="h6">Live Stake</Typography>
           <p className="flex items-center gap-3 font-normal">
-            {state ? (
+            {loading ? (
               <Skeleton animation={'wave'} width={50} height={20} />
             ) : drep?.live_stake != null ? (
               `₳ ${formattedAda(drep?.live_stake, 2)}`
@@ -242,7 +242,7 @@ const DrepProfileCard = ({ drep, voterId, state }: DrepProfileCardProps) => {
         <Typography variant="h6">Total delegation</Typography>
         <p>
           {' '}
-          {state ? (
+          {loading ? (
             <Skeleton animation={'wave'} width={100} height={20} />
           ) : (
             `${drep?.delegation_vote_count || 0} ${drep?.delegation_vote_count > 1 ? 'Delegators' : 'Delegator'}`
@@ -253,12 +253,12 @@ const DrepProfileCard = ({ drep, voterId, state }: DrepProfileCardProps) => {
         <legend className="font-bold">DRep ID</legend>
         <div className="flex flex-col items-start justify-center gap-1 divide-y divide-blue-100 pb-2">
           <DRepIdHolder
-            state={state}
+            loading={loading}
             drepId={convertHexToCIP129(drep?.has_script, drep?.chain_id)}
             isCIP129={true}
           />
           <DRepIdHolder
-            state={state}
+            loading={loading}
             drepId={drep?.view}
             isCIP129={false}
             className="pt-1"

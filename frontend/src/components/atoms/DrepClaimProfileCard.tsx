@@ -18,30 +18,35 @@ import { useDelegateTodRep } from '@/hooks/useDelegateToDRep';
 import ClaimProfileButton from './ClaimProfileButton';
 import Button from './Button';
 import { useGetAdaHolderCurrentDelegationQuery } from '@/hooks/useGetAdaHolderCurrentDelegationQuery';
+import { useGetOwnership } from '@/hooks/useGetOwnership';
 
 type DrepClaimProfileCardProps = {
   drep: any;
   voterId: string;
-  state: boolean;
+  loading: boolean;
 };
 
 const DrepClaimProfileCard = ({
   drep,
   voterId,
-  state,
+  loading,
 }: DrepClaimProfileCardProps) => {
-  const { dRepIDBech32, stakeKey } = useCardano();
+  const { stakeKey, dRepIDBech32 } = useCardano();
   const { isLoggedIn } = useDRepContext();
   const { delegate, isDelegating } = useDelegateTodRep();
   const { metadata, isMetadataLoading, metadataError } =
     useGetDRepMetadataQuery(voterId);
+  const { ownership } = useGetOwnership({
+    drepId: drep?.view,
+    voterId: dRepIDBech32,
+  });
   const { currentDelegation } = useGetAdaHolderCurrentDelegationQuery(stakeKey);
   const isDelegated = compareDRepIDs(drep?.view, currentDelegation?.drep_view);
 
   return (
     <div className="flex flex-col gap-5 bg-white bg-opacity-50 px-5 py-10">
       <DRepAvatarCard
-        state={state}
+        loading={loading}
         imageSrc={metadata?.body?.image?.contentUrl}
       />
       {drep?.type !== 'scripted' && drep?.type !== 'voting_option' && (
@@ -81,9 +86,9 @@ const DrepClaimProfileCard = ({
         />
         {isDelegated && (
           <Tooltip title="You have delegated to this DRep">
-              <button>
-                  <StatusChip status="Your DRep" />
-              </button>
+            <button>
+              <StatusChip status="Your DRep" />
+            </button>
           </Tooltip>
         )}
       </div>
@@ -91,7 +96,7 @@ const DrepClaimProfileCard = ({
         <div>
           <p className="font-bold">Voting power</p>
           <p className="flex items-center gap-3 font-normal">
-            {state ? (
+            {loading ? (
               <Skeleton animation={'wave'} width={50} height={20} />
             ) : drep?.voting_power != null ? (
               `₳ ${formattedAda(drep?.voting_power, 2)}`
@@ -103,7 +108,7 @@ const DrepClaimProfileCard = ({
         <div>
           <p className="font-bold">Live Stake</p>
           <p className="flex items-center gap-3 font-normal">
-            {state ? (
+            {loading ? (
               <Skeleton animation={'wave'} width={50} height={20} />
             ) : drep?.live_stake != null ? (
               `₳ ${formattedAda(drep?.live_stake, 2)}`
@@ -116,7 +121,7 @@ const DrepClaimProfileCard = ({
       <div>
         <p className="font-bold">Total delegation</p>
         <p>
-          {state ? (
+          {loading ? (
             <Skeleton animation={'wave'} width={150} height={20} />
           ) : (
             `${drep?.delegation_vote_count || 0} ${drep?.delegation_vote_count > 1 ? 'Delegators' : 'Delegator'}`
@@ -127,12 +132,12 @@ const DrepClaimProfileCard = ({
         <legend className="font-bold">DRep ID</legend>
         <div className="flex flex-col items-start justify-center gap-1 divide-y divide-blue-100 pb-2">
           <DRepIdHolder
-            state={state}
+            loading={loading}
             drepId={convertHexToCIP129(drep?.has_script, drep?.chain_id)}
             isCIP129={true}
           />
           <DRepIdHolder
-            state={state}
+            loading={loading}
             drepId={drep?.view}
             isCIP129={false}
             className="pt-1"
@@ -152,16 +157,14 @@ const DrepClaimProfileCard = ({
           />
         )}
       </div>
-      {(drep?.view == dRepIDBech32 ||
-        drep?.signature_voterId == dRepIDBech32) &&
-        isLoggedIn && (
-          <div className="flex max-w-prose flex-col gap-2">
-            <ClaimProfileButton
-              label="Claim your profile to update"
-              drepToBeClaimed={drep?.view}
-            />
-          </div>
-        )}
+      {ownership && ownership.result === true && isLoggedIn && (
+        <div className="flex max-w-prose flex-col gap-2">
+          <ClaimProfileButton
+            label="Claim your profile to update"
+            drepToBeClaimed={drep?.view}
+          />
+        </div>
+      )}
     </div>
   );
 };
