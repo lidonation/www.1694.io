@@ -388,15 +388,27 @@ export class DrepService {
   ): Promise<{ result: boolean; message: string; signatures?: Signature[] }> {
     try {
       if (!voterId || !drepId) {
-        throw new Error(
-          'Too few arguments, both voterId and drepId are required',
-        );
+        return {
+          result: false,
+          message: 'Too few arguments',
+          signatures: null,
+        }
       }
+
       const res = (await this.voltaireService
         .getRepository('Signature')
         .find({
           where: { voterId, drep_bech32: drepId },
         })) as Signature[];
+
+      if (voterId === drepId) {
+        return {
+          result: true,
+          message: 'Ownership verified',
+          signatures: res,
+        };
+      }      
+      
 
       if (!res) {
         return {
