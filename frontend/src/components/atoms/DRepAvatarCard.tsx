@@ -3,11 +3,11 @@ import { Avatar, Skeleton, Typography } from '@mui/material';
 import axios, { CancelTokenSource } from 'axios';
 
 interface DRepAvatarCardProps {
-  state: boolean;
+  loading: boolean;
   imageSrc: string;
 }
 
-const DRepAvatarCard: React.FC<DRepAvatarCardProps> = ({ state, imageSrc }) => {
+const DRepAvatarCard: React.FC<DRepAvatarCardProps> = ({ loading, imageSrc }) => {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -60,7 +60,7 @@ const DRepAvatarCard: React.FC<DRepAvatarCardProps> = ({ state, imageSrc }) => {
     };
   }, [imageSrc]);
 
-  if (state) {
+  if (loading) {
     return (
       <div className="flex flex-col items-center justify-center">
         <Skeleton

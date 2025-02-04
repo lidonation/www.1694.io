@@ -1,7 +1,6 @@
-import { compareDRepIDs } from '@/lib';
+import { convertDrepPhraseToCIP105 } from '@/lib';
 import {
-  verifyOwnership,
-  VerifyOwnershipPayloadResponse,
+  verifyOwnership
 } from '@/services/requests/verifyOwnership';
 import { useQuery } from 'react-query';
 
@@ -14,22 +13,10 @@ export const useGetOwnership = ({ drepId, voterId }: UseGetOwnershipProps) => {
   const { data, isLoading, isError } = useQuery({
     queryKey: ['ownership', drepId, voterId],
     queryFn: async () => {
-      if (!drepId || !voterId) {
-        return {
-          result: false,
-          message: 'DREP ID or Voter ID not provided',
-        } as VerifyOwnershipPayloadResponse;
-      }
-
-      //disabled for now
-      // if (compareDRepIDs(drepId, voterId)) {
-      //   return {
-      //     result: true,
-      //     message: '',
-      //   } as VerifyOwnershipPayloadResponse;
-      // }
-
-      return verifyOwnership({ drepId, voterId });
+      return verifyOwnership({
+        drepId: convertDrepPhraseToCIP105(drepId),
+        voterId: convertDrepPhraseToCIP105(voterId),
+      });
     },
     enabled: Boolean(drepId) && Boolean(voterId),
     refetchOnWindowFocus: false,
