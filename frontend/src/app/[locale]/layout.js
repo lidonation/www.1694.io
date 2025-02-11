@@ -66,7 +66,7 @@ async function RootLayout({ children, params: { locale } }) {
               <AppContextProvider>
                 <PageBanner />
                 {children}
-                </AppContextProvider>
+              </AppContextProvider>
             </ThemeProvider>
           </AppRouterCacheProvider>
           <SprigClientScriptLoader />

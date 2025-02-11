@@ -1,6 +1,6 @@
 'use client';
 import { useScreenDimension } from '@/hooks';
-import { ReactNode } from 'react';
+import { ReactNode, Suspense } from 'react';
 
 export const Background = ({
   children,
@@ -11,8 +11,9 @@ export const Background = ({
   isReverted?: boolean;
   opacity?: number;
 }) => {
-  const {isMobile} = useScreenDimension();
-  return (
+  const { isMobile } = useScreenDimension();
+
+  const BackgroundContent = () => (
     <>
       <img
         height={isMobile ? 600 : 'auto'}
@@ -40,5 +41,11 @@ export const Background = ({
         width={isMobile ? 600 : 'auto'}
       />
     </>
+  );
+
+  return (
+    <Suspense fallback={<div style={{ minHeight: '100vh' }} />}>
+      <BackgroundContent />
+    </Suspense>
   );
 };
