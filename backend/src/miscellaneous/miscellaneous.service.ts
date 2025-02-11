@@ -12,8 +12,16 @@ import {
   getTotalGovernanceActionsQuery,
 } from 'src/queries/getMetricsQueries';
 import { DataSource } from 'typeorm';
-import { BlockfrostUTXO, DbSyncUTXO, StandardizedUTXO } from './misc.types';
+import {
+  BlockfrostUTXO,
+  DbSyncUTXO,
+  ProposalByHashDetails,
+  StandardizedUTXO,
+} from './misc.types';
 import { getAddrUtxosQuery } from 'src/queries/getAddressUtxos';
+import { proposalMetadataByHash } from 'src/queries/proposalMetadataByHash';
+import { catchError, firstValueFrom } from 'rxjs';
+import { HttpService } from '@nestjs/axios';
 
 @Injectable()
 export class MiscellaneousService {
@@ -21,6 +29,7 @@ export class MiscellaneousService {
     @InjectDataSource('dbsync')
     private cexplorerService: DataSource,
     private blockfrostService: BlockfrostService,
+    private httpService: HttpService,
   ) {}
   async getFirstEpoch() {
     const epoch = await this.cexplorerService.manager.query(
@@ -60,6 +69,59 @@ export class MiscellaneousService {
       throw new HttpException('Failed to get the node sync tip status', 500);
     }
   }
+
+  async getProposalMetadataByHash(hash: string) {
+    //assumption is that native dbsync has failed parsing the metadata, thus try fetching it ourselves
+    try {
+      const proposal = (await this.cexplorerService.manager.query(
+        proposalMetadataByHash,
+        [hash],
+      )) as ProposalByHashDetails[];
+
+      if (!proposal?.[0]) {
+        return null;
+      }
+  
+      const url = proposal[0].url;
+      const urlProtocol = this.getUrlProtocol(url);
+  
+      switch (urlProtocol) {
+        case 'ipfs': {
+          const ipfsHash = url.replace('ipfs://', '');
+          return await this.blockfrostService.getIPFSContent(ipfsHash);
+        }
+        
+        case 'http':
+        case 'https': {
+          const { data } = await firstValueFrom(
+            this.httpService.get(url).pipe(
+              catchError(() => {
+                throw new HttpException('Failed to fetch the proposal metadata', 500);
+              }),
+            ),
+          );
+          return data;
+        }
+  
+        default:
+          throw new HttpException(`Unsupported URL protocol: ${urlProtocol}`, 400);
+      }
+    } catch (error) {
+      throw new HttpException(
+        error?.message || error || 'An error occurred',
+        500,
+      );
+    }
+  }
+  
+  private getUrlProtocol(url: string): string {
+    const protocolMatch = url.match(/^([a-zA-Z]+):\/\//);
+    if (!protocolMatch) {
+      throw new HttpException('Invalid URL format: no protocol specified', 400);
+    }
+    return protocolMatch[1].toLowerCase();
+  }
+
   async getMetrics(): Promise<Metrics> {
     try {
       const [
@@ -79,8 +141,8 @@ export class MiscellaneousService {
       const metrics: Metrics = {
         totalRegisteredDReps: parseInt(drepMetricsForAllDReps[0].total_dreps),
         totalActiveDReps: parseInt(totalActiveDReps[0].total_active_dreps),
-        totalLiveStake: parseInt(totalLiveStake[0].total_live_stake) /
-          Currency.LOVELACETOADA, // convert to ADA
+        totalLiveStake:
+          parseInt(totalLiveStake[0].total_live_stake) / Currency.LOVELACETOADA, // convert to ADA
         totalGovernanceActions: parseInt(totalGovernanceActions[0].count),
         totalVotingPower:
           parseInt(drepMetricsForAllDReps[0].total_active_power) /
@@ -111,7 +173,7 @@ export class MiscellaneousService {
       ];
 
       if (utxo.tokens && utxo.tokens.length > 0) {
-        const validTokens = utxo.tokens.filter(token => token !== null);
+        const validTokens = utxo.tokens.filter((token) => token !== null);
         amount.push(...validTokens);
       }
 

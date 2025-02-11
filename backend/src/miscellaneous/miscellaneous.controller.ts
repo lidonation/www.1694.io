@@ -27,4 +27,11 @@ export class MiscellaneousController {
   getMetrics() {
     return this.miscService.getMetrics();
   }
+
+  @Get('/proposal/:hash')
+  getProposal(
+    @Param('hash') hash: string,
+  ) {
+    return this.miscService.getProposalMetadataByHash(hash);
+  }
 }

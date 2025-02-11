@@ -25,7 +25,7 @@ export const SliderMenu = ({ isOpen, handleClose }: SliderMenuProps) => {
   const { isEnabled } = useCardano();
   const pathname = usePathname();
   const [activeLink, setActiveLink] = useState(null);
-  const [currentPath, setCurrentPath] = useState(pathname);
+  const [currentPath, ] = useState(pathname);
   useEffect(() => {
     setActiveLink(pathname);
     if (isOpen && pathname !== currentPath) {

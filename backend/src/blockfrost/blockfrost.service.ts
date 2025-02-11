@@ -65,6 +65,39 @@ export class BlockfrostService {
     }
   }
 
+  async getIPFSContent(ipfsHash: string) {
+    try {
+      // Try primary IPFS endpoint
+      const primaryUrl = `${this.blockfrostIPFSURL}/api/v0/ipfs/gateway/${ipfsHash}`;
+      const primaryResponse = await lastValueFrom(
+        this.httpService.get(primaryUrl, {
+          headers: {
+            project_id: this.blockfrostIPFSProjectID,
+          },
+        }),
+      ).catch((primaryError) => {
+        console.log('Primary IPFS endpoint failed, trying fallback:', primaryError.message);
+        // If primary fails, try fallback
+        const fallbackUrl = `${this.blockfrostIPFSFallbackURL}/api/v0/ipfs/gateway/${ipfsHash}`;
+        return lastValueFrom(
+          this.httpService.get(fallbackUrl, {
+            headers: {
+              project_id: this.blockfrostIPFSFallbackProjectID,
+            },
+          }),
+        );
+      });
+  
+      return primaryResponse.data;
+    } catch (error) {
+      console.log(error);
+      throw new HttpException(
+        error?.response?.data || 'Failed to fetch IPFS content',
+        error?.response?.status || 500,
+      );
+    }
+  }
+  
   async getLatestEpoch() {
     try {
       const apiUrl = `${this.blockfrostAPIURL}/api/v0/epochs/latest`;

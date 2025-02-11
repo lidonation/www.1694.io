@@ -1,10 +1,9 @@
 import { urls } from '@/constants';
-import { convertString } from '@/lib';
 import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
 import { Box } from '@mui/material';
-import axios from 'axios';
 import CopyToClipboard from './CopyToClipboard';
+import { useGetProposalMetadataByHashQuery } from '@/hooks/useGetProposalMetadataByHash';
 
 const VoteStatusChip = ({ date, vote }: { date: string; vote: string }) => {
   const [bgcolor, setBgColor] = useState('complementary-100');
@@ -28,22 +27,21 @@ const VoteStatusChip = ({ date, vote }: { date: string; vote: string }) => {
 };
 const DrepVoteTimelineCard = ({ item }: { item: any }) => {
   const [govActionName, setGovActionName] = useState(null);
-
+  const title = item?.metadata?.body?.title;
+  const {Proposal, isProposalFetching} = useGetProposalMetadataByHashQuery({
+    hashQueryString: item?.gov_action_proposal_id,
+    isRequired: !Boolean(title),
+  });
   useEffect(() => {
-    const title = item?.metadata?.body?.title;
     if (title) {
       setGovActionName(title);
       return;
     }
-    axios
-      .get(item.url)
-      .then((response) => {
-        setGovActionName(response?.data?.body?.title);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  }, [govActionName]);
+    if (!isProposalFetching) {
+      setGovActionName(Proposal?.body?.title);
+    }
+    
+  }, [govActionName, Proposal, isProposalFetching]);
 
   let actionDetais: { imgSrc: string; actionName: string } = {
     imgSrc: '/svgs/exchange.svg',
@@ -114,10 +112,7 @@ const DrepVoteTimelineCard = ({ item }: { item: any }) => {
 
         <Box className="flex w-fit items-center gap-2 rounded-full border px-3 py-1 text-sm">
           <p className="">Action ID:</p>
-          <CopyToClipboard
-            text={item?.gov_action_proposal_id}
-            truncate
-          >
+          <CopyToClipboard text={item?.gov_action_proposal_id} truncate>
             <img src="/svgs/copy.svg" alt="copy" />
           </CopyToClipboard>
         </Box>
