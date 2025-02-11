@@ -44,3 +44,8 @@ export interface BlockfrostUTXO {
 }
 
 export interface StandardizedUTXO extends BlockfrostUTXO {}
+
+export interface ProposalByHashDetails {
+  tx_hash: string;
+  url: string;
+}
