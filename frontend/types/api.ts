@@ -84,6 +84,9 @@ export type SingleDRep = {
   has_script: string | null;
   reg_address: string | null;
   type: string | null;
+  retired: boolean;
+  active: boolean;
+  chain_id?: string | null;
 };
 
 export type DRepStats = {
