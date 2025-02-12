@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Avatar, Skeleton, Typography } from '@mui/material';
 import axios, { CancelTokenSource } from 'axios';
+import axiosInstance from '@/services/axiosInstance';
 
 interface DRepAvatarCardProps {
   loading: boolean;
@@ -24,11 +25,13 @@ const DRepAvatarCard: React.FC<DRepAvatarCardProps> = ({ loading, imageSrc }) =>
       cancelTokenRef.current = axios.CancelToken.source();
 
       try {
-        let url = imageSrc;
-
-        const response = await axios.get(url, {
+        // Use axiosInstance with the cancel token
+        const response = await axiosInstance.get('/dreps/media', {
+          params: {
+            assetUrl: imageSrc
+          },
           responseType: 'blob',
-          cancelToken: cancelTokenRef.current.token,
+          cancelToken: cancelTokenRef.current.token
         });
 
         const imageObjectUrl = URL.createObjectURL(response.data);
@@ -38,6 +41,8 @@ const DRepAvatarCard: React.FC<DRepAvatarCardProps> = ({ loading, imageSrc }) =>
           console.log('Request canceled:', error.message);
         } else if (error.code === 'ECONNABORTED') {
           setError('Image loading timed out. Please try again.');
+        } else if (error?.response?.status === 500) {
+          setError('Server error occurred while loading image.');
         } else {
           console.error('Error fetching image:', error);
           setError('Failed to load image');
@@ -54,7 +59,9 @@ const DRepAvatarCard: React.FC<DRepAvatarCardProps> = ({ loading, imageSrc }) =>
       if (cancelTokenRef.current) {
         cancelTokenRef.current.cancel('Component unmounted');
       }
-      if (imageUrl) URL.revokeObjectURL(imageUrl);
+      if (imageUrl) {
+        URL.revokeObjectURL(imageUrl);
+      }
       setImageUrl(null);
       setError(null);
     };
@@ -83,7 +90,7 @@ const DRepAvatarCard: React.FC<DRepAvatarCardProps> = ({ loading, imageSrc }) =>
           width: '100%',
           height: '100%',
         }}
-      ></Avatar>
+      />
       {isLoading && (
         <Typography
           variant="caption"

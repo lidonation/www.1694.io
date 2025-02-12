@@ -15,6 +15,7 @@ import {
   firstValueFrom,
   forkJoin,
   from,
+  lastValueFrom,
   map,
   mergeMap,
   Observable,
@@ -156,6 +157,24 @@ export class DrepService {
       itemsPerPage,
       totalPages,
     };
+  }
+
+  async getMedia(res: Response, assetUrl?: string) {
+    try {
+      const response = await this.httpService.axiosRef.get(assetUrl, {
+        responseType: 'stream'
+      });
+  
+      res.setHeader('Content-Type', response.headers['content-type']);
+      
+      return response.data.pipe(res);
+    } catch (error) {
+      console.error('Error fetching media:', error);
+      throw new HttpException(
+        'Failed to fetch media',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   async getAllDRepsCexplorer(
@@ -392,14 +411,12 @@ export class DrepService {
           result: false,
           message: 'Too few arguments',
           signatures: null,
-        }
+        };
       }
 
-      const res = (await this.voltaireService
-        .getRepository('Signature')
-        .find({
-          where: { voterId, drep_bech32: drepId },
-        })) as Signature[];
+      const res = (await this.voltaireService.getRepository('Signature').find({
+        where: { voterId, drep_bech32: drepId },
+      })) as Signature[];
 
       if (voterId === drepId) {
         return {
@@ -407,8 +424,7 @@ export class DrepService {
           message: 'Ownership verified',
           signatures: res,
         };
-      }      
-      
+      }
 
       if (!res) {
         return {
@@ -418,7 +434,7 @@ export class DrepService {
         };
       }
 
-      if (!res.some(signature => signature.drep_bech32 == drepId)) {
+      if (!res.some((signature) => signature.drep_bech32 == drepId)) {
         return {
           result: false,
           message: 'Ownership verification failed',

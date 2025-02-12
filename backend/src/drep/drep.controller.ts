@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Post,
   Query,
+  Res,
 } from '@nestjs/common';
 
 import { createDrepDto, ValidateMetadataDTO } from 'src/dto';
@@ -14,6 +15,7 @@ import { DrepService } from './drep.service';
 import { VoterService } from 'src/voter/voter.service';
 import { Delegation, StakeKeys } from 'src/common/types';
 import { lastValueFrom } from 'rxjs';
+import { Response } from 'express';
 
 @Controller('dreps')
 export class DrepController {
@@ -64,6 +66,15 @@ export class DrepController {
   async getSingle(@Param('id') drepId: number) {
     return this.drepService.getSingleDrepViaID(drepId);
   }
+
+  @Get('/media')
+  async getMedia(
+    @Res() res: Response,
+    @Query('assetUrl') assetUrl?: string,
+  ) {
+    return this.drepService.getMedia(res, assetUrl);
+  }
+
   @Get(':voterId/voter')
   async getSingleViaVoterId(@Param('voterId') voterId: string) {
     return this.drepService.getSingleDrepViaVoterID(voterId);
