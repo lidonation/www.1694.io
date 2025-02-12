@@ -7,6 +7,7 @@ const axiosInstance = axios.create({
   baseURL,
   timeout: 30000,
 });
+
 //can also intercept to navigate to an error page
 export const SetupInterceptors = () =>
   axiosInstance.interceptors.response.use(
