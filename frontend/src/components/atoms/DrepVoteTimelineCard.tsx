@@ -28,6 +28,7 @@ const VoteStatusChip = ({ date, vote }: { date: string; vote: string }) => {
 const DrepVoteTimelineCard = ({ item }: { item: any }) => {
   const [govActionName, setGovActionName] = useState(null);
   const title = item?.metadata?.body?.title;
+  const tag = item?.description?.tag as string
   const {Proposal, isProposalFetching} = useGetProposalMetadataByHashQuery({
     hashQueryString: item?.gov_action_proposal_id,
     isRequired: !Boolean(title),
@@ -49,31 +50,32 @@ const DrepVoteTimelineCard = ({ item }: { item: any }) => {
   };
 
   switch (true) {
-    case item?.description?.tag.includes('ParameterChange'):
+    case tag?.toLowerCase().includes('parameterchange'):
       actionDetais = {
         imgSrc: '/svgs/exchange.svg',
         actionName: 'Protocol Parameter Changes',
       };
       break;
-    case item?.description?.tag.includes('InfoAction'):
+    case tag?.toLowerCase().includes('infoaction'):
       actionDetais = {
         imgSrc: '/svgs/info-circle.svg',
         actionName: 'Info',
       };
       break;
-    case item?.description?.tag.includes('HardForkInitiation'):
+    case tag?.toLowerCase().includes('hardforkinitiation'):
       actionDetais = {
         imgSrc: '/svgs/status-change.svg',
         actionName: 'Hard-Fork Initiation',
       };
       break;
-    case item?.description?.tag.includes('newconstitution'):
+    case tag?.toLowerCase().includes('newconstitution'):
       actionDetais = {
         imgSrc: '/svgs/notebook.svg',
         actionName: 'New Constitution or Guardrails Script',
       };
       break;
-    case item?.description?.tag.includes('updatecommittee'):
+    case tag?.toLowerCase().includes('newcommittee'):
+    case tag?.toLowerCase().includes('updatecommittee'):
       actionDetais = {
         imgSrc: '/svgs/users-group.svg',
         actionName: 'Update committee and/or threshold and/or terms',
