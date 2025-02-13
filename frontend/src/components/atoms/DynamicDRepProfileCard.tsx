@@ -68,9 +68,10 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
   const { currentDelegation } = useGetAdaHolderCurrentDelegationQuery(stakeKey);
   const isDelegated = compareDRepIDs(drep?.view, currentDelegation?.drep_view);
   const isClaimed =
-    drep?.type !== 'scripted' &&
-    drep?.type !== 'voting_option' &&
-    ownership?.result;
+    drep?.type === 'scripted' ||
+    drep?.type === 'voting_option' ||
+    (ownership?.result && Boolean(drep?.drep_id));
+
   const metadataJson =
     !isMetadataLoading && metadata ? renderJSONLDToJSONArr(metadata) : null;
   const name = metadata?.body?.givenName || metadata?.body?.dRepName;
@@ -94,9 +95,7 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
     <div className="flex flex-row gap-2">
       {drep?.type === 'scripted' && <StatusChip status="Scripted" />}
       {drep?.type === 'voting_option' && <StatusChip status="Voting Option" />}
-      {!isClaimed &&
-        drep?.type !== 'scripted' &&
-        drep?.type !== 'voting_option' && <StatusChip status="Not claimed" />}
+      {!isClaimed && <StatusChip status="Not claimed" />}
       {drep?.retired && drep?.type !== 'voting_option' && (
         <StatusChip status="Retired" />
       )}
@@ -192,7 +191,6 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
           )}
         </Typography>
       </div>
-
 
       {renderStatusChips()}
 
