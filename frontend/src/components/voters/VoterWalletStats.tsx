@@ -73,7 +73,7 @@ const VoterWalletStats = ({
             <Skeleton width={100} height={32} />
           ) : (
             <StatusChip
-              status={voterData?.isDelegated ? 'Your DRep' : 'Not Delegated'}
+              status={voterData?.isDelegated ? 'Delegated' : 'Not Delegated'}
             />
           )}
         </Box>

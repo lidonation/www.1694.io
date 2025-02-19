@@ -5,7 +5,7 @@ import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { CircularProgress } from '@mui/material';
 import { useDRepContext } from '@/context/drepContext';
 import { userLogin } from '@/services/requests/userLogin';
-import { setItemToLocalStorage } from '@/lib';
+import { convertDrepPhraseToCIP105, setItemToLocalStorage } from '@/lib';
 const LoginButton = ({
   isHardware = false,
   loginMode = false,
@@ -45,10 +45,11 @@ const LoginButton = ({
         setIsLoggedIn(true);
         const loginCredentials = {
           drepId,
-          voterId: dRepIDBech32,
+          voterId: convertDrepPhraseToCIP105(dRepIDBech32),
           stakeKey: stakeKeyBech32,
           signatures: [{ signature, key, type: 'signer' }],
           expiry: loginPeriod,
+          drep_bech32: convertDrepPhraseToCIP105(dRepIDBech32),
         };
         const { token, session } = await userLogin(loginCredentials);
         setSignatureId(session.id);

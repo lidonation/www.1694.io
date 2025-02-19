@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import Jimp from 'jimp';
+import { Jimp, JimpMime } from 'jimp';
 import {
   Attachment,
   AttachmentParentEntityType,
@@ -55,15 +55,14 @@ export class AttachmentService {
   parseJimpMimeType(mimeType: string) {
     switch (mimeType) {
       case 'image/png':
-        return Jimp.MIME_PNG;
+        return JimpMime.png;
       case 'image/jpg':
-        return Jimp.MIME_JPEG;
       case 'image/jpeg':
-        return Jimp.MIME_JPEG;
+        return JimpMime.jpeg;
       case 'image/gif':
-        return Jimp.MIME_GIF;
+        return JimpMime.gif;
       default:
-        return Jimp.MIME_PNG;
+        return JimpMime.png;
     }
   }
   async parseImageSize(file: Express.Multer.File, mimeType: string) {
@@ -71,9 +70,8 @@ export class AttachmentService {
       const optimizedImageBuffer = await Jimp.read(file.buffer)
         .then((image) => {
           return image
-            .resize(480, 480)
-            .quality(60)
-            .getBufferAsync(this.parseJimpMimeType(mimeType));
+            .resize({w: 480, h: 480})
+            .getBuffer(this.parseJimpMimeType(mimeType));
         })
         .then((buffer) => {
           return buffer;
