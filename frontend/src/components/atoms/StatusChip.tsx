@@ -10,6 +10,7 @@ interface StatusProps {
     | 'Not registered'
     | 'Scripted'
     | 'Voting Option'
+    | 'Delegated'
     | 'Your DRep'
     | 'Not Delegated'
     | 'Retired';
@@ -33,6 +34,9 @@ const StatusChip = ({ status }: StatusProps) => {
       statusClass = 'bg-success text-zinc-800';
       break;
     case 'Your DRep':
+      statusClass = 'bg-success text-zinc-800';
+      break;
+    case 'Delegated':
       statusClass = 'bg-success text-zinc-800';
       break;
     case 'Inactive':

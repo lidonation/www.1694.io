@@ -432,6 +432,7 @@ function CardanoProvider(props: Props) {
           setStakeKeyBech32(undefined);
           setIsEnabled(false);
           setIsEnabling(false);
+          addErrorAlert(`Error enabling wallet: ${e}`);
           throw {
             status: 'ERROR',
             error: `${e == undefined ? 'Something went wrong' : e}`,
@@ -690,6 +691,9 @@ function CardanoProvider(props: Props) {
     setDRepID(undefined);
     setDRepIDBech32(undefined);
     setIsEnabled(false);
+    updateSharedState({
+      drepId: null,
+    });
   }, []);
 
   const value = useMemo(

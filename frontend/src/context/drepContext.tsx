@@ -351,6 +351,7 @@ function DRepProvider(props: Props) {
     removeItemFromLocalStorage('token_1694');
     removeItemFromLocalStorage('signatures');
     setSignatureId(null);
+    setNewDrepId(null);
     setIsLoggedIn(false);
   }, []);
 

@@ -70,7 +70,8 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
   const isClaimed =
     drep?.type === 'scripted' ||
     drep?.type === 'voting_option' ||
-    (ownership?.result && Boolean(drep?.drep_id));
+    drep?.drep_id;
+  const isOwner = ownership?.result;
 
   const metadataJson =
     !isMetadataLoading && metadata ? renderJSONLDToJSONArr(metadata) : null;
@@ -284,7 +285,7 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
         )}
       </div>
 
-      {isClaimed && (
+      {isClaimed && isOwner && (
         <div>
           {canEdit && (
             <MetadataEditor
@@ -308,7 +309,7 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
         </div>
       )}
 
-      {isClaimed && (
+      {isClaimed && isOwner && (
         <div className="flex max-w-prose flex-col gap-2">
           <Button
             handleClick={
@@ -320,7 +321,7 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
           >
             {isLoggedIn ? 'Edit Metadata' : 'Login to update'}
           </Button>
-          {isLoggedIn && (
+          {isLoggedIn && isOwner && (
             <Link
               href="/dreps/workflow/profile/update/step1"
               onClick={handleEdit}
