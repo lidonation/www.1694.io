@@ -84,7 +84,7 @@ const VoterImpact = () => {
             voterGovActions?.data.length > 0 &&
             voterGovActions?.data.map((action) => (
               <li key={action?.vote_tx_hash}>
-                <DrepVoteTimelineCard item={action} />
+                <DrepVoteTimelineCard item={action as any} />
               </li>
             ))}
         </ul>

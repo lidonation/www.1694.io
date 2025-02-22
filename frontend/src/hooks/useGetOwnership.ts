@@ -1,7 +1,5 @@
-import { convertDrepPhraseToCIP105 } from '@/lib';
-import {
-  verifyOwnership
-} from '@/services/requests/verifyOwnership';
+import { convertDrepPhraseToCIP105Legacy, isCip105 } from '@/lib';
+import { verifyOwnership } from '@/services/requests/verifyOwnership';
 import { useQuery } from 'react-query';
 
 interface UseGetOwnershipProps {
@@ -13,12 +11,22 @@ export const useGetOwnership = ({ drepId, voterId }: UseGetOwnershipProps) => {
   const { data, isLoading, isError } = useQuery({
     queryKey: ['ownership', drepId, voterId],
     queryFn: async () => {
+      const convertedDrepId = convertDrepPhraseToCIP105Legacy(drepId);
+      const convertedVoterId = convertDrepPhraseToCIP105Legacy(voterId);
+      if (
+        !convertedDrepId ||
+        !convertedVoterId ||
+        !isCip105(convertedDrepId) ||
+        !isCip105(convertedVoterId)
+      ) {
+        return null;
+      }
       return verifyOwnership({
-        drepId: convertDrepPhraseToCIP105(drepId),
-        voterId: convertDrepPhraseToCIP105(voterId),
+        drepId: convertedDrepId,
+        voterId: convertedVoterId,
       });
     },
-    enabled: Boolean(drepId) && Boolean(voterId),
+    enabled: !!drepId && !!voterId,
     refetchOnWindowFocus: false,
   });
 

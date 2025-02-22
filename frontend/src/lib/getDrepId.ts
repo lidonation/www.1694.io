@@ -48,11 +48,15 @@ export const getPubDRepID = async (walletApi: CardanoApiWallet) => {
   }
 };
 
-
 export const compareDRepIDs = (dRepID1: string, dRepID2: string) => {
-  if (!dRepID1 || !dRepID2) return false  
+  if (!dRepID1 || !dRepID2) return false;
   //first make them one
   const drep1Hex = dRepPhraseProcessor(dRepID1);
   const drep2Hex = dRepPhraseProcessor(dRepID2);
   return drep1Hex == drep2Hex;
+};
+
+export const isCip105 = (dRepID: string) => {
+  if (!dRepID) return false;
+  return dRepID.length === 56;
 };

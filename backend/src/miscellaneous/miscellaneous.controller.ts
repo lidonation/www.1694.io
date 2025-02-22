@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { MiscellaneousService } from './miscellaneous.service';
 
 @Controller('misc')
@@ -29,9 +29,13 @@ export class MiscellaneousController {
   }
 
   @Get('/proposal/:hash')
-  getProposal(
-    @Param('hash') hash: string,
-  ) {
+  getProposal(@Param('hash') hash: string) {
     return this.miscService.getProposalMetadataByHash(hash);
+  }
+
+  @Get('metadata')
+  getMetadata(@Query('url') url: string) {
+    if (!url) return null;
+    return this.miscService.fetchExternalMetadata(url);
   }
 }

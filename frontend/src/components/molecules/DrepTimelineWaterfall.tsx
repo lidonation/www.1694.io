@@ -15,10 +15,22 @@ import Link from 'next/link';
 import { urls } from '@/constants';
 import { ProfileClaimedChip } from './ProfileClaimedChip';
 import DrepDelegatorCard from '../atoms/DrepDelegatorCard';
+import { TimelineItem as DRepTimelineItem } from '../../../types/timeline';
+import { useGetOwnership } from '@/hooks/useGetOwnership';
 
-const DrepTimelineWaterfall = ({ activity = [] }: { activity: any[] }) => {
+const DrepTimelineWaterfall = ({
+  activity = [],
+  drepId,
+}: {
+  activity: any[];
+  drepId: string;
+}) => {
   const { isMobile, screenWidth } = useScreenDimension();
-  const { stakeKeyBech32, isEnabled } = useCardano();
+  const { stakeKeyBech32, isEnabled, dRepIDBech32 } = useCardano();
+  const { ownership } = useGetOwnership({
+    drepId,
+    voterId: dRepIDBech32,
+  });
   const { isLoggedIn } = useDRepContext();
 
   return (
@@ -35,7 +47,7 @@ const DrepTimelineWaterfall = ({ activity = [] }: { activity: any[] }) => {
     >
       {activity &&
         activity.length > 0 &&
-        activity.map((item, epochIndex) => (
+        activity.map((item: DRepTimelineItem, epochIndex) => (
           <React.Fragment key={epochIndex}>
             {item.type === 'note' && (
               <div className="flex w-full flex-col items-center space-y-2">
@@ -125,7 +137,10 @@ const DrepTimelineWaterfall = ({ activity = [] }: { activity: any[] }) => {
                   />
                 </TimelineSeparator>
                 <TimelineContent>
-                  <DrepVoteTimelineCard item={item} />
+                  <DrepVoteTimelineCard
+                    item={item}
+                    isVoteOwner={ownership?.result}
+                  />
                 </TimelineContent>
               </TimelineItem>
             )}
