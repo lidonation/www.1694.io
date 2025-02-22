@@ -4,6 +4,17 @@ import React, { useEffect, useState } from 'react';
 import { Box } from '@mui/material';
 import CopyToClipboard from './CopyToClipboard';
 import { useGetProposalMetadataByHashQuery } from '@/hooks/useGetProposalMetadataByHash';
+import { DrepVote } from '../../../types/timeline';
+import Button from './Button';
+import {
+  VoteRationaleModal,
+  VoteRationaleModalProps,
+} from '../molecules/VoteRationaleModal';
+
+interface DrepVoteTimelineCardProps {
+  item: DrepVote;
+  isVoteOwner?: boolean;
+}
 
 const VoteStatusChip = ({ date, vote }: { date: string; vote: string }) => {
   const [bgcolor, setBgColor] = useState('complementary-100');
@@ -25,14 +36,27 @@ const VoteStatusChip = ({ date, vote }: { date: string; vote: string }) => {
     </div>
   );
 };
-const DrepVoteTimelineCard = ({ item }: { item: any }) => {
+const DrepVoteTimelineCard = ({
+  item,
+  isVoteOwner,
+}: DrepVoteTimelineCardProps) => {
   const [govActionName, setGovActionName] = useState(null);
+  const [isRationaleModalOpen, setIsRationaleModalOpen] = useState(false);
+  const [rationaleModalOptions, setRationalModalOptions] =
+    useState<VoteRationaleModalProps>({
+      mode: 'view',
+      open: false,
+      onClose: () => setIsRationaleModalOpen(false),
+      onEdit: () => setIsRationaleModalOpen(true),
+      rationaleUrl: item?.vote_rationale,
+    });
   const title = item?.metadata?.body?.title;
-  const tag = item?.description?.tag as string
-  const {Proposal, isProposalFetching} = useGetProposalMetadataByHashQuery({
+  const tag = item?.description?.tag as string;
+  const { Proposal, isProposalFetching } = useGetProposalMetadataByHashQuery({
     hashQueryString: item?.gov_action_proposal_id,
     isRequired: !Boolean(title),
   });
+
   useEffect(() => {
     if (title) {
       setGovActionName(title);
@@ -41,7 +65,6 @@ const DrepVoteTimelineCard = ({ item }: { item: any }) => {
     if (!isProposalFetching) {
       setGovActionName(Proposal?.body?.title);
     }
-    
   }, [govActionName, Proposal, isProposalFetching]);
 
   let actionDetais: { imgSrc: string; actionName: string } = {
@@ -83,12 +106,76 @@ const DrepVoteTimelineCard = ({ item }: { item: any }) => {
       break;
   }
 
+  const handleRationaleModalOpen = (options: VoteRationaleModalProps) => {
+    setRationalModalOptions({
+      ...options,
+      open: true,
+    });
+  };
+
+  const handleRationaleModalClose = () => {
+    setRationalModalOptions({
+      ...rationaleModalOptions,
+      open: false,
+    });
+  };
+
+  const renderRationaleButton = () => {
+    switch (true) {
+      case !!item?.vote_rationale:
+        return (
+          <Button
+            handleClick={() =>
+              handleRationaleModalOpen({
+                mode: 'view',
+                open: true,
+                onClose: handleRationaleModalClose,
+                rationaleUrl: item?.vote_rationale,
+              })
+            }
+            color="primary"
+            size="small"
+          >
+            View Rationale
+          </Button>
+        );
+      case !item?.vote_rationale && isVoteOwner:
+        return (
+          <Button
+            handleClick={() =>
+              handleRationaleModalOpen({
+                mode: 'edit',
+                open: true,
+                onClose: handleRationaleModalClose,
+                rationaleUrl: item?.vote_rationale,
+              })
+            }
+            color="primary"
+            size="small"
+          >
+            Add Rationale
+          </Button>
+        );
+      case !item?.vote_rationale:
+        return (
+          <Button disabled color="primary" size="small">
+            No Rationale Provided
+          </Button>
+        );
+
+      default:
+        return null;
+    }
+  };
+
   return (
     <Box
       id="epoch-card"
       className="flex w-full flex-col gap-3 rounded-xl bg-white p-3 shadow-lg"
     >
       <VoteStatusChip date={item?.time_voted} vote={item?.vote} />
+      <VoteRationaleModal {...rationaleModalOptions} />
+
       <hr />
       <Box className="flex flex-col gap-3">
         <Box>
@@ -119,6 +206,9 @@ const DrepVoteTimelineCard = ({ item }: { item: any }) => {
           </CopyToClipboard>
         </Box>
       </Box>
+
+      {renderRationaleButton()}
+
       <Box className="flex flex-col gap-1">
         <p className="text-sm">View Action on:</p>
         <Box className="flex flex-row gap-2">

@@ -6,7 +6,7 @@
 
 import { bech32 } from 'bech32';
 import { JwtPayload, jwtDecode } from 'jwt-decode';
-import { formHexToBech32 } from './getDrepId';
+import { formHexToBech32, fromBech32ToHex, isCip105 } from './getDrepId';
 
 export const sumTestExample = (a, b) => {
   return a + b;
@@ -150,7 +150,15 @@ export const convertDrepPhraseToCIP105 = (phrase: string) => {
   const hex = dRepPhraseProcessor(phrase);
   return formHexToBech32(hex);
 };
+export const convertDrepPhraseToCIP105Legacy = (phrase: string) => {
+  if (phrase.startsWith('drep_always')) {
+    return phrase;
+  }
+  const hex = dRepPhraseProcessorLegacy(phrase);
+  return formHexToBech32(hex);
+};
 
+//TODO: update this wrong function
 /**
  * Processes the search phrase for dRep and returns the dRep ID.
  * If the phrase starts with "drep_script" or "drep",
@@ -169,6 +177,31 @@ export const dRepPhraseProcessor = (phrase: string) => {
       drepIDPhrase.startsWith('drep_script') ||
       drepIDPhrase.startsWith('drep')
     ) {
+      const { txID } = decodeCIP129Identifier(drepIDPhrase);
+
+      drepIDPhrase = txID;
+    }
+    if (drepIDPhrase.length === 58) {
+      return drepIDPhrase.slice(2);
+    }
+
+    return drepIDPhrase;
+  } catch (e) {
+    return phrase;
+  }
+};
+export const dRepPhraseProcessorLegacy = (phrase: string) => {
+  let drepIDPhrase = phrase;
+
+  try {
+    if (
+      drepIDPhrase.startsWith('drep_script') ||
+      drepIDPhrase.startsWith('drep')
+    ) {
+      //check if its already cip-105
+      if (isCip105(drepIDPhrase)) {
+        return fromBech32ToHex(drepIDPhrase);
+      }
       const { txID } = decodeCIP129Identifier(drepIDPhrase);
 
       drepIDPhrase = txID;

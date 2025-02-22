@@ -102,6 +102,8 @@ function DRepProvider(props: Props) {
     setHideCloseButtonOnWalletListModal,
   ] = useState(false);
   const { sharedState, updateSharedState } = useSharedContext();
+  const [ownership, setOwnership] =
+    useState<VerifyOwnershipPayloadResponse | null>(null);
   const [drepToBeClaimed, setDrepToBeClaimed] = useState<string | null>(null);
   const [drepEntityToBeClaimed, setDrepEntityToBeClaimed] =
     useState<SingleDRep | null>(null);
@@ -121,7 +123,7 @@ function DRepProvider(props: Props) {
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [hideCloseButtonOnLoginModal, setHideCloseButtonOnLoginModal] =
     useState(false);
-  const { ownership } = useGetOwnership({
+  const res = useGetOwnership({
     drepId: drepToBeClaimed,
     voterId: sharedState?.dRepIDBech32,
   });
@@ -139,6 +141,12 @@ function DRepProvider(props: Props) {
   const updateStep = useCallback((step: keyof Steps, status: StepStatus) => {
     setSteps((prev) => ({ ...prev, [step]: status }));
   }, []);
+
+  useEffect(() => {
+    if (res?.ownership && !res.isOwnershipLoading) {
+      setOwnership(res.ownership);
+    }
+  }, [res?.ownership, res?.isOwnershipLoading]);
 
   useEffect(() => {
     handleDrepProfileCreationState();
@@ -169,7 +177,7 @@ function DRepProvider(props: Props) {
     if (cachedDRepEntity) {
       setDrepEntityToBeClaimed(cachedDRepEntity);
     }
-}, []);
+  }, []);
 
   useEffect(() => {
     persistLogin();
@@ -195,7 +203,7 @@ function DRepProvider(props: Props) {
       setDrepClaimMismatch(true);
     }
   }, [ownership, drepToBeClaimed, sharedState?.dRepIDBech32]);
-
+  
   const handleCleanup = () => {
     //list of items to be cleared on unmount
     setMetadataJsonHash(null);
