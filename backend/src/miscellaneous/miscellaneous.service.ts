@@ -81,39 +81,52 @@ export class MiscellaneousService {
       if (!proposal?.[0]) {
         return null;
       }
-  
-      const url = proposal[0].url;
+      const url = proposal[0]?.url;
+      return this.fetchExternalMetadata(url);
+    } catch (error) {
+      console.log(error);
+      throw new HttpException('Failed to get the proposal metadata', 500);
+    }
+  }
+
+  async fetchExternalMetadata(url: string) {
+    try {
       const urlProtocol = this.getUrlProtocol(url);
-  
+
       switch (urlProtocol) {
         case 'ipfs': {
           const ipfsHash = url.replace('ipfs://', '');
           return await this.blockfrostService.getIPFSContent(ipfsHash);
         }
-        
+
         case 'http':
         case 'https': {
           const { data } = await firstValueFrom(
             this.httpService.get(url).pipe(
-              catchError(() => {
-                throw new HttpException('Failed to fetch the proposal metadata', 500);
+              catchError((err) => {
+                console.log(err);
+                throw new HttpException('Failed to fetch  metadata', 500);
               }),
             ),
           );
           return data;
         }
-  
+
         default:
-          throw new HttpException(`Unsupported URL protocol: ${urlProtocol}`, 400);
+          throw new HttpException(
+            `Unsupported URL protocol: ${urlProtocol}`,
+            400,
+          );
       }
     } catch (error) {
+      console.log(error);
       throw new HttpException(
         error?.message || error || 'An error occurred',
         500,
       );
     }
   }
-  
+
   private getUrlProtocol(url: string): string {
     const protocolMatch = url.match(/^([a-zA-Z]+):\/\//);
     if (!protocolMatch) {

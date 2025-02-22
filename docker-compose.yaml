@@ -164,23 +164,23 @@ services:
     networks:
       - io-1694 # Connect to the 'io-1694' network
 
-  cypress:
-    image: cypress/included:cypress-13.13.1-node-20.15.1-chrome-126.0.6478.126-1-ff-128.0-edge-126.0.2592.102-1
-    # the Docker image to use from https://github.com/cypress-io/cypress-docker-images
-    #  It is however recommended to use a specific image tag to avoid breaking changes when new images are released, especially when they include new major versions of Node.js or Cypress.
-    depends_on:
-      - frontend
-    environment:
-      # pass base url to test pointing at the web application
-      - CYPRESS_baseUrl=http://frontend:3000
-    working_dir: /e2e
-    networks:
-      - io-1694
-    command: ["npx", "cypress", "open",]
-    restart: unless-stopped
-    # share the current folder as volume to avoid copying
-    volumes:
-      - ./frontend:/e2e
+  # cypress:
+  #   image: cypress/included:cypress-13.13.1-node-20.15.1-chrome-126.0.6478.126-1-ff-128.0-edge-126.0.2592.102-1
+  #   # the Docker image to use from https://github.com/cypress-io/cypress-docker-images
+  #   #  It is however recommended to use a specific image tag to avoid breaking changes when new images are released, especially when they include new major versions of Node.js or Cypress.
+  #   depends_on:
+  #     - frontend
+  #   environment:
+  #     # pass base url to test pointing at the web application
+  #     - CYPRESS_baseUrl=http://frontend:3000
+  #   working_dir: /e2e
+  #   networks:
+  #     - io-1694
+  #   command: ["npx", "cypress", "open",]
+  #   restart: unless-stopped
+  #   # share the current folder as volume to avoid copying
+  #   volumes:
+  #     - ./frontend:/e2e
 
 volumes:
   db-data:

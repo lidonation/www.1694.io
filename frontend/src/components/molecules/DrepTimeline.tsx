@@ -254,7 +254,7 @@ const DrepTimeline = ({ drep }: { drep: any }) => {
               ))}
 
             {DRepActivity && DRepActivity.length > 0 && (
-              <DrepTimelineWaterfall activity={DRepActivity} />
+              <DrepTimelineWaterfall activity={DRepActivity} drepId={drepid as string} />
             )}
 
             {isLoadingOlderData && (
