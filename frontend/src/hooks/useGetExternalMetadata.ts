@@ -1,13 +1,13 @@
 import { useQuery } from 'react-query';
 import { getExternalMetadataByUrl } from '@/services/requests/getExternalMetadataByUrl';
 
-export const useGetExternalMetadata = (url: string) => {
+export const useGetExternalMetadata = (url: string, enabled?: boolean) => {
   const { data, isLoading, error } = useQuery({
     queryKey: ['getExternalMetadata', url],
     queryFn: async () => {
       return getExternalMetadataByUrl(url);
     },
-    enabled: !!url,
+    enabled: enabled ? enabled && !!url : !!url,
     refetchOnWindowFocus: false,
   });
 

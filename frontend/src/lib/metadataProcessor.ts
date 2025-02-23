@@ -81,14 +81,14 @@ export const renderJSONLDToJSONArr = (jsonld: any) => {
       return { id: uuidv4(), key: key, value: valueString };
     },
   );
-  if (jsonld?.body?.image){
+  if (jsonld?.body?.image) {
     const imageJson = {
       id: uuidv4(),
       key: 'image',
       value: {
         contentUrl: jsonld.body.image.contentUrl,
         sha256: jsonld.body.image.sha256,
-      }
+      },
     };
     modifiedJsonArr.map((item) => {
       if (item.key === 'image') {
@@ -147,14 +147,13 @@ export const submitMetadata = async (
         setItemToLocalStorage('signatures', currentVKeys);
       }
     }
-    const jsonld = await generateJsonld(
-      jsonLdData,
-      dynamicDREPContext,
-      CIP_119,
-      currentVKeys,
-    );
-    //hasing the raw kay value pairs to be validated
-    const jsonHash = blake2bHex(JSON.stringify(jsonld), undefined, 32);
+    const { jsonHash, jsonld } = await getJSONLDFromData({
+      body: jsonLdData,
+      context: dynamicDREPContext,
+      cip: CIP_119,
+      vkeys: currentVKeys,
+      isPreprocessed: true,
+    });
 
     return {
       jsonHash,
@@ -164,4 +163,33 @@ export const submitMetadata = async (
     console.error(error);
     throw new Error(error);
   }
+};
+
+export const getJSONLDFromData = async ({
+  body,
+  context,
+  cip,
+  vkeys,
+  isPreprocessed,
+}: {
+  body: any;
+  context: any;
+  cip: StandardReference;
+  isPreprocessed?: boolean;
+  vkeys?: { vkey: string; signature: string };
+}) => {
+  let jsonLdData = body;
+  if (!isPreprocessed) {
+    jsonLdData = await generateMetadataBody({
+      data: body as any,
+      standardReference: cip,
+    });
+  }
+  const jsonld = await generateJsonld(jsonLdData, context, cip, vkeys);
+  //generate corresponding hash
+  const jsonHash = blake2bHex(JSON.stringify(jsonld), undefined, 32);
+  return {
+    jsonld,
+    jsonHash,
+  };
 };

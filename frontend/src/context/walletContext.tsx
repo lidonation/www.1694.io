@@ -25,6 +25,11 @@ import {
   ScriptHash,
   VoteDelegation,
   DRepDeregistration,
+  VotingProcedure,
+  VotingBuilder,
+  Voter,
+  GovernanceActionId,
+  TransactionHash,
 } from '@emurgo/cardano-serialization-lib-asmjs';
 import { Buffer } from 'buffer';
 
@@ -35,6 +40,7 @@ import {
   setItemToLocalStorage,
   removeItemFromLocalStorage,
   dRepPhraseProcessor,
+  fromBech32ToHex,
 } from '@/lib';
 import { CardanoApiWallet, Protocol } from '@/models/wallet';
 import { useSharedContext } from './sharedContext';
@@ -101,6 +107,14 @@ interface CardanoContext {
     cip95MetadataHash?: string,
     drepToUpdate?: string,
   ) => Promise<Certificate>;
+  buildVote: (
+    voteChoice: string,
+    txHash: string,
+    index: number,
+    voterId: string,
+    cip95MetadataURL?: string,
+    cip95MetadataHash?: string,
+  ) => Promise<VotingBuilder>;
   signAndSubmitTransaction: (
     type: TxnTypes,
     certBuilder?: any,
@@ -528,6 +542,72 @@ function CardanoProvider(props: Props) {
       throw error;
     }
   };
+
+  const buildCredentialFromBech32Key = useCallback(async (key: string) => {
+    try {
+      const keyHash = Ed25519KeyHash.from_hex(key);
+      return Credential.from_keyhash(keyHash);
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+  }, []);
+
+  const buildVote = useCallback(
+    async (
+      voteChoice: string,
+      txHash: string,
+      index: number,
+      voterId: string, //in bech32
+      cip95MetadataURL?: string,
+      cip95MetadataHash?: string,
+    ): Promise<VotingBuilder> => {
+      try {
+        // Get wallet's DRep credential
+        const dRepId = fromBech32ToHex(voterId);
+        const dRepCredential = await buildCredentialFromBech32Key(dRepId);
+        // Vote credential
+        const voter = Voter.new_drep_credential(dRepCredential);
+        const govActionId = GovernanceActionId.new(
+          // placeholder
+          TransactionHash.from_hex(txHash),
+          index,
+        );
+
+        let votingChoice;
+        voteChoice = voteChoice.toLowerCase();
+        if (voteChoice === 'yes') {
+          votingChoice = 1;
+        } else if (voteChoice === 'no') {
+          votingChoice = 0;
+        } else {
+          votingChoice = 2;
+        }
+
+        let votingProcedure;
+        if (cip95MetadataURL && cip95MetadataHash) {
+          const anchor = generateAnchor(cip95MetadataURL, cip95MetadataHash);
+          // Create cert object using one Ada as the deposit
+          votingProcedure = VotingProcedure.new_with_anchor(
+            votingChoice,
+            anchor,
+          );
+        } else {
+          votingProcedure = VotingProcedure.new(votingChoice);
+        }
+
+        const votingBuilder = VotingBuilder.new();
+        votingBuilder.add(voter, govActionId, votingProcedure);
+
+        return votingBuilder;
+      } catch (e) {
+        console.error(e);
+        throw e;
+      }
+    },
+    [],
+  );
+
   const buildStakeKeyRegCert = useCallback(async (): Promise<Certificate> => {
     try {
       if (!stakeKey) {
@@ -606,7 +686,7 @@ function CardanoProvider(props: Props) {
 
   const signAndSubmitTransaction = async (
     type: TxnTypes,
-    certBuilder?: any,
+    certBuilder?: Certificate | VotingBuilder,
     options?: {
       disableSigning?: boolean;
       disableDownload?: boolean;
@@ -647,7 +727,7 @@ function CardanoProvider(props: Props) {
       }
     }
     return false;
-};
+  };
 
   const buildDRepUpdateCert = useCallback(
     async (
@@ -731,6 +811,7 @@ function CardanoProvider(props: Props) {
       buildVoteDelegationCert,
       buildStakeKeyRegCert,
       buildDRepRetirementCert,
+      buildVote,
     }),
     [
       address,
@@ -756,6 +837,8 @@ function CardanoProvider(props: Props) {
       setDelegatedDRepID,
       sharedState,
       isEnableLoading,
+      registeredStakeKeysListState,
+      buildVote,
     ],
   );
 

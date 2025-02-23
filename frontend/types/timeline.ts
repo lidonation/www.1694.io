@@ -9,6 +9,7 @@ export type Epoch = {
 export type DrepVote = {
   view: string;
   gov_action_proposal_id: string;
+  gov_action_proposal_index: string;
   prop_inception: string;
   type: 'voting_activity';
   description: {
