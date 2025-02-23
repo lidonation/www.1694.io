@@ -8,8 +8,6 @@ const poppins = Poppins({
   subsets: ['devanagari'],
 });
 
-export type Theme = typeof theme;
-
 const theme = createTheme({
   palette: {
     primary: {
@@ -51,7 +49,7 @@ const theme = createTheme({
         },
         root: {
           border: 'none',
-          borderRadius: '50px',
+          // Remove the borderRadius from here
         },
       },
     },
@@ -59,7 +57,9 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           border: 'none',
-          borderRadius: '50px',
+          '&:not(.MuiInputBase-multiline)': {
+            borderRadius: '50px',
+          },
         },
       },
     },
@@ -69,4 +69,5 @@ const theme = createTheme({
   },
 });
 
+export type Theme = typeof theme;
 export default theme;

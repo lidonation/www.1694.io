@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Typography,
   Skeleton,
@@ -82,9 +82,14 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
   const handleDelegate = () => {
     delegate(drep?.view, { isRetired: drep?.retired });
   };
-  const handleEdit = () => {
-    setDrepToBeClaimed(drep?.view);
-  };
+
+
+
+  useEffect(() => {
+    if (drep?.view) {
+      setDrepToBeClaimed(drep?.view);
+    }
+  }, [drep?.view]);
 
   const resetDraft = async () => {
     removeItemFromLocalStorage('isUpdating');
@@ -303,6 +308,7 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
                 );
                 resetDraft();
               }}
+              metadataType="drepUpdate"
             />
           )}
           {renderUnsavedChanges()}
@@ -322,10 +328,7 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
             {isLoggedIn ? 'Edit Metadata' : 'Login to update'}
           </Button>
           {isLoggedIn && isOwner && (
-            <Link
-              href="/dreps/workflow/profile/update/step1"
-              onClick={handleEdit}
-            >
+            <Link href="/dreps/workflow/profile/update/step1">
               <Button
                 className="w-full"
                 variant="outlined"

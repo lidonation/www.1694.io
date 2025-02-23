@@ -33,7 +33,6 @@ const UpdateProfileStep4 = () => {
     useDRepContext();
   const router = useRouter();
   const [canEdit, setCanEdit] = useState(false);
-  const [, setIsAwaitingSubmission] = useState(false);
   const { addChangesSavedAlert, addSuccessAlert } = useGlobalNotifications();
   const [isMetadataLoading, setIsMetadataLoading] = useState(false);
   const [metadataJson, setMetadataJson] = useState(null);
@@ -87,7 +86,6 @@ const UpdateProfileStep4 = () => {
       //is local change
       if (getItemFromLocalStorage('isUpdating')) {
         setIsSubmittingMetadata(true);
-        setIsAwaitingSubmission(true);
       } else {
         //just redirect to success page
         router.push('/dreps/workflow/profile/success');
@@ -160,6 +158,7 @@ const UpdateProfileStep4 = () => {
             <SubmitMetadataModal
               onClose={() => setIsSubmittingMetadata(false)}
               onSuccessfulSubmit={handleSuccessfulSubmit}
+              metadataType='drepUpdate'
             />
           )}
         </div>

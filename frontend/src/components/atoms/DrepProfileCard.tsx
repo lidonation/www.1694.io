@@ -299,6 +299,7 @@ const DrepProfileCard = ({ drep, voterId, loading }: DrepProfileCardProps) => {
               );
               resetDraft();
             }}
+            metadataType='drepUpdate'
           />
         )}
         {ownership?.result &&

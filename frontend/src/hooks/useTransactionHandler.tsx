@@ -17,6 +17,7 @@ import {
   TransactionUnspentOutputs,
   TransactionWitnessSet,
   Value,
+  VotingBuilder,
 } from '@emurgo/cardano-serialization-lib-asmjs';
 import { useCallback, useState } from 'react';
 import { useGetNodeStatusQuery } from './useGetNodeStatusQuery';
@@ -309,15 +310,24 @@ export function useTransactionHandler({
       );
 
       if (certBuilder) {
-        const newCertBuilder =
-          certBuilder instanceof Certificate
-            ? (() => {
-                const builder = CertificatesBuilder.new();
-                builder.add(certBuilder);
-                return builder;
-              })()
-            : certBuilder;
-        finalTxBuilder.set_certs_builder(newCertBuilder);
+        let newCertBuilder;
+        switch (true) {
+          case certBuilder instanceof Certificate:
+            certBuilder = (() => {
+              const builder = CertificatesBuilder.new();
+              builder.add(certBuilder);
+              return builder;
+            })();
+            break;
+          case certBuilder instanceof VotingBuilder:
+            finalTxBuilder.set_voting_builder(certBuilder);
+            break;
+          default:
+            newCertBuilder = certBuilder;
+        }
+        if (newCertBuilder) {
+          finalTxBuilder.set_certs_builder(newCertBuilder);
+        }
       }
       finalTxBuilder.set_ttl_bignum(BigNum.from_str(ttl.toString()));
 

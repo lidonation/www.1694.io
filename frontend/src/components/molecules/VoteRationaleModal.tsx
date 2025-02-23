@@ -1,12 +1,32 @@
-import { Typography, CircularProgress, Alert, Box } from '@mui/material';
+import {
+  Typography,
+  CircularProgress,
+  Alert,
+  Box,
+  TextField,
+} from '@mui/material';
 import { ModalContents, ModalHeader, ModalWrapper } from '../atoms';
 import { useGetExternalMetadata } from '@/hooks/useGetExternalMetadata';
+import { useEffect, useState } from 'react';
+import Button from '../atoms/Button';
+import { useGlobalNotifications } from '@/context/globalNotificationContext';
+import SubmitMetadataModal from '../atoms/SubmitMetadataModal';
+import { getJSONLDFromData } from '@/lib/metadataProcessor';
+import { CIP_100 } from '@/lib/drepActions/jsonContext';
+import { createDRepVoteContext } from '@/lib/drepActions/voteContext';
+import { VoteMetadata } from '../../../types/commonTypes';
 
-interface RationaleData {
-  body: {
-    comment: string;
+interface RationaleDataNormal {
+  comment: string;
+}
+interface RationaleDataJsonLd {
+  comment: {
+    '@type': string;
+    '@value': string;
   };
 }
+
+type RationaleDataVariants = RationaleDataNormal | RationaleDataJsonLd;
 
 export interface VoteRationaleModalProps {
   mode: 'view' | 'edit';
@@ -14,6 +34,7 @@ export interface VoteRationaleModalProps {
   onClose: () => void;
   onEdit?: () => void;
   rationaleUrl?: string;
+  extraData?: VoteMetadata;
 }
 
 export function VoteRationaleModal({
@@ -22,26 +43,103 @@ export function VoteRationaleModal({
   onClose,
   onEdit,
   rationaleUrl,
+  extraData,
 }: VoteRationaleModalProps) {
-  if (!open) {
-    return null;
-  }
+  const [rationaleData, setRationaleData] =
+    useState<RationaleDataVariants | null>(null);
+  const [jsonld, setJsonld] = useState<any>(null);
+  const [jsonHash, setJsonHash] = useState(null);
+  const [rationaleInput, setRationaleInput] = useState('');
+  const { addSuccessAlert } = useGlobalNotifications();
+  const [isSubmittingMetadata, setIsSubmittingMetadata] = useState(false);
+  const [isMetadataReadyForSubmission, setIsMetadataReadyForSubmission] =
+    useState(false);
+  const { metadata, isMetadataLoading, metadataError } = useGetExternalMetadata(
+    rationaleUrl,
+    mode === 'view',
+  );
 
-  const { metadata, isMetadataLoading, metadataError } =
-    useGetExternalMetadata(rationaleUrl);
+  useEffect(() => {
+    if (metadata) {
+      setRationaleData(metadata.body);
+    }
+  }, [metadata]);
+
+  const handleSuccessfulSubmit = (resultHash?: string) => {
+    setIsSubmittingMetadata(false);
+    setIsMetadataReadyForSubmission(false);
+    addSuccessAlert(
+      'Vote resubmitted with new rationale. The changes may take some time to propagate.',
+    );
+    onEdit && onEdit();
+    onClose();
+  };
+
+  const handleSubmit = async () => {
+    try {
+      setIsSubmittingMetadata(true);
+      //prepare jsonld and hash
+      const { jsonHash, jsonld } = await getJSONLDFromData({
+        body: { comment: rationaleInput },
+        context: createDRepVoteContext(['comment']),
+        cip: CIP_100,
+        vkeys: null,
+      });
+      setJsonld(jsonld);
+      setJsonHash(jsonHash);
+      setIsMetadataReadyForSubmission(true);
+    } catch (error) {
+      setIsSubmittingMetadata(false);
+      setIsMetadataReadyForSubmission(false);
+    }
+  };
 
   const renderContent = () => {
     if (mode === 'edit') {
       return (
         <Box
           display="flex"
-          justifyContent="center"
-          alignItems="center"
+          flexDirection="column"
+          gap={3}
           minHeight={200}
+          sx={{ width: '100%' }}
         >
-          <Typography variant="h6" color="text.secondary">
-            Ability to add rationale coming soon
+          <TextField
+            multiline
+            rows={4}
+            placeholder="Enter your rationale here..."
+            value={rationaleInput}
+            onChange={(e) => setRationaleInput(e.target.value)}
+            fullWidth
+          />
+          <Typography
+            variant="caption"
+            sx={{
+              color: 'text.secondary',
+              fontSize: '0.75rem',
+              fontStyle: 'italic',
+              mt: 1,
+            }}
+          >
+            Note: Confirming means resubmitting your vote(same choice) with this rationale
           </Typography>
+          <Box display="flex" justifyContent="flex-end" gap={2}>
+            <Button
+              variant="outlined"
+              bgcolor="transparent"
+              handleClick={onClose}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              handleClick={handleSubmit}
+              disabled={!rationaleInput || isSubmittingMetadata}
+            >
+              Confirm
+            </Button>
+          </Box>
         </Box>
       );
     }
@@ -87,11 +185,28 @@ export function VoteRationaleModal({
             fontWeight: 'normal',
           }}
         >
-          {metadata?.body?.comment || 'No comment provided'}
+          {rationaleData && typeof rationaleData.comment === 'string'
+            ? rationaleData.comment
+            : rationaleData.comment['@value'] || 'No rationale provided'}
+        </Typography>
+        <Typography
+          variant="caption"
+          sx={{
+            color: 'text.secondary',
+            fontSize: '0.75rem',
+            fontStyle: 'italic',
+            mt: 1,
+          }}
+        >
+          Note: These comments represent the author's views and may contain bias
         </Typography>
       </Box>
     );
   };
+
+  if (!open) {
+    return null;
+  }
 
   return (
     <ModalWrapper dataTestId="action-modal" onClose={onClose}>
@@ -106,7 +221,9 @@ export function VoteRationaleModal({
           fontWeight: 500,
         }}
       >
-        Vote Rationale
+        {mode === 'edit'
+          ? 'Add a rationale/context to your vote'
+          : 'Vote Rationale'}
       </ModalHeader>
       <ModalContents>
         {renderContent()}
@@ -128,6 +245,26 @@ export function VoteRationaleModal({
               View full rationale
             </a>
           </Typography>
+        )}
+        {isMetadataReadyForSubmission && (
+          <SubmitMetadataModal
+            onClose={() => {
+              setIsMetadataReadyForSubmission(false);
+              setIsSubmittingMetadata(false);
+              setJsonld(null);
+              setJsonHash(null);
+              onClose();
+            }}
+            onSuccessfulSubmit={handleSuccessfulSubmit}
+            metadataType="voteUpdate"
+            data={{
+              jsonld,
+              jsonHash,
+            }}
+            extraData={{
+              voteUpdate: extraData,
+            }}
+          />
         )}
       </ModalContents>
     </ModalWrapper>

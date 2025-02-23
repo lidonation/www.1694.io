@@ -5,7 +5,8 @@ import { downloadJson } from '@/lib/jsonutils';
 import { postMetadata } from '@/services/requests/postMetadata';
 import {
   MetadataSaveResponse,
-  MetadataStandard,
+  SubmitMetadataExtra,
+  SubmitMetadataType,
 } from '../../../types/commonTypes';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { useCardano } from '@/context/walletContext';
@@ -14,10 +15,30 @@ import { urls } from '@/constants';
 import { getItemFromIndexedDB } from '@/lib/indexedDb';
 import { postAddMetadataAttachment } from '@/services/requests/postAddMetadataAttachment';
 import { useDRepContext } from '@/context/drepContext';
+interface SubmitMetadataModalProps {
+  onClose: () => void;
+  onSuccessfulSubmit: (resultHash?: string) => void;
+  data?: {
+    jsonld: any;
+    jsonHash: string;
+  };
+  metadataType?: SubmitMetadataType;
+  extraData?: SubmitMetadataExtra;
+}
 
-const SubmitMetadataModal = ({ onClose, onSuccessfulSubmit }) => {
-  const { signAndSubmitTransaction, buildDRepUpdateCert, dRepIDBech32  } =
-    useCardano();
+const SubmitMetadataModal = ({
+  onClose,
+  onSuccessfulSubmit,
+  data,
+  metadataType,
+  extraData,
+}: SubmitMetadataModalProps) => {
+  const {
+    signAndSubmitTransaction,
+    buildDRepUpdateCert,
+    dRepIDBech32,
+    buildVote,
+  } = useCardano();
   const { drepClaimMismatch, drepToBeClaimed, drepEntityToBeClaimed } =
     useDRepContext();
   const [isValidatingSubmission, setIsValidatingSubmission] = useState(false);
@@ -30,17 +51,25 @@ const SubmitMetadataModal = ({ onClose, onSuccessfulSubmit }) => {
 
   useEffect(() => {
     const initiateMetadata = async () => {
-      const jsonld = await getItemFromIndexedDB('metadataJsonLd');
-      const jsonHash = await getItemFromIndexedDB('metadataJsonHash');
-      setJsonld(jsonld);
-      setJsonHash(jsonHash);
+      if (metadataType === 'drepUpdate') {
+        //specifically for drep update
+        const drepJsonLd = await getItemFromIndexedDB('metadataJsonLd');
+        const drepJsonHash = await getItemFromIndexedDB('metadataJsonHash');
+        setJsonld(drepJsonLd);
+        setJsonHash(drepJsonHash);
+        return;
+      }
+      setJsonld(data?.jsonld);
+      setJsonHash(data?.jsonHash);
     };
     initiateMetadata();
-  }, []);
+  }, [data]);
 
   const downloadJsonFile = () => {
     if (jsonld) {
       downloadJson(jsonld, 'metadata');
+    } else {
+      addErrorAlert('Unable to download metadata');
     }
   };
 
@@ -52,7 +81,6 @@ const SubmitMetadataModal = ({ onClose, onSuccessfulSubmit }) => {
         const { status, valid } = await postMetadata({
           hash: jsonHash,
           url: metadataUrl,
-          standard: MetadataStandard.CIP119,
         });
         if (status) {
           setIsValidatingSubmission(false);
@@ -72,6 +100,41 @@ const SubmitMetadataModal = ({ onClose, onSuccessfulSubmit }) => {
       throw new Error(error);
     }
   };
+
+  const buildActionCert = async ({
+    metadataUrl,
+    metadataUrlHash,
+  }: {
+    metadataUrl: string;
+    metadataUrlHash: string;
+  }) => {
+    try {
+      switch (metadataType) {
+        case 'drepUpdate':
+          return await buildDRepUpdateCert(
+            metadataUrl,
+            metadataUrlHash,
+            drepToBeClaimed !== dRepIDBech32 ? drepToBeClaimed : dRepIDBech32,
+          );
+        case 'voteUpdate':
+          const { vote, voteTxHash, voteTxIndex, voterId } = extraData?.voteUpdate;
+          return await buildVote(
+            vote,
+            voteTxHash,
+            voteTxIndex,
+            voterId,
+            metadataUrl,
+            metadataUrlHash,
+          );
+        default:
+          return null;
+      }
+    } catch (error) {
+      console.log(error);
+      throw new Error(error);
+    }
+  };
+
   const postSaveMetadata = async () => {
     try {
       setIsSubmittingToIPFS(true);
@@ -110,15 +173,14 @@ const SubmitMetadataModal = ({ onClose, onSuccessfulSubmit }) => {
         }
         await handleValidation();
       }
-      const updateDRepMetadataCert = await buildDRepUpdateCert(
-        currentHostedUrl,
-        jsonHash,
-        drepToBeClaimed !== dRepIDBech32 ? drepToBeClaimed : dRepIDBech32, // if drepClaimMismatch, use drepToBeClaimed
-      );
-      onClose();      
+      const actionCert = await buildActionCert({
+        metadataUrl: currentHostedUrl,
+        metadataUrlHash: jsonHash,
+      });
+      onClose();
       const res = await signAndSubmitTransaction(
         'submitMetadataTxn',
-        updateDRepMetadataCert,
+        actionCert,
         {
           disableSigning: drepClaimMismatch || drepToBeClaimed !== dRepIDBech32,
           deriveUtxosFrom:
@@ -174,7 +236,11 @@ const SubmitMetadataModal = ({ onClose, onSuccessfulSubmit }) => {
       <p>This is the final step. We'll host the metadata for you in IPFS.</p>
       <Button handleClick={onSubmit}>
         {' '}
-        {isSubmittingToIPFS ? <CircularProgress size={20} color='inherit'  className='text-white'/> : 'Submit'}
+        {isSubmittingToIPFS ? (
+          <CircularProgress size={20} color="inherit" className="text-white" />
+        ) : (
+          'Submit'
+        )}
       </Button>
     </div>
   );
