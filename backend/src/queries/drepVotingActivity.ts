@@ -7,6 +7,7 @@ WITH vote_rationale AS (
     SELECT  
         dh.view, 
         SUBSTRING(CAST(prop_creation_tx.hash AS TEXT) FROM 3) AS gov_action_proposal_id,
+        gp.index AS gov_action_proposal_index,
         prop_creation_bk.time AS prop_inception,
         gp.type,
         gp.description,

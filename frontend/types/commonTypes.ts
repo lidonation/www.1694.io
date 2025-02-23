@@ -16,12 +16,12 @@ export enum MetadataStandard {
 }
 
 export type DRepMetadata = {
-  givenName: {}|string;
-  email?: {}|string;
-  bio?: {}|string;
-  objectives?: {}|string;
-  motivations?: {}|string;
-  qualifications?: {}|string;
+  givenName: {} | string;
+  email?: {} | string;
+  bio?: {} | string;
+  objectives?: {} | string;
+  motivations?: {} | string;
+  qualifications?: {} | string;
   references: any[];
   image?: {
     contentUrl: string;
@@ -43,7 +43,7 @@ export type IPFSResponse = {
   ipfs_hash: string;
   size: number;
 };
-export type NotificationType = 'info' | 'warning' | 'error';  
+export type NotificationType = 'info' | 'warning' | 'error';
 export type Notification = {
   id: number;
   title: string;
@@ -63,4 +63,20 @@ export type Metrics = {
   totalGovernanceActions: number;
   totalVotingPower: number;
   totalRegisteredStakeAddresses: number;
-}
+};
+
+export type VoteMetadata = {
+  vote: string;
+  voterId: string;
+  voteTxHash: string;
+  voteTxIndex: number;
+};
+
+export type MappedOutSubmitMetadataExtra = {
+  drepUpdate: DRepMetadata;
+  voteUpdate: VoteMetadata;
+};
+export type SubmitMetadataType = 'drepUpdate' | 'voteUpdate';
+export type SubmitMetadataExtra = {
+  [K in SubmitMetadataType]?: MappedOutSubmitMetadataExtra[K];
+};

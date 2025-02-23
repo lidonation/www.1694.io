@@ -18,12 +18,16 @@ export const generateJsonld = async <
   body: T,
   context: C,
   bodyCip: string = CIP_119,
-  vkeys: { vkey: string; signature: string },
+  vkeys?: { vkey: string; signature: string },
 ) => {
   const doc = {
     [`${bodyCip}body`]: body,
     [`${CIP_100}hashAlgorithm`]: 'blake2b-256',
-    [`${CIP_100}authors`]: [
+    [`${CIP_100}authors`]: [],
+  };
+
+  if (vkeys) {
+    doc[`${CIP_100}authors`] = [
       {
         [`${CIP_100}witness`]: {
           [`${CIP_100}witnessAlgorithm`]: 'Ed25519',
@@ -31,8 +35,8 @@ export const generateJsonld = async <
           [`${CIP_100}signature`]: vkeys.signature,
         },
       },
-    ],
-  };
+    ];
+  }
 
   const json = await jsonld.compact(doc, context);
   //for image

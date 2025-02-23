@@ -80,15 +80,17 @@ export class AuthService {
         .getRepository('Signature')
         .findOne({
           where: { stakeKey: payload.stakeKey, signatureKey: sig.key },
+          relations: ['drep'],
         });
       if (existingSig) {
-        //update the signature
-        const updatedSig = await this.voltaireService
-          .getRepository('Signature')
-          .update(existingSig.id, signatureDto);
+        let updatedSig = existingSig;
+        if (!existingSig.drep) { //update the signature with the drepId
+          updatedSig = await this.voltaireService
+            .getRepository('Signature')
+            .update(existingSig.id, signatureDto);
+        }
         return { token, updatedSig, session: existingSig };
       }
-      console.log('signatureDto', signatureDto);
       insertedSig = await this.voltaireService
         .getRepository('Signature')
         .createQueryBuilder()

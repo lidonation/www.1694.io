@@ -8,7 +8,7 @@ export const postMetadata = async ({
 }: {
   hash: string;
   url: string;
-  standard: MetadataStandard;
+  standard?: MetadataStandard;
 }) => {
   const response = await axiosInstance.post(`/dreps/metadata/validate`, {
     hash,

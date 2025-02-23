@@ -41,13 +41,12 @@ const DrepVoteTimelineCard = ({
   isVoteOwner,
 }: DrepVoteTimelineCardProps) => {
   const [govActionName, setGovActionName] = useState(null);
-  const [isRationaleModalOpen, setIsRationaleModalOpen] = useState(false);
   const [rationaleModalOptions, setRationalModalOptions] =
     useState<VoteRationaleModalProps>({
       mode: 'view',
       open: false,
-      onClose: () => setIsRationaleModalOpen(false),
-      onEdit: () => setIsRationaleModalOpen(true),
+      onClose: () => {},
+      onEdit: () => {},
       rationaleUrl: item?.vote_rationale,
     });
   const title = item?.metadata?.body?.title;
@@ -148,6 +147,12 @@ const DrepVoteTimelineCard = ({
                 open: true,
                 onClose: handleRationaleModalClose,
                 rationaleUrl: item?.vote_rationale,
+                extraData: {
+                  vote: item?.vote,
+                  voteTxHash: item?.gov_action_proposal_id,
+                  voteTxIndex: Number(item?.gov_action_proposal_index) || 0,
+                  voterId: item?.view,
+                },
               })
             }
             color="primary"
