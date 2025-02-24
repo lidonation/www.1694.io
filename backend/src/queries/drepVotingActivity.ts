@@ -17,6 +17,8 @@ WITH vote_rationale AS (
         bk.time AS time_voted,
         prop_creation_bk.epoch_no AS proposal_epoch,
         bk.epoch_no AS voting_epoch,
+        gp.enacted_epoch,
+        gp.expiration as expiration_epoch,
         va.url,
         vr.url as vote_rationale
     FROM 

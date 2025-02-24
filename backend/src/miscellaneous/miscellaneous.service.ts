@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { BlockfrostService } from 'src/blockfrost/blockfrost.service';
 import { Currency } from 'src/common/enums';
@@ -22,9 +22,11 @@ import { getAddrUtxosQuery } from 'src/queries/getAddressUtxos';
 import { proposalMetadataByHash } from 'src/queries/proposalMetadataByHash';
 import { catchError, firstValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
+import { Response } from 'express';
 
 @Injectable()
 export class MiscellaneousService {
+  private readonly IPFS_GATEWAYS = ['ipfs.io', 'dweb.link'];
   constructor(
     @InjectDataSource('dbsync')
     private cexplorerService: DataSource,
@@ -94,13 +96,16 @@ export class MiscellaneousService {
       const urlProtocol = this.getUrlProtocol(url);
 
       switch (urlProtocol) {
-        case 'ipfs': {
+        case 'ipfs':
           const ipfsHash = url.replace('ipfs://', '');
           return await this.blockfrostService.getIPFSContent(ipfsHash);
-        }
 
         case 'http':
-        case 'https': {
+        case 'https':
+          const { isIPFS, hash } = this.isIPFSUrl(url);
+          if (isIPFS && hash) {
+            return this.fetchWithIPFSFallback(url);
+          }
           const { data } = await firstValueFrom(
             this.httpService.get(url).pipe(
               catchError((err) => {
@@ -110,7 +115,6 @@ export class MiscellaneousService {
             ),
           );
           return data;
-        }
 
         default:
           throw new HttpException(
@@ -125,6 +129,142 @@ export class MiscellaneousService {
         500,
       );
     }
+  }
+
+  private async tryIPFSGateways(hash: string, res: Response): Promise<any> {
+    let lastError;
+
+    // Try ipfs.io first
+    try {
+      const ipfsUrl = `https://ipfs.io/ipfs/${hash}`;
+      const response = await this.httpService.axiosRef.get(ipfsUrl, {
+        responseType: 'stream',
+      });
+      res.setHeader('Content-Type', response.headers['content-type']);
+      return response.data.pipe(res);
+    } catch (error) {
+      lastError = error;
+    }
+
+    // Try dweb.link as fallback
+    try {
+      const dwebUrl = `https://dweb.link/ipfs/${hash}`;
+      const response = await this.httpService.axiosRef.get(dwebUrl, {
+        responseType: 'stream',
+      });
+      res.setHeader('Content-Type', response.headers['content-type']);
+      return response.data.pipe(res);
+    } catch (error) {
+      lastError = error;
+    }
+
+    // If both gateways fail
+    throw lastError;
+  }
+
+  async getMedia(res: Response, assetUrl?: string) {
+    if (!assetUrl) {
+      throw new HttpException('Asset URL is required', HttpStatus.BAD_REQUEST);
+    }
+
+    try {
+      const { isIPFS, hash } = this.isIPFSUrl(assetUrl);
+
+      if (isIPFS && hash) {
+        return await this.tryIPFSGateways(hash, res);
+      }
+
+      // If not IPFS, proceed with original direct fetch
+      const response = await this.httpService.axiosRef.get(assetUrl, {
+        responseType: 'stream',
+      });
+      res.setHeader('Content-Type', response.headers['content-type']);
+      return response.data.pipe(res);
+    } catch (error) {
+      console.error('Error fetching media:', error);
+      throw new HttpException(
+        'Failed to fetch media',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  private isIPFSUrl(url: string): { isIPFS: boolean; hash?: string } {
+    try {
+      // Check ipfs:// protocol
+      if (url.startsWith('ipfs://')) {
+        const hash = url.replace('ipfs://', '').split('/')[0];
+        return { isIPFS: true, hash };
+      }
+
+      const urlObj = new URL(url);
+
+      // Check for ipfs.io and dweb.link gateways
+      if (this.IPFS_GATEWAYS.includes(urlObj.hostname)) {
+        const pathParts = urlObj.pathname.split('/');
+        const ipfsIndex = pathParts.findIndex((part) => part === 'ipfs');
+        if (ipfsIndex !== -1 && pathParts[ipfsIndex + 1]) {
+          return { isIPFS: true, hash: pathParts[ipfsIndex + 1] };
+        }
+      }
+
+      return { isIPFS: false };
+    } catch (error) {
+      console.error('Error parsing URL:', error);
+      return { isIPFS: false };
+    }
+  }
+
+  async fetchWithIPFSFallback(url: string): Promise<any> {
+    const { isIPFS, hash } = this.isIPFSUrl(url);
+
+    if (isIPFS && hash) {
+      let lastError;
+
+      // Try ipfs.io first
+      try {
+        const ipfsUrl = `https://ipfs.io/ipfs/${hash}`;
+        const { data } = await firstValueFrom(
+          this.httpService.get(ipfsUrl).pipe(
+            catchError((err) => {
+              lastError = err;
+              throw err;
+            }),
+          ),
+        );
+        return data;
+      } catch (error) {
+        console.warn('Failed to fetch from ipfs.io:', error.message);
+      }
+
+      // Try dweb.link as fallback
+      try {
+        const dwebUrl = `https://dweb.link/ipfs/${hash}`;
+        const { data } = await firstValueFrom(
+          this.httpService.get(dwebUrl).pipe(
+            catchError((err) => {
+              lastError = err;
+              throw err;
+            }),
+          ),
+        );
+        return data;
+      } catch (error) {
+        console.warn('Failed to fetch from dweb.link:', error.message);
+        throw lastError;
+      }
+    }
+
+    // If not IPFS, do regular fetch
+    const { data } = await firstValueFrom(
+      this.httpService.get(url).pipe(
+        catchError((err) => {
+          console.log(err);
+          throw new Error('Metadata url not reachable!');
+        }),
+      ),
+    );
+    return data;
   }
 
   private getUrlProtocol(url: string): string {

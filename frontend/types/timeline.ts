@@ -22,6 +22,8 @@ export type DrepVote = {
   time_voted: string;
   proposal_epoch: number;
   voting_epoch: number;
+  enacted_epoch: number;
+  expiration_epoch: number;
   url: string;
   vote_rationale: string;
   timestamp: string;
