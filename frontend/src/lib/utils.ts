@@ -249,3 +249,14 @@ export const decodeCIP129Identifier = (cip129Identifier: string) => {
   const index = buffer.subarray(32).toString('hex');
   return { txID, index, prefix };
 };
+
+
+export const parseContent = (content: string): string => {
+  if (!content) {
+    return '';
+  }
+  return content
+    .replace(/\r\n/g, '<br/>')
+    .replace(/\n/g, '<br/>')
+    .replace(/\r/g, '<br/>');
+};
