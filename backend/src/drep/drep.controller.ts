@@ -16,12 +16,14 @@ import { VoterService } from 'src/voter/voter.service';
 import { Delegation, StakeKeys } from 'src/common/types';
 import { lastValueFrom } from 'rxjs';
 import { Response } from 'express';
+import { MiscellaneousService } from 'src/miscellaneous/miscellaneous.service';
 
 @Controller('dreps')
 export class DrepController {
   constructor(
     private drepService: DrepService,
     private voterService: VoterService,
+    private miscService:MiscellaneousService
   ) {}
   @Get('')
   getAll(
@@ -72,7 +74,7 @@ export class DrepController {
     @Res() res: Response,
     @Query('assetUrl') assetUrl?: string,
   ) {
-    return this.drepService.getMedia(res, assetUrl);
+    return this.miscService.getMedia(res, assetUrl);
   }
 
   @Get(':voterId/voter')

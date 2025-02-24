@@ -1,9 +1,10 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { MiscellaneousController } from './miscellaneous.controller';
 import { MiscellaneousService } from './miscellaneous.service';
 import { BlockfrostService } from 'src/blockfrost/blockfrost.service';
 import { HttpModule } from '@nestjs/axios';
 
+@Global()
 @Module({
   imports: [
     HttpModule.register({
@@ -13,5 +14,6 @@ import { HttpModule } from '@nestjs/axios';
   ],
   controllers: [MiscellaneousController],
   providers: [MiscellaneousService, BlockfrostService],
+  exports: [MiscellaneousService],
 })
 export class MiscellaneousModule {}

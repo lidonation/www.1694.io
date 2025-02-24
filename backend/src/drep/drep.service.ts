@@ -67,6 +67,7 @@ import { getDrepDateOfRegistrationQuery } from 'src/queries/drepDateOfRegistrati
 import { getDrepVotingActivityQuery } from 'src/queries/drepVotingActivity';
 import { Currency } from 'src/common/enums';
 import { Signature } from 'src/entities/signatures.entity';
+import { MiscellaneousService } from 'src/miscellaneous/miscellaneous.service';
 
 @Injectable()
 export class DrepService {
@@ -81,9 +82,9 @@ export class DrepService {
     private authService: AuthService,
     private readonly httpService: HttpService,
     private blockfrostService: BlockfrostService,
+    private miscService: MiscellaneousService,
   ) {}
 
-  private readonly IPFS_GATEWAYS = ['ipfs.io', 'dweb.link'];
   
   async getAllDReps(
     query?: string,
@@ -162,90 +163,9 @@ export class DrepService {
     };
   }
 
-  private isIPFSUrl(url: string): { isIPFS: boolean; hash?: string } {
-    try {
-      // Check ipfs:// protocol
-      if (url.startsWith('ipfs://')) {
-        const hash = url.replace('ipfs://', '').split('/')[0];
-        return { isIPFS: true, hash };
-      }
+  
 
-      const urlObj = new URL(url);
-
-      // Check for ipfs.io and dweb.link gateways
-      if (this.IPFS_GATEWAYS.includes(urlObj.hostname)) {
-        const pathParts = urlObj.pathname.split('/');
-        const ipfsIndex = pathParts.findIndex((part) => part === 'ipfs');
-        if (ipfsIndex !== -1 && pathParts[ipfsIndex + 1]) {
-          return { isIPFS: true, hash: pathParts[ipfsIndex + 1] };
-        }
-      }
-
-      return { isIPFS: false };
-    } catch (error) {
-      console.error('Error parsing URL:', error);
-      return { isIPFS: false };
-    }
-  }
-
-  private async tryIPFSGateways(hash: string, res: Response): Promise<any> {
-    let lastError;
-
-    // Try ipfs.io first
-    try {
-      const ipfsUrl = `https://ipfs.io/ipfs/${hash}`;
-      const response = await this.httpService.axiosRef.get(ipfsUrl, {
-        responseType: 'stream',
-      });
-      res.setHeader('Content-Type', response.headers['content-type']);
-      return response.data.pipe(res);
-    } catch (error) {
-      lastError = error;
-    }
-
-    // Try dweb.link as fallback
-    try {
-      const dwebUrl = `https://dweb.link/ipfs/${hash}`;
-      const response = await this.httpService.axiosRef.get(dwebUrl, {
-        responseType: 'stream',
-      });
-      res.setHeader('Content-Type', response.headers['content-type']);
-      return response.data.pipe(res);
-    } catch (error) {
-      lastError = error;
-    }
-
-    // If both gateways fail
-    throw lastError;
-  }
-
-  async getMedia(res: Response, assetUrl?: string) {
-    if (!assetUrl) {
-      throw new HttpException('Asset URL is required', HttpStatus.BAD_REQUEST);
-    }
-
-    try {
-      const { isIPFS, hash } = this.isIPFSUrl(assetUrl);
-
-      if (isIPFS && hash) {
-        return await this.tryIPFSGateways(hash, res);
-      }
-
-      // If not IPFS, proceed with original direct fetch
-      const response = await this.httpService.axiosRef.get(assetUrl, {
-        responseType: 'stream',
-      });
-      res.setHeader('Content-Type', response.headers['content-type']);
-      return response.data.pipe(res);
-    } catch (error) {
-      console.error('Error fetching media:', error);
-      throw new HttpException(
-        'Failed to fetch media',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
+ 
   async getAllDRepsCexplorer(
     query?: string,
     currentPage?: number,
@@ -1153,58 +1073,6 @@ export class DrepService {
     return regDeposit === null || regDeposit > 0;
   }
 
-  private async fetchWithIPFSFallback(url: string): Promise<any> {
-    const { isIPFS, hash } = this.isIPFSUrl(url);
-
-    if (isIPFS && hash) {
-      let lastError;
-
-      // Try ipfs.io first
-      try {
-        const ipfsUrl = `https://ipfs.io/ipfs/${hash}`;
-        const { data } = await firstValueFrom(
-          this.httpService.get(ipfsUrl).pipe(
-            catchError((err) => {
-              lastError = err;
-              throw err;
-            }),
-          ),
-        );
-        return data;
-      } catch (error) {
-        console.warn('Failed to fetch from ipfs.io:', error.message);
-      }
-
-      // Try dweb.link as fallback
-      try {
-        const dwebUrl = `https://dweb.link/ipfs/${hash}`;
-        const { data } = await firstValueFrom(
-          this.httpService.get(dwebUrl).pipe(
-            catchError((err) => {
-              lastError = err;
-              throw err;
-            }),
-          ),
-        );
-        return data;
-      } catch (error) {
-        console.warn('Failed to fetch from dweb.link:', error.message);
-        throw lastError;
-      }
-    }
-
-    // If not IPFS, do regular fetch
-    const { data } = await firstValueFrom(
-      this.httpService.get(url).pipe(
-        catchError((err) => {
-          console.log(err);
-          throw new Error('Metadata url not reachable!');
-        }),
-      ),
-    );
-    return data;
-  }
-
   async getMetadata(voterId: string) {
     const savedMetadata = await this.cexplorerService.manager.query(
       getDRepMetadataQuery,
@@ -1232,7 +1100,7 @@ export class DrepService {
       }
 
       try {
-        return await this.fetchWithIPFSFallback(metadataUrl);
+        return await this.miscService.fetchWithIPFSFallback(metadataUrl);
       } catch (error) {
         console.error('Error fetching metadata:', error);
         throw new HttpException(

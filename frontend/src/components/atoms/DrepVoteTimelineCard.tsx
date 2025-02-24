@@ -10,6 +10,7 @@ import {
   VoteRationaleModal,
   VoteRationaleModalProps,
 } from '../molecules/VoteRationaleModal';
+import { useCardano } from '@/context/walletContext';
 
 interface DrepVoteTimelineCardProps {
   item: DrepVote;
@@ -40,6 +41,7 @@ const DrepVoteTimelineCard = ({
   item,
   isVoteOwner,
 }: DrepVoteTimelineCardProps) => {
+  const { latestEpoch } = useCardano();
   const [govActionName, setGovActionName] = useState(null);
   const [rationaleModalOptions, setRationalModalOptions] =
     useState<VoteRationaleModalProps>({
@@ -50,6 +52,9 @@ const DrepVoteTimelineCard = ({
       rationaleUrl: item?.vote_rationale,
     });
   const title = item?.metadata?.body?.title;
+  const isEnacted = item?.enacted_epoch && latestEpoch > item?.enacted_epoch;
+  const isExpired =
+    item?.expiration_epoch && latestEpoch > item?.expiration_epoch;
   const tag = item?.description?.tag as string;
   const { Proposal, isProposalFetching } = useGetProposalMetadataByHashQuery({
     hashQueryString: item?.gov_action_proposal_id,
@@ -121,6 +126,7 @@ const DrepVoteTimelineCard = ({
 
   const renderRationaleButton = () => {
     switch (true) {
+      // Case 1: If there's an existing rationale, show View button
       case !!item?.vote_rationale:
         return (
           <Button
@@ -138,7 +144,9 @@ const DrepVoteTimelineCard = ({
             View Rationale
           </Button>
         );
-      case !item?.vote_rationale && isVoteOwner:
+
+      // Case 2: Vote owner and can add rationale (not expired and not enacted)
+      case !item?.vote_rationale && isVoteOwner && !isEnacted && !isExpired:
         return (
           <Button
             handleClick={() =>
@@ -161,7 +169,10 @@ const DrepVoteTimelineCard = ({
             Add Rationale
           </Button>
         );
-      case !item?.vote_rationale:
+
+      case !item?.vote_rationale && isVoteOwner && isExpired: // Case 3: Vote owner but proposal is enacted
+      case !item?.vote_rationale && isVoteOwner && isEnacted: // Case 4: Vote owner but proposal is enacted
+      case !item?.vote_rationale: // Case 5: No rationale provided
         return (
           <Button disabled color="primary" size="small">
             No Rationale Provided
