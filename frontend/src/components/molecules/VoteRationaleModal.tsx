@@ -56,7 +56,7 @@ export function VoteRationaleModal({
     useState(false);
   const { metadata, isMetadataLoading, metadataError } = useGetExternalMetadata(
     rationaleUrl,
-    mode === 'view',
+    mode === 'view' && open,
   );
 
   useEffect(() => {
