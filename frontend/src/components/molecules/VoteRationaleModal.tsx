@@ -15,6 +15,7 @@ import { getJSONLDFromData } from '@/lib/metadataProcessor';
 import { CIP_100 } from '@/lib/drepActions/jsonContext';
 import { createDRepVoteContext } from '@/lib/drepActions/voteContext';
 import { VoteMetadata } from '../../../types/commonTypes';
+import { parseContent } from '@/lib';
 
 interface RationaleDataNormal {
   comment: string;
@@ -121,7 +122,8 @@ export function VoteRationaleModal({
               mt: 1,
             }}
           >
-            Note: Confirming means resubmitting your vote(same choice) with this rationale
+            Note: Confirming means resubmitting your vote(same choice) with this
+            rationale
           </Typography>
           <Box display="flex" justifyContent="flex-end" gap={2}>
             <Button
@@ -176,19 +178,33 @@ export function VoteRationaleModal({
 
     return (
       <Box display="flex" flexDirection="column">
-        <Typography
-          variant="body1"
+        <Box
           sx={{
-            mb: 3,
-            color: 'text.primary',
-            lineHeight: 1.6,
-            fontWeight: 'normal',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2,
+            width: '100%',
+            overflow: 'auto',
+            maxHeight: 250,
           }}
         >
-          {rationaleData && typeof rationaleData.comment === 'string'
-            ? rationaleData.comment
-            : rationaleData.comment['@value'] || 'No rationale provided'}
-        </Typography>
+          <Typography
+            variant="body1"
+            dangerouslySetInnerHTML={{
+              __html:
+                rationaleData && typeof rationaleData?.comment === 'string'
+                  ? parseContent(rationaleData?.comment)
+                  : parseContent(rationaleData?.comment?.['@value']) ||
+                    'No rationale provided',
+            }}
+            sx={{
+              mb: 3,
+              color: 'text.primary',
+              lineHeight: 1.6,
+              fontWeight: 'normal',
+            }}
+          />
+        </Box>
         <Typography
           variant="caption"
           sx={{
@@ -209,7 +225,14 @@ export function VoteRationaleModal({
   }
 
   return (
-    <ModalWrapper dataTestId="action-modal" onClose={onClose}>
+    <ModalWrapper
+      dataTestId="action-modal"
+      onClose={onClose}
+      sx={{
+        minWidth: '60vw',
+        height: 'auto',
+      }}
+    >
       <ModalHeader
         sx={{
           display: 'flex',

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { styled } from '@mui/material/styles';
+import { styled, SxProps } from '@mui/material/styles';
 import './Modal.css';
 
 interface Props {
@@ -8,7 +8,7 @@ interface Props {
   hideCloseButton?: boolean;
   children: React.ReactNode;
   dataTestId?: string;
-  sx?: any;
+  sx?: SxProps
 }
 
 export function ModalWrapper({
