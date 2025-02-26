@@ -11,8 +11,10 @@ import { SharedState, useSharedContext } from './sharedContext';
 import { UserLoginModal } from '@/components/organisms/UserLoginModal';
 import {
   compareDRepIDs,
+  convertDrepPhraseToCIP105Legacy,
   decodeToken,
   getItemFromLocalStorage,
+  isCip105,
   removeItemFromLocalStorage,
   setItemToLocalStorage,
 } from '@/lib';
@@ -30,7 +32,10 @@ import { usePathname } from 'next/navigation';
 import { SingleDRep } from '../../types/api';
 import { useGetOwnership } from '@/hooks/useGetOwnership';
 import { ProfileWorkflowStepKey } from '@/lib/enums';
-import { VerifyOwnershipPayloadResponse } from '@/services/requests/verifyOwnership';
+import {
+  verifyOwnership,
+  VerifyOwnershipPayloadResponse,
+} from '@/services/requests/verifyOwnership';
 
 export type StepStatus = 'success' | 'active' | 'pending' | 'update';
 
@@ -44,6 +49,7 @@ interface Steps {
 interface DRepContext extends SharedState {
   steps: Steps;
   ownership: VerifyOwnershipPayloadResponse | null;
+  isDRepOwner: (drepId: string) => Promise<boolean>;
   updateStep: (step: keyof Steps, status: StepStatus) => void;
   isLoggedIn: boolean;
   loginModalOpen: boolean;
@@ -203,7 +209,7 @@ function DRepProvider(props: Props) {
       setDrepClaimMismatch(true);
     }
   }, [ownership, drepToBeClaimed, sharedState?.dRepIDBech32]);
-  
+
   const handleCleanup = () => {
     //list of items to be cleared on unmount
     setMetadataJsonHash(null);
@@ -224,6 +230,30 @@ function DRepProvider(props: Props) {
       deleteItemFromIndexedDB('metadataJsonHash');
     }
   };
+
+  const isDRepOwner = useCallback(async (drepId: string) => {
+    try {
+      const convertedDrepId = convertDrepPhraseToCIP105Legacy(drepId);
+      const convertedVoterId = convertDrepPhraseToCIP105Legacy(
+        sharedState?.dRepIDBech32,
+      );
+      if (
+        !convertedDrepId ||
+        !convertedVoterId ||
+        !isCip105(convertedDrepId) ||
+        !isCip105(convertedVoterId)
+      ) {
+        return null;
+      }
+      const res = await verifyOwnership({
+        drepId: convertedDrepId,
+        voterId: convertedVoterId,
+      });
+      return res?.result;
+    } catch (error) {
+      console.log(error);
+    }
+  }, [sharedState?.dRepIDBech32]);
 
   const handleRefresh = async () => {
     const locallySavedJsonld = await getItemFromIndexedDB('metadataJsonLd');
@@ -381,6 +411,7 @@ function DRepProvider(props: Props) {
       setMetadataJsonHash,
       currentRegistrationStep,
       loginModalOpen,
+      isDRepOwner,
       hideCloseButtonOnWalletListModal,
       hideCloseButtonOnLoginModal,
       setIsLoggedIn,

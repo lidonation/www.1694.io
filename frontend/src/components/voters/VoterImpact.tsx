@@ -2,13 +2,20 @@ import { useGetVoterGovActionsQuery } from '@/hooks/useGetVoterGovActions';
 import { Box, Paper, Typography } from '@mui/material';
 import { useParams, useSearchParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
-import DrepVoteTimelineCard from '../atoms/DrepVoteTimelineCard';
+import DrepVoteTimelineCard, {
+  UniformCardWrapper,
+} from '../atoms/DrepVoteTimelineCard';
 import GovActionLoader from '../Loaders/GovActionLoader';
 import { Address } from '@emurgo/cardano-serialization-lib-asmjs';
 import Pagination from '../molecules/Pagination';
+import { useDRepContext } from '@/context/drepContext';
 
 const VoterImpact = () => {
   const [currentPage, setCurrentPage] = useState(1);
+  const [ownershipCache, setOwnershipCache] = useState<Record<string, boolean>>(
+    {},
+  );
+  const { isDRepOwner, dRepIDBech32 } = useDRepContext();
   const { voterId } = useParams();
   const searchParams = useSearchParams();
 
@@ -23,7 +30,8 @@ const VoterImpact = () => {
       address.includes('drep')
     ) {
       return address;
-    } else return Address.from_bytes(Buffer.from(address, 'hex') as any).to_bech32();
+    } else
+      return Address.from_bytes(Buffer.from(address, 'hex') as any).to_bech32();
   };
 
   const { voterGovActions, isVoterGovActionsLoading } =
@@ -31,6 +39,33 @@ const VoterImpact = () => {
       convertAddressToBech32(voterId as string),
       currentPage,
     );
+
+  useEffect(() => {
+    const fetchOwnership = async () => {
+      if (!voterGovActions?.data?.length) return;
+
+      const uniqueViews = Array.from(
+        new Set(voterGovActions.data.map((action) => action.view)),
+      );
+
+      const newCache: Record<string, boolean> = { ...ownershipCache };
+
+      const viewsToCheck = uniqueViews.filter(
+        (view) => ownershipCache[view] === undefined,
+      );
+
+      for (const view of viewsToCheck) {
+        const isOwner = await isDRepOwner(view);
+        newCache[view] = isOwner;
+      }
+
+      if (viewsToCheck.length > 0) {
+        setOwnershipCache(newCache);
+      }
+    };
+
+    fetchOwnership();
+  }, [voterGovActions?.data, isDRepOwner, dRepIDBech32]);
 
   return (
     <Box className="flex flex-col gap-6">
@@ -79,12 +114,21 @@ const VoterImpact = () => {
         <ul
           role="list"
           className="grid grid-cols-1 gap-6 border-t border-green-400 py-6 lg:grid-cols-2 xl:grid-cols-3"
+          style={{
+            display: 'grid',
+            gridAutoRows: '1fr',
+          }}
         >
           {voterGovActions &&
             voterGovActions?.data.length > 0 &&
             voterGovActions?.data.map((action) => (
-              <li key={action?.vote_tx_hash}>
-                <DrepVoteTimelineCard item={action as any} />
+              <li key={action?.vote_tx_hash} style={{ height: '100%' }}>
+                <UniformCardWrapper>
+                  <DrepVoteTimelineCard
+                    item={action}
+                    isVoteOwner={ownershipCache[action.view] || false}
+                  />
+                </UniformCardWrapper>
               </li>
             ))}
         </ul>

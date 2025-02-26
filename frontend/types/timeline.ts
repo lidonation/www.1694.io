@@ -14,7 +14,7 @@ export type DrepVote = {
   type: 'voting_activity';
   description: {
     tag: string;
-    contents: null;
+    contents:string| null;
   };
   voting_anchor_id: string;
   vote: string;

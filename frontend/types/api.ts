@@ -21,8 +21,12 @@ export type Delegators = {
 
 export type GovAction = {
   gov_action_proposal_id: string | null;
+  gov_action_proposal_index: string | null;
   type: string | null;
-  description: {};
+  description:  {
+    tag: string;
+    contents:string| null;
+  } | null;
   vote: string | null;
   url: string | null;
   metadata: string | null;
@@ -30,6 +34,10 @@ export type GovAction = {
   time_voted: string | null;
   vote_tx_hash: string | null;
   drep_id: string | null;
+  view: string | null;
+  vote_rationale: string | null;
+  enacted_epoch: number | null;
+  expiration_epoch: number | null;
 };
 
 export type VoterGovActions = {
