@@ -11,9 +11,10 @@ import {
   VoteRationaleModalProps,
 } from '../molecules/VoteRationaleModal';
 import { useCardano } from '@/context/walletContext';
+import { GovAction } from '../../../types/api';
 
 interface DrepVoteTimelineCardProps {
-  item: DrepVote;
+  item: DrepVote | GovAction;
   isVoteOwner?: boolean;
 }
 
@@ -191,57 +192,68 @@ const DrepVoteTimelineCard = ({
     >
       <VoteStatusChip date={item?.time_voted} vote={item?.vote} />
       <VoteRationaleModal {...rationaleModalOptions} />
-
       <hr />
-      <Box className="flex flex-col gap-3">
-        <Box>
-          <p className="overflow-hidden text-ellipsis text-sm font-bold">
-            {govActionName ? govActionName : '-'}
-          </p>
-        </Box>
-
-        {actionDetais.actionName !== '' && (
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          height: '100%',
+          flex: '1',
+          gap: '1rem',
+        }}
+      >
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           <Box>
-            <Box
-              className={`flex w-fit items-center gap-2 rounded-full bg-slate-200 p-1 px-3 py-1 text-sm`}
-            >
-              <img
-                src={actionDetais.imgSrc}
-                alt={`${actionDetais.actionName} icon`}
-                className="h-5 w-5"
-              />
-              <p>{actionDetais.actionName}</p>
+            <p className="overflow-hidden text-ellipsis text-sm font-bold">
+              {govActionName ? govActionName : '-'}
+            </p>
+          </Box>
+
+          {actionDetais.actionName !== '' && (
+            <Box>
+              <Box
+                className={`flex w-fit items-center gap-2 rounded-full bg-slate-200 p-1 px-3 py-1 text-sm`}
+              >
+                <img
+                  src={actionDetais.imgSrc}
+                  alt={`${actionDetais.actionName} icon`}
+                  className="h-5 w-5"
+                />
+                <p>{actionDetais.actionName}</p>
+              </Box>
+            </Box>
+          )}
+        </Box>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <Box className="flex w-fit items-center gap-2 rounded-full border px-3 py-1 text-sm">
+            <p className="">Action ID:</p>
+            <CopyToClipboard text={item?.gov_action_proposal_id} truncate>
+              <img src="/svgs/copy.svg" alt="copy" />
+            </CopyToClipboard>
+          </Box>
+
+          {renderRationaleButton()}
+
+          <Box className="flex flex-col gap-1">
+            <p className="text-sm">View Action on:</p>
+            <Box className="flex flex-row gap-2">
+              <Link
+                href={`${urls.govToolUrl}/governance_actions/${item?.gov_action_proposal_id}#0`}
+                target="_blank"
+                className="text-sm text-blue-800"
+              >
+                Govtool
+              </Link>
+              <Link
+                href={`${urls.adaStatUrl}/governances/${item?.gov_action_proposal_id}00`}
+                target="_blank"
+                className="text-sm text-blue-800"
+              >
+                ADASTAT
+              </Link>
             </Box>
           </Box>
-        )}
-
-        <Box className="flex w-fit items-center gap-2 rounded-full border px-3 py-1 text-sm">
-          <p className="">Action ID:</p>
-          <CopyToClipboard text={item?.gov_action_proposal_id} truncate>
-            <img src="/svgs/copy.svg" alt="copy" />
-          </CopyToClipboard>
-        </Box>
-      </Box>
-
-      {renderRationaleButton()}
-
-      <Box className="flex flex-col gap-1">
-        <p className="text-sm">View Action on:</p>
-        <Box className="flex flex-row gap-2">
-          <Link
-            href={`${urls.govToolUrl}/governance_actions/${item?.gov_action_proposal_id}#0`}
-            target="_blank"
-            className="text-sm text-blue-800"
-          >
-            Govtool
-          </Link>
-          <Link
-            href={`${urls.adaStatUrl}/governances/${item?.gov_action_proposal_id}00`}
-            target="_blank"
-            className="text-sm text-blue-800"
-          >
-            ADASTAT
-          </Link>
         </Box>
       </Box>
     </Box>
@@ -249,3 +261,28 @@ const DrepVoteTimelineCard = ({
 };
 
 export default DrepVoteTimelineCard;
+
+const UniformCardWrapper = ({ children }) => {
+  return (
+    <div
+      className="uniform-card-wrapper"
+      style={{
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
+      <style jsx>{`
+        .uniform-card-wrapper :global(#epoch-card) {
+          display: flex;
+          flex-direction: column;
+          height: 100%;
+          min-height: 250px;
+        }
+      `}</style>
+      {children}
+    </div>
+  );
+};
+
+export { UniformCardWrapper };

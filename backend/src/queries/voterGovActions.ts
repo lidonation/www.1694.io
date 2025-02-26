@@ -71,9 +71,15 @@ WITH DelegatedDReps AS (
         `
     }
 ),
+Vote_rationale AS (
+        SELECT va.url, vp.drep_voter, vp.gov_action_proposal_id
+        FROM voting_anchor va 
+        JOIN voting_procedure vp on va.id = vp.voting_anchor_id
+), 
 GovActions AS (
     SELECT
         SUBSTRING(CAST(gat.hash AS TEXT) FROM 3) AS gov_action_proposal_id,
+        gap.index AS gov_action_proposal_index,
         gap.type,
         gap.description,
         vp.vote::text,
@@ -82,7 +88,10 @@ GovActions AS (
         b.epoch_no AS voting_epoch,
         b.time AS time_voted,
         encode(vt.hash, 'hex') AS vote_tx_hash,
-        dh.view
+        dh.view,
+        vr.url as vote_rationale,
+        gap.enacted_epoch,
+        gap.expiration as expiration_epoch
     FROM 
         voting_procedure vp
     JOIN 
@@ -101,6 +110,8 @@ GovActions AS (
         block b ON b.id = vt.block_id
     JOIN 
         DelegatedDReps ddr ON dh.view = ddr.drep_id
+    LEFT JOIN 
+        Vote_rationale vr ON vr.drep_voter = vp.drep_voter AND vr.gov_action_proposal_id = vp.gov_action_proposal_id
 )
 SELECT * FROM GovActions
 ORDER BY time_voted DESC
