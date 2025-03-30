@@ -198,7 +198,7 @@ export class AttachmentService {
     try {
       const res = await lastValueFrom(
         this.httpService.post(
-          `${this.blockfrostService.blockfrostIPFSURL}/api/v0/ipfs/add`,
+          `${this.blockfrostService.blockfrostIPFSURL}/ipfs/add`,
           attachment,
           {
             headers: {
@@ -228,7 +228,7 @@ export class AttachmentService {
     try {
       const res = await lastValueFrom(
         this.httpService.post(
-          `${this.blockfrostService.blockfrostIPFSURL}/api/v0/ipfs/pin/add/${hash}`,
+          `${this.blockfrostService.blockfrostIPFSURL}/ipfs/pin/add/${hash}`,
           {},
           {
             headers: {
@@ -247,7 +247,7 @@ export class AttachmentService {
     try {
       const res = await lastValueFrom(
         this.httpService.get(
-          `${this.blockfrostService.blockfrostIPFSURL}/api/v0/ipfs/pin/list/${hash}`,
+          `${this.blockfrostService.blockfrostIPFSURL}/ipfs/pin/list/${hash}`,
           {
             headers: {
               project_id: this.blockfrostService.blockfrostIPFSProjectID,
@@ -265,7 +265,7 @@ export class AttachmentService {
     try {
       const res = await lastValueFrom(
         this.httpService.post(
-          `${this.blockfrostService.blockfrostIPFSURL}/api/v0/ipfs/pin/remove/${hash}`,
+          `${this.blockfrostService.blockfrostIPFSURL}/ipfs/pin/remove/${hash}`,
           {},
           {
             headers: {
@@ -284,7 +284,7 @@ export class AttachmentService {
     try {
       const response = await lastValueFrom(
         this.httpService.get(
-          `${this.blockfrostService.blockfrostIPFSURL}/api/v0/ipfs/gateway/${hash}`,
+          `${this.blockfrostService.blockfrostIPFSURL}/ipfs/gateway/${hash}`,
           {
             headers: {
               project_id: this.blockfrostService.blockfrostIPFSProjectID,

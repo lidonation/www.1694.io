@@ -49,7 +49,7 @@ export class BlockfrostService {
   async getLatestBlock() {
     try {
       //fetch the latest block from external blockfrost API
-      const apiUrl = `${this.blockfrostAPIFallbackURL}/api/v0/blocks/latest`; //use the fallback API
+      const apiUrl = `${this.blockfrostAPIFallbackURL}/blocks/latest`; //use the fallback API
       const response = await axios.get(apiUrl, {
         headers: {
           project_id: this.blockfrostAPIFallbackProjectID, //use the fallback project ID
@@ -68,7 +68,7 @@ export class BlockfrostService {
   async getIPFSContent(ipfsHash: string) {
     try {
       // Try primary IPFS endpoint
-      const primaryUrl = `${this.blockfrostIPFSURL}/api/v0/ipfs/gateway/${ipfsHash}`;
+      const primaryUrl = `${this.blockfrostIPFSURL}/ipfs/gateway/${ipfsHash}`;
       const primaryResponse = await lastValueFrom(
         this.httpService.get(primaryUrl, {
           headers: {
@@ -78,7 +78,7 @@ export class BlockfrostService {
       ).catch((primaryError) => {
         console.log('Primary IPFS endpoint failed, trying fallback:', primaryError.message);
         // If primary fails, try fallback
-        const fallbackUrl = `${this.blockfrostIPFSFallbackURL}/api/v0/ipfs/gateway/${ipfsHash}`;
+        const fallbackUrl = `${this.blockfrostIPFSFallbackURL}/ipfs/gateway/${ipfsHash}`;
         return lastValueFrom(
           this.httpService.get(fallbackUrl, {
             headers: {
@@ -100,7 +100,7 @@ export class BlockfrostService {
   
   async getLatestEpoch() {
     try {
-      const apiUrl = `${this.blockfrostAPIURL}/api/v0/epochs/latest`;
+      const apiUrl = `${this.blockfrostAPIURL}/epochs/latest`;
       const response = await lastValueFrom(
         this.httpService.get(apiUrl, {
           headers: {
@@ -120,7 +120,7 @@ export class BlockfrostService {
 
   async getAddressUtxos(address: string) {
     try {
-      const apiUrl = `${this.blockfrostAPIURL}/api/v0/addresses/${address}/utxos`;
+      const apiUrl = `${this.blockfrostAPIURL}/addresses/${address}/utxos`;
       const response = await lastValueFrom(
         this.httpService.get(apiUrl, {
           headers: {
@@ -139,7 +139,7 @@ export class BlockfrostService {
   }
   async getEpochParameters() {
     try {
-      const apiUrl = `${this.blockfrostAPIURL}/api/v0/epochs/latest/parameters`;
+      const apiUrl = `${this.blockfrostAPIURL}/epochs/latest/parameters`;
       const response = await lastValueFrom(
         this.httpService.get(apiUrl, {
           headers: {
