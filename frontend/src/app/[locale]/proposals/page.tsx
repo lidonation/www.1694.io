@@ -1,5 +1,4 @@
 'use client';
-
 import ProposalCard from '@/components/molecules/ProposalCard';
 import ProposalCardSkeleton from '@/components/1694.io/ProposalCardSkeleton';
 import { useGetActionsProposalsQuery } from '@/hooks/useGetActionsProposalsQuery';
@@ -20,14 +19,14 @@ function ProposalsPage() {
 
   return (
     <div className="base_container min-h-screen py-10">
-      <section className="mb-12">
+      <section className="mb-6">
         <h2 className="text-7xl font-black">Proposals</h2>
       </section>
 
       <section>
         <ul
           role="list"
-          className="grid grid-cols-1 gap-6 border-t border-green-400 py-6 lg:grid-cols-2 xl:grid-cols-3"
+          className="grid grid-cols-1 gap-6 py-6 lg:grid-cols-2 xl:grid-cols-3"
         >
           {isActionsProposalsLoading
             ? [...Array(pageSize)].map((_, index) => (

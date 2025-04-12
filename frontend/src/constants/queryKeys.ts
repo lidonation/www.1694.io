@@ -8,5 +8,7 @@ export const QUERY_KEYS = {
   getDrepDelegators: 'getDrepDelegators',
   getVoterGovActions: 'getVoterGovActions',
   getDRepMetadataKey: 'getDRepMetadataKey',
-  getActionsProposalsKey: 'getActionsProposalsKey'
+  getActionsProposalsKey: 'getActionsProposalsKey',
+  getActionProposalKey: 'getActionProposalKey',
+  getActionProposalCommentsKey: 'getActionProposalCommentsKey',
 };

@@ -22,6 +22,7 @@ import {
   Link as LinkIcon,
   Share as ShareIcon,
 } from '@mui/icons-material';
+import Link from 'next/link';
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
   '& .MuiBadge-badge': {
@@ -45,23 +46,24 @@ function ProposalCard({ proposal }: { proposal: any }) {
   const [disableShare, setDisableShare] = useState(false);
   const openShare = Boolean(shareAnchorEl);
 
-  const proposalDetail = proposal?.attributes?.bd_proposal_detail?.data?.attributes;
+  const proposalDetail =
+    proposal?.attributes?.bd_proposal_detail?.data?.attributes;
   const psapbData = proposal?.attributes?.bd_psapb?.data?.attributes;
   const costingData = proposal?.attributes?.bd_costing?.data?.attributes;
   const creator = proposal?.attributes?.creator?.data?.attributes;
-  
+
   const title = proposalDetail?.proposal_name || 'Untitled Proposal';
   const budgetCategory =
-  proposal?.attributes?.bd_psapb?.data?.attributes?.type_name?.data?.attributes?.type_name || 'Unspecified';
+    proposal?.attributes?.bd_psapb?.data?.attributes?.type_name?.data
+      ?.attributes?.type_name || 'Unspecified';
   const budgetRequested = costingData?.ada_amount || 'N/A';
   const proposalBenefit = psapbData?.proposal_benefit || 'No benefit info';
   const username = creator?.govtool_username || 'anonymous';
   const commentsCount = proposal?.attributes?.prop_comments_number || 0;
-  
+
   const proposedDate = proposal?.attributes?.createdAt
     ? format(new Date(proposal.attributes.createdAt), 'dd MMM yyyy')
     : 'Unknown date';
-  
 
   const handleShareClick = (event) => setShareAnchorEl(event.currentTarget);
   const handleShareClose = () => setShareAnchorEl(null);
@@ -78,20 +80,22 @@ function ProposalCard({ proposal }: { proposal: any }) {
     <Card
       sx={{
         borderRadius: 4,
-        boxShadow: 3,
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
         transition: 'transform 0.3s ease',
         '&:hover': {
           transform: 'translateY(-5px)',
-          boxShadow: 6,
+          boxShadow: 3,
         },
       }}
     >
       <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-
-        <Box display="flex" justifyContent="space-between" alignItems="flex-start">
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="flex-start"
+        >
           <Box>
             <Typography variant="h6" fontWeight="bold" noWrap>
               {title}
@@ -111,28 +115,28 @@ function ProposalCard({ proposal }: { proposal: any }) {
               >
                 <ShareIcon fontSize="small" />
               </IconButton>
-            </span>    
+            </span>
           </Tooltip>
         </Box>
 
         <Box>
-          <Typography variant="subtitle2" fontWeight="bold">
+          <Typography variant="subtitle2" fontWeight="semi-bold">
             Budget Category
           </Typography>
           <Typography variant="body2" color="text.secondary">
-          {budgetCategory}
+            {budgetCategory}
           </Typography>
         </Box>
 
         <Box>
-          <Typography variant="subtitle2" fontWeight="bold">
+          <Typography variant="subtitle2" fontWeight="semi-bold">
             Budget Requested
           </Typography>
           <Typography
-            variant='body2'
-            component='p'
-            color='text.darkPurple'
-            data-testid='budget-requested-amount'
+            variant="body2"
+            component="p"
+            color="text.darkPurple"
+            data-testid="budget-requested-amount"
           >
             ₳ {budgetRequested}
           </Typography>
@@ -140,15 +144,12 @@ function ProposalCard({ proposal }: { proposal: any }) {
 
         {proposalBenefit && (
           <Box>
-            <Typography variant="subtitle2" fontWeight="bold">
+            <Typography variant="subtitle2" fontWeight="semi-bold">
               Proposal Benefit
             </Typography>
-            <TruncatedText variant="body2">
-              {proposalBenefit}
-            </TruncatedText>
+            <TruncatedText variant="body2">{proposalBenefit}</TruncatedText>
           </Box>
         )}
-
       </CardContent>
 
       <Divider sx={{ mx: 2 }} />
@@ -180,16 +181,11 @@ function ProposalCard({ proposal }: { proposal: any }) {
               </IconButton>
             </span>
           </Tooltip>
-          <Button
-            variant="contained"
-            size="small"
-            onClick={(e) => {
-              e.preventDefault();
-              console.log('View Details clicked for proposal:', proposal?.id);
-            }}
-          >
-            View Details
-          </Button>
+          <Link href={`/proposals/${proposal?.id}`}>
+            <Button variant="contained" size="small">
+              View Details
+            </Button>
+          </Link>
         </Box>
       </CardActions>
 

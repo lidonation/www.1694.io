@@ -17,4 +17,9 @@ export class ActionsProposalsController {
     findOne(@Param('id') id: string) {
         return this.actionsProposalsService.findOne(id);
     }
+
+    @Get(':id/comments')
+    findComments(@Param('id') id: string) {
+        return this.actionsProposalsService.findComments(id);
+    }
 }
