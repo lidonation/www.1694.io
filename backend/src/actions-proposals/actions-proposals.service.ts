@@ -14,7 +14,7 @@ export class ActionsProposalsService {
     'PDF_BASE_URL',
   );;
 
-  async findAll(): Promise<any> {
+  async findAll(page: number = 1, pageSize: number = 6): Promise<any> {
     try {
       const { data } = await firstValueFrom(
         this.httpService
@@ -22,10 +22,9 @@ export class ActionsProposalsService {
             params: {
               'filters[$and][0][is_active]': true,
               'filters[$and][1][bd_psapb][type_name][id]': [1, 2, 3, 4, 5],
-              'filters[$and][2][bd_proposal_detail][proposal_name][$containsi]':
-                '',
-              'pagination[page]': 1,
-              'pagination[pageSize]': 25,
+              'filters[$and][2][bd_proposal_detail][proposal_name][$containsi]': '',
+              'pagination[page]': page,
+              'pagination[pageSize]': pageSize,
               'sort[createdAt]': 'desc',
               'populate[0]': 'bd_costing',
               'populate[1]': 'bd_psapb.type_name',

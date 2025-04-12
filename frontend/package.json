@@ -19,6 +19,7 @@
     "@fontsource/poppins": "^5.0.13",
     "@hookform/resolvers": "^3.3.4",
     "@mdxeditor/editor": "^3.8.0",
+    "@mui/icons-material": "^7.0.2",
     "@mui/lab": "^5.0.0-alpha.170",
     "@mui/material": "^5.15.7",
     "@mui/material-nextjs": "^5.15.11",

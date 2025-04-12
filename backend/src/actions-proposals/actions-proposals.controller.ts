@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ActionsProposalsService } from './actions-proposals.service';
 
 @Controller('actions-proposals')
@@ -6,8 +6,11 @@ export class ActionsProposalsController {
     constructor(private readonly actionsProposalsService: ActionsProposalsService) {}
 
     @Get('')
-    findAll() {
-        return this.actionsProposalsService.findAll();
+    findAll(
+      @Query('page') page: number = 1,
+      @Query('pageSize') pageSize: number = 6
+    ) {
+      return this.actionsProposalsService.findAll(page, pageSize);
     }
 
     @Get(':id')

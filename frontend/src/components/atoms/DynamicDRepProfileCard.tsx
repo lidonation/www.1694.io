@@ -112,9 +112,11 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
       />
       {isDelegated && (
         <Tooltip title="You have delegated to this DRep">
-          <button>
-            <StatusChip status="Your DRep" />
-          </button>
+          <span>
+            <button>
+              <StatusChip status="Your DRep" />
+            </button>
+          </span>
         </Tooltip>
       )}
     </div>

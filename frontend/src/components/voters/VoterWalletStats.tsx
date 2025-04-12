@@ -48,9 +48,11 @@ const VoterWalletStats = ({
               </Typography>
               {isAddressHovered && (
                 <Tooltip title={copiedAddress ? 'Copied!' : 'Copy address'}>
+                  <span>
                   <IconButton size="small" onClick={handleCopy} sx={{ ml: 1 }}>
                     <CopyToClipBoardIcon width={18} height={18} />
                   </IconButton>
+                  </span>
                 </Tooltip>
               )}
             </Box>

@@ -86,9 +86,11 @@ const DrepClaimProfileCard = ({
         />
         {isDelegated && (
           <Tooltip title="You have delegated to this DRep">
+            <span>
             <button>
               <StatusChip status="Your DRep" />
             </button>
+            </span>
           </Tooltip>
         )}
       </div>

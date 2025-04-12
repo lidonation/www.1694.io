@@ -68,19 +68,18 @@ const Header = () => {
                 CIP
               </Link>
 
-              <Link
-                href={'/proposals'}
-                className={`${
-                  !!activeLink && activeLink.includes('proposals')
-                    ? 'text-orange-500'
-                    : 'text-gray-800'
-                }`}
-              >
-                Proposals
-              </Link>
-
               <DRepMenu />
-
+              <Link
+                  href={'/proposals'}
+                  className={`${
+                    !!activeLink && activeLink.includes('proposals')
+                      ? 'text-orange-500'
+                      : 'text-gray-800'
+                  }`}
+                >
+                  Proposals
+              </Link>
+              
               <VoltaireMenu />
             </div>
           )}
