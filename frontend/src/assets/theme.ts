@@ -20,7 +20,6 @@ const theme = createTheme({
         root: {
           borderRadius: 50,
           textTransform: 'none',
-          backgroundColor: '#0033AD',
         },
       },
     },

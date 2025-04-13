@@ -152,42 +152,41 @@ function ProposalCard({ proposal }: { proposal: any }) {
           </Box>
 
           {proposalBenefit && (
-  <Box>
-    <Typography variant="subtitle2" fontWeight="semi-bold">
-      Proposal Benefit
-    </Typography>
-
-    <Box
-      sx={{
-        display: '-webkit-box',
-        WebkitBoxOrient: 'vertical',
-        WebkitLineClamp: 3,
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        wordWrap: 'break-word',
-      }}
-    >
-      <ReactMarkdown
-        components={{
-          p({ children }) {
-            return (
-              <Typography
-                variant="body2"
-                component="div"
-                sx={{ display: 'inline' }}
-              >
-                {children}
+            <Box>
+              <Typography variant="subtitle2" fontWeight="semi-bold">
+                Proposal Benefit
               </Typography>
-            );
-          },
-        }}
-      >
-        {proposalBenefit?.toString() || '-'}
-      </ReactMarkdown>
-    </Box>
-  </Box>
-)}
 
+              <Box
+                sx={{
+                  display: '-webkit-box',
+                  WebkitBoxOrient: 'vertical',
+                  WebkitLineClamp: 3,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  wordWrap: 'break-word',
+                }}
+              >
+                <ReactMarkdown
+                  components={{
+                    p({ children }) {
+                      return (
+                        <Typography
+                          variant="body2"
+                          component="div"
+                          sx={{ display: 'inline' }}
+                        >
+                          {children}
+                        </Typography>
+                      );
+                    },
+                  }}
+                >
+                  {proposalBenefit?.toString() || '-'}
+                </ReactMarkdown>
+              </Box>
+            </Box>
+          )}
         </CardContent>
       </Box>
 

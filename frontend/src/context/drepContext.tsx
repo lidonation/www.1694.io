@@ -463,7 +463,7 @@ function DRepProvider(props: Props) {
     <DRepContext.Provider value={value}>
       {props.children}
       {sharedState.isWalletListModalOpen && (
-        <div className="blur-container absolute left-0 top-0  z-50 flex h-screen w-full items-center justify-center">
+        <div className="blur-container fixed left-0 top-0  z-50 flex h-screen w-full items-center justify-center">
           <ChooseWalletModal
             hideCloseButton={hideCloseButtonOnWalletListModal}
           />
