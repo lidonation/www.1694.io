@@ -193,9 +193,9 @@ const DrepProfileCard = ({ drep, voterId, loading }: DrepProfileCardProps) => {
         <StatusChip status="Verified" />
         {isDelegated && (
           <Tooltip title="You have delegated to this DRep">
-            <button>
+            <span><button>
               <StatusChip status="Your DRep" />
-            </button>
+            </button></span>
           </Tooltip>
         )}
       </div>

@@ -147,24 +147,26 @@ const VoterDelegationHistory: React.FC<VoterDelegationHistoryProps> = ({
                             : 'Copy DRep ID'
                         }
                       >
-                        <IconButton
-                          size="small"
-                          onClick={() =>
-                            handleCopy(
-                              convertHexToCIP129(
-                                item.has_script,
-                                item.chain_id,
-                              ),
-                            )
-                          }
-                          sx={{
-                            ml: 1,
-                            p: 0,
-                            position: 'absolute',
-                          }}
-                        >
-                          <CopyToClipBoardIcon width={18} height={18} />
-                        </IconButton>
+                        <span>
+                          <IconButton
+                            size="small"
+                            onClick={() =>
+                              handleCopy(
+                                convertHexToCIP129(
+                                  item.has_script,
+                                  item.chain_id,
+                                ),
+                              )
+                            }
+                            sx={{
+                              ml: 1,
+                              p: 0,
+                              position: 'absolute',
+                            }}
+                          >
+                            <CopyToClipBoardIcon width={18} height={18} />
+                          </IconButton>
+                        </span>
                       </Tooltip>
                     </Box>
                   </Box>

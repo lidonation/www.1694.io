@@ -194,6 +194,7 @@ const DRepsTable = ({
                     {drep?.type !== 'voting_option' && (
                       <Box className="flex flex-nowrap items-center">
                         <Tooltip title="Copy DRep ID (CIP-129)">
+                          <span>
                           <IconButton
                             size="small"
                             onClick={() =>
@@ -208,6 +209,7 @@ const DRepsTable = ({
                           >
                             <CopyToClipBoard width={18} height={18} />
                           </IconButton>
+                          </span> 
                         </Tooltip>
 
                         <Link
@@ -249,6 +251,7 @@ const DRepsTable = ({
                       )}
 
                       <Tooltip title="DRep onchain status" disableFocusListener>
+                        <span>
                         <button className="flex gap-2 hover:cursor-default">
                           <StatusChip
                             status={
@@ -261,6 +264,7 @@ const DRepsTable = ({
                             <StatusChip status={'Retired'} />
                           )}
                         </button>
+                        </span>
                       </Tooltip>
                     </Box>
 
