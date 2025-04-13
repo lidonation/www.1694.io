@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { styled, SxProps } from '@mui/material/styles';
-import './Modal.css';
+import { createPortal } from 'react-dom';
 
 interface Props {
   variant?: 'modal' | 'popup';
@@ -27,24 +27,24 @@ export function ModalWrapper({
       document.body.style.overflow = 'auto';
     };
   }, [variant]);
-  return (
-    <BaseWrapper
-      data-testid={dataTestId}
-      sx={sx}
-      variant={variant}
-    >
-      {variant !== 'popup' && !hideCloseButton && (
-        <div className="absolute right-6 top-6 cursor-pointer ">
-          <img
-            data-testid={'close-modal-button'}
-            src="/svgs/close.svg"
-            onClick={onClose}
-           alt='modal close icon' />
-        </div>
-      )}
-      {children}
-    </BaseWrapper>
-  );
+  return typeof window === 'undefined'
+    ? null
+    : createPortal(
+        <BaseWrapper data-testid={dataTestId} sx={sx} variant={variant}>
+          {variant !== 'popup' && !hideCloseButton && (
+            <div className="absolute right-6 top-6 cursor-pointer">
+              <img
+                data-testid={'close-modal-button'}
+                src="/svgs/close.svg"
+                onClick={onClose}
+                alt="modal close icon"
+              />
+            </div>
+          )}
+          {children}
+        </BaseWrapper>,
+        document.body
+      );
 }
 
 export const BaseWrapper = styled("div")<Pick<Props, "variant">>`

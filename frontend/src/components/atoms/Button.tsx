@@ -1,6 +1,5 @@
 import React from 'react';
 import { Button as MUIButton } from '@mui/material';
-import './Atoms.css'; // Import the CSS file
 
 export interface ButtonProps {
   size?:

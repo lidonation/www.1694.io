@@ -1,6 +1,5 @@
 import Typography from '@mui/material/Typography';
 import type { SxProps } from '@mui/system';
-import './Modal.css';
 interface Props {
   children: React.ReactNode;
   sx?: SxProps;

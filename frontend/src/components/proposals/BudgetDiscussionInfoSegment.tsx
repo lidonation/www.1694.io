@@ -1,6 +1,8 @@
 import React from 'react';
 import { Box, Skeleton, Typography } from '@mui/material';
 import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 
 type BudgetDiscussionInfoSegmentProps = {
   question: string;
@@ -19,32 +21,49 @@ const BudgetDiscussionInfoSegment = ({
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+    <Box>
       <Typography className="text-lg leading-relaxed text-gray-500">
         {question}
       </Typography>
       <div>
         {isLoading ? (
-          <Skeleton height={150} />
+          <Skeleton height={200} sx={{ m: 0, p: 0 }} />
         ) : (
           <ReactMarkdown
             components={{
-              p(props) {
-                const { children } = props;
+              p({ children }) {
                 return (
-                  <Typography
-                    variant="body1"
-                    style={{
-                      wordWrap: 'break-word',
-                    }}
-                  >
+                  <Typography sx={{ marginBottom: '0.5em' }}>
                     {children}
                   </Typography>
                 );
               },
+              li({ children }) {
+                return (
+                  <li>
+                    <Typography>{children}</Typography>
+                  </li>
+                );
+              },
+              ol({ children }) {
+                return (
+                  <Box component="ol" sx={{ pl: 4, listStyle: 'decimal' }}>
+                    {children}
+                  </Box>
+                );
+              },
+              ul({ children }) {
+                return (
+                  <Box component="ul" sx={{ pl: 4, listStyle: 'disc' }}>
+                    {children}
+                  </Box>
+                );
+              },
             }}
+            remarkPlugins={[remarkMath]}
+            rehypePlugins={[rehypeKatex]}
           >
-            {answer?.toString() || '-'}
+            {answer?.toString()}
           </ReactMarkdown>
         )}
       </div>

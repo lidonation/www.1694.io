@@ -7,6 +7,7 @@ import ProposalIdentity from '@/components/proposals/ProposalIdentity';
 import ProposalDetails from '@/components/proposals/ProposalDetails';
 import ProposalComments from '@/components/proposals/ProposalComments';
 import { useGetActionProposalCommentsQuery } from '@/hooks/useGetActionProposalCommentsQuery';
+import { Box } from '@mui/material';
 
 function page() {
   const { proposalid } = useParams();
@@ -18,7 +19,7 @@ function page() {
   );
 
   return (
-    <>
+    <Box>
       <BreadCrumbs
         crumbs={[
           {
@@ -36,7 +37,7 @@ function page() {
           },
         ]}
       />
-      <section className="base_container mt-4 flex h-full min-h-screen w-full">
+      <section className="base_container py-4 flex h-full min-h-screen w-full">
         <main className="w-full space-y-6">
           <ProposalIdentity
             proposal={actionProposal?.data}
@@ -55,7 +56,7 @@ function page() {
           />
         </main>
       </section>
-    </>
+    </Box>
   );
 }
 
