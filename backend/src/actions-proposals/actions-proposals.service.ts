@@ -10,9 +10,7 @@ export class ActionsProposalsService {
     private httpService: HttpService,
   ) {}
 
-  private readonly BASE_URL = this.configService.get<string>(
-    'PDF_BASE_URL',
-  );;
+  private readonly BASE_URL = this.configService.get<string>('PDF_BASE_URL');
 
   async findAll(page: number = 1, pageSize: number = 12): Promise<any> {
     try {
@@ -23,7 +21,8 @@ export class ActionsProposalsService {
             params: {
               'filters[$and][0][is_active]': true,
               'filters[$and][1][bd_psapb][type_name][id]': [1, 2, 3, 4, 5],
-              'filters[$and][2][bd_proposal_detail][proposal_name][$containsi]': '',
+              'filters[$and][2][bd_proposal_detail][proposal_name][$containsi]':
+                '',
               'pagination[page]': page,
               'pagination[pageSize]': pageSize,
               'sort[createdAt]': 'desc',
@@ -105,6 +104,29 @@ export class ActionsProposalsService {
       return data;
     } catch (error) {
       console.error(`Error fetching comments for ID ${id}:`, error);
+      throw error;
+    }
+  }
+
+  async createComment(commentData: any): Promise<any> {
+    try {
+      const url = `${this.BASE_URL}/comments`;
+      const { data } = await firstValueFrom(
+        this.httpService.post(url, commentData, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ',
+          },
+        }).pipe(
+          catchError((error) => {
+            console.error('Error creating comment:', error);
+            throw error;
+          }),
+        ),
+      );
+      return data;
+    } catch (error) {
+      console.error('Error creating comment:', error);
       throw error;
     }
   }

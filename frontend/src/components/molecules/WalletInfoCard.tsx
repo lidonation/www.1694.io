@@ -1,6 +1,5 @@
 import { Box, Grow } from '@mui/material';
 import { useCardano } from '@/context/walletContext';
-import './MoleculeStyles.css';
 import { useDRepContext } from '@/context/drepContext';
 import { useEffect, useRef, useState } from 'react';
 import { ConnectedWalletCard } from '../atoms/ConnectedWalletCard';

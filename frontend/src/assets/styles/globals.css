@@ -238,13 +238,13 @@ table.dreps-table .drep_always_no_confidence > td {
   table {
     border-collapse: collapse;
   }
-  
+
   table tr:first-child,
-  table tr:not(:last-child)  {
+  table tr:not(:last-child) {
     border-top: 0;
     border-bottom: 1px solid #e0e0e0;
   }
-  table tr:last-child  {
+  table tr:last-child {
     border-bottom: 0;
   }
   table tr td:first-child,
@@ -254,5 +254,4 @@ table.dreps-table .drep_always_no_confidence > td {
   table tr td:last-child {
     border-right: 0;
   }
-  
 }

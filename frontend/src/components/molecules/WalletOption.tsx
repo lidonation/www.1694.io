@@ -1,7 +1,6 @@
 import { FC, useCallback } from 'react';
 import { Box, CircularProgress, Typography } from '@mui/material';
 import { useCardano } from '@/context/walletContext';
-import './MoleculeStyles.css';
 import { useDRepContext } from '@/context/drepContext';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 export interface WalletOption {
