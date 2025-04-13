@@ -14,6 +14,7 @@ import {
   CardContent,
   CardActions,
 } from '@mui/material';
+import ReactMarkdown from 'react-markdown';
 import React, { useState } from 'react';
 import { format } from 'date-fns';
 import {
@@ -90,67 +91,105 @@ function ProposalCard({ proposal }: { proposal: any }) {
         },
       }}
     >
-      <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems="flex-start"
+      <Box sx={{ flexGrow: 1 }}>
+        <CardContent
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2,
+            height: '100%',
+          }}
         >
-          <Box>
-            <Typography variant="h6" fontWeight="bold" noWrap>
-              {title}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              @{username}
-            </Typography>
-          </Box>
-          <Tooltip title="Share">
-            <span>
-              <IconButton
-                size="small"
-                onClick={handleShareClick}
-                aria-controls={openShare ? 'share-menu-card' : undefined}
-                aria-haspopup="true"
-                aria-expanded={openShare ? 'true' : undefined}
-              >
-                <ShareIcon fontSize="small" />
-              </IconButton>
-            </span>
-          </Tooltip>
-        </Box>
-
-        <Box>
-          <Typography variant="subtitle2" fontWeight="semi-bold">
-            Budget Category
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {budgetCategory}
-          </Typography>
-        </Box>
-
-        <Box>
-          <Typography variant="subtitle2" fontWeight="semi-bold">
-            Budget Requested
-          </Typography>
-          <Typography
-            variant="body2"
-            component="p"
-            color="text.darkPurple"
-            data-testid="budget-requested-amount"
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="flex-start"
           >
-            ₳ {budgetRequested}
-          </Typography>
-        </Box>
+            <Box>
+              <Typography variant="h6" fontWeight="bold">
+                {title}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                @{username}
+              </Typography>
+            </Box>
+            <Tooltip title="Share">
+              <span>
+                <IconButton
+                  size="small"
+                  onClick={handleShareClick}
+                  aria-controls={openShare ? 'share-menu-card' : undefined}
+                  aria-haspopup="true"
+                  aria-expanded={openShare ? 'true' : undefined}
+                >
+                  <ShareIcon fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+          </Box>
 
-        {proposalBenefit && (
           <Box>
             <Typography variant="subtitle2" fontWeight="semi-bold">
-              Proposal Benefit
+              Budget Category
             </Typography>
-            <TruncatedText variant="body2">{proposalBenefit}</TruncatedText>
+            <Typography variant="body2" color="text.secondary">
+              {budgetCategory}
+            </Typography>
           </Box>
-        )}
-      </CardContent>
+
+          <Box>
+            <Typography variant="subtitle2" fontWeight="semi-bold">
+              Budget Requested
+            </Typography>
+            <Typography
+              variant="body2"
+              component="p"
+              color="text.darkPurple"
+              data-testid="budget-requested-amount"
+            >
+              ₳ {budgetRequested}
+            </Typography>
+          </Box>
+
+          {proposalBenefit && (
+  <Box>
+    <Typography variant="subtitle2" fontWeight="semi-bold">
+      Proposal Benefit
+    </Typography>
+
+    <Box
+      sx={{
+        display: '-webkit-box',
+        WebkitBoxOrient: 'vertical',
+        WebkitLineClamp: 3,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        wordWrap: 'break-word',
+      }}
+    >
+      <ReactMarkdown
+        components={{
+          p({ children }) {
+            return (
+              <Typography
+                variant="body2"
+                component="div"
+                sx={{ display: 'inline' }}
+              >
+                {children}
+              </Typography>
+            );
+          },
+        }}
+      >
+        {proposalBenefit?.toString() || '-'}
+      </ReactMarkdown>
+    </Box>
+  </Box>
+)}
+
+        </CardContent>
+      </Box>
 
       <Divider sx={{ mx: 2 }} />
 
