@@ -9,7 +9,7 @@ import { useSearchParams } from 'next/navigation';
 function ProposalsPage() {
   const searchParams = useSearchParams();
   const currentPage = parseInt(searchParams.get('page') || '1', 10);
-  const [pageSize] = useState(6);
+  const [pageSize] = useState(12);
 
   const { actionsProposals, isActionsProposalsLoading } =
     useGetActionsProposalsQuery(currentPage, pageSize);
