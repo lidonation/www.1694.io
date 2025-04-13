@@ -14,7 +14,7 @@ export class ActionsProposalsService {
     'PDF_BASE_URL',
   );;
 
-  async findAll(page: number = 1, pageSize: number = 6): Promise<any> {
+  async findAll(page: number = 1, pageSize: number = 12): Promise<any> {
     try {
       const url = `${this.BASE_URL}/bds`;
       const { data } = await firstValueFrom(
