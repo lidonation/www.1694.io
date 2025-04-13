@@ -149,6 +149,7 @@ const DrepDelegatorslist = ({ voterId }: { voterId: string }) => {
                       </Link>
                       <div className="invisible group-hover:visible">
                         <Tooltip title="Copy stake address">
+                          <span>
                           <IconButton
                             size="small"
                             onClick={() =>
@@ -157,6 +158,7 @@ const DrepDelegatorslist = ({ voterId }: { voterId: string }) => {
                           >
                             <CopyToClipBoardIcon width={17} height={17} />
                           </IconButton>
+                          </span>  
                         </Tooltip>
                       </div>
                     </div>

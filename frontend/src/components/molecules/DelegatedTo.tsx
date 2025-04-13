@@ -56,18 +56,20 @@ export const DelegatedTo = ({ className }: DelegatedToProps) => {
                   </Typography>
                 </Link>
                 <Tooltip title="Copy DRep ID">
-                  <IconButton
-                    size="small"
-                    onClick={() =>
-                      handleCopyText(cip129Identifier, addSuccessAlert)
-                    }
-                  >
-                    <CopyToClipBoardIcon
-                      color="#d1d5db"
-                      width={16}
-                      height={16}
-                    />
-                  </IconButton>
+                  <span>
+                    <IconButton
+                      size="small"
+                      onClick={() =>
+                        handleCopyText(cip129Identifier, addSuccessAlert)
+                      }
+                    >
+                      <CopyToClipBoardIcon
+                        color="#d1d5db"
+                        width={16}
+                        height={16}
+                      />
+                    </IconButton>
+                  </span>
                 </Tooltip>
               </Box>
               <Box className="flex items-center overflow-hidden text-gray-300">
@@ -77,6 +79,7 @@ export const DelegatedTo = ({ className }: DelegatedToProps) => {
                   </Typography>
                 </Link>
                 <Tooltip title="Copy DRep ID">
+                  <span>
                   <IconButton
                     size="small"
                     onClick={() =>
@@ -92,6 +95,7 @@ export const DelegatedTo = ({ className }: DelegatedToProps) => {
                       height={16}
                     />
                   </IconButton>
+                  </span>
                 </Tooltip>
               </Box>
             </Box>
