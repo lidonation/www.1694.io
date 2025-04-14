@@ -260,3 +260,31 @@ export const parseContent = (content: string): string => {
     .replace(/\n/g, '<br/>')
     .replace(/\r/g, '<br/>');
 };
+
+export const utf8ToHex = (str) => {
+  return Array.from(str)
+      .map((char: any) => char.charCodeAt(0).toString(16).padStart(2, '0'))
+      .join('');
+};
+
+export const saveDataInSession = (key, value) => {
+  const data = { value, timestamp: new Date().getTime() };
+  sessionStorage.setItem(key, JSON.stringify(data));
+};
+
+export const getDataFromSession = (key) => {
+  const data = JSON.parse(sessionStorage.getItem(key));
+  if (data) {
+      return data.value;
+  } else {
+      return null;
+  }
+};
+
+export const openInNewTab = (url) => {
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      url = 'https://' + url;
+  }
+  const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
+  if (newWindow) newWindow.opener = null;
+};
