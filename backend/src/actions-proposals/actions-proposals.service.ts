@@ -11,21 +11,68 @@ export class ActionsProposalsService {
   ) {}
 
   private readonly BASE_URL = this.configService.get<string>('PDF_BASE_URL');
-
-  async findAll(page: number = 1, pageSize: number = 12): Promise<any> {
+  async findAll({
+    page = 1,
+    pageSize = 12,
+    search = '',
+    sortBy = 'createdAt',
+    sortOrder = 'desc',
+    category = '',
+  }: {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+    category?: string;
+  }): Promise<any> {
     try {
+      const filters: any = {
+        'filters[$and][0][is_active]': true,
+        'filters[$and][1][bd_psapb][type_name][id]': [1, 2, 3, 4, 5], 
+      };
+  
+      if (search) {
+        filters['filters[$and][2][bd_proposal_detail][proposal_name][$containsi]'] = search;
+      }
+  
+      if (category) {
+        const categories = category.split(',').filter(c => c.trim() !== '');
+        if (categories.length > 0) {
+          filters['filters[$and][3][bd_psapb][type_name][type_name][$in]'] = categories;
+        }
+      }
+  
+      let backendSortField = 'createdAt';
+      switch (sortBy) {
+        case 'budget':
+          backendSortField = 'bd_costing.ada_amount';
+          break;
+        case 'alphabetical':
+          backendSortField = 'bd_proposal_detail.proposal_name';
+          break;
+        case 'lastModified':
+          backendSortField = 'updatedAt';
+          break;
+        // case 'conversionRate':
+        //   backendSortField = 'proposal.attributes.prop_comments_number';
+        //   break;
+        default:
+          backendSortField = 'createdAt';
+      }
+
+      const sort = `${backendSortField}:${sortOrder}`;
+  
       const url = `${this.BASE_URL}/bds`;
+  
       const { data } = await firstValueFrom(
         this.httpService
           .get(url, {
             params: {
-              'filters[$and][0][is_active]': true,
-              'filters[$and][1][bd_psapb][type_name][id]': [1, 2, 3, 4, 5],
-              'filters[$and][2][bd_proposal_detail][proposal_name][$containsi]':
-                '',
+              ...filters, 
               'pagination[page]': page,
               'pagination[pageSize]': pageSize,
-              'sort[createdAt]': 'desc',
+              'sort[0]': sort, 
               'populate[0]': 'bd_costing',
               'populate[1]': 'bd_psapb.type_name',
               'populate[2]': 'bd_proposal_detail',
@@ -34,17 +81,18 @@ export class ActionsProposalsService {
           })
           .pipe(
             catchError((error) => {
-              console.error('Error fetching data:', error);
+              console.error('Error fetching filtered proposals:', error?.response?.data || error);
               throw error;
             }),
           ),
       );
+
       return data;
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('Error fetching proposals:', error?.response?.data || error);
       throw error;
     }
-  }
+  } 
 
   async findOne(id: string): Promise<any> {
     try {

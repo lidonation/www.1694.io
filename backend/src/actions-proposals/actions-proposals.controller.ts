@@ -8,9 +8,22 @@ export class ActionsProposalsController {
     @Get('')
     findAll(
       @Query('page') page: number = 1,
-      @Query('pageSize') pageSize: number = 6
+      @Query('pageSize') pageSize: number = 12,
+      @Query('search') search?: string,
+      @Query('sortBy') sortBy?: string,
+      @Query('sortOrder') sortOrder: 'asc' | 'desc' = 'asc',
+      @Query('category') category?: string | string[],
     ) {
-      return this.actionsProposalsService.findAll(page, pageSize);
+      const normalizedCategory = Array.isArray(category) ? category.join(',') : category;
+
+      return this.actionsProposalsService.findAll({
+        page,
+        pageSize,
+        search,
+        sortBy,
+        sortOrder,
+        category: normalizedCategory,
+      });
     }
 
     @Get(':id')
