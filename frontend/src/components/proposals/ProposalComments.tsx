@@ -1,12 +1,15 @@
 import { ChatBubbleOutline, Send } from '@mui/icons-material';
-import { Box, Button, Typography } from '@mui/material';
+import { Box, Button } from '@mui/material';
 import React, { useEffect, useRef, useState } from 'react';
-import ReactMarkdown from 'react-markdown';
 import { useDRepContext } from '@/context/drepContext';
 import { useCardano } from '@/context/walletContext';
-import { postComment } from '@/services/requests/postComment';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { useQueryClient } from 'react-query';
+import { formatNumberTimeToReadable, getDataFromSession } from '@/lib';
+import { setUpPdfJwt } from '@/lib/pdfJwtHelper';
+import MarkdownParser from '../atoms/MarkdownParser';
+import { postProposalComment } from '@/services/requests/postProposalComment';
+import { getDRepRegStatus } from '@/services/requests/getDRepRegStatus';
 
 type CommentData = {
   bd_proposal_id: string;
@@ -37,7 +40,7 @@ const CommentForm = ({
       value={value}
       onChange={onChange}
       placeholder={placeholder}
-      className="w-full resize-none rounded-lg border border-gray-300 p-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+      className="w-full resize-none rounded-lg border border-gray-300 p-3 shadow-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
       rows={3}
     />
     <Box className="mt-2 flex justify-end">
@@ -58,12 +61,30 @@ const CommentContent = ({ comment }: { comment: any }) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const [isClamped, setIsClamped] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [drepRegistered, setDRepRegistered] = useState(null);
+
+  console.log('drepRegistered', drepRegistered);
 
   useEffect(() => {
     const el = contentRef.current;
     if (el) {
       setIsClamped(el.scrollHeight > el.clientHeight);
     }
+
+    async function getRegStatus() {
+      if(!comment?.attributes?.drep_id) return;
+      setDRepRegistered(null);
+      try {
+        const isDRepRegistered = await getDRepRegStatus(
+          comment?.attributes?.drep_id,
+        );
+        setDRepRegistered(isDRepRegistered);
+      } catch (error) {
+        console.error('Error fetching DRep registration status:', error);
+      }
+    }
+
+    getRegStatus();
   }, [comment]);
 
   return (
@@ -73,46 +94,35 @@ const CommentContent = ({ comment }: { comment: any }) => {
           <h3 className="font-semibold text-gray-900">
             @{comment.attributes.user_govtool_username}
           </h3>
-          {comment.attributes.drep_id && (
-            <span className="rounded-full bg-gray-300 px-2 py-1 text-sm">
+          {drepRegistered?.registered && (
+            <span className="rounded-full bg-blue-100 px-3 py-1 text-sm text-primary-300">
               Drep
             </span>
           )}
         </Box>
         <span className="text-sm text-gray-500">
-          {new Date(comment.attributes.createdAt).toLocaleDateString('en-GB')}
+          {formatNumberTimeToReadable(comment.attributes.createdAt)}
         </span>
       </Box>
 
-      <p className="w-1/2 truncate text-xs text-primary-300 md:w-1/3">
-        {comment.attributes.drep_id}
-      </p>
+      {drepRegistered?.view && (
+        <p className="w-1/2 truncate text-xs text-primary-300">
+          <span className="text-gray-700">ID:</span>{' '}
+          {drepRegistered?.view?.substring(0, 20)}...
+        </p>
+      )}
 
-      <div>
-        <div
+      <Box>
+        <Box
           ref={contentRef}
           className={`${
             expanded ? '' : 'line-clamp-3'
           } transition-all duration-300`}
         >
-          <ReactMarkdown
-            components={{
-              p(props) {
-                const { children } = props;
-                return (
-                  <Typography
-                    variant="body1"
-                    style={{ wordWrap: 'break-word' }}
-                  >
-                    {children}
-                  </Typography>
-                );
-              },
-            }}
-          >
-            {comment.attributes.comment_text?.toString() || '-'}
-          </ReactMarkdown>
-        </div>
+          <MarkdownParser
+            text={comment.attributes.comment_text?.toString() || '-'}
+          />
+        </Box>
 
         {isClamped && (
           <button
@@ -122,7 +132,7 @@ const CommentContent = ({ comment }: { comment: any }) => {
             {expanded ? 'Show less' : 'Read more'}
           </button>
         )}
-      </div>
+      </Box>
     </>
   );
 };
@@ -142,10 +152,25 @@ function ProposalComments({
     commentId: null,
   });
 
-  const { isDRepRegistered, setIsWalletListModalOpen } = useDRepContext();
-  const { dRepID, isEnabled } = useCardano();
-  const { addWarningAlert } = useGlobalNotifications();
+  const { setIsWalletListModalOpen } = useDRepContext();
+  const { dRepID, isEnabled, stakeKey, walletApi } = useCardano();
+  const { addWarningAlert, addSuccessAlert } = useGlobalNotifications();
   const queryClient = useQueryClient();
+  const [drepRegistered, setDRepRegistered] = useState(null);
+
+  useEffect(() => {
+    async function getRegStatus() {
+      if(!dRepID) return;
+      setDRepRegistered(null);
+      try {
+        const isDRepRegistered = await getDRepRegStatus(dRepID);
+        setDRepRegistered(isDRepRegistered);
+      } catch (error) {
+        console.error('Error fetching DRep registration status:', error);
+      }
+    }
+    getRegStatus();
+  }, [proposal]);
 
   const totalComments = proposal?.attributes?.prop_comments_number || 0;
 
@@ -179,7 +204,7 @@ function ProposalComments({
     return {
       bd_proposal_id: proposal.id.toString(),
       comment_text: text,
-      drep_id: isDRepRegistered ? dRepID || '' : '',
+      drep_id: drepRegistered?.registerd ? dRepID || '' : '',
       ...(parentId && { comment_parent_id: parentId.toString() }),
     };
   };
@@ -187,13 +212,18 @@ function ProposalComments({
   const handleCommentSubmit = async () => {
     if (!checkWalletConnection() || !validateCommentText(commentText)) return;
 
+    if (!getDataFromSession('pdfUserJwt')) {
+      await setUpPdfJwt(stakeKey, walletApi);
+    }
+
     try {
       const commentData = prepareCommentData(commentText);
-      await postComment(proposal.id, commentData);
+      await postProposalComment(proposal.id, commentData);
       setCommentText('');
       queryClient.invalidateQueries({
         queryKey: ['getActionProposalCommentsKey'],
       });
+      addSuccessAlert('Comment posted successfully');
     } catch (error) {
       console.error('Failed to post comment:', error);
       addWarningAlert('Failed to post comment. Please try again.');
@@ -203,14 +233,19 @@ function ProposalComments({
   const handleReplySubmit = async (commentId: string) => {
     if (!checkWalletConnection() || !validateCommentText(replyText)) return;
 
+    if (!getDataFromSession('pdfUserJwt')) {
+      await setUpPdfJwt(stakeKey, walletApi);
+    }
+
     try {
       const commentData = prepareCommentData(replyText, commentId);
-      await postComment(proposal.id, commentData);
+      await postProposalComment(proposal.id, commentData);
       setReplyText('');
       setReplying({ isReplying: false, commentId: null });
       queryClient.invalidateQueries({
         queryKey: ['getActionProposalCommentsKey'],
       });
+      addSuccessAlert('Comment posted successfully');
     } catch (error) {
       console.error('Failed to post reply:', error);
       addWarningAlert('Failed to post reply. Please try again.');
@@ -244,12 +279,12 @@ function ProposalComments({
       </Box>
 
       {isCommentsLoading ? (
-        <Box className="py-4 text-center">Loading comments...</Box>
+        <p className="text-center">Loading proposal comments...</p>
       ) : parentComments && parentComments.length > 0 ? (
-        <Box className="space-y-4">
+        <Box className="space-y-6">
           {parentComments.map((comment) => (
-            <Box key={comment.id} className="rounded-md bg-gray-100 p-4 pb-6">
-              <Box className="mb-1 flex-1 rounded-md border border-gray-300 p-2">
+            <Box key={comment.id}>
+              <Box className=" flex-1 rounded-md  bg-gray-50 p-2 shadow-sm">
                 <CommentContent comment={comment} />
 
                 <Box className="mt-2">
@@ -280,7 +315,7 @@ function ProposalComments({
               <Box className="mt-4 space-y-4">
                 {getChildComments(comment.id).map((childComment) => (
                   <Box key={childComment.id} className="ml-12">
-                    <Box className="flex-1 rounded-md border border-gray-300 p-2">
+                    <Box className="flex-1 rounded-md bg-gray-50 p-2 shadow-sm">
                       <CommentContent comment={childComment} />
                     </Box>
                   </Box>
@@ -290,9 +325,7 @@ function ProposalComments({
           ))}
         </Box>
       ) : (
-        <Box className="py-2 text-center">
-          No comments yet. Be the first to comment!
-        </Box>
+        <p className="text-center">No comments yet, be the first to comment!</p>
       )}
     </Box>
   );

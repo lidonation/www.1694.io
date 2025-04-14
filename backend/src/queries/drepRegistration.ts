@@ -3,5 +3,5 @@ export const drepRegistrationQuery = `
             ROW_NUMBER() OVER (PARTITION BY drep_hash_id ORDER BY tx_id DESC) AS rn
     FROM drep_hash dh
     JOIN drep_registration dr ON dh.id = dr.drep_hash_id
-    where dh.view = $1 
+        where dh.view = $1 OR encode(dh.raw, 'hex') = $1
     limit 1`;

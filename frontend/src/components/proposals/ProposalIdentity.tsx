@@ -7,15 +7,18 @@ import ProposalIdentityLoader from '../Loaders/ProposalIdentityLoader';
 import Link from 'next/link';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { Box } from '@mui/material';
+import { formatNumberTimeToReadable } from '@/lib';
 
 type ProposalIdentityProps = {
   proposal: any;
   isProposalLoading?: boolean;
+  poll: any;
 };
 
 function ProposalIdentity({
   proposal,
   isProposalLoading,
+  poll,
 }: ProposalIdentityProps) {
   const { addSuccessAlert } = useGlobalNotifications();
   if (isProposalLoading) {
@@ -31,6 +34,8 @@ function ProposalIdentity({
     proposal?.attributes?.bd_psapb?.data?.attributes?.type_name?.data
       ?.attributes?.type_name || '-';
   const comments = proposal?.attributes?.prop_comments_number || 0;
+  const totalVotes =
+    (poll && poll[0]?.attributes?.poll_yes + poll[0]?.attributes?.poll_no) || 0;
 
   const copyProposalUrl = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -42,42 +47,38 @@ function ProposalIdentity({
       <Box className="mb-4 flex items-center justify-between">
         <Box>
           <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
-          <div className="mt-2 flex flex-col items-center text-sm text-gray-700 sm:flex-row">
+          <Box className="mt-2 flex flex-col items-center text-sm text-gray-700 sm:flex-row">
             {author && (
               <span className="mr-3 font-medium">Author: @{author}</span>
             )}
             <span className="text-gray-400">•</span>
             <span className="mx-3">
               Proposed on:{' '}
-              {new Date(proposal?.attributes?.createdAt).toLocaleDateString(
-                'en-GB',
-              )}
+              {formatNumberTimeToReadable(proposal?.attributes?.createdAt)}
             </span>
             <span className="text-gray-400">•</span>
             <span className="mx-3">Category: {category}</span>
-          </div>
+          </Box>
         </Box>
-        <div>
+        <Box>
           <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-primary-300">
             {proposal?.attributes?.is_active ? 'Active' : 'Inactive'}
           </span>
-        </div>
+        </Box>
       </Box>
 
-      <div className="flex items-center gap-6 border-t py-3 text-sm flex-wrap">
-        <div className="flex items-center gap-1 text-gray-700">
+      <Box className="flex flex-wrap items-center gap-6 border-t py-3 text-sm">
+        <Box className="flex items-center gap-1 text-gray-700">
           <AccessTimeIcon fontSize="small" />
           <span>
             Last Edited:{' '}
-            {new Date(proposal?.attributes?.updatedAt).toLocaleDateString(
-              'en-GB',
-            )}
+            {formatNumberTimeToReadable(proposal?.attributes?.updatedAt)}
           </span>
-        </div>
-        <div className="flex items-center gap-1 text-gray-700">
+        </Box>
+        <Box className="flex items-center gap-1 text-gray-700">
           <ThumbUpIcon fontSize="small" />
-          <span>3 Upvotes</span>
-        </div>
+          <span>{totalVotes} Upvotes</span>
+        </Box>
         <Link
           href="#comments"
           className="flex items-center gap-1 text-gray-700 hover:text-primary-300"
@@ -92,7 +93,7 @@ function ProposalIdentity({
           <ShareIcon fontSize="small" />
           <span>Share</span>
         </button>
-      </div>
+      </Box>
     </Box>
   );
 }
