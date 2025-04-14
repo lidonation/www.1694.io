@@ -1,22 +1,41 @@
-// useGetActionsProposalsQuery.ts
 import { QUERY_KEYS } from '@/constants/queryKeys';
 import { useQuery } from 'react-query';
 import { getActionsProposals } from '@/services/requests/getActionsProposals';
 
 export const useGetActionsProposalsQuery = (
-  page: number = 1,
-  pageSize: number = 6
+  page = 1,
+  pageSize = 12,
+  search = '',
+  category = '',
+  sortBy = 'createdAt',
+  sortOrder = 'desc'
 ) => {
   const { data, isLoading } = useQuery({
-    queryKey: [QUERY_KEYS.getActionsProposalsKey, page],
-    queryFn: async () => await getActionsProposals(page, pageSize),
+    queryKey: [
+      QUERY_KEYS.getActionsProposalsKey,
+      page,
+      pageSize,
+      search,
+      category,
+      sortBy,
+      sortOrder,
+    ],
+    queryFn: async () =>
+      await getActionsProposals(
+        page,
+        pageSize,
+        search,
+        category,
+        sortBy,
+        sortOrder
+      ),
     enabled: true,
     refetchOnWindowFocus: false,
-    keepPreviousData: true, 
+    keepPreviousData: true
   });
 
-  return { 
-    actionsProposals: data, 
+  return {
+    actionsProposals: data,
     isActionsProposalsLoading: isLoading
   };
 };
