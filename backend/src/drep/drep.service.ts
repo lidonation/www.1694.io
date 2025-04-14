@@ -85,7 +85,6 @@ export class DrepService {
     private miscService: MiscellaneousService,
   ) {}
 
-  
   async getAllDReps(
     query?: string,
     currentPage?: number,
@@ -163,9 +162,6 @@ export class DrepService {
     };
   }
 
-  
-
- 
   async getAllDRepsCexplorer(
     query?: string,
     currentPage?: number,
@@ -1069,8 +1065,10 @@ export class DrepService {
     );
 
     const regDeposit = latestRegistration[0]?.deposit;
-
-    return regDeposit === null || regDeposit > 0;
+    return {
+      registered: regDeposit === null || regDeposit > 0,
+      ...latestRegistration?.[0],
+    };
   }
 
   async getMetadata(voterId: string) {

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Headers, Param, Post, Query } from '@nestjs/common';
 import { ActionsProposalsService } from './actions-proposals.service';
 
 @Controller('actions-proposals')
@@ -23,8 +23,13 @@ export class ActionsProposalsController {
         return this.actionsProposalsService.findComments(id);
     }
 
+    @Get(':id/polls')
+    findPoll(@Param('id') id: string) {
+        return this.actionsProposalsService.findPoll(id);
+    }
+
     @Post(':id/comments')
-    createComment(@Body() commentData: any) {
-        return this.actionsProposalsService.createComment(commentData);
+    createComment(@Body() commentData: any, @Headers('authorization') authorization: string) {
+        return this.actionsProposalsService.createComment(commentData, authorization);
     }
 }

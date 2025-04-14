@@ -1,11 +1,21 @@
 import axios from 'axios';
 import { urls } from '@/constants';
+import { getDataFromSession } from '@/lib';
 
 const baseURL = urls.baseServerUrl;
 
 const axiosInstance = axios.create({
   baseURL,
   timeout: 30000,
+});
+
+axiosInstance.interceptors.request.use((config) => {
+  const token =
+    typeof window !== 'undefined' && getDataFromSession('pdfUserJwt');
+  if (token) {
+    config.headers['Authorization'] = `Bearer ${token}`;
+  }
+  return config;
 });
 
 //can also intercept to navigate to an error page

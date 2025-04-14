@@ -108,14 +108,14 @@ export class ActionsProposalsService {
     }
   }
 
-  async createComment(commentData: any): Promise<any> {
+  async createComment(commentData: any, authorization: string): Promise<any> {
     try {
       const url = `${this.BASE_URL}/comments`;
       const { data } = await firstValueFrom(
         this.httpService.post(url, commentData, {
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ',
+            'Authorization': authorization,
           },
         }).pipe(
           catchError((error) => {
@@ -127,6 +127,34 @@ export class ActionsProposalsService {
       return data;
     } catch (error) {
       console.error('Error creating comment:', error);
+      throw error;
+    }
+  }
+
+  async findPoll(id: string): Promise<any> {
+    try {
+      const url = `${this.BASE_URL}/bd-polls`;
+      const { data } = await firstValueFrom(
+        this.httpService
+          .get(url, {
+            params: {
+              'filters[$and][0][bd_proposal_id][$eq]': id,
+              'filters[$and][1][is_poll_active]': true,
+              'pagination[page]': 1,
+              'pagination[pageSize]': 1,
+              'sort[createdAt]': 'desc',
+            },
+          })
+          .pipe(
+            catchError((error) => {
+              console.error(`Error fetching poll for ID ${id}:`, error);
+              throw error;
+            }),
+          ),
+      );
+      return data;
+    } catch (error) {
+      console.error(`Error fetching poll for ID ${id}:`, error);
       throw error;
     }
   }

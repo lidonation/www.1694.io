@@ -277,8 +277,9 @@ function DRepProvider(props: Props) {
         if (!drepId) return;
 
         const isDRepRegistered = await getDRepRegStatus(drepId);
-        if (!isDRepRegistered) return;
-        setIsDRepRegistered(true);
+        
+        if (!isDRepRegistered?.registered) return;
+        setIsDRepRegistered(isDRepRegistered?.registered);
 
         const drep = await getSingleDRepViaVoterId(drepId);
         if (drep?.drep_id) {
