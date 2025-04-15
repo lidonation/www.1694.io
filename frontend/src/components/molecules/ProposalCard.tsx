@@ -57,7 +57,9 @@ function ProposalCard({ proposal }: { proposal: any }) {
   const budgetCategory =
     proposal?.attributes?.bd_psapb?.data?.attributes?.type_name?.data
       ?.attributes?.type_name || 'Unspecified';
-  const budgetRequested = costingData?.ada_amount || 'N/A';
+  const rawBudget = costingData?.ada_amount || '0';
+  const budgetRequested = Number(rawBudget);
+  const formattedBudget = new Intl.NumberFormat('en-US').format(budgetRequested);
   const proposalBenefit = psapbData?.proposal_benefit || 'No benefit info';
   const username = creator?.govtool_username || 'anonymous';
   const commentsCount = proposal?.attributes?.prop_comments_number || 0;
@@ -106,13 +108,22 @@ function ProposalCard({ proposal }: { proposal: any }) {
             alignItems="flex-start"
           >
             <Box>
-              <Typography variant="h6" fontWeight="bold">
-                {title}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
+              <Link href={`/proposals/${proposal?.id}`} passHref legacyBehavior>
+                <Typography
+                  component="a"
+                  variant="h6"
+                  fontWeight="bold"
+                  display="block"
+                  style={{ textDecoration: 'none', color: 'inherit' }}
+                >
+                  {title}
+                </Typography>
+              </Link>
+              <Typography variant="caption" color="text.secondary" display="block">
                 @{username}
               </Typography>
             </Box>
+
             <Tooltip title="Share">
               <span>
                 <IconButton
@@ -147,7 +158,7 @@ function ProposalCard({ proposal }: { proposal: any }) {
               color="text.darkPurple"
               data-testid="budget-requested-amount"
             >
-              ₳ {budgetRequested}
+              ₳ {formattedBudget}
             </Typography>
           </Box>
 
