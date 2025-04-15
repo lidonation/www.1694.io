@@ -29,20 +29,22 @@ export class ActionsProposalsService {
     try {
       const filters: any = {
         'filters[$and][0][is_active]': true,
-        'filters[$and][1][bd_psapb][type_name][id]': [1, 2, 3, 4, 5], 
+        'filters[$and][1][bd_psapb][type_name][id]': [1, 2, 3, 4, 5],
       };
-  
+
       if (search) {
-        filters['filters[$and][2][bd_proposal_detail][proposal_name][$containsi]'] = search;
+        filters['filters[$and][2][$or][0][bd_proposal_detail][proposal_name][$containsi]'] = search;
+        filters['filters[$and][2][$or][1][description][$containsi]'] = search;
+        filters['filters[$and][2][$or][2][creator][govtool_username][$containsi]'] = search;
+        filters['filters[$and][2][$or][3][bd_psapb][problem_statement][$containsi]'] = search;
+        filters['filters[$and][2][$or][4][bd_psapb][proposal_benefit][$containsi]'] = search;
       }
-  
+
       if (category) {
-        const categories = category.split(',').filter(c => c.trim() !== '');
-        if (categories.length > 0) {
-          filters['filters[$and][3][bd_psapb][type_name][type_name][$in]'] = categories;
-        }
+        const categoryArray = category.split(',').map((cat) => cat.trim());
+        filters['filters[$and][3][bd_psapb][type_name][type_name][$in]'] = categoryArray;
       }
-  
+
       let backendSortField = 'createdAt';
       switch (sortBy) {
         case 'budget':
@@ -54,25 +56,24 @@ export class ActionsProposalsService {
         case 'lastModified':
           backendSortField = 'updatedAt';
           break;
-        // case 'conversionRate':
-        //   backendSortField = 'proposal.attributes.prop_comments_number';
-        //   break;
+        case 'conversionRate':
+          backendSortField = 'prop_comments_number';
+          break;
         default:
           backendSortField = 'createdAt';
       }
 
       const sort = `${backendSortField}:${sortOrder}`;
-  
       const url = `${this.BASE_URL}/bds`;
-  
+
       const { data } = await firstValueFrom(
         this.httpService
           .get(url, {
             params: {
-              ...filters, 
+              ...filters,
               'pagination[page]': page,
               'pagination[pageSize]': pageSize,
-              'sort[0]': sort, 
+              'sort[0]': sort,
               'populate[0]': 'bd_costing',
               'populate[1]': 'bd_psapb.type_name',
               'populate[2]': 'bd_proposal_detail',
@@ -92,7 +93,7 @@ export class ActionsProposalsService {
       console.error('Error fetching proposals:', error?.response?.data || error);
       throw error;
     }
-  } 
+  }
 
   async findOne(id: string): Promise<any> {
     try {
