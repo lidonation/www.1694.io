@@ -14,8 +14,11 @@ export class ActionsProposalsController {
       @Query('sortOrder') sortOrder: 'asc' | 'desc' = 'asc',
       @Query('category') category?: string | string[],
     ) {
-      const normalizedCategory = Array.isArray(category) ? category.join(',') : category;
 
+      const normalizedCategory = category 
+      ? (Array.isArray(category) ? category.join(',') : category)
+      : '';
+      
       return this.actionsProposalsService.findAll({
         page,
         pageSize,
