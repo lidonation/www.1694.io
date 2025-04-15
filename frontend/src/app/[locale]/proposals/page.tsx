@@ -14,11 +14,8 @@ type FilterOption = {
 };
 
 const categoryOptions: FilterOption[] = [
-  { label: 'Core', value: 'core' },
-  { label: 'Research', value: 'research' },
-  { label: 'Governance Support', value: 'governance' },
-  { label: 'Marketing & Innovation', value: 'marketing' },
-  { label: 'No category', value: 'no-category' },
+  { label: 'Core', value: 'Core' },
+  { label: 'Research', value: 'Research' },
 ];
 
 const sortOptions: FilterOption[] = [
@@ -78,11 +75,8 @@ function ProposalsPage() {
   useEffect(() => {
     const searchFromUrl = searchParams.get('search') || '';
     const categoryFromUrl = searchParams.get('category') || '';
-    const budgetTypeFromUrl = searchParams.get('budgetType') || '';
     const sortByFromUrl = searchParams.get('sortBy') || 'createdAt';
     const sortOrderFromUrl = (searchParams.get('sortOrder') as 'asc' | 'desc') || 'desc';
-    const pageFromUrl = searchParams.get('page') || '1';
-
     setSearch(searchFromUrl);
     setSelectedCategories(categoryFromUrl ? categoryFromUrl.split(',') : []);
     setSortBy(sortByFromUrl);
@@ -90,16 +84,26 @@ function ProposalsPage() {
   }, [searchParams]);
 
   useEffect(() => {
-    const query = new URLSearchParams();
+    const handler = setTimeout(() => {
+      const query = new URLSearchParams();
 
-    if (search) query.set('search', search);
-    if (sortBy) query.set('sortBy', sortBy);
-    if (sortOrder) query.set('sortOrder', sortOrder);
-    if (selectedCategories.length > 0) query.set('category', selectedCategories.join(','));
-    query.set('page', currentPage.toString());
+      if (search) query.set('search', search);
+      if (sortBy && sortBy !== 'createdAt') query.set('sortBy', sortBy);
+      if (sortOrder && sortOrder !== 'desc') query.set('sortOrder', sortOrder);
+      if (selectedCategories.length > 0) {
+        query.set('category', selectedCategories.join(','));
+      }
+      if (currentPage > 1) {
+        query.set('page', currentPage.toString());
+      }
 
-    router.push(`?${query.toString()}`, { scroll: false });
-  }, [search, sortBy, sortOrder, selectedCategories, currentPage]);
+      router.push(`?${query.toString()}`, { scroll: false });
+    }, 500);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [search, sortBy, sortOrder, selectedCategories, currentPage, router]);
 
   const { actionsProposals, isActionsProposalsLoading } = useGetActionsProposalsQuery(
     currentPage,
@@ -119,7 +123,7 @@ function ProposalsPage() {
         <h2 className="text-7xl font-black">Proposals</h2>
       </section>
 
-      <section className="relative mb-6 flex w-full items-center gap-4 rounded-full p-2 sm:w-[300px] md:w-[400px] lg:w-full">
+      <section className="relative mb-6 flex items-center gap-1 rounded-full p-2 w-full max-w-7xl mx-auto">
         <div className="flex w-full items-center rounded-full border border-blue-500 px-4 py-2 sm:w-[300px] md:w-[400px] lg:w-[1000px]">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -145,7 +149,7 @@ function ProposalsPage() {
         </div>
 
         <div className="relative">
-          {/* <button
+          <button
             ref={filterButtonRef}
             className="rounded-full p-2 text-blue-600 transition-colors hover:bg-blue-100"
             aria-label="Filter"
@@ -156,58 +160,67 @@ function ProposalsPage() {
             }}
           >
             <FilterAltIcon className="h-8 w-10 bg-transparent hover:bg-transparent" />
-          </button> */}
+          </button>
 
           {showFilter && (
-    <div
-      ref={filterRef}
-      className="absolute left-0 top-full z-50 mt-2 w-72 space-y-4 rounded-xl border bg-white p-4 shadow-xl"
-    >
-      <div>
-        <p className="border-b pb-2 text-sm font-bold text-gray-700">
-          Filter by Category
-        </p>
-        <div className="mt-2 space-y-2">
-          {categoryOptions.map((option) => (
-            <label
-              key={option.value}
-              className="flex cursor-pointer items-center space-x-2 text-sm text-gray-700"
+            <div
+              ref={filterRef}
+              className="absolute left-0 top-full z-50 mt-2 w-72 space-y-4 rounded-lg bg-[#f1f3fe] p-4 shadow-lg"
             >
-              <input
-                type="checkbox"
-                name={`category-${option.value}`}
-                className="form-checkbox text-blue-600"
-                checked={selectedCategories.includes(option.value)}
-                onChange={() => {
-                  setSelectedCategories((prev) =>
-                    prev.includes(option.value)
-                      ? prev.filter((val) => val !== option.value)
-                      : [...prev, option.value],
-                  );
-                }}
-              />
-              <span>{option.label}</span>
-            </label>
-          ))}
-        </div>
-      </div>
+              <div>
+                <p className="border-b border-gray-200 pb-2 text-sm font-semibold text-gray-700">
+                  Filter by Category
+                </p>
+                <div className="mt-3 space-y-3">
+                  {categoryOptions.map((option) => (
+                    <label
+                      key={option.value}
+                      className="flex cursor-pointer items-start space-x-3 text-sm text-gray-700"
+                    >
+                      <input
+                        type="radio"
+                        name="category"
+                        className="h-4 w-4 rounded-full border-gray-300 text-blue-600 focus:ring-blue-500"
+                        checked={selectedCategories.includes(option.value)}
+                        onChange={() => {
+                          if (selectedCategories.includes(option.value)) {
+                            setSelectedCategories([]);
+                            setSortBy('createdAt');
+                            setSortOrder('desc');
+                            setSearch('');
+                          } else {
+                            setSelectedCategories([option.value]);
+                          }
+                        }}
+                      />
+                      <span>{option.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
 
-      <button
-        className="mt-4 text-sm font-medium text-blue-600 hover:underline"
-        onClick={() => {
-          setSelectedCategories([]);
-          setSortBy('createdAt');
-          setSortOrder('desc');
-        }}
-      >
-        Reset filters
-      </button>
-    </div>
-  )}
+              {selectedCategories.length > 0 && (
+                <div className="flex justify-end pt-4">
+                  <button
+                    className="rounded-full bg-[#002e9f] px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors duration-200"
+                    onClick={() => {
+                      setSelectedCategories([]);
+                      setSortBy('createdAt');
+                      setSortOrder('desc');
+                      setSearch('');
+                    }}
+                  >
+                    Reset filters
+                  </button>
+                </div>
+
+              )}
+            </div>
+          )}
         </div>
 
         <div className="relative">
-          {/* <button
+          <button
             ref={sortButtonRef}
             className="h-10 w-10 rounded-full p-2 text-blue-600 transition-colors hover:bg-blue-100"
             aria-label="Sort"
@@ -218,23 +231,23 @@ function ProposalsPage() {
             }}
           >
             <SortIcon className="h-8 w-10" />
-          </button> */}
+          </button>
 
           {showSort && (
             <div
               ref={sortRef}
-              className="absolute left-0 top-full z-50 mt-2 w-64 rounded-2xl bg-[#f7f9fc] px-4 py-3 shadow-lg"
+              className="absolute left-0 top-full z-50 mt-2 w-72 rounded-lg bg-[#f1f3fe] p-4 shadow-lg flex flex-col"
             >
-              <p className="mb-3 text-sm font-semibold text-gray-700">
+              <p className="border-b border-gray-200 pb-2 text-sm font-semibold text-gray-700">
                 Sort Proposals by:
               </p>
 
-              <div className="mb-3">
-                <label className="flex cursor-pointer items-center space-x-2 text-sm text-gray-800">
+              <div className="space-y-4 flex-1 mt-4">
+                <label className="flex cursor-pointer items-start space-x-3 text-sm text-gray-700">
                   <input
                     type="radio"
                     name="sortBy"
-                    className="form-radio text-blue-600"
+                    className="h-4 w-4 rounded-full border-gray-300 text-blue-600 focus:ring-blue-500"
                     checked={sortBy === 'alphabetical'}
                     onChange={() => {
                       setSortBy('alphabetical');
@@ -243,14 +256,12 @@ function ProposalsPage() {
                   />
                   <span>Alphabetical</span>
                 </label>
-              </div>
 
-              <div className="mb-3">
-                <label className="flex cursor-pointer items-center space-x-2 text-sm text-gray-800">
+                <label className="flex cursor-pointer items-start space-x-3 text-sm text-gray-700">
                   <input
                     type="radio"
                     name="sortBy"
-                    className="form-radio text-blue-600"
+                    className="h-4 w-4 rounded-full border-gray-300 text-blue-600 focus:ring-blue-500"
                     checked={sortBy === 'lastModified'}
                     onChange={() => {
                       setSortBy('lastModified');
@@ -259,90 +270,88 @@ function ProposalsPage() {
                   />
                   <span>Last Modified</span>
                 </label>
+
+                <div className="pt-2">
+                  <p className="text-sm font-medium text-gray-700">Budget</p>
+                  <div className="mt-2 space-y-2 pl-1">
+                    <label className="flex cursor-pointer items-start space-x-3 text-sm text-gray-700">
+                      <input
+                        type="radio"
+                        name="budgetSort"
+                        className="h-4 w-4 rounded-full border-gray-300 text-blue-600 focus:ring-blue-500"
+                        checked={sortBy === 'budget' && sortOrder === 'desc'}
+                        onChange={() => {
+                          setSortBy('budget');
+                          setSortOrder('desc');
+                        }}
+                      />
+                      <span>Highest to Lowest</span>
+                    </label>
+                    <label className="flex cursor-pointer items-start space-x-3 text-sm text-gray-700">
+                      <input
+                        type="radio"
+                        name="budgetSort"
+                        className="h-4 w-4 rounded-full border-gray-300 text-blue-600 focus:ring-blue-500"
+                        checked={sortBy === 'budget' && sortOrder === 'asc'}
+                        onChange={() => {
+                          setSortBy('budget');
+                          setSortOrder('asc');
+                        }}
+                      />
+                      <span>Lowest to Highest</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <p className="text-sm font-medium text-gray-700">Conversion Rate</p>
+                  <div className="mt-2 space-y-2 pl-1">
+                    <label className="flex cursor-pointer items-start space-x-3 text-sm text-gray-700">
+                      <input
+                        type="radio"
+                        name="conversionSort"
+                        className="h-4 w-4 rounded-full border-gray-300 text-blue-600 focus:ring-blue-500"
+                        checked={sortBy === 'conversionRate' && sortOrder === 'desc'}
+                        onChange={() => {
+                          setSortBy('conversionRate');
+                          setSortOrder('desc');
+                        }}
+                      />
+                      <span>Highest to Lowest</span>
+                    </label>
+                    <label className="flex cursor-pointer items-start space-x-3 text-sm text-gray-700">
+                      <input
+                        type="radio"
+                        name="conversionSort"
+                        className="h-4 w-4 rounded-full border-gray-300 text-blue-600 focus:ring-blue-500"
+                        checked={sortBy === 'conversionRate' && sortOrder === 'asc'}
+                        onChange={() => {
+                          setSortBy('conversionRate');
+                          setSortOrder('asc');
+                        }}
+                      />
+                      <span>Lowest to Highest</span>
+                    </label>
+                  </div>
+                </div>
               </div>
 
-              <hr className="my-2 border-gray-300" />
-
-              <div className="mb-3">
-                <p className="mb-1 text-sm font-medium text-gray-700">Budget</p>
-                <label className="mb-1 flex items-center space-x-2 text-sm text-gray-800">
-                  <input
-                    type="radio"
-                    name="sortBy"
-                    className="form-radio text-blue-600"
-                    checked={sortBy === 'budget' && sortOrder === 'desc'}
-                    onChange={() => {
-                      setSortBy('budget');
+              {(sortBy !== 'createdAt' || sortOrder !== 'desc') && (
+                <div className="flex justify-end pt-4">
+                  <button
+                    className="rounded-full bg-[#002e9f] px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors duration-200"
+                    onClick={() => {
+                      setSortBy('createdAt');
                       setSortOrder('desc');
                     }}
-                  />
-                  <span>Highest to Lowest</span>
-                </label>
-                <label className="flex items-center space-x-2 text-sm text-gray-800">
-                  <input
-                    type="radio"
-                    name="sortBy"
-                    className="form-radio text-blue-600"
-                    checked={sortBy === 'budget' && sortOrder === 'asc'}
-                    onChange={() => {
-                      setSortBy('budget');
-                      setSortOrder('asc');
-                    }}
-                  />
-                  <span>Lowest to Highest</span>
-                </label>
-              </div>
-
-              <hr className="my-2 border-gray-300" />
-
-              {/* <div className="mb-3">
-                <p className="mb-1 text-sm font-medium text-gray-700">
-                  Conversion Rate
-                </p>
-                <label className="mb-1 flex items-center space-x-2 text-sm text-gray-800">
-                  <input
-                    type="radio"
-                    name="sortBy"
-                    className="form-radio text-blue-600"
-                    checked={
-                      sortBy === 'conversionRate' && sortOrder === 'desc'
-                    }
-                    onChange={() => {
-                      setSortBy('conversionRate');
-                      setSortOrder('desc');
-                    }}
-                  />
-                  <span>Highest to Lowest</span>
-                </label>
-                <label className="flex items-center space-x-2 text-sm text-gray-800">
-                  <input
-                    type="radio"
-                    name="sortBy"
-                    className="form-radio text-blue-600"
-                    checked={sortBy === 'conversionRate' && sortOrder === 'asc'}
-                    onChange={() => {
-                      setSortBy('conversionRate');
-                      setSortOrder('asc');
-                    }}
-                  />
-                  <span>Lowest to Highest</span>
-                </label>
-              </div> */}
-
-              {/* <hr className="my-2 border-gray-300" /> */}
-
-              <button
-                className="mt-2 text-sm font-medium text-blue-600 hover:underline"
-                onClick={() => {
-                  setSortBy('createdAt');
-                  setSortOrder('desc');
-                  setSelectedCategories([]);
-                }}
-              >
-                Reset filters
-              </button>
+                  >
+                    Reset sorting
+                  </button>
+                </div>
+              )}
             </div>
           )}
+
         </div>
       </section>
 
@@ -350,15 +359,15 @@ function ProposalsPage() {
         <ul className="grid grid-cols-1 gap-6 py-6 lg:grid-cols-2 xl:grid-cols-3">
           {isActionsProposalsLoading
             ? [...Array(pageSize)].map((_, index) => (
-                <li key={index}>
-                  <ProposalCardSkeleton />
-                </li>
-              ))
+              <li key={index}>
+                <ProposalCardSkeleton />
+              </li>
+            ))
             : actionsProposals?.data?.map((proposal, index) => (
-                <li key={index}>
-                  <ProposalCard proposal={proposal} />
-                </li>
-              ))}
+              <li key={index}>
+                <ProposalCard proposal={proposal} />
+              </li>
+            ))}
         </ul>
 
         {!isActionsProposalsLoading && (
