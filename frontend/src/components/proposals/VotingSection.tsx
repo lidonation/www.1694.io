@@ -82,10 +82,10 @@ export default function VotingSection({ poll }: VoteSectionProps) {
     <Box className="relative mx-auto overflow-hidden rounded-md bg-white shadow-sm">
       <Box className="relative p-6">
         <Box className="mb-6 text-center">
-          <h2 className="text-xl font-semibold">Cast Your Vote</h2>
+          <h2 className="text-xl font-semibold">Respond to Poll</h2>
           <p className="mt-1 text-lg leading-relaxed text-gray-500">
             Do you support this proposal to be included in the next Cardano
-            Budget?
+            Budget On chain Info Action?
           </p>
         </Box>
 

@@ -25,7 +25,7 @@ services:
       - web_db # Depends on the database service
 
   dbsync_db:
-    image: postgres:16.3-alpine3.19
+    image: postgres:17.4-alpine3.21
     environment:
       - POSTGRES_LOGGING=true
       - POSTGRES_DB_FILE=/run/secrets/postgres_db
@@ -92,7 +92,7 @@ services:
       - backend # Depends on the backend service
 
   cardano-node:
-    image: ghcr.io/intersectmbo/cardano-node:9.1.1
+    image: ghcr.io/intersectmbo/cardano-node:10.1.4
     command: [
       "run",
       "--config", "/config/config.json",
@@ -122,7 +122,7 @@ services:
       - io-1694 # Connect to the 'io-1694' network
 
   cardano-db-sync:
-    image: ghcr.io/intersectmbo/cardano-db-sync:13.5.0.2
+    image: ghcr.io/intersectmbo/cardano-db-sync:13.6.0.5
     environment:
       - DISABLE_LEDGER=${DISABLE_LEDGER}
       - DB_SYNC_CONFIG=${DB_SYNC_CONFIG:-/config/config.json}
