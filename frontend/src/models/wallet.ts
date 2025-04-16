@@ -107,8 +107,15 @@ export interface CardanoApiWallet {
   getExtensions(): Promise<Extension[]>;
 }
 
-export interface TxBody {
+export type BodyToSign = TxBody | MessageBody;
+export type BodyAfterSign = TxBody | MessageBodyAfterSign;
+export type TxBody = {
   type: string;
   description: string;
   cborHex: string;
-}
+};
+export type MessageBody = string;
+export type MessageBodyAfterSign = {
+  COSE_Sign1_hex: string;
+  COSE_Key_hex: string;
+};

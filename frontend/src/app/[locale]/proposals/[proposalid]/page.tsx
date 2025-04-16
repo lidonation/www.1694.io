@@ -11,16 +11,18 @@ import { Box } from '@mui/material';
 import VoteResultsCard from '@/components/proposals/VoteResultsCard';
 import { useGetActionProposalPollQuery } from '@/hooks/useGetActionProposalPollQuery';
 import VotingSection from '@/components/proposals/VotingSection';
+import { useCardano } from '@/context/walletContext';
 
 function page() {
   const { proposalid } = useParams();
+  const { isEnabled, dRepRegistration } = useCardano();
   const { actionProposal, isActionProposalLoading } = useGetActionProposalQuery(
     Number(proposalid),
   );
   const { comments, isCommentsLoading } = useGetActionProposalCommentsQuery(
     Number(proposalid),
   );
-  const { poll, isPollLoading } = useGetActionProposalPollQuery(Number(proposalid));
+  const { poll } = useGetActionProposalPollQuery(Number(proposalid));
 
   return (
     <Box>
@@ -54,7 +56,9 @@ function page() {
             isProposalLoading={isActionProposalLoading}
           />
 
-          <VotingSection/>
+          {isEnabled && dRepRegistration?.registered && (
+            <VotingSection poll={poll?.data} />
+          )}
 
           <VoteResultsCard poll={poll?.data} />
 

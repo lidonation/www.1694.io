@@ -1,5 +1,12 @@
 import { Utxos } from '@/context/walletContext';
-import { CardanoApiWallet, Protocol, TxBody } from '@/models/wallet';
+import {
+  BodyAfterSign,
+  BodyToSign,
+  CardanoApiWallet,
+  MessageBodyAfterSign,
+  Protocol,
+  TxBody,
+} from '@/models/wallet';
 import {
   Address,
   BigNum,
@@ -33,8 +40,12 @@ export type TxnTypes =
   | 'loginViaExpiredTxnSigning'
   | 'delegationTxn'
   | 'submitMetadataTxn';
+
+export type ObjectToSignType = 'transaction' | 'message';
+
 interface TxnModalState {
   isOpen: boolean;
+  currentWalletApi?: CardanoApiWallet;
   isPrepping: boolean;
   fileToDownload?: string;
   pendingTx: PendingTransaction | null;
@@ -45,12 +56,21 @@ interface TxnModalState {
   error?: string;
 }
 
+interface HandleTransactionParams {
+  [key: string]: any;
+  signingKey?: string;
+  txBuilder?: TransactionBuilder;
+  certBuilder?: Certificate | VotingBuilder;
+}
+
 interface PendingTransaction {
   type: TxnTypes;
   txBuilder?: any;
   certBuilder?: any;
-  dRepId?: string;
+  signingKey?: string;
   transaction?: Transaction;
+  message?: string;
+  objectToSign?: ObjectToSignType;
 }
 
 interface TransactionHandlerProps {
@@ -72,6 +92,7 @@ export function useTransactionHandler({
     resolve: null,
     reject: null,
     type: 'submitMetadataTxn',
+    currentWalletApi: undefined,
   });
   const [isLoading, setIsLoading] = useState(false);
   const [userActionState, setUserActionState] = useState({
@@ -370,10 +391,17 @@ export function useTransactionHandler({
     pendingTx: PendingTransaction,
     walletApi: CardanoApiWallet,
     options?: { deriveUtxosFrom?: string },
-  ): Promise<{ transaction?: Transaction; dRepId?: string }> => {
+  ): Promise<{
+    transaction?: Transaction;
+    signingKey?: string;
+    message?: string;
+  }> => {
     try {
       if (pendingTx.type === 'loginViaMessageSigning')
-        return { dRepId: pendingTx.dRepId };
+        return {
+          signingKey: pendingTx.signingKey,
+          message: pendingTx.message,
+        };
       if (pendingTx.type === 'loginViaExpiredTxnSigning') {
         if (!pendingTx.txBuilder || !walletApi)
           throw new Error('Arguments not ready');
@@ -412,6 +440,7 @@ export function useTransactionHandler({
         isPrepping: true,
         pendingTx,
         type: pendingTx.type,
+        currentWalletApi: walletApi,
       }));
 
       const preparedTx = await prepareTxBody(pendingTx, walletApi, options);
@@ -458,9 +487,11 @@ export function useTransactionHandler({
       const { pendingTx } = txnModalState;
 
       if (pendingTx.type === 'loginViaMessageSigning') {
-        const payloadBuffer = Buffer.from(`Verify DRep`).toString('hex');
+        const messageToSign = pendingTx.message || `Verify DRep`;
+        const payloadBuffer = Buffer.from(messageToSign).toString('hex');
+
         const signResult = await walletApi.signData(
-          pendingTx.dRepId,
+          pendingTx.signingKey,
           payloadBuffer,
         );
         const result = { signature: signResult.signature, key: signResult.key };
@@ -537,24 +568,47 @@ export function useTransactionHandler({
     setIsLoading(true);
     try {
       const { pendingTx } = txnModalState;
+      let cborHex = '';
+      let cliFormat: BodyToSign;
 
-      if (!pendingTx?.transaction) {
-        throw new Error('Transaction not prepared');
+      switch (pendingTx.objectToSign) {
+        case 'message':
+          if (!pendingTx?.message) {
+            throw new Error('Message not prepared');
+          }
+          cborHex = Buffer.from(pendingTx.message).toString('hex');
+          cliFormat = cborHex;
+          break;
+        case 'transaction':
+          if (!pendingTx?.transaction) {
+            throw new Error('Transaction not prepared');
+          }
+          cborHex = pendingTx.transaction.to_hex();
+          cliFormat = {
+            type: 'Unwitnessed Tx ConwayEra',
+            description: 'Ledger Cddl Format',
+            cborHex,
+          };
+          break;
+        default:
+          throw new Error('Invalid object to sign');
       }
 
-      const txJson = pendingTx.transaction.to_json();
-
-      const cliFormat: TxBody = {
-        type: 'Unwitnessed Tx ConwayEra',
-        description: 'Ledger Cddl Format',
-        cborHex: pendingTx.transaction.to_hex(),
-      };
+      const txJson = pendingTx.transaction
+        ? pendingTx.transaction.to_json()
+        : null;
 
       const blob = new Blob([JSON.stringify(cliFormat, null, 2)], {
-        type: 'application/json',
+        type:
+          pendingTx.objectToSign === 'message'
+            ? 'text/plain'
+            : 'application/json',
       });
       const url = window.URL.createObjectURL(blob);
-      const fileName = `tx${Date.now()}.draft`;
+      const fileName =
+        pendingTx?.objectToSign === 'message'
+          ? `tx${Date.now()}.txt`
+          : `tx${Date.now()}.draft`;
       const a = document.createElement('a');
       a.href = url;
       a.download = fileName;
@@ -566,7 +620,7 @@ export function useTransactionHandler({
       setTxnModalState((prev) => ({
         ...prev,
         fileToDownload: fileName,
-        txHash: pendingTx.transaction.to_hex(),
+        txHash: pendingTx?.transaction ? pendingTx.transaction.to_hex() : '',
       }));
 
       return txJson;
@@ -584,16 +638,39 @@ export function useTransactionHandler({
   ) => {
     setIsLoading(true);
     try {
+      const {
+        pendingTx: { objectToSign },
+      } = txnModalState;
       const fileContent = await signedTxFile.text();
-      const cborHex = (JSON.parse(fileContent) as TxBody).cborHex;
-      const signedTx = Transaction.from_hex(
-        Buffer.from(cborHex, 'hex').toString('hex'),
-      );
+      const content = JSON.parse(fileContent) as BodyAfterSign;
+      let signedTx: Transaction;
+
+      if (objectToSign === 'transaction') {
+        signedTx = Transaction.from_hex(
+          Buffer.from((content as TxBody).cborHex, 'hex').toString('hex'),
+        );
+      }
 
       if (txnModalState.resolve) {
         switch (txnModalState.type) {
           case 'loginViaMessageSigning':
-            txnModalState.resolve(signedTx.to_json());
+            switch (objectToSign) {
+              case 'message':
+                const { COSE_Sign1_hex, COSE_Key_hex } =
+                  content as MessageBodyAfterSign;
+                txnModalState.resolve({
+                  signature: COSE_Sign1_hex,
+                  key: COSE_Key_hex,
+                });
+                break;
+              case 'transaction':
+                const { signature, vkey } =
+                  signedTx.to_js_value().witness_set.vkeys[0];
+                txnModalState.resolve({ signature, key: vkey });
+                break;
+              default:
+                throw new Error('Invalid object to sign');
+            }
             break;
           case 'loginViaExpiredTxnSigning':
             txnModalState.resolve(signedTx.to_js_value().witness_set.vkeys[0]);
@@ -655,14 +732,17 @@ export function useTransactionHandler({
       setIsLoading(false);
     }
   };
+
   const handleTransaction = async (
     walletApi: CardanoApiWallet,
     type: TxnTypes,
-    params?: any,
+    params?: HandleTransactionParams,
     options?: {
       disableSigning?: boolean;
       disableDownload?: boolean;
       deriveUtxosFrom?: string;
+      objectToSign?: ObjectToSignType;
+      message?: string;
     },
   ) => {
     try {
@@ -670,9 +750,14 @@ export function useTransactionHandler({
         disableSigning: options?.disableSigning ?? false,
         disableDownload: options?.disableDownload ?? false,
       });
+
+      const objectToSign = options?.objectToSign || 'transaction';
+
       const result = await openTxnModal(
         {
           type,
+          objectToSign,
+          message: options?.message,
           ...params,
         },
         walletApi,

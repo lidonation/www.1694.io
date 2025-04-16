@@ -201,7 +201,7 @@ function ProposalCard({ proposal }: { proposal: any }) {
         </CardContent>
       </Box>
 
-      <Divider sx={{ mx: 2 }} />
+      <Divider sx={{ m: 2 }} />
 
       <CardActions
         sx={{
