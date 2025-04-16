@@ -2,6 +2,7 @@ import { getNetworkFlag } from '@/lib/helpers';
 import { Networks } from './enums';
 
 type HelperSnippetTypes =
+  | 'messageSigning'
   | 'signDelegationTxn'
   | 'signUpdateMetadataTxn'
   | 'signExpiredTxn';
@@ -71,4 +72,20 @@ export const helperSnippets: HelperSnippet[] = [
     extraText:
       'Updating DRep metadata requires both payment and DRep keys to sign the transaction',
   },
+  {
+    snippetToCopy: (networkType, fileToDownload ='tx.raw') => {
+      return `
+    cardano-signer sign --cip30 \n
+     --data-file ${fileToDownload} \n
+     --out-file tx.signed \n
+     --secret-key stake.skey \n
+     --address stake.addr \n
+     ${getNetworkFlag(networkType)} \n
+     --json
+    `;
+    },
+    type: 'messageSigning',
+    extraText:
+      'Copy this command to sign the message with your stake key using the cardano-signer CLI',
+  }
 ];

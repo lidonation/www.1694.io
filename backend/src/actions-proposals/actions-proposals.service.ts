@@ -207,4 +207,29 @@ export class ActionsProposalsService {
       throw error;
     }
   }
+
+  async createVote(voteData: any, authorization: string): Promise<any> {
+    try {
+      const url = `${this.BASE_URL}/bd-poll-votes`;
+      const { data } = await firstValueFrom(
+        this.httpService
+          .post(url, voteData, {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': authorization,
+            },
+          })
+          .pipe(
+            catchError((error) => {
+              console.error('Error creating vote:', error);
+              throw error;
+            }),
+          ),
+      );
+      return data;
+    } catch (error) {
+      console.error('Error creating vote:', error);
+      throw error;
+    }
+  }
 }

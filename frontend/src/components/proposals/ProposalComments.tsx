@@ -6,10 +6,11 @@ import { useCardano } from '@/context/walletContext';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { useQueryClient } from 'react-query';
 import { formatNumberTimeToReadable, getDataFromSession } from '@/lib';
-import { setUpPdfJwt } from '@/lib/pdfJwtHelper';
 import MarkdownParser from '../atoms/MarkdownParser';
 import { postProposalComment } from '@/services/requests/postProposalComment';
-import { getDRepRegStatus } from '@/services/requests/getDRepRegStatus';
+import { setUpPdfJwt } from '@/lib/pdfJwtHelper';
+import { useGetDRepRegistrationQuery } from '@/hooks/useGetDRepRegistrationQuery';
+import { loginUserToPdf } from '@/services/requests/loginUserToPdf';
 
 type CommentData = {
   bd_proposal_id: string;
@@ -61,30 +62,15 @@ const CommentContent = ({ comment }: { comment: any }) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const [isClamped, setIsClamped] = useState(false);
   const [expanded, setExpanded] = useState(false);
-  const [drepRegistered, setDRepRegistered] = useState(null);
-
-  console.log('drepRegistered', drepRegistered);
+  const { registration } = useGetDRepRegistrationQuery(
+    comment?.attributes?.drep_id,
+  );
 
   useEffect(() => {
     const el = contentRef.current;
     if (el) {
       setIsClamped(el.scrollHeight > el.clientHeight);
     }
-
-    async function getRegStatus() {
-      if(!comment?.attributes?.drep_id) return;
-      setDRepRegistered(null);
-      try {
-        const isDRepRegistered = await getDRepRegStatus(
-          comment?.attributes?.drep_id,
-        );
-        setDRepRegistered(isDRepRegistered);
-      } catch (error) {
-        console.error('Error fetching DRep registration status:', error);
-      }
-    }
-
-    getRegStatus();
   }, [comment]);
 
   return (
@@ -94,7 +80,7 @@ const CommentContent = ({ comment }: { comment: any }) => {
           <h3 className="font-semibold text-gray-900">
             @{comment.attributes.user_govtool_username}
           </h3>
-          {drepRegistered?.registered && (
+          {registration?.registered && (
             <span className="rounded-full bg-blue-100 px-3 py-1 text-sm text-primary-300">
               Drep
             </span>
@@ -105,10 +91,10 @@ const CommentContent = ({ comment }: { comment: any }) => {
         </span>
       </Box>
 
-      {drepRegistered?.view && (
+      {registration?.view && (
         <p className="w-1/2 truncate text-xs text-primary-300">
           <span className="text-gray-700">ID:</span>{' '}
-          {drepRegistered?.view?.substring(0, 20)}...
+          {registration?.view?.substring(0, 20)}...
         </p>
       )}
 
@@ -153,24 +139,10 @@ function ProposalComments({
   });
 
   const { setIsWalletListModalOpen } = useDRepContext();
-  const { dRepID, isEnabled, stakeKey, walletApi } = useCardano();
+  const { dRepID, isEnabled, stakeKey, signMessage, dRepRegistration } =
+    useCardano();
   const { addWarningAlert, addSuccessAlert } = useGlobalNotifications();
   const queryClient = useQueryClient();
-  const [drepRegistered, setDRepRegistered] = useState(null);
-
-  useEffect(() => {
-    async function getRegStatus() {
-      if(!dRepID) return;
-      setDRepRegistered(null);
-      try {
-        const isDRepRegistered = await getDRepRegStatus(dRepID);
-        setDRepRegistered(isDRepRegistered);
-      } catch (error) {
-        console.error('Error fetching DRep registration status:', error);
-      }
-    }
-    getRegStatus();
-  }, [proposal]);
 
   const totalComments = proposal?.attributes?.prop_comments_number || 0;
 
@@ -182,6 +154,20 @@ function ProposalComments({
     return comments?.data.filter(
       (comment) => comment.attributes.comment_parent_id === parentId.toString(),
     );
+  };
+
+  const handleLoginToPdf = async () => {
+    if (!getDataFromSession('pdfUserJwt')) {
+      let res = await signMessage(
+        'To proceed, please sign this data to verify your identity. This ensures that the action is secure and confirms your identity.',
+        stakeKey,
+      );
+      const userResponse = await loginUserToPdf({
+        identifier: stakeKey,
+        signedData: res,
+      });
+      setUpPdfJwt(userResponse);
+    }
   };
 
   const checkWalletConnection = (): boolean => {
@@ -204,7 +190,7 @@ function ProposalComments({
     return {
       bd_proposal_id: proposal.id.toString(),
       comment_text: text,
-      drep_id: drepRegistered?.registerd ? dRepID || '' : '',
+      drep_id: dRepRegistration?.registered ? dRepID || '' : '',
       ...(parentId && { comment_parent_id: parentId.toString() }),
     };
   };
@@ -213,7 +199,7 @@ function ProposalComments({
     if (!checkWalletConnection() || !validateCommentText(commentText)) return;
 
     if (!getDataFromSession('pdfUserJwt')) {
-      await setUpPdfJwt(stakeKey, walletApi);
+      await handleLoginToPdf();
     }
 
     try {
@@ -223,10 +209,10 @@ function ProposalComments({
       queryClient.invalidateQueries({
         queryKey: ['getActionProposalCommentsKey'],
       });
-      addSuccessAlert('Comment posted successfully');
+      addSuccessAlert('Your comment has been recorded successfully');
     } catch (error) {
       console.error('Failed to post comment:', error);
-      addWarningAlert('Failed to post comment. Please try again.');
+      addWarningAlert('Failed to record comment. Please try again.');
     }
   };
 
@@ -234,7 +220,7 @@ function ProposalComments({
     if (!checkWalletConnection() || !validateCommentText(replyText)) return;
 
     if (!getDataFromSession('pdfUserJwt')) {
-      await setUpPdfJwt(stakeKey, walletApi);
+      await handleLoginToPdf();
     }
 
     try {
@@ -245,10 +231,10 @@ function ProposalComments({
       queryClient.invalidateQueries({
         queryKey: ['getActionProposalCommentsKey'],
       });
-      addSuccessAlert('Comment posted successfully');
+      addSuccessAlert('Your comment has been recorded successfully');
     } catch (error) {
       console.error('Failed to post reply:', error);
-      addWarningAlert('Failed to post reply. Please try again.');
+      addWarningAlert('Failed to record comment. Please try again.');
     }
   };
 

@@ -132,6 +132,8 @@ const CardanoTxModal = ({
 
   const renderSnippetContent = (txnType: TxnTypes) => {
     switch (txnType) {
+      case 'loginViaMessageSigning':
+        return helperSnippets.find((s) => s.type === 'messageSigning');
       case 'loginViaExpiredTxnSigning':
         return helperSnippets.find((s) => s.type === 'signExpiredTxn');
       case 'delegationTxn':

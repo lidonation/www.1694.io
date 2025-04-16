@@ -76,7 +76,8 @@ function ProposalsPage() {
     const searchFromUrl = searchParams.get('search') || '';
     const categoryFromUrl = searchParams.get('category') || '';
     const sortByFromUrl = searchParams.get('sortBy') || 'createdAt';
-    const sortOrderFromUrl = (searchParams.get('sortOrder') as 'asc' | 'desc') || 'desc';
+    const sortOrderFromUrl =
+      (searchParams.get('sortOrder') as 'asc' | 'desc') || 'desc';
     setSearch(searchFromUrl);
     setSelectedCategories(categoryFromUrl ? categoryFromUrl.split(',') : []);
     setSortBy(sortByFromUrl);
@@ -105,14 +106,15 @@ function ProposalsPage() {
     };
   }, [search, sortBy, sortOrder, selectedCategories, currentPage, router]);
 
-  const { actionsProposals, isActionsProposalsLoading } = useGetActionsProposalsQuery(
-    currentPage,
-    pageSize,
-    search,
-    selectedCategories.join(','),
-    sortBy,
-    sortOrder,
-  );
+  const { actionsProposals, isActionsProposalsLoading } =
+    useGetActionsProposalsQuery(
+      currentPage,
+      pageSize,
+      search,
+      selectedCategories.join(','),
+      sortBy,
+      sortOrder,
+    );
 
   const totalPages = actionsProposals?.meta?.pagination?.pageCount || 1;
   const totalItems = actionsProposals?.meta?.pagination?.total || 0;
@@ -123,11 +125,11 @@ function ProposalsPage() {
         <h2 className="text-7xl font-black">Proposals</h2>
       </section>
 
-      <section className="relative mb-6 flex items-center gap-1 rounded-full p-2 w-full max-w-7xl mx-auto">
+      <section className="relative mx-auto flex w-full justify-between items-center gap-1 rounded-full">
         <div className="flex w-full items-center rounded-full border border-blue-500 px-4 py-2 sm:w-[300px] md:w-[400px] lg:w-[1000px]">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="mr-2 h-5 w-5 text-blue-500"
+            className="mr-2 h-5 w-5 text-primary-300"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -144,14 +146,14 @@ function ProposalsPage() {
             placeholder="Search..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 bg-transparent text-sm outline-none placeholder:text-gray-400"
+            className="flex-1 bg-transparent py-1 text-sm outline-none placeholder:text-gray-400"
           />
         </div>
 
         <div className="relative">
           <button
             ref={filterButtonRef}
-            className="rounded-full p-2 text-blue-600 transition-colors hover:bg-blue-100"
+            className="rounded-full p-2 h-9 w-9 text-primary-300 transition-colors hover:bg-blue-100"
             aria-label="Filter"
             type="button"
             onClick={() => {
@@ -159,7 +161,7 @@ function ProposalsPage() {
               setShowSort(false);
             }}
           >
-            <FilterAltIcon className="h-8 w-10 bg-transparent hover:bg-transparent" />
+            <img src="/svgs/filter.svg" className="h-full w-full" alt="Filter Sort" />
           </button>
 
           {showFilter && (
@@ -202,7 +204,7 @@ function ProposalsPage() {
               {selectedCategories.length > 0 && (
                 <div className="flex justify-end pt-4">
                   <button
-                    className="rounded-full bg-[#002e9f] px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors duration-200"
+                    className="rounded-full bg-[#002e9f] px-4 py-2 text-sm font-medium text-white transition-colors duration-200 hover:bg-blue-700"
                     onClick={() => {
                       setSelectedCategories([]);
                       setSortBy('createdAt');
@@ -213,7 +215,6 @@ function ProposalsPage() {
                     Reset filters
                   </button>
                 </div>
-
               )}
             </div>
           )}
@@ -222,7 +223,7 @@ function ProposalsPage() {
         <div className="relative">
           <button
             ref={sortButtonRef}
-            className="h-10 w-10 rounded-full p-2 text-blue-600 transition-colors hover:bg-blue-100"
+            className="h-9 w-9 rounded-full p-2 text-blue-600 transition-colors hover:bg-blue-100"
             aria-label="Sort"
             type="button"
             onClick={() => {
@@ -230,19 +231,23 @@ function ProposalsPage() {
               setShowFilter(false);
             }}
           >
-            <SortIcon className="h-8 w-10" />
+            <img
+              src="/svgs/arrows-sort.svg"
+              className="h-full w-full"
+              alt="Arrows Sort"
+            />
           </button>
 
           {showSort && (
             <div
               ref={sortRef}
-              className="absolute left-0 top-full z-50 mt-2 w-72 rounded-lg bg-[#f1f3fe] p-4 shadow-lg flex flex-col"
+              className="absolute left-0 top-full z-50 mt-2 flex w-72 flex-col rounded-lg bg-[#f1f3fe] p-4 shadow-lg"
             >
               <p className="border-b border-gray-200 pb-2 text-sm font-semibold text-gray-700">
                 Sort Proposals by:
               </p>
 
-              <div className="space-y-4 flex-1 mt-4">
+              <div className="mt-4 flex-1 space-y-4">
                 <label className="flex cursor-pointer items-start space-x-3 text-sm text-gray-700">
                   <input
                     type="radio"
@@ -304,14 +309,18 @@ function ProposalsPage() {
                 </div>
 
                 <div className="pt-2">
-                  <p className="text-sm font-medium text-gray-700">Conversion Rate</p>
+                  <p className="text-sm font-medium text-gray-700">
+                    Conversion Rate
+                  </p>
                   <div className="mt-2 space-y-2 pl-1">
                     <label className="flex cursor-pointer items-start space-x-3 text-sm text-gray-700">
                       <input
                         type="radio"
                         name="conversionSort"
                         className="h-4 w-4 rounded-full border-gray-300 text-blue-600 focus:ring-blue-500"
-                        checked={sortBy === 'conversionRate' && sortOrder === 'desc'}
+                        checked={
+                          sortBy === 'conversionRate' && sortOrder === 'desc'
+                        }
                         onChange={() => {
                           setSortBy('conversionRate');
                           setSortOrder('desc');
@@ -324,7 +333,9 @@ function ProposalsPage() {
                         type="radio"
                         name="conversionSort"
                         className="h-4 w-4 rounded-full border-gray-300 text-blue-600 focus:ring-blue-500"
-                        checked={sortBy === 'conversionRate' && sortOrder === 'asc'}
+                        checked={
+                          sortBy === 'conversionRate' && sortOrder === 'asc'
+                        }
                         onChange={() => {
                           setSortBy('conversionRate');
                           setSortOrder('asc');
@@ -339,7 +350,7 @@ function ProposalsPage() {
               {(sortBy !== 'createdAt' || sortOrder !== 'desc') && (
                 <div className="flex justify-end pt-4">
                   <button
-                    className="rounded-full bg-[#002e9f] px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors duration-200"
+                    className="rounded-full bg-[#002e9f] px-4 py-2 text-sm font-medium text-white transition-colors duration-200 hover:bg-blue-700"
                     onClick={() => {
                       setSortBy('createdAt');
                       setSortOrder('desc');
@@ -351,7 +362,6 @@ function ProposalsPage() {
               )}
             </div>
           )}
-
         </div>
       </section>
 
@@ -359,15 +369,15 @@ function ProposalsPage() {
         <ul className="grid grid-cols-1 gap-6 py-6 lg:grid-cols-2 xl:grid-cols-3">
           {isActionsProposalsLoading
             ? [...Array(pageSize)].map((_, index) => (
-              <li key={index}>
-                <ProposalCardSkeleton />
-              </li>
-            ))
+                <li key={index}>
+                  <ProposalCardSkeleton />
+                </li>
+              ))
             : actionsProposals?.data?.map((proposal, index) => (
-              <li key={index}>
-                <ProposalCard proposal={proposal} />
-              </li>
-            ))}
+                <li key={index}>
+                  <ProposalCard proposal={proposal} />
+                </li>
+              ))}
         </ul>
 
         {!isActionsProposalsLoading && (
