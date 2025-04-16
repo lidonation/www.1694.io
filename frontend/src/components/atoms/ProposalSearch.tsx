@@ -1,0 +1,93 @@
+'use client';
+import React from 'react';
+import ProposalFilter from '../molecules/ProposalFilter';
+import ProposalSort from '../molecules/ProposalSort';
+import { Box, InputBase, IconButton, Paper } from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
+
+interface ProposalSearchProps {
+  search: string;
+  setSearch: (value: string) => void;
+  showFilter: boolean;
+  setShowFilter: (value: boolean) => void;
+  showSort: boolean;
+  setShowSort: (value: boolean) => void;
+  selectedCategories: string[];
+  setSelectedCategories: (value: string[]) => void;
+  sortBy: string;
+  setSortBy: (value: string) => void;
+  sortOrder: 'asc' | 'desc';
+  setSortOrder: (value: 'asc' | 'desc') => void;
+}
+
+const ProposalSearch: React.FC<ProposalSearchProps> = ({
+  search,
+  setSearch,
+  showFilter,
+  setShowFilter,
+  showSort,
+  setShowSort,
+  selectedCategories,
+  setSelectedCategories,
+  sortBy,
+  setSortBy,
+  sortOrder,
+  setSortOrder,
+}) => {
+  return (
+    <Box display="flex" alignItems="center" gap={1} width="100%">
+      <Paper
+        component="form"
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          width: '100%',
+          borderRadius: '9999px',
+          border: '1px solid #3b82f6',
+          backgroundColor: 'transparent',
+          px: 2,
+          py: 1,
+        }}
+        elevation={0}
+        onSubmit={(e) => e.preventDefault()}
+      >
+        <IconButton sx={{ p: 0, mr: 1 }} aria-label="search" disableRipple>
+          <SearchIcon sx={{ color: '#3b82f6' }} />
+        </IconButton>
+        <InputBase
+          sx={{
+            flex: 1,
+            fontSize: 14,
+          }}
+          placeholder="Search..."
+          inputProps={{ 'aria-label': 'search proposals' }}
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </Paper>
+
+      <ProposalFilter
+        showFilter={showFilter}
+        setShowFilter={setShowFilter}
+        setShowSort={setShowSort}
+        selectedCategories={selectedCategories}
+        setSelectedCategories={setSelectedCategories}
+        setSortBy={setSortBy}
+        setSortOrder={setSortOrder}
+        setSearch={setSearch}
+      />
+
+      <ProposalSort
+        showSort={showSort}
+        setShowSort={setShowSort}
+        setShowFilter={setShowFilter}
+        sortBy={sortBy}
+        setSortBy={setSortBy}
+        sortOrder={sortOrder}
+        setSortOrder={setSortOrder}
+      />
+    </Box>
+  );
+};
+
+export default ProposalSearch;
