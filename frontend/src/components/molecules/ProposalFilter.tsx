@@ -32,6 +32,9 @@ interface ProposalFilterProps {
 const categoryOptions: FilterOption[] = [
   { label: 'Core', value: 'Core' },
   { label: 'Research', value: 'Research' },
+  { label: ' Governance Support' , value: 'Governance Support' },
+  { label: 'Marketing & Innovation', value: 'Marketing & Innovation' },
+  { label: 'None of these', value: 'None of these' },
 ];
 
 const ProposalFilter: React.FC<ProposalFilterProps> = ({
@@ -120,12 +123,23 @@ const ProposalFilter: React.FC<ProposalFilterProps> = ({
             >
               {categoryOptions.map((option) => (
                 <FormControlLabel
-                  key={option.value}
-                  value={option.value}
-                  control={<Radio color="primary" />}
-                  label={option.label}
-                  sx={{ alignItems: 'start', mb: 1 }}
-                />
+                key={option.value}
+                value={option.value}
+                control={<Radio color="primary" />}
+                label={option.label}
+                sx={{
+                  alignItems: 'center',
+                  mb: 1,
+                  ml: 0,
+                  '.MuiFormControlLabel-label': {
+                    fontSize: '0.95rem',
+                  },
+                  '.MuiRadio-root': {
+                    padding: '4px', 
+                    marginRight: '8px', 
+                  },
+                }}
+              />
               ))}
             </RadioGroup>
           </FormControl>
