@@ -48,4 +48,9 @@ export class ActionsProposalsController {
     createComment(@Body() commentData: any, @Headers('authorization') authorization: string) {
         return this.actionsProposalsService.createComment(commentData, authorization);
     }
+
+    @Post('/poll/votes')
+    createVote(@Body() voteData: any, @Headers('authorization') authorization: string) {
+        return this.actionsProposalsService.createVote(voteData, authorization);
+    }
 }

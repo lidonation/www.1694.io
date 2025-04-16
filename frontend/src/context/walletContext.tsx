@@ -53,6 +53,7 @@ import { AutomatedVotingOptionDelegationId } from '@/models/enums';
 import CardanoTxModal from '@/components/atoms/TxnModal';
 import { TxnTypes, useTransactionHandler } from '@/hooks/useTransactionHandler';
 import { checkTxExists } from '@/services/requests/checkTxExists';
+import { getDRepRegStatus } from '@/services/requests/getDRepRegStatus';
 
 interface Props {
   children: React.ReactNode;
@@ -99,6 +100,7 @@ interface CardanoContext {
     disableDownload?: boolean;
     autoLogin?: boolean;
   }) => Promise<any>;
+  signMessage: (message: string, signingKey?: string, disableDownloadOption?: boolean) => Promise<any>;
   buildStakeKeyRegCert: () => Promise<Certificate>;
   buildVoteDelegationCert: (target: string) => Promise<Certificate>;
   buildDRepRetirementCert: (voterDeposit: string) => Promise<Certificate>;
@@ -128,6 +130,12 @@ interface CardanoContext {
   walletApi?: CardanoApiWallet;
   delegatedDRepID?: string;
   setDelegatedDRepID: (key: string) => void;
+  dRepRegistration: {
+    registered: boolean;
+    view: string;
+    deposit: string | null;
+    voting_power: string;
+  };
 }
 
 export type Utxos = {
@@ -183,6 +191,7 @@ function CardanoProvider(props: Props) {
     usedAddress: undefined,
     balance: undefined,
   });
+  const [dRepRegistration, setDRepRegistration] = useState(null);
   const { addErrorAlert } = useGlobalNotifications();
   const {
     txnModalState,
@@ -210,6 +219,7 @@ function CardanoProvider(props: Props) {
       }
     };
     enableCurrentWallet();
+
     const getLatestEpoch = async () => {
       const [protocolResult, firstEpochResult] = await Promise.allSettled([
         getEpochParams(),
@@ -230,6 +240,14 @@ function CardanoProvider(props: Props) {
     };
     getLatestEpoch();
   }, []);
+  useEffect(() => {
+    const getDRepRegistration = async () => {
+      if (!dRepID) return;
+      const res = await getDRepRegStatus(dRepID);
+      if (res) setDRepRegistration(res);
+    };
+    getDRepRegistration();
+  }, [dRepID]);
   useEffect(() => {
     if (sharedState?.loginCredentials?.signature) {
       setLoginCredentials({
@@ -477,6 +495,29 @@ function CardanoProvider(props: Props) {
     } catch (e) {
       console.error(e);
       setIsGettingSignatures(false);
+      throw e;
+    }
+  };
+
+  const signMessage = async (message: string, signingKey?: string, disableDownloadOption: boolean = false) => {
+    if (!walletApi) return;
+    try {
+      const res = handleTransaction(
+        walletApi,
+        'loginViaMessageSigning',
+        {
+          signingKey: signingKey ? signingKey : stakeKey,
+          txBuilder: await initTransactionBuilder(),
+        },
+        {
+          objectToSign: 'message',
+          message,
+          disableDownload: disableDownloadOption
+        },
+      );
+      return res;
+    } catch (e) {
+      console.error(e);
       throw e;
     }
   };
@@ -812,6 +853,8 @@ function CardanoProvider(props: Props) {
       buildStakeKeyRegCert,
       buildDRepRetirementCert,
       buildVote,
+      signMessage,
+      dRepRegistration,
     }),
     [
       address,
@@ -839,6 +882,7 @@ function CardanoProvider(props: Props) {
       isEnableLoading,
       registeredStakeKeysListState,
       buildVote,
+      dRepRegistration,
     ],
   );
 
