@@ -4,8 +4,8 @@ import { ActionsProposalsController } from './actions-proposals.controller';
 import { HttpModule } from '@nestjs/axios';
 
 @Module({
-    imports: [HttpModule],
-    controllers: [ActionsProposalsController],
-    providers: [ActionsProposalsService],
+  imports: [HttpModule],
+  controllers: [ActionsProposalsController],
+  providers: [ActionsProposalsService],
 })
 export class ActionsProposalsModule {}

@@ -12,7 +12,7 @@ import { ReactionsModule } from './reactions/reactions.module';
 import { AuthService } from './auth/auth.service';
 import { ProposalsModule } from './proposals/proposals.module';
 import { MiscellaneousModule } from './miscellaneous/miscellaneous.module';
-import {NotificationsModule} from "./notifications/notifications.module";
+import { NotificationsModule } from './notifications/notifications.module';
 import { BlockfrostModule } from './blockfrost/blockfrost.module';
 import { ActionsProposalsModule } from './actions-proposals/actions-proposals.module';
 
@@ -35,7 +35,7 @@ import { ActionsProposalsModule } from './actions-proposals/actions-proposals.mo
     MiscellaneousModule,
     NotificationsModule,
     BlockfrostModule,
-    ActionsProposalsModule
+    ActionsProposalsModule,
   ],
   controllers: [],
   providers: [AuthService],

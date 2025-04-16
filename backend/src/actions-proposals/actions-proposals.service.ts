@@ -33,16 +33,25 @@ export class ActionsProposalsService {
       };
 
       if (search) {
-        filters['filters[$and][2][$or][0][bd_proposal_detail][proposal_name][$containsi]'] = search;
+        filters[
+          'filters[$and][2][$or][0][bd_proposal_detail][proposal_name][$containsi]'
+        ] = search;
         filters['filters[$and][2][$or][1][description][$containsi]'] = search;
-        filters['filters[$and][2][$or][2][creator][govtool_username][$containsi]'] = search;
-        filters['filters[$and][2][$or][3][bd_psapb][problem_statement][$containsi]'] = search;
-        filters['filters[$and][2][$or][4][bd_psapb][proposal_benefit][$containsi]'] = search;
+        filters[
+          'filters[$and][2][$or][2][creator][govtool_username][$containsi]'
+        ] = search;
+        filters[
+          'filters[$and][2][$or][3][bd_psapb][problem_statement][$containsi]'
+        ] = search;
+        filters[
+          'filters[$and][2][$or][4][bd_psapb][proposal_benefit][$containsi]'
+        ] = search;
       }
 
       if (category) {
         const categoryArray = category.split(',').map((cat) => cat.trim());
-        filters['filters[$and][3][bd_psapb][type_name][type_name][$in]'] = categoryArray;
+        filters['filters[$and][3][bd_psapb][type_name][type_name][$in]'] =
+          categoryArray;
       }
 
       let backendSortField = 'createdAt';
@@ -82,7 +91,10 @@ export class ActionsProposalsService {
           })
           .pipe(
             catchError((error) => {
-              console.error('Error fetching filtered proposals:', error?.response?.data || error);
+              console.error(
+                'Error fetching filtered proposals:',
+                error?.response?.data || error,
+              );
               throw error;
             }),
           ),
@@ -90,7 +102,10 @@ export class ActionsProposalsService {
 
       return data;
     } catch (error) {
-      console.error('Error fetching proposals:', error?.response?.data || error);
+      console.error(
+        'Error fetching proposals:',
+        error?.response?.data || error,
+      );
       throw error;
     }
   }
@@ -161,17 +176,19 @@ export class ActionsProposalsService {
     try {
       const url = `${this.BASE_URL}/comments`;
       const { data } = await firstValueFrom(
-        this.httpService.post(url, commentData, {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': authorization,
-          },
-        }).pipe(
-          catchError((error) => {
-            console.error('Error creating comment:', error);
-            throw error;
-          }),
-        ),
+        this.httpService
+          .post(url, commentData, {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: authorization,
+            },
+          })
+          .pipe(
+            catchError((error) => {
+              console.error('Error creating comment:', error);
+              throw error;
+            }),
+          ),
       );
       return data;
     } catch (error) {
@@ -216,7 +233,7 @@ export class ActionsProposalsService {
           .post(url, voteData, {
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': authorization,
+              Authorization: authorization,
             },
           })
           .pipe(
