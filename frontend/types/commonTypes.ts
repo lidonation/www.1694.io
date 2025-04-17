@@ -67,10 +67,11 @@ export type Metrics = {
 
 export interface ProposalMetrics {
   totalProposals: number;
-  totalAda: string;
-  meanUsdToAdaConversionRate: string;
-  medianUsdToAdaConversionRate: string;
-  modeUsdToAdaConversionRate: string;
+  totalAda: number;
+  meanUsdToAdaConversionRate: number;
+  medianUsdToAdaConversionRate: number;
+  modeUsdToAdaConversionRate: number;
+  intersectNamedAdministrator: number;
 }
 export interface ProposalAnimatedMetricProps {
   value: number;

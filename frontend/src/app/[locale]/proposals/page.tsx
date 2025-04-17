@@ -61,21 +61,28 @@ function ProposalsPage() {
 
   return (
     <div className="base_container min-h-screen py-10">
-      <section className="mb-6">
-        <h2 className="text-7xl font-black">Proposals</h2>
+      <section className="mb-4">
+        <h2 className="text-7xl font-black">Budget Proposals</h2>
+        <div className='py-3 pr-16 lg:pr-56'>
+          <p>
+            Cardano 2025 budget proposals. Your comments and responses to polls
+            here will also be published back to gov.tools and other interfaces.
+          </p>
+        </div>
       </section>
 
-      <section className="mb-5 flex flex-col gap-5 lg:flex-row lg:items-center">
+      <section className="relative mb-6 rounded-full py-2 w-full max-w-7xl mx-auto lg:flex lg:flex-nowrap lg:items-center gap-4 justify-between">
         <div className="w-full lg:w-[45%]">
-          <ProposalMetrics />
+          <ProposalMetrics/>
         </div>
+
         <div className="w-full lg:w-[55%] flex justify-end">
           <div className="w-full">
             <ProposalSearch
-              search={search}
-              setSearch={setSearch}
-              showFilter={showFilter}
-              setShowFilter={setShowFilter}
+                search={search}
+                setSearch={setSearch}
+                showFilter={showFilter}
+                setShowFilter={setShowFilter}
               showSort={showSort}
               setShowSort={setShowSort}
               selectedCategories={selectedCategories}

@@ -1,4 +1,4 @@
-import {getAllMetrics} from '../services/requests/getProposalMetrics';
+import {getAllMetrics} from '@/services/requests/getProposalMetrics';
 import {useQuery} from 'react-query';
 import {ProposalMetrics} from '../../types/commonTypes';
 
