@@ -65,6 +65,36 @@ export type Metrics = {
   totalRegisteredStakeAddresses: number;
 };
 
+export interface ProposalMetrics {
+  totalProposals: number;
+  totalAda: string;
+  meanUsdToAdaConversionRate: string;
+  medianUsdToAdaConversionRate: string;
+  modeUsdToAdaConversionRate: string;
+}
+export interface ProposalAnimatedMetricProps {
+  value: number;
+  isAda?: boolean;
+  isPercentage?: boolean;
+  isBillion?: boolean;
+  isMillion?: boolean;
+  isThousand?: boolean;
+  duration?: number;
+  isLoading?: boolean;
+}
+
+export interface ProposalMetricsCardProps {
+  value: number;
+  label: string;
+  isAda?: boolean;
+  isPercentage?: boolean;
+  isBillion?: boolean;
+  isMillion?: boolean;
+  isThousand?: boolean;
+  tooltip?: string;
+  isLoading?: boolean;
+}
+
 export type VoteMetadata = {
   vote: string;
   voterId: string;

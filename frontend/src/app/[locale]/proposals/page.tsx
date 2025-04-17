@@ -1,12 +1,16 @@
 'use client';
+
+import React, { useState } from 'react';
 import ProposalCard from '@/components/molecules/ProposalCard';
 import ProposalCardSkeleton from '@/components/1694.io/ProposalCardSkeleton';
-import { useGetActionsProposalsQuery } from '@/hooks/useGetActionsProposalsQuery';
-import React, { useState } from 'react';
 import Pagination from '@/components/molecules/Pagination';
 import ProposalSearch from '@/components/atoms/ProposalSearch';
-import { useProposalFilters } from '@/hooks/useProposalFilters';
 import RecordsNotFound from '@/components/atoms/RecordsNotFound';
+import ProposalMetrics from '@/components/atoms/ProposalMetrics';
+
+// hooks
+import { useProposalFilters } from '@/hooks/useProposalFilters';
+import { useGetActionsProposalsQuery } from '@/hooks/useGetActionsProposalsQuery';
 
 function ProposalsPage() {
   const {
@@ -27,17 +31,33 @@ function ProposalsPage() {
 
   const [pageSize] = useState(12);
 
-  const { actionsProposals, isActionsProposalsLoading } = useGetActionsProposalsQuery(
+  const {
+    actionsProposals: allFilteredProposals,
+    isActionsProposalsLoading: isAllLoading,
+  } = useGetActionsProposalsQuery(
+    1,
+    10000,
+    search,
+    selectedCategories.join(','),
+    sortBy,
+    sortOrder
+  );
+
+  const {
+    actionsProposals: paginatedProposals,
+    isActionsProposalsLoading: isPaginatedLoading,
+  } = useGetActionsProposalsQuery(
     currentPage,
     pageSize,
     search,
     selectedCategories.join(','),
     sortBy,
-    sortOrder,
+    sortOrder
   );
 
-  const totalPages = actionsProposals?.meta?.pagination?.pageCount || 1;
-  const totalItems = actionsProposals?.meta?.pagination?.total || 0;
+  const totalPages = paginatedProposals?.meta?.pagination?.pageCount || 1;
+  const totalItems = paginatedProposals?.meta?.pagination?.total || 0;
+  const proposalsData = paginatedProposals?.data || [];
 
   return (
     <div className="base_container min-h-screen py-10">
@@ -45,35 +65,42 @@ function ProposalsPage() {
         <h2 className="text-7xl font-black">Proposals</h2>
       </section>
 
-      <section className="relative mb-6 rounded-full p-2 w-full max-w-7xl mx-auto">
-        <ProposalSearch
-          search={search}
-          setSearch={setSearch}
-          showFilter={showFilter}
-          setShowFilter={setShowFilter}
-          showSort={showSort}
-          setShowSort={setShowSort}
-          selectedCategories={selectedCategories}
-          setSelectedCategories={setSelectedCategories}
-          sortBy={sortBy}
-          setSortBy={setSortBy}
-          sortOrder={sortOrder}
-          setSortOrder={setSortOrder}
-        />
+      <section className="mb-5 flex flex-col gap-5 lg:flex-row lg:items-center">
+        <div className="w-full lg:w-[45%]">
+          <ProposalMetrics />
+        </div>
+        <div className="w-full lg:w-[55%] flex justify-end">
+          <div className="w-full">
+            <ProposalSearch
+              search={search}
+              setSearch={setSearch}
+              showFilter={showFilter}
+              setShowFilter={setShowFilter}
+              showSort={showSort}
+              setShowSort={setShowSort}
+              selectedCategories={selectedCategories}
+              setSelectedCategories={setSelectedCategories}
+              sortBy={sortBy}
+              setSortBy={setSortBy}
+              sortOrder={sortOrder}
+              setSortOrder={setSortOrder}
+            />
+          </div>
+        </div>
       </section>
 
       <section>
-      {!isActionsProposalsLoading && actionsProposals?.data?.length === 0 ? (
+        {!isPaginatedLoading && proposalsData.length === 0 ? (
           <RecordsNotFound message="No proposals match your criteria." />
         ) : (
           <ul className="grid grid-cols-1 gap-6 py-6 lg:grid-cols-2 xl:grid-cols-3">
-            {isActionsProposalsLoading
-              ? [...Array(pageSize)].map((_, index) => (
+            {isPaginatedLoading
+              ? Array.from({ length: pageSize }).map((_, index) => (
                   <li key={index}>
                     <ProposalCardSkeleton />
                   </li>
                 ))
-              : actionsProposals?.data?.map((proposal, index) => (
+              : proposalsData.map((proposal, index) => (
                   <li key={index}>
                     <ProposalCard proposal={proposal} />
                   </li>
@@ -81,7 +108,7 @@ function ProposalsPage() {
           </ul>
         )}
 
-        {!isActionsProposalsLoading && actionsProposals?.data?.length > 0 && (
+        {!isPaginatedLoading && proposalsData.length > 0 && (
           <div className="mt-8">
             <Pagination
               currentPage={currentPage}
@@ -92,7 +119,6 @@ function ProposalsPage() {
           </div>
         )}
       </section>
-
     </div>
   );
 }

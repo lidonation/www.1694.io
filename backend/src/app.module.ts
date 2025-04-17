@@ -15,6 +15,7 @@ import { MiscellaneousModule } from './miscellaneous/miscellaneous.module';
 import {NotificationsModule} from "./notifications/notifications.module";
 import { BlockfrostModule } from './blockfrost/blockfrost.module';
 import { ActionsProposalsModule } from './actions-proposals/actions-proposals.module';
+import { MetricsModule } from './proposal-metrics/metrics-module';
 
 @Module({
   imports: [
@@ -35,7 +36,8 @@ import { ActionsProposalsModule } from './actions-proposals/actions-proposals.mo
     MiscellaneousModule,
     NotificationsModule,
     BlockfrostModule,
-    ActionsProposalsModule
+    ActionsProposalsModule,
+    MetricsModule
   ],
   controllers: [],
   providers: [AuthService],
