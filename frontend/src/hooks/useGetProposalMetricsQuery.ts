@@ -2,10 +2,10 @@ import {getAllMetrics} from '@/services/requests/getProposalMetrics';
 import {useQuery} from 'react-query';
 import {ProposalMetrics} from '../../types/commonTypes';
 
-export const useGetProposalMetricsQuery = () => {
+export const useGetProposalMetricsQuery = (search: string) => {
   const { data, isLoading } = useQuery<ProposalMetrics>({
-    queryKey: ['proposalmetrics'],
-    queryFn: async () => await getAllMetrics(),
+    queryKey: ['proposalmetrics', search],
+    queryFn: async () => await getAllMetrics(search),
     refetchOnWindowFocus: false,
   });
 

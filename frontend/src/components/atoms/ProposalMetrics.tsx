@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {MetricsCard} from './ProposalMetricsCard';
 import {useGetProposalMetricsQuery} from '@/hooks/useGetProposalMetricsQuery';
 
-const ProposalMetrics = () => {
+const ProposalMetrics = ({ search = '' }: { search?: string }) => {
     const [metrics, setMetrics] = useState({
         totalProposals: 0,
         totalAda: null,
@@ -13,6 +13,7 @@ const ProposalMetrics = () => {
     });
 
     const {proposalMetrics: fetchedMetrics, isProposalMetricsLoading} = useGetProposalMetricsQuery();
+
 
     useEffect(() => {
         if (!isProposalMetricsLoading && fetchedMetrics) {
