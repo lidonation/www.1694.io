@@ -6,6 +6,7 @@ import React, { useState } from 'react';
 import Pagination from '@/components/molecules/Pagination';
 import ProposalSearch from '@/components/atoms/ProposalSearch';
 import { useProposalFilters } from '@/hooks/useProposalFilters';
+import RecordsNotFound from '@/components/atoms/RecordsNotFound';
 
 function ProposalsPage() {
   const {
@@ -62,21 +63,25 @@ function ProposalsPage() {
       </section>
 
       <section>
-        <ul className="grid grid-cols-1 gap-6 py-6 lg:grid-cols-2 xl:grid-cols-3">
-          {isActionsProposalsLoading
-            ? [...Array(pageSize)].map((_, index) => (
-                <li key={index}>
-                  <ProposalCardSkeleton />
-                </li>
-              ))
-            : actionsProposals?.data?.map((proposal, index) => (
-                <li key={index}>
-                  <ProposalCard proposal={proposal} />
-                </li>
-              ))}
-        </ul>
+      {!isActionsProposalsLoading && actionsProposals?.data?.length === 0 ? (
+          <RecordsNotFound message="No proposals match your criteria." />
+        ) : (
+          <ul className="grid grid-cols-1 gap-6 py-6 lg:grid-cols-2 xl:grid-cols-3">
+            {isActionsProposalsLoading
+              ? [...Array(pageSize)].map((_, index) => (
+                  <li key={index}>
+                    <ProposalCardSkeleton />
+                  </li>
+                ))
+              : actionsProposals?.data?.map((proposal, index) => (
+                  <li key={index}>
+                    <ProposalCard proposal={proposal} />
+                  </li>
+                ))}
+          </ul>
+        )}
 
-        {!isActionsProposalsLoading && (
+        {!isActionsProposalsLoading && actionsProposals?.data?.length > 0 && (
           <div className="mt-8">
             <Pagination
               currentPage={currentPage}
@@ -87,6 +92,7 @@ function ProposalsPage() {
           </div>
         )}
       </section>
+
     </div>
   );
 }
