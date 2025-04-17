@@ -1,6 +1,6 @@
 import axiosInstance from '../axiosInstance';
 
-export const getAllMetrics = async () => {
-  const response = await axiosInstance.get('metrics');
+export const getAllMetrics = async (search?: string) => {
+  const response = await axiosInstance.get(`metrics?s=${encodeURIComponent(search)}`);  
   return response.data;
 };
