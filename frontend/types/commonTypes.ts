@@ -82,6 +82,7 @@ export interface ProposalAnimatedMetricProps {
   isThousand?: boolean;
   duration?: number;
   isLoading?: boolean;
+  search?: string;
 }
 
 export interface ProposalMetricsCardProps {
@@ -94,6 +95,7 @@ export interface ProposalMetricsCardProps {
   isThousand?: boolean;
   tooltip?: string;
   isLoading?: boolean;
+  search?: string;
 }
 
 export type VoteMetadata = {
