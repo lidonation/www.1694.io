@@ -10,20 +10,24 @@ export class MetricsService {
     private httpService: HttpService,
   ) {}
 
-  private readonly METRICS_URL = this.configService.get<string>('METRICS_BASE_URL') || 'https://www.lidonation.com/api/cardano/budget-proposals';
+  private readonly METRICS_URL =
+    this.configService.get<string>('METRICS_BASE_URL') ||
+    'https://www.lidonation.com/api/cardano/budget-proposals';
 
   async getProposalMetrics(search?: string): Promise<any> {
     try {
       let url = `${this.METRICS_URL}/metrics`;
-  
-      if (search) {
+      if (!!search) {
         url += `?s=${encodeURIComponent(search)}`;
       }
-  
+      
       const { data } = await firstValueFrom(
         this.httpService.get(url).pipe(
           catchError((error) => {
-            console.error('Error fetching proposal metrics:', error?.response?.data || error);
+            console.error(
+              'Error fetching proposal metrics:',
+              error?.response?.data || error,
+            );
             throw error;
           }),
         ),
