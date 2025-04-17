@@ -110,15 +110,15 @@ const ProposalFilter: React.FC<ProposalFilterProps> = ({
               name="category"
               value={selectedCategories[0] || ''}
               onChange={(e) => {
-                const value = e.target.value;
-                if (selectedCategories.includes(value)) {
-                  setSelectedCategories([]);
-                  setSortBy('createdAt');
-                  setSortOrder('desc');
-                  setSearch('');
-                } else {
-                  setSelectedCategories([value]);
-                }
+                // const value = e.target.value;
+                // if (selectedCategories.includes(value)) {
+                //   setSelectedCategories([]);
+                //   setSortBy('createdAt');
+                //   setSortOrder('desc');
+                //   setSearch('');
+                // } else {
+                //   setSelectedCategories([value]);
+                // }
               }}
             >
               {categoryOptions.map((option) => (
