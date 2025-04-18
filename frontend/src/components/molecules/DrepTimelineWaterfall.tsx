@@ -7,7 +7,7 @@ import TimelineContent from '@mui/lab/TimelineContent';
 import TimelineDot from '@mui/lab/TimelineDot';
 import { useScreenDimension } from '@/hooks';
 import SingleNote from '../dreps/notes/SingleNote';
-import { useCardano } from '@/context/walletContext';
+import { useCardano } from '@/context/cardanoContext';
 import { useDRepContext } from '@/context/drepContext';
 import EpochTimelineCard from '../atoms/EpochTimelineCard';
 import DrepVoteTimelineCard from '../atoms/DrepVoteTimelineCard';

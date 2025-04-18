@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Drawer, Grid, IconButton } from '@mui/material';
 import { useDRepContext } from '@/context/drepContext';
-import { useCardano } from '@/context/walletContext';
+import { useCardano } from '@/context/cardanoContext';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Background } from '../atoms/Background';

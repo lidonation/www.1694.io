@@ -1,19 +1,21 @@
-import React, { useEffect, useState } from 'react';
+
+import React from 'react';
 import Button from '../atoms/Button';
 import { useDRepContext } from '@/context/drepContext';
-import { useCardano } from '@/context/walletContext';
+import { useWallet } from '@/context/walletContext';
 
 const WalletConnectButton = ({ test_name }) => {
-  const { setIsWalletListModalOpen } = useDRepContext();
-  const {isEnabling}=useCardano()
+  const { setLoginModalOpen } = useDRepContext();
+  const { wallet } = useWallet();
+  
   return (
     <Button
-      handleClick={() => setIsWalletListModalOpen(true)}
+      handleClick={() => setLoginModalOpen(true)} 
       data-testid={`${test_name}-connect-wallet-button`}
       size='small'
     >
       <p>
-        {isEnabling ? 'Connecting...' : 'Connect Wallet'}
+        {wallet.isConnecting ? 'Connecting...' : 'Connect Wallet'}
       </p>
     </Button>
   );

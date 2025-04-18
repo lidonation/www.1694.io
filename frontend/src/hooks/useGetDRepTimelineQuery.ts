@@ -1,7 +1,7 @@
 import { QUERY_KEYS } from '@/constants/queryKeys';
 import { useQuery } from 'react-query';
 import { getDRepTimeline } from '@/services/requests/getDRepTimeline';
-import { useCardano } from '@/context/walletContext';
+import { useCardano } from '@/context/cardanoContext';
 import { StakeKeys } from '../../types/commonTypes';
 import { useEffect, useRef, useState } from 'react';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';

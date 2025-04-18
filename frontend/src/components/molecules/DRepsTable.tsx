@@ -29,7 +29,7 @@ import Typography from '@mui/material/Typography';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { useDelegateTodRep } from '@/hooks/useDelegateToDRep';
 import ClaimProfileButton from '../atoms/ClaimProfileButton';
-import { useCardano } from '@/context/walletContext';
+import { useCardano } from '@/context/cardanoContext';
 import { useGetAdaHolderCurrentDelegationQuery } from '@/hooks/useGetAdaHolderCurrentDelegationQuery';
 
 type DRepsTableProps = {

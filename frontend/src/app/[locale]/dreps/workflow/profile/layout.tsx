@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useDRepContext } from '@/context/drepContext';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import BreadCrumbs from '@/components/molecules/BreadCrumbs';
-import { useCardano } from '@/context/walletContext';
+import { useCardano } from '@/context/cardanoContext';
 
 interface Props {
   children?: React.ReactNode;

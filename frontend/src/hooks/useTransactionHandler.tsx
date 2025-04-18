@@ -1,4 +1,4 @@
-import { Utxos } from '@/context/walletContext';
+import { Utxos } from '@/context/cardanoContext';
 import {
   BodyAfterSign,
   BodyToSign,
@@ -78,8 +78,63 @@ interface TransactionHandlerProps {
     changeAddress: undefined | string;
     usedAddress: undefined | string;
     balance: number | undefined;
-  };
+  }
 }
+
+export interface TransactionHandler {
+  txnModalState: TxnModalState;
+  userActionState: {
+    disableDownload: boolean;
+    disableSigning: boolean;
+  };
+  isLoading: boolean;
+  handleTransaction: (
+    walletApi: CardanoApiWallet,
+    type: TxnTypes,
+    params?: HandleTransactionParams,
+    options?: {
+      disableSigning?: boolean;
+      disableDownload?: boolean;
+      deriveUtxosFrom?: string;
+      objectToSign?: ObjectToSignType;
+      message?: string;
+    },
+  ) => Promise<any>;
+  handleWalletSign: (walletApi: CardanoApiWallet) => Promise<any>;
+  handleDownloadUnsigned: () => Promise<any>;
+  handleSubmitSignedTxFile: (
+    signedTxFile: File,
+    walletApi: CardanoApiWallet,
+  ) => Promise<any>;
+  closeTxnModal: () => void;
+  getUtxos: (
+    enabledApi: CardanoApiWallet,
+    options?: GetUtxosOptions,
+  ) => Promise<Utxos | undefined>;
+  getTxUnspentOutputs: (utxos: Utxos) => Promise<TransactionUnspentOutputs>;
+  prepExpiredTxn: (
+    txBuilder: TransactionBuilder,
+    walletApi: CardanoApiWallet,
+  ) => Promise<{ transaction: Transaction }>;
+  buildFinalTx: (
+    walletApi: CardanoApiWallet,
+    certBuilder?: Certificate | VotingBuilder,
+    options?: { deriveUtxosFrom?: string },
+  ) => Promise<{ transaction: Transaction }>;
+  prepareTxBody: (
+    pendingTx: PendingTransaction,
+    walletApi: CardanoApiWallet,
+    options?: { deriveUtxosFrom?: string },
+  ) => Promise<{
+    transaction?: Transaction;
+    signingKey?: string;
+    message?: string;
+  }>;
+  filterUtxosByTokenType: (
+    utxos: TransactionUnspentOutputs,
+  ) => TransactionUnspentOutputs; 
+}
+
 export const DEFAULT_TXN_TTL = 60 * 60; // 60 minutes
 export function useTransactionHandler({
   walletState,
@@ -103,7 +158,7 @@ export function useTransactionHandler({
   const { refetch } = useGetNodeStatusQuery({ disablePolling: true });
 
   const getUtxos = async (
-    enabledApi: CardanoApiWallet,
+    enabledApi?: CardanoApiWallet,
     options?: GetUtxosOptions,
   ): Promise<Utxos | undefined> => {
     let rawUtxos;
@@ -136,6 +191,9 @@ export function useTransactionHandler({
           return Buffer.from(bytes).toString('hex');
         });
       } else {
+        if (!enabledApi) {
+          throw new Error('No wallet API provided to get UTXOs');
+        }
         // Get UTXOs from connected wallet
         rawUtxos = await enabledApi.getUtxos();
       }
@@ -354,7 +412,6 @@ export function useTransactionHandler({
 
       //attempt to use only ADA UTXOs for building the transaction
       const nativeTokenUtxos = filterUtxosByTokenType(txUnspentOutputs);
-      // const nativeTokenUtxos = txUnspentOutputs
       const changeConfig = ChangeConfig.new(shelleyChangeAddress);
       // Use UTxO selection strategy 3
       try {
@@ -399,8 +456,8 @@ export function useTransactionHandler({
     try {
       if (pendingTx.type === 'loginViaMessageSigning')
         return {
-          signingKey: pendingTx.signingKey,
-          message: pendingTx.message,
+          signingKey: pendingTx?.signingKey,
+          message: pendingTx?.message,
         };
       if (pendingTx.type === 'loginViaExpiredTxnSigning') {
         if (!pendingTx.txBuilder || !walletApi)
@@ -779,5 +836,5 @@ export function useTransactionHandler({
     handleDownloadUnsigned,
     handleSubmitSignedTxFile,
     closeTxnModal,
-  };
+  } as TransactionHandler;
 }

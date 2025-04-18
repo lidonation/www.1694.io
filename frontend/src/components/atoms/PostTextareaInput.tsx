@@ -28,7 +28,7 @@ import {
 
 import '@mdxeditor/editor/style.css';
 import { Controller } from 'react-hook-form';
-import { useCardano } from '@/context/walletContext';
+import { useCardano } from '@/context/cardanoContext';
 import OverlayForm from '../molecules/OverlayForm';
 
 interface EditorProps {

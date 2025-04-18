@@ -1,6 +1,6 @@
 import React from 'react';
 import Button from './Button';
-import { useCardano } from '@/context/walletContext';
+import { useCardano } from '@/context/cardanoContext';
 import { useDRepContext } from '@/context/drepContext';
 import { useRouter } from 'next/navigation';
 import { ProfileWorkflowStepKey } from '@/lib/enums';

@@ -1,7 +1,7 @@
 'use client';
 import NewProfile from '@/components/organisms/NewProfile';
 import { useDRepContext } from '@/context/drepContext';
-import { useCardano } from '@/context/walletContext';
+import { useCardano } from '@/context/cardanoContext';
 import { compareDRepIDs } from '@/lib';
 import { ProfileWorkflowStepKey } from '@/lib/enums';
 import { getSingleDRepViaVoterId } from '@/services/requests/getSingleDrepViaVoterId';

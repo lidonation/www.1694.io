@@ -1,5 +1,5 @@
 import React from 'react';
-import { useCardano } from '@/context/walletContext';
+import { useCardano } from '@/context/cardanoContext';
 import { Autocomplete, Chip, TextField } from '@mui/material';
 import { Controller } from 'react-hook-form';
 

@@ -1,4 +1,3 @@
-import { useCardano } from '@/context/walletContext';
 import { useGetAdaHolderCurrentDelegationQuery } from '@/hooks/useGetAdaHolderCurrentDelegationQuery';
 import {
   convertHexToCIP129,
@@ -13,13 +12,14 @@ import Link from 'next/link';
 import CopyToClipBoardIcon from '../atoms/svgs/CopyToClipBoardIcon';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { useGetSingleDRepQuery } from '@/hooks/useGetSingleDRepQuery';
+import { useWallet } from '@/context/walletContext';
 
 type DelegatedToProps = {
   className?: string;
 };
 
 export const DelegatedTo = ({ className }: DelegatedToProps) => {
-  const { stakeKey, stakeKeyBech32 } = useCardano();
+  const { wallet:{stakeKey, stakeKeyBech32}  } = useWallet();
   const { addSuccessAlert } = useGlobalNotifications();
   const { currentDelegation } = useGetAdaHolderCurrentDelegationQuery(stakeKey);
   const { dRep } = useGetSingleDRepQuery(currentDelegation?.drep_view);

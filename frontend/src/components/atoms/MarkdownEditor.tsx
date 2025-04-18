@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import TextEditOptions from '../molecules/TextEditOptions';
-import { useCardano } from '@/context/walletContext';
+import { useCardano } from '@/context/cardanoContext';
 import { Controller } from 'react-hook-form';
 import { Typography } from '@mui/material';
 import { marked } from 'marked';

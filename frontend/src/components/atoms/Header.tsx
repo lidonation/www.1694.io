@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { useCardano } from '@/context/walletContext';
+import { useCardano } from '@/context/cardanoContext';
 import WalletConnectButton from '@/components/molecules/WalletConnectButton';
 import { WalletInfoCard } from '@/components/molecules';
 import Link from 'next/link';
@@ -11,9 +11,10 @@ import DRepMenu from '../molecules/DRepMenu';
 import { SliderMenu } from '../organisms/SliderMenu';
 import NotificationDrawer from '@/components/molecules/NotificationDrawer';
 import { CONFIGURED_NETWORK_NAME } from '@/constants';
+import { useWallet } from '@/context/walletContext';
 
 const Header = () => {
-  const { isEnabled } = useCardano();
+  const { wallet:{isConnected} } = useWallet();
   const [networkName, setNetworkName] = useState('');
   const { currentLocale } = useDRepContext();
   const { isMobile } = useScreenDimension();
@@ -84,7 +85,7 @@ const Header = () => {
             </div>
           )}
           <div>
-            {!isEnabled ? (
+            {!isConnected ? (
               <WalletConnectButton test_name={'header'} />
             ) : (
               <WalletInfoCard test_name={'header'} />
