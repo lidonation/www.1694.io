@@ -18,6 +18,15 @@ export class AuthController {
   async verifySignature(@Body() payload: VerifyDRepSignatureDto) {
     return this.authService.verifySignature(payload);
   }
+
+  @Post('login/verify-sigs')
+  async verifySignatureFromLoginFile(
+    @Body('payload')
+    payload: Omit<VerifyDRepSignatureDto, 'address'>['signatures'],
+  ) {
+    return this.authService.verifySignatureFromLoginFile(payload);
+  }
+
   @Post('witnesses/verify')
   async verifyWitness(
     @Body()
