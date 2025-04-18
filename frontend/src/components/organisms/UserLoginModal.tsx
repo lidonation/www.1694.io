@@ -8,16 +8,16 @@ import {
   Tab,
   Button,
   CircularProgress,
-  useTheme
+  useTheme,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { ModalContents, ModalHeader, ModalWrapper } from '../atoms';
 import { useDRepContext } from '@/context/drepContext';
 import { ChangeEvent, useState, useRef } from 'react';
 import { useCardano } from '@/context/cardanoContext';
-import { generateLoginFile } from '@/auth/initAuth';
 import { useWallet } from '@/context/walletContext';
 import { AuthMethod as ExtendedAuthMethod } from '../../../types/auth';
+import { LoginFileFlowModal } from './LoginFileFlowModal';
 export const getSwitchWithTextTrack = (isMobile, switchWidth) =>
   styled(Switch)(({ theme }) => ({
     width: switchWidth,
@@ -99,6 +99,7 @@ export function UserLoginModal({
 }: {
   hideCloseButton: boolean;
 }) {
+  const [isLoginFlowModalOpen, setIsLoginFlowModalOpen] = useState(false);
   const { setLoginModalOpen, setIsWalletListModalOpen } = useDRepContext();
   const { isEnabled } = useCardano();
   const [isChecked, setIsChecked] = useState(false);
@@ -138,7 +139,7 @@ export function UserLoginModal({
   const handleLoginFileGenerate = async () => {
     setIsLoading(true);
     try {
-      await generateLoginFile();
+      setIsLoginFlowModalOpen(true);
     } catch (error) {
       console.error('Error generating login file:', error);
     } finally {
@@ -153,7 +154,9 @@ export function UserLoginModal({
     }
     setIsLoading(true);
     try {
-      await connectWallet(ExtendedAuthMethod.LOGIN_FILE, { file: selectedFile });
+      await connectWallet(ExtendedAuthMethod.LOGIN_FILE, {
+        file: selectedFile,
+      });
       setLoginModalOpen(false);
     } catch (error) {
       console.error('Error logging in with file:', error);
@@ -175,177 +178,214 @@ export function UserLoginModal({
   };
 
   return (
-    <ModalWrapper
-      dataTestId="login-modal"
-      hideCloseButton={hideCloseButton}
-      onClose={() => setLoginModalOpen(false)}
-    >
-      <ModalHeader
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '1rem',
-          marginBottom: '1rem',
-        }}
+    <>
+      <ModalWrapper
+        dataTestId="login-modal"
+        hideCloseButton={hideCloseButton}
+        onClose={() => setLoginModalOpen(false)}
       >
-        <img src="/img/info-circle.png" width={'0.125rem'} alt="login icon" />
-        <Typography variant="h4" className="py-1 text-center" component="span">
-          Login
-        </Typography>
-      </ModalHeader>
-
-      <ModalContents>
-        <Tabs
-          value={activeTab}
-          onChange={handleTabChange}
-          variant="fullWidth"
-          sx={{ mb: 3 }}
-        >
-          <Tab label="Browser Wallet" />
-          <Tab label="Login File" />
-          <Tab label="Cold Wallet" />
-        </Tabs>
-
-        <Box
+        <ModalHeader
           sx={{
             display: 'flex',
-            flexDirection: 'column',
-            gap: '1rem',
             alignItems: 'center',
-            maxHeight: '25rem',
-            overflow: 'auto',
-            width: '100%',
-            padding: '0.25rem',
+            justifyContent: 'center',
+            gap: '1rem',
+            marginBottom: '1rem',
           }}
         >
-          {activeTab === 0 && (
-            <Box sx={{ width: '100%', textAlign: 'center' }}>
-              <Typography variant="body1" sx={{ mb: 2 }}>
-                Connect and authenticate with your browser wallet
-              </Typography>
-              <Button
-                variant="contained"
-                color="primary"
-                fullWidth
-                size="large"
-                onClick={handleBrowserWalletLogin}
-                disabled={isLoading || isEnabled}
-                sx={{ mb: 2 }}
-              >
-                {isLoading ? <CircularProgress size={24} /> : 'Connect Wallet'}
-              </Button>
-              {isEnabled && (
-                <Typography variant="body2" color="success.main">
-                  Wallet connected! Proceed to authenticate.
-                </Typography>
-              )}
-            </Box>
-          )}
+          <img src="/img/info-circle.png" width={'0.125rem'} alt="login icon" />
+          <Typography
+            variant="h4"
+            className="py-1 text-center"
+            component="span"
+          >
+            Login
+          </Typography>
+        </ModalHeader>
 
-          {activeTab === 1 && (
-            <Box sx={{ width: '100%', textAlign: 'center', position:'relative' }}>
-              
-              {/* <Typography variant="body1" sx={{ mb: 3 }}>
-                Use or generate a login file to authenticate
-              </Typography>
-              
-              <Button
-                variant="contained"
-                color="primary"
-                fullWidth
-                size="large"
-                onClick={handleLoginFileGenerate}
-                disabled={isLoading || !isEnabled}
-                sx={{ mb: 3 }}
-              >
-                {isLoading ? <CircularProgress size={24} /> : 'Generate Login File'}
-              </Button>
-              
-              <Typography sx={{ mb: 1 }}>- OR -</Typography>
-              
-              <Typography variant="body2" sx={{ mb: 1, textAlign: 'left' }}>
-                Upload an existing login file:
-              </Typography>
-              
-              <input
-                type="file"
-                accept=".json"
-                onChange={handleFileChange}
-                ref={fileInputRef}
-                style={{ display: 'none' }}
-              />
-              
-              <Button
-                variant="outlined"
-                fullWidth
-                onClick={() => fileInputRef.current?.click()}
-                sx={{ mb: 2 }}
-              >
-                {selectedFile ? selectedFile.name : 'Choose Login File'}
-              </Button>
-              
-              {selectedFile && (
+        <ModalContents>
+          <Tabs
+            value={activeTab}
+            onChange={handleTabChange}
+            variant="fullWidth"
+            sx={{ mb: 3 }}
+          >
+            <Tab label="Browser Wallet" />
+            <Tab label="Login File" />
+            <Tab label="Cold Wallet" />
+          </Tabs>
+
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1rem',
+              alignItems: 'center',
+              maxHeight: '25rem',
+              overflow: 'auto',
+              width: '100%',
+              padding: '0.25rem',
+            }}
+          >
+            {activeTab === 0 && (
+              <Box sx={{ width: '100%', textAlign: 'center' }}>
+                <Typography variant="body1" sx={{ mb: 2 }}>
+                  Connect and authenticate with your browser wallet
+                </Typography>
                 <Button
                   variant="contained"
-                  color="secondary"
+                  color="primary"
                   fullWidth
-                  onClick={handleLoginWithFile}
-                  disabled={isLoading}
+                  size="large"
+                  onClick={handleBrowserWalletLogin}
+                  disabled={isLoading || isEnabled}
+                  sx={{ mb: 2 }}
                 >
-                  {isLoading ? <CircularProgress size={24} /> : 'Login with File'}
+                  {isLoading ? (
+                    <CircularProgress size={24} />
+                  ) : (
+                    'Connect Wallet'
+                  )}
                 </Button>
-              )} */}
-              <Typography variant="body1" sx={{ mb: 2 }}>
-                Coming soon
-              </Typography>
-            </Box>
-          )}
+                {isEnabled && (
+                  <Typography variant="body2" color="success.main">
+                    Wallet connected! Proceed to authenticate.
+                  </Typography>
+                )}
+              </Box>
+            )}
 
-          {activeTab === 2 && (
-            <Box sx={{ width: '100%', textAlign: 'center' }}>
-              {/* <Typography variant="body1" sx={{ mb: 2 }}>
+            {activeTab === 1 && (
+              <Box
+                sx={{
+                  width: '100%',
+                  textAlign: 'center',
+                  position: 'relative',
+                }}
+              >
+                <Typography variant="body1" sx={{ mb: 3 }}>
+                  Use or generate a login file to authenticate
+                </Typography>
+
+                <Button
+                  variant="contained"
+                  color="primary"
+                  fullWidth
+                  size="large"
+                  onClick={handleLoginFileGenerate}
+                  disabled={isLoading}
+                  sx={{ mb: 3 }}
+                >
+                  {isLoading ? (
+                    <CircularProgress size={24} />
+                  ) : (
+                    'Generate Login File'
+                  )}
+                </Button>
+
+                <Typography sx={{ mb: 1 }}>- OR -</Typography>
+
+                <Typography variant="body2" sx={{ mb: 1, textAlign: 'left' }}>
+                  Upload an existing login file:
+                </Typography>
+
+                <input
+                  type="file"
+                  accept=".signed"
+                  onChange={handleFileChange}
+                  ref={fileInputRef}
+                  style={{ display: 'none' }}
+                />
+
+                <Button
+                  variant="outlined"
+                  fullWidth
+                  onClick={() => fileInputRef.current?.click()}
+                  sx={{ mb: 2 }}
+                >
+                  {selectedFile ? selectedFile.name : 'Choose Login File'}
+                </Button>
+
+                {selectedFile && (
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    fullWidth
+                    onClick={handleLoginWithFile}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <CircularProgress size={24} />
+                    ) : (
+                      'Login with File'
+                    )}
+                  </Button>
+                )}
+              </Box>
+            )}
+
+            {activeTab === 2 && (
+              <Box sx={{ width: '100%', textAlign: 'center' }}>
+                {/* <Typography variant="body1" sx={{ mb: 2 }}>
                 Sign a transaction offline with your cold wallet
-              </Typography>
-              <Typography variant="body2" sx={{ mb: 3 }}>
+                </Typography>
+                <Typography variant="body2" sx={{ mb: 3 }}>
                 This will prepare an expired transaction for you to sign offline.
                 You'll download the transaction, sign it, and upload the result.
-              </Typography>
-              <Button
+                </Typography>
+                <Button
                 variant="contained"
                 color="primary"
                 fullWidth
                 size="large"
                 onClick={handleColdWalletLogin}
                 disabled={isLoading}
-              >
+                >
                 {isLoading ? <CircularProgress size={24} /> : 'Start Cold Wallet Authentication'}
-              </Button> */}
-               <Typography variant="body1" sx={{ mb: 2 }}>
-                Coming soon
-              </Typography>
-            </Box>
-          )}
-        </Box>
+                </Button> */}
+                <Typography variant="body1" sx={{ mb: 2 }}>
+                  Coming soon
+                </Typography>
+              </Box>
+            )}
+          </Box>
 
-        <Box sx={{ mt: 3 }}>
-          <label
-            htmlFor="checkbox"
-            className="flex cursor-pointer items-center gap-1"
-          >
-            <Checkbox id="checkbox" checked={isChecked} onChange={handleCheck} />
-            <Typography variant="subtitle2" color="text.secondary">
-              Keep me logged in for two weeks.
+          <Box sx={{ mt: 3 }}>
+            <label
+              htmlFor="checkbox"
+              className="flex cursor-pointer items-center gap-1"
+            >
+              <Checkbox
+                id="checkbox"
+                checked={isChecked}
+                onChange={handleCheck}
+              />
+              <Typography variant="subtitle2" color="text.secondary">
+                Keep me logged in for two weeks.
+              </Typography>
+            </label>
+            <Typography
+              variant="subtitle2"
+              color="text.secondary"
+              sx={{ mt: 1 }}
+            >
+              {activeTab === 0 &&
+                'Signing in with a browser wallet requires signature verification.'}
+              {activeTab === 1 &&
+                'Login files allow you to authenticate without connecting your wallet each time.'}
+              {activeTab === 2 &&
+                'Signing in with a cold wallet requires signing an expired transaction.'}
             </Typography>
-          </label>
-          <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1 }}>
-            {activeTab === 0 && "Signing in with a browser wallet requires signature verification."}
-            {activeTab === 1 && "Login files allow you to authenticate without connecting your wallet each time."}
-            {activeTab === 2 && "Signing in with a cold wallet requires signing an expired transaction."}
-          </Typography>
-        </Box>
-      </ModalContents>
-    </ModalWrapper>
+          </Box>
+        </ModalContents>
+      </ModalWrapper>
+      {
+        isLoginFlowModalOpen && (
+          <LoginFileFlowModal
+            onClose={() => setIsLoginFlowModalOpen(false)}
+          />
+        )
+      }
+    </>
   );
 }
-

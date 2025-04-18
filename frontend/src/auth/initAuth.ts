@@ -32,17 +32,3 @@ export function initializeAuthentication(cardanoContext: CardanoContext, transac
   console.log('Authentication service initialized with all providers');
   return authService;
 }
-
-/**
- * Helper function to generate a login file
- * @returns Promise resolving to true if successful
- */
-export async function generateLoginFile(): Promise<boolean> {
-  const provider = authService.getProviders()[ExtendedAuthMethod.LOGIN_FILE] as LoginFileProvider;
-  if (!provider) {
-    console.error('Login file provider not found');
-    return false;
-  }
-  
-  return provider.generateLoginFile();
-}
