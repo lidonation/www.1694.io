@@ -12,14 +12,14 @@ const ProposalMetrics = ({ search = '' }: { search?: string }) => {
         intersectNamedAdministrator: null,
     });
 
-    const {proposalMetrics: fetchedMetrics, isProposalMetricsLoading} = useGetProposalMetricsQuery();
+    const {proposalMetrics: fetchedMetrics, isProposalMetricsLoading} = useGetProposalMetricsQuery(search);
 
 
     useEffect(() => {
         if (!isProposalMetricsLoading && fetchedMetrics) {
             setMetrics({...fetchedMetrics});
         }
-    }, [isProposalMetricsLoading, fetchedMetrics]);
+    }, [isProposalMetricsLoading, fetchedMetrics, search]);
 
 
     return (
