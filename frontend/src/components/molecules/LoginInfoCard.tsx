@@ -1,5 +1,5 @@
 import { Box, Button, Typography } from '@mui/material';
-import { useCardano } from '@/context/walletContext';
+import { useCardano } from '@/context/cardanoContext';
 import { useDRepContext } from '@/context/drepContext';
 import { removeItemFromLocalStorage } from '@/lib';
 export const LoginInfoCard = () => {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import NewNotePostForm from '../molecules/NewNotePostForm';
-import { useCardano } from '@/context/walletContext';
+import { useCardano } from '@/context/cardanoContext';
 import { useDRepContext } from '@/context/drepContext';
 import { Address } from '@emurgo/cardano-serialization-lib-asmjs';
 import { z } from 'zod';

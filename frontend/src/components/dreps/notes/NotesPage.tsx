@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import SingleNote from './SingleNote';
 import NotesPageHeader from './NotesPageHeader';
 import { CircularProgress, List, Skeleton } from '@mui/material';
-import { useCardano } from '@/context/walletContext';
+import { useCardano } from '@/context/cardanoContext';
 import { useDRepContext } from '@/context/drepContext';
 import { useGetNotesQuery } from '@/hooks/useGetNotesQuery';
 import _ from 'lodash';

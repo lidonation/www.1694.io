@@ -1,4 +1,4 @@
-import { useCardano } from '@/context/walletContext';
+import { useCardano } from '@/context/cardanoContext';
 import React from 'react';
 
 const PostVisibilityInput = ({ registerVisibility, errors }) => {

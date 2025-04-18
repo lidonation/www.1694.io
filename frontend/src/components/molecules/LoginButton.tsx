@@ -1,6 +1,6 @@
 import React from 'react';
 import Button from '../atoms/Button';
-import { useCardano } from '@/context/walletContext';
+import { useCardano } from '@/context/cardanoContext';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { CircularProgress } from '@mui/material';
 import { useDRepContext } from '@/context/drepContext';

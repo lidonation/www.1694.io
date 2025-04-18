@@ -10,7 +10,7 @@ import {
 import MetadataViewer from './MetadataViewer';
 import DRepSocialLinks from './DRepSocialLinks';
 import DRepAvatarCard from './DRepAvatarCard';
-import { useCardano } from '@/context/walletContext';
+import { useCardano } from '@/context/cardanoContext';
 import { useDRepContext } from '@/context/drepContext';
 import { useGetDRepMetadataQuery } from '@/hooks/useGetDRepMetadataQuery';
 import DRepIdHolder from './DRepIdHolder';

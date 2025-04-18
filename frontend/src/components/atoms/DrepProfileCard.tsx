@@ -20,7 +20,7 @@ import {
   renderJsonLdValue,
 } from '@/lib';
 import { useScreenDimension } from '@/hooks';
-import { useCardano } from '@/context/walletContext';
+import { useCardano } from '@/context/cardanoContext';
 import MetadataViewer from './MetadataViewer';
 import { renderJSONLDToJSONArr } from '@/lib/metadataProcessor';
 import DRepSocialLinks from './DRepSocialLinks';

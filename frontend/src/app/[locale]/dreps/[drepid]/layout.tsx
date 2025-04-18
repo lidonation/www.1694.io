@@ -3,7 +3,7 @@ import DRepProfileBar from '@/components/atoms/DrepProfileBar';
 import DrepTabGroup from '@/components/atoms/DrepTabGroup';
 import { useState } from 'react';
 import { Grow, IconButton } from '@mui/material';
-import { useCardano } from '@/context/walletContext';
+import { useCardano } from '@/context/cardanoContext';
 import { useGetSingleDRepQuery } from '@/hooks/useGetSingleDRepQuery';
 import { useParams } from 'next/navigation';
 import NotFound from './not-found';

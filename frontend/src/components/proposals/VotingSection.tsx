@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import ThumbDownIcon from '@mui/icons-material/ThumbDown';
 import { Box, Button, CircularProgress } from '@mui/material';
-import { useCardano } from '@/context/walletContext';
+import { useCardano } from '@/context/cardanoContext';
 import { getDataFromSession } from '@/lib';
 import { setUpPdfJwt } from '@/lib/pdfJwtHelper';
 import { postProposalVote } from '@/services/requests/postProposalVote';

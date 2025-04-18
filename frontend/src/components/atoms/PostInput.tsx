@@ -1,6 +1,5 @@
-import { useCardano } from '@/context/walletContext';
-import { Input } from '@mui/material';
-import React, { useState } from 'react';
+import { useCardano } from '@/context/cardanoContext';
+import React from 'react';
 
 const PostInput = ({
   inputName,

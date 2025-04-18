@@ -1,8 +1,11 @@
 import { FC, useCallback } from 'react';
 import { Box, CircularProgress, Typography } from '@mui/material';
-import { useCardano } from '@/context/walletContext';
+import { useCardano } from '@/context/cardanoContext';
 import { useDRepContext } from '@/context/drepContext';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
+import { useWallet } from '@/context/walletContext';
+import { AuthMethod as ExtendedAuthMethod } from '../../../types/auth';
+
 export interface WalletOption {
   icon: string;
   label: string;
@@ -12,24 +15,27 @@ export interface WalletOption {
 }
 
 export const WalletOptionButton: FC<WalletOption> = ({ ...props }) => {
-  const { enable, isEnableLoading } = useCardano();
-  const { setIsWalletListModalOpen } = useDRepContext();
+  const { isEnableLoading } = useCardano();
+  const { setIsWalletListModalOpen, setLoginModalOpen } = useDRepContext();
   const { addErrorAlert } = useGlobalNotifications();
+  const { connectWallet } = useWallet();
   const { dataTestId, icon, label, name, cip95Available } = props;
 
   const enableByWalletName = useCallback(async () => {
     try {
       if (isEnableLoading) return;
-      const res = await enable(name);
-      if (res.status === 'WRONG_NETWORK') {
-        return;
+
+      const success = await connectWallet(ExtendedAuthMethod.HOT_WALLET, name);
+
+      if (success) {
+        setIsWalletListModalOpen(false);
+        setLoginModalOpen(false);
       }
-      setIsWalletListModalOpen(false);
     } catch (error) {
       addErrorAlert(String(error?.error ? error?.error : error));
       console.log(error);
     }
-  }, [enable, isEnableLoading]);
+  }, [isEnableLoading, name]);
 
   return (
     <Box

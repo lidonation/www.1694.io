@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { CertificatesBuilder } from '@emurgo/cardano-serialization-lib-asmjs';
-import { useCardano } from '@/context/walletContext';
+import { useCardano } from '@/context/cardanoContext';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { useGetSingleDRepQuery } from './useGetSingleDRepQuery';
 import { useDRepContext } from '@/context/drepContext';
