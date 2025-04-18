@@ -25,11 +25,18 @@ export const WalletOptionButton: FC<WalletOption> = ({ ...props }) => {
     try {
       if (isEnableLoading) return;
 
-      const success = await connectWallet(ExtendedAuthMethod.HOT_WALLET, name);
+      const { success, error } = await connectWallet(
+        ExtendedAuthMethod.HOT_WALLET,
+        name,
+      );
 
       if (success) {
         setIsWalletListModalOpen(false);
         setLoginModalOpen(false);
+      } else {
+        console.log('Error connecting to wallet:', error);
+        addErrorAlert(error || 'Unknown error connecting to wallet');
+       
       }
     } catch (error) {
       addErrorAlert(String(error?.error ? error?.error : error));
