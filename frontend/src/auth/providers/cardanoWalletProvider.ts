@@ -7,7 +7,6 @@ import {
 import { CardanoContext } from '@/context/cardanoContext';
 import { CardanoApiWallet } from '@/models/wallet';
 
-
 export class CardanoWalletProvider implements AuthenticationProvider {
   private cardanoContext: CardanoContext;
   private connected: boolean = false;
@@ -32,6 +31,13 @@ export class CardanoWalletProvider implements AuthenticationProvider {
       console.log('Cardano wallet connection result:', result);
 
       if (result.status === 'ok') {
+        const payloadBuffer = Buffer.from(
+          'Please verify your identity',
+        ).toString('hex');
+        await this.cardanoContext.walletApi.signData(
+          this.cardanoContext.stakeKey,
+          payloadBuffer,
+        );
         this.connected = true;
         this.walletName = walletName;
 
@@ -84,8 +90,6 @@ export class CardanoWalletProvider implements AuthenticationProvider {
    */
   async getAccountInfo(): Promise<AccountInfo | null> {
     if (!this.isConnected()) return null;
-    console.log('Fetching account info from Cardano wallet', this.cardanoContext);
-    
 
     return {
       address: this.cardanoContext.address || '',
@@ -123,38 +127,40 @@ export class CardanoWalletProvider implements AuthenticationProvider {
   async reconnect(): Promise<AuthResult> {
     try {
       const walletName = getItemFromLocalStorage(`${WALLET_LS_KEY}_name`);
-      const existingWalletAPI = getItemFromLocalStorage(`${WALLET_LS_KEY}_api`) as CardanoApiWallet
-      
+      const existingWalletAPI = getItemFromLocalStorage(
+        `${WALLET_LS_KEY}_api`,
+      ) as CardanoApiWallet;
+
       if (!walletName || !existingWalletAPI) {
         return {
           success: false,
-          error: 'No saved wallet information found'
+          error: 'No saved wallet information found',
         };
       }
-      
+
       this.cardanoContext.setWalletApi(existingWalletAPI);
-      
+
       const result = await this.cardanoContext.enable(walletName);
-      
+
       if (result.status === 'ok') {
         this.connected = true;
         this.walletName = walletName;
-        
+
         return {
           success: true,
           accountInfo: await this.getAccountInfo(),
         };
       }
-      
-      return { 
-        success: false, 
-        error: result.error || 'Failed to reconnect wallet' 
+
+      return {
+        success: false,
+        error: result.error || 'Failed to reconnect wallet',
       };
     } catch (error) {
       console.error('Error reconnecting to Cardano wallet:', error);
-      return { 
-        success: false, 
-        error: error instanceof Error ? error.message : String(error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
       };
     }
   }

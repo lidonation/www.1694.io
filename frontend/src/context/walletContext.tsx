@@ -23,7 +23,10 @@ interface WalletState {
 
 interface WalletContextType {
   wallet: WalletState;
-  connectWallet: (method: string, params?: any) => Promise<boolean>;
+  connectWallet: (method: string, params?: any) => Promise<{
+    success: boolean;
+    error?: string;
+  }>;
   disconnectWallet: () => Promise<void>;
   isHotWallet: boolean;
   isColdWallet: boolean;
@@ -83,12 +86,23 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   const connectWallet = async (
     method: string,
     params?: any,
-  ): Promise<boolean> => {
+  ): Promise<{
+    success: boolean;
+    error?: string;
+  }> => {
     try {
       return await authenticate(method, params);
     } catch (error) {
       console.error('Error connecting wallet:', error);
-      return false;
+      return {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : typeof error === 'object'
+            ? JSON.stringify(error)
+            : String(error),
+      };
     }
   };
 

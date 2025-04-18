@@ -11,7 +11,10 @@ interface AuthContextType {
   isAuthenticating: boolean;
   authError: string | null;
   activeProvider: string | null;
-  authenticate: (method: AuthMethod | string, params?: any) => Promise<boolean>;
+  authenticate: (method: AuthMethod | string, params?: any) => Promise<{
+    success: boolean;
+    error?: string;
+  }>;
   logout: () => Promise<void>;
 }
 
@@ -21,7 +24,10 @@ const AuthContext = createContext<AuthContextType>({
   isAuthenticating: false,
   authError: null,
   activeProvider: null,
-  authenticate: async () => false,
+  authenticate: async () => ({
+    success: false,
+    error: 'No authentication method provided',
+  }),
   logout: async () => {},
 });
 
@@ -80,7 +86,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
    * @param params Optional parameters for the method
    * @returns Success status
    */
-  const authenticate = async (method: AuthMethod | string, params?: any): Promise<boolean> => {
+  const authenticate = async (method: AuthMethod | string, params?: any): Promise<{
+    success: boolean;
+    error?: string;
+  }> => {
     setIsAuthenticating(true);
     setAuthError(null);
     
@@ -91,15 +100,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
         setIsAuthenticated(true);
         setAccountInfo(result.accountInfo || null);
         setActiveProvider(service.getActiveProviderName());
-        return true;
+        return {
+          success: true,
+          error: null,
+        }
       } else {
         setAuthError(result.error || 'Authentication failed');
-        return false;
+        return {
+          success: false,
+          error: result.error || 'Authentication failed',
+        }
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       setAuthError(errorMessage);
-      return false;
+      return {
+        success: false,
+        error: errorMessage,
+      }
     } finally {
       setIsAuthenticating(false);
     }
