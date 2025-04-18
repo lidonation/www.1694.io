@@ -9,7 +9,7 @@ import {
   SubmitMetadataType,
 } from '../../../types/commonTypes';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
-import { useCardano } from '@/context/walletContext';
+import { useCardano } from '@/context/cardanoContext';
 import { CircularProgress, Tabs, Tab } from '@mui/material';
 import { urls } from '@/constants';
 import { getItemFromIndexedDB } from '@/lib/indexedDb';

@@ -3,7 +3,7 @@ import BreadCrumbs from '@/components/molecules/BreadCrumbs';
 import ViewDraftsButton from '@/components/molecules/ViewDraftsButton';
 import UpdateNoteForm from '@/components/organisms/UpdateNoteForm';
 import { useDRepContext } from '@/context/drepContext';
-import { useCardano } from '@/context/walletContext';
+import { useCardano } from '@/context/cardanoContext';
 import { getSingleNote } from '@/services/requests/getSingleNote';
 import React, { useEffect, useState } from 'react';
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useCardano } from '@/context/walletContext';
+import { useCardano } from '@/context/cardanoContext';
 import { useDRepContext } from '@/context/drepContext';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';

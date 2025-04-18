@@ -1,10 +1,12 @@
-import { useCardano } from '@/context/walletContext';
+import { useWallet } from '@/context/walletContext';
 import { useScreenDimension } from '@/hooks';
 import { formattedAda, shortenAddress } from '@/lib';
 import { Box, Typography } from '@mui/material';
 
 export const ConnectedWalletCard = () => {
-  const { address, walletState } = useCardano();
+  const {
+    wallet: { address, balance },
+  } = useWallet();
   const { isMobile } = useScreenDimension();
   return (
     <Box
@@ -50,13 +52,13 @@ export const ConnectedWalletCard = () => {
             Voting Power:
           </Typography>
         )}
-        {walletState.balance && (
+        {balance && (
           <Typography
             fontWeight={600}
             fontSize="0.75rem"
             className="text-xs tracking-wide text-gray-300"
           >
-            ₳ {formattedAda(walletState.balance, 2)}
+            ₳ {formattedAda(balance, 2)}
           </Typography>
         )}
       </Box>

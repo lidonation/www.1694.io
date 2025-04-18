@@ -1,18 +1,18 @@
 import { Box, Grow } from '@mui/material';
-import { useCardano } from '@/context/walletContext';
 import { useDRepContext } from '@/context/drepContext';
 import { useEffect, useRef, useState } from 'react';
 import { ConnectedWalletCard } from '../atoms/ConnectedWalletCard';
 import { DelegatedTo } from './DelegatedTo';
 import Button from '../atoms/Button';
+import { useWallet } from '@/context/walletContext';
 
 type WalletInfoCardProps = {
   test_name: string;
 };
 
 export const WalletInfoCard = ({ test_name }: WalletInfoCardProps) => {
-  const { address, isEnabled, disconnectWallet } = useCardano();
-  const { setLoginModalOpen, isLoggedIn, logout } = useDRepContext();
+  const { wallet:{address,isConnected}, disconnectWallet } = useWallet();
+  const {logout } = useDRepContext();
   const [showDetails, setShowDetails] = useState(false);
 
   const dropDownRef = useRef(null);
@@ -44,16 +44,10 @@ export const WalletInfoCard = ({ test_name }: WalletInfoCardProps) => {
     }, 400);
   }
 
-  function disconnectUserWallet() {
-    setShowDetails(false);
-    setTimeout(() => {
-      disconnectWallet();
-    }, 400);
-  }
 
   return (
     <Grow
-      in={isEnabled}
+      in={isConnected}
       style={{ transformOrigin: 'top center' }}
       {...(!!address ? { timeout: 0 } : { timeout: 300 })}
     >
@@ -102,35 +96,15 @@ export const WalletInfoCard = ({ test_name }: WalletInfoCardProps) => {
           <Box className="absolute left-0 right-0 z-50">
             <DelegatedTo className="mt-1 rounded-t-3xl" />
             <Box className="flex w-full justify-end rounded-b-3xl bg-extra_gray p-1.5 shadow">
-              {isLoggedIn ? (
-                <Button
-                  size="small"
-                  sx={{
-                    backgroundColor: '#1f2937',
-                  }}
-                  handleClick={logUserOut}
-                >
-                  Logout
-                </Button>
-              ) : (
-                <Box className="flex items-center gap-2">
-                  <Button
-                    size="small"
-                    sx={{
-                      backgroundColor: '#1f2937',
-                    }}
-                    handleClick={disconnectUserWallet}
-                  >
-                    Disconnect wallet
-                  </Button>
-                  <Button
-                    size="small"
-                    handleClick={() => setLoginModalOpen(true)}
-                  >
-                    Login
-                  </Button>
-                </Box>
-              )}
+              <Button
+                size="small"
+                sx={{
+                  backgroundColor: '#1f2937',
+                }}
+                handleClick={logUserOut}
+              >
+                Logout
+              </Button>
             </Box>
           </Box>
         </Grow>

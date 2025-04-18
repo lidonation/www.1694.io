@@ -2,7 +2,7 @@ import React from 'react';
 import DrepInfoCard from '../atoms/DrepInfoCard';
 import { urls } from '@/constants';
 import { useDRepContext } from '@/context/drepContext';
-import { useCardano } from '@/context/walletContext';
+import { useCardano } from '@/context/cardanoContext';
 import { useGetAdaHolderCurrentDelegationQuery } from '@/hooks/useGetAdaHolderCurrentDelegationQuery';
 
 const DrepInfoCardRow = () => {

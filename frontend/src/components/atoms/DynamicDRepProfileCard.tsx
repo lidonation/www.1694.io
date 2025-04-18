@@ -19,7 +19,7 @@ import {
   renderJsonLdValue,
 } from '@/lib';
 import { useScreenDimension } from '@/hooks';
-import { useCardano } from '@/context/walletContext';
+import { useCardano } from '@/context/cardanoContext';
 import { useDRepContext } from '@/context/drepContext';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { deleteItemFromIndexedDB } from '@/lib/indexedDb';

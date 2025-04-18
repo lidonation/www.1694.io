@@ -3,7 +3,7 @@ import React, { memo, useEffect, useState } from 'react';
 import DrepTimelineWaterfall from './DrepTimelineWaterfall';
 import Link from 'next/link';
 import Button from '../atoms/Button';
-import { useCardano } from '@/context/walletContext';
+import { useCardano } from '@/context/cardanoContext';
 import {
   useParams,
   usePathname,

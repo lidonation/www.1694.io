@@ -11,7 +11,7 @@ import { Box } from '@mui/material';
 import VoteResultsCard from '@/components/proposals/VoteResultsCard';
 import { useGetActionProposalPollQuery } from '@/hooks/useGetActionProposalPollQuery';
 import VotingSection from '@/components/proposals/VotingSection';
-import { useCardano } from '@/context/walletContext';
+import { useCardano } from '@/context/cardanoContext';
 
 function page() {
   const { proposalid } = useParams();

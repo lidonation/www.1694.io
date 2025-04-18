@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import Button from './Button';
-import { useCardano } from '@/context/walletContext';
+import { useCardano } from '@/context/cardanoContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import DotsLoader from './DotsLoader';

@@ -1,5 +1,5 @@
 import { QUERY_KEYS } from '@/constants/queryKeys';
-import { useCardano } from '@/context/walletContext';
+import { useCardano } from '@/context/cardanoContext';
 import { getNotes } from '@/services/requests/getNotes';
 import { useQuery } from 'react-query';
 import { StakeKeys } from '../../types/commonTypes';

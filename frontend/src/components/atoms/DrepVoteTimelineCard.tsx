@@ -10,7 +10,7 @@ import {
   VoteRationaleModal,
   VoteRationaleModalProps,
 } from '../molecules/VoteRationaleModal';
-import { useCardano } from '@/context/walletContext';
+import { useCardano } from '@/context/cardanoContext';
 import { GovAction } from '../../../types/api';
 
 interface DrepVoteTimelineCardProps {

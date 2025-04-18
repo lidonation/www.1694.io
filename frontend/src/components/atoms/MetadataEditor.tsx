@@ -5,7 +5,7 @@ import { HtmlTooltip } from './HoverChip';
 import Button from './Button';
 import { submitMetadata } from '@/lib/metadataProcessor';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
-import { useCardano } from '@/context/walletContext';
+import { useCardano } from '@/context/cardanoContext';
 import {
   CircularProgress,
   Accordion,

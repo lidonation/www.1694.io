@@ -2,7 +2,7 @@ import { ChatBubbleOutline, Send } from '@mui/icons-material';
 import { Box, Button } from '@mui/material';
 import React, { useEffect, useRef, useState } from 'react';
 import { useDRepContext } from '@/context/drepContext';
-import { useCardano } from '@/context/walletContext';
+import { useCardano } from '@/context/cardanoContext';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { useQueryClient } from 'react-query';
 import { formatNumberTimeToReadable, getDataFromSession } from '@/lib';
