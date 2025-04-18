@@ -14,10 +14,10 @@ import { styled } from '@mui/material/styles';
 import { ModalContents, ModalHeader, ModalWrapper } from '../atoms';
 import { useDRepContext } from '@/context/drepContext';
 import { ChangeEvent, useState, useRef } from 'react';
-import { useCardano } from '@/context/cardanoContext';
 import { useWallet } from '@/context/walletContext';
 import { AuthMethod as ExtendedAuthMethod } from '../../../types/auth';
 import { LoginFileFlowModal } from './LoginFileFlowModal';
+import { useGlobalNotifications } from '@/context/globalNotificationContext';
 export const getSwitchWithTextTrack = (isMobile, switchWidth) =>
   styled(Switch)(({ theme }) => ({
     width: switchWidth,
@@ -100,17 +100,17 @@ export function UserLoginModal({
   hideCloseButton: boolean;
 }) {
   const [isLoginFlowModalOpen, setIsLoginFlowModalOpen] = useState(false);
-  const { setLoginModalOpen, setIsWalletListModalOpen } = useDRepContext();
-  const { isEnabled } = useCardano();
+  const { setLoginModalOpen, setIsWalletListModalOpen } = useDRepContext()
   const [isChecked, setIsChecked] = useState(false);
   const [loginPeriod, setLoginPeriod] = useState('24 hrs');
   const [activeTab, setActiveTab] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const {addErrorAlert} =useGlobalNotifications()
   const theme = useTheme();
 
-  const { wallet, connectWallet } = useWallet();
+  const { wallet:{isConnected}, connectWallet } = useWallet();
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
@@ -142,6 +142,7 @@ export function UserLoginModal({
       setIsLoginFlowModalOpen(true);
     } catch (error) {
       console.error('Error generating login file:', error);
+      addErrorAlert('Error generating login file. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -149,7 +150,7 @@ export function UserLoginModal({
 
   const handleLoginWithFile = async () => {
     if (!selectedFile) {
-      alert('Please select a login file first');
+      addErrorAlert('Please select a login file first');
       return;
     }
     setIsLoading(true);
@@ -160,6 +161,7 @@ export function UserLoginModal({
       setLoginModalOpen(false);
     } catch (error) {
       console.error('Error logging in with file:', error);
+      addErrorAlert('Error logging in with file. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -172,6 +174,7 @@ export function UserLoginModal({
       setLoginModalOpen(false);
     } catch (error) {
       console.error('Error logging in with cold wallet:', error);
+      addErrorAlert('Error logging in with cold wallet. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -238,7 +241,7 @@ export function UserLoginModal({
                   fullWidth
                   size="large"
                   onClick={handleBrowserWalletLogin}
-                  disabled={isLoading || isEnabled}
+                  disabled={isLoading || isConnected}
                   sx={{ mb: 2 }}
                 >
                   {isLoading ? (
@@ -247,7 +250,7 @@ export function UserLoginModal({
                     'Connect Wallet'
                   )}
                 </Button>
-                {isEnabled && (
+                {isConnected && (
                   <Typography variant="body2" color="success.main">
                     Wallet connected! Proceed to authenticate.
                   </Typography>
