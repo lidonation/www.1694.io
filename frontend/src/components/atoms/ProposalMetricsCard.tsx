@@ -28,7 +28,7 @@ const AnimatedMetric = ({
   useEffect(() => {
     setIsClientLoaded(true);
     if (!isLoading) {
-      setTimeout(() => setDisplayValue(value), 500);
+      setTimeout(() => setDisplayValue(value), 50);
     }
   }, [value, isLoading]);
 
@@ -40,6 +40,10 @@ const AnimatedMetric = ({
         height={40}
         animation="wave"
         className="rounded"
+        style={{ 
+          borderRadius: '4px',
+          margin: '0'
+        }}
       />
     );
   }

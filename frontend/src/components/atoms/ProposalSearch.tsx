@@ -1,9 +1,10 @@
 'use client';
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import ProposalFilter from '../molecules/ProposalFilter';
 import ProposalSort from '../molecules/ProposalSort';
 import { Box, InputBase, IconButton, Paper } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
+import CloseIcon from '@mui/icons-material/Close';
 
 interface ProposalSearchProps {
   search: string;
@@ -34,6 +35,21 @@ const ProposalSearch: React.FC<ProposalSearchProps> = ({
   sortOrder,
   setSortOrder,
 }) => {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [search]);
+
+  const handleClear = () => {
+    setSearch('');
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 0);
+  };
+
   return (
     <Box display="flex" alignItems="center" gap={1} width="100%">
       <Paper
@@ -55,15 +71,23 @@ const ProposalSearch: React.FC<ProposalSearchProps> = ({
           <SearchIcon sx={{ color: '#3b82f6' }} />
         </IconButton>
         <InputBase
-          sx={{
-            flex: 1,
-            fontSize: 14,
-          }}
+          inputRef={inputRef}
+          sx={{ flex: 1, fontSize: 14 }}
           placeholder="Search..."
           inputProps={{ 'aria-label': 'search proposals' }}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
+
+        {search && (
+          <IconButton
+            onClick={handleClear}
+            sx={{ p: 0, ml: 1 }}
+            aria-label="clear search"
+          >
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        )}
       </Paper>
 
       <ProposalFilter
