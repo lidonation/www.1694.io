@@ -13,7 +13,7 @@ export class ActionsProposalsService {
   private readonly BASE_URL = this.configService.get<string>('PDF_BASE_URL');
   async findAll({
     page = 1,
-    pageSize = 12,
+    pageSize = 15,
     search = '',
     sortBy = 'createdAt',
     sortOrder = 'desc',
