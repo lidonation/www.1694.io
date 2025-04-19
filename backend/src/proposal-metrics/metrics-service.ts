@@ -14,13 +14,27 @@ export class MetricsService {
     this.configService.get<string>('METRICS_BASE_URL') ||
     'https://www.lidonation.com/api/cardano/budget-proposals';
 
-  async getProposalMetrics(search?: string): Promise<any> {
+  async getProposalMetrics(search?: string, category?: string): Promise<any> {
     try {
       let url = `${this.METRICS_URL}/metrics`;
-      if (!!search) {
-        url += `?s=${encodeURIComponent(search)}`;
+      const queryParams = {
+        s: search,
+        category,
+      };
+
+      for (const param in queryParams) {
+        if (
+          queryParams[param] === undefined ||
+          queryParams[param] === null ||
+          queryParams[param] === ''
+        ) {
+          delete queryParams[param];
+        }
       }
-      
+
+      const params = new URLSearchParams(queryParams);
+      url += `?${params.toString()}`;
+
       const { data } = await firstValueFrom(
         this.httpService.get(url).pipe(
           catchError((error) => {

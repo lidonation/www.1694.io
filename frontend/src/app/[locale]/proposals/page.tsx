@@ -73,7 +73,7 @@ function ProposalsPage() {
 
       <section className="relative mb-6 rounded-full py-2 w-full max-w-7xl mx-auto lg:flex lg:flex-nowrap lg:items-center gap-4 justify-between">
         <div className="w-full lg:w-[45%]">
-          <ProposalMetrics search={search}/>
+          <ProposalMetrics search={search} categories={selectedCategories}/>
         </div>
 
         <div className="w-full lg:w-[55%] flex justify-end">

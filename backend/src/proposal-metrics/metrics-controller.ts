@@ -6,7 +6,10 @@ export class MetricsController {
   constructor(private readonly metricsService: MetricsService) {}
 
   @Get()
-  async getMetrics(@Query('s') search?: string) {
-    return this.metricsService.getProposalMetrics(search);
+  async getMetrics(
+    @Query('s') search?: string,
+    @Query('category') category?: string,
+  ) {
+    return this.metricsService.getProposalMetrics(search, category);
   }
 }
