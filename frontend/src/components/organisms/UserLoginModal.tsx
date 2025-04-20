@@ -100,17 +100,20 @@ export function UserLoginModal({
   hideCloseButton: boolean;
 }) {
   const [isLoginFlowModalOpen, setIsLoginFlowModalOpen] = useState(false);
-  const { setLoginModalOpen, setIsWalletListModalOpen } = useDRepContext()
+  const { setLoginModalOpen, setIsWalletListModalOpen } = useDRepContext();
   const [isChecked, setIsChecked] = useState(false);
   const [loginPeriod, setLoginPeriod] = useState('24 hrs');
   const [activeTab, setActiveTab] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const {addErrorAlert} =useGlobalNotifications()
+  const { addErrorAlert } = useGlobalNotifications();
   const theme = useTheme();
 
-  const { wallet:{isConnected}, connectWallet } = useWallet();
+  const {
+    wallet: { isConnected },
+    connectWallet,
+  } = useWallet();
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
@@ -267,29 +270,7 @@ export function UserLoginModal({
                 }}
               >
                 <Typography variant="body1" sx={{ mb: 3 }}>
-                  Use or generate a login file to authenticate
-                </Typography>
-
-                <Button
-                  variant="contained"
-                  color="primary"
-                  fullWidth
-                  size="large"
-                  onClick={handleLoginFileGenerate}
-                  disabled={isLoading}
-                  sx={{ mb: 3 }}
-                >
-                  {isLoading ? (
-                    <CircularProgress size={24} />
-                  ) : (
-                    'Generate Login File'
-                  )}
-                </Button>
-
-                <Typography sx={{ mb: 1 }}>- OR -</Typography>
-
-                <Typography variant="body2" sx={{ mb: 1, textAlign: 'left' }}>
-                  Upload an existing login file:
+                  Upload a login file:
                 </Typography>
 
                 <input
@@ -301,7 +282,8 @@ export function UserLoginModal({
                 />
 
                 <Button
-                  variant="outlined"
+                  variant="contained"
+                  color="primary"
                   fullWidth
                   onClick={() => fileInputRef.current?.click()}
                   sx={{ mb: 2 }}
@@ -324,6 +306,28 @@ export function UserLoginModal({
                     )}
                   </Button>
                 )}
+
+                <Typography sx={{ mb: 1 }}>- OR -</Typography>
+
+                <Typography variant="body1" sx={{ mb: 3 }}>
+                  Generate a login file to authenticate
+                </Typography>
+
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  fullWidth
+                  size="large"
+                  onClick={handleLoginFileGenerate}
+                  disabled={isLoading}
+                  sx={{ mb: 3 }}
+                >
+                  {isLoading ? (
+                    <CircularProgress size={24} />
+                  ) : (
+                    'Generate Login File'
+                  )}
+                </Button>
               </Box>
             )}
 
@@ -382,13 +386,9 @@ export function UserLoginModal({
           </Box>
         </ModalContents>
       </ModalWrapper>
-      {
-        isLoginFlowModalOpen && (
-          <LoginFileFlowModal
-            onClose={() => setIsLoginFlowModalOpen(false)}
-          />
-        )
-      }
+      {isLoginFlowModalOpen && (
+        <LoginFileFlowModal onClose={() => setIsLoginFlowModalOpen(false)} />
+      )}
     </>
   );
 }

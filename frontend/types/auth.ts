@@ -10,7 +10,9 @@ export interface AccountInfo {
   stakeKeyBech32?: string;
   balance?: string;
   dRepInfo?: {
-    id: string;
+    isDRep: boolean;
+    dRepId: string | null;
+    dRepIdBech32?: string | null;
     votingPower?: string;
     delegatedTo?: string;
     delegatedToVotingPower?: string;

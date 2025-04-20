@@ -2,7 +2,7 @@
 import BreadCrumbs from '@/components/molecules/BreadCrumbs';
 import { useGetActionProposalQuery } from '@/hooks/useGetActionProposalQuery';
 import { useParams } from 'next/navigation';
-import React, { useState } from 'react';
+import React from 'react';
 import ProposalIdentity from '@/components/proposals/ProposalIdentity';
 import ProposalDetails from '@/components/proposals/ProposalDetails';
 import ProposalComments from '@/components/proposals/ProposalComments';
@@ -11,11 +11,10 @@ import { Box } from '@mui/material';
 import VoteResultsCard from '@/components/proposals/VoteResultsCard';
 import { useGetActionProposalPollQuery } from '@/hooks/useGetActionProposalPollQuery';
 import VotingSection from '@/components/proposals/VotingSection';
-import { useCardano } from '@/context/cardanoContext';
+import { useWallet } from '@/context/walletContext';
 
 function page() {
   const { proposalid } = useParams();
-  const { isEnabled, dRepRegistration } = useCardano();
   const { actionProposal, isActionProposalLoading } = useGetActionProposalQuery(
     Number(proposalid),
   );
@@ -23,6 +22,9 @@ function page() {
     Number(proposalid),
   );
   const { poll } = useGetActionProposalPollQuery(Number(proposalid));
+  const {
+    wallet: { isConnected, isDRep },
+  } = useWallet();
 
   return (
     <Box>
@@ -56,9 +58,7 @@ function page() {
             isProposalLoading={isActionProposalLoading}
           />
 
-          {isEnabled && dRepRegistration?.registered && (
-            <VotingSection poll={poll?.data} />
-          )}
+          {isConnected && isDRep && <VotingSection poll={poll?.data} />}
 
           <VoteResultsCard poll={poll?.data} />
 

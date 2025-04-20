@@ -547,7 +547,7 @@ export function useTransactionHandler({
         const messageToSign = pendingTx.message || `Verify DRep`;
         const payloadBuffer = Buffer.from(messageToSign).toString('hex');
 
-        const signResult = await walletApi.signData(
+        const signResult = await walletApi.cip95.signData(
           pendingTx.signingKey,
           payloadBuffer,
         );

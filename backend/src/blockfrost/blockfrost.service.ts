@@ -5,7 +5,6 @@ import axios from 'axios';
 import { lastValueFrom } from 'rxjs';
 import { BlockfrostUTXO } from 'src/miscellaneous/misc.types';
 
-
 @Injectable()
 export class BlockfrostService {
   blockfrostAPIURL: string;
@@ -76,7 +75,10 @@ export class BlockfrostService {
           },
         }),
       ).catch((primaryError) => {
-        console.log('Primary IPFS endpoint failed, trying fallback:', primaryError.message);
+        console.log(
+          'Primary IPFS endpoint failed, trying fallback:',
+          primaryError.message,
+        );
         // If primary fails, try fallback
         const fallbackUrl = `${this.blockfrostIPFSFallbackURL}/ipfs/gateway/${ipfsHash}`;
         return lastValueFrom(
@@ -87,7 +89,7 @@ export class BlockfrostService {
           }),
         );
       });
-  
+
       return primaryResponse.data;
     } catch (error) {
       console.log(error);
@@ -97,7 +99,7 @@ export class BlockfrostService {
       );
     }
   }
-  
+
   async getLatestEpoch() {
     try {
       const apiUrl = `${this.blockfrostAPIURL}/epochs/latest`;
@@ -154,6 +156,26 @@ export class BlockfrostService {
         error?.response?.data || 'An error occured',
         error?.response?.status || 500,
       );
+    }
+  }
+
+  async getStakeAddressInfo(stakeAddress: string) {
+    try {
+      const apiUrl = `${this.blockfrostAPIURL}/accounts/${stakeAddress}`
+      const response = await lastValueFrom(
+        this.httpService.get(apiUrl, {
+          headers: {
+            project_id: this.blockfrostAPIProjectID,
+          }
+        })
+      )
+      return response.data
+    } catch (error) {
+      console.log(error)
+      throw new HttpException(
+        error?.response?.data || 'An error occured',
+        error?.response?.status || 500,
+      )
     }
   }
 }

@@ -5,7 +5,7 @@ import { Box, Typography } from '@mui/material';
 
 export const ConnectedWalletCard = () => {
   const {
-    wallet: { address, balance },
+    wallet: { stakeKeyBech32, balance },
   } = useWallet();
   const { isMobile } = useScreenDimension();
   return (
@@ -27,17 +27,25 @@ export const ConnectedWalletCard = () => {
             Wallet:
           </Typography>
         ) : (
-          <div className="mr-1">
+          <Box className="mr-1">
             <img src="/svgs/wallet.svg" alt="wallet icon" />
-          </div>
+          </Box>
         )}
-        {address && (
+        {stakeKeyBech32 ? (
           <Typography
             fontWeight={600}
             fontSize="0.75rem"
             className="text-xs uppercase tracking-wide text-gray-300"
           >
-            {shortenAddress(address, 5)}
+            {shortenAddress(stakeKeyBech32, 5)}
+          </Typography>
+        ) : (
+          <Typography
+            fontWeight={600}
+            fontSize="0.75rem"
+            className="text-xs uppercase tracking-wide text-gray-300"
+          >
+            --
           </Typography>
         )}
       </Box>
@@ -52,13 +60,21 @@ export const ConnectedWalletCard = () => {
             Voting Power:
           </Typography>
         )}
-        {balance && (
+        {balance ? (
           <Typography
             fontWeight={600}
             fontSize="0.75rem"
             className="text-xs tracking-wide text-gray-300"
           >
             ₳ {formattedAda(balance, 2)}
+          </Typography>
+        ) : (
+          <Typography
+            fontWeight={600}
+            fontSize="0.75rem"
+            className="text-xs uppercase tracking-wide text-gray-300"
+          >
+            --
           </Typography>
         )}
       </Box>

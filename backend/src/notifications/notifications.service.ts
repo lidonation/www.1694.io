@@ -4,7 +4,7 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { VotingActivityHistory } from 'src/common/types';
 import { createNotificationDto } from 'src/dto/createNotificationDto';
 import { Signature } from 'src/entities/signatures.entity';
-import { getCurrentDelegationWithStakeHexQuery } from 'src/queries/currentDelegation';
+import { getCurrentDelegationQuery } from 'src/queries/currentDelegation';
 import { getDrepVotingActivityInTimestampQuery } from 'src/queries/drepVotingActivity';
 import { DataSource, In } from 'typeorm';
 type NotificationEvent = //for reference
@@ -121,7 +121,7 @@ export class NotificationsService {
       const timeSinceLastSync = lastSyncTime || signature.lastSignedIn;
       //note_creation by drep delegated to
       const delegatedTo = (await this.cexplorerService.query(
-        getCurrentDelegationWithStakeHexQuery,
+        getCurrentDelegationQuery,
         [signature.stakeKey],
       )) as [{ drep_view: string }];
       const votingActivity = (await this.cexplorerService.manager.query(

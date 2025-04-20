@@ -10,6 +10,8 @@ import { useQueryClient } from 'react-query';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { useGetUserProposalVoteQuery } from '@/hooks/useGetUserProposalVoteQuery';
 import { loginUserToPdf } from '@/services/requests/loginUserToPdf';
+import { useWallet } from '@/context/walletContext';
+import { AuthMethod } from '../../../types/auth';
 
 type VoteSectionProps = {
   poll: any;
@@ -22,12 +24,16 @@ export default function VotingSection({ poll }: VoteSectionProps) {
   const [submitting, setSubmitting] = useState(false);
   const [hasVoted, setHasVoted] = useState(false);
 
-  const { stakeKey, dRepRegistration, dRepID, signMessage } = useCardano();
+  const { signMessage } = useCardano();
   const queryClient = useQueryClient();
   const { addSuccessAlert, addWarningAlert } = useGlobalNotifications();
+  const {
+    activeWallet,
+    wallet: { dRepId, dRepDelegatedToVotingPower },
+  } = useWallet();
 
   const pollId = poll[0]?.id;
-  const { pollVote } = useGetUserProposalVoteQuery(pollId, dRepID);
+  const { pollVote } = useGetUserProposalVoteQuery(pollId, dRepId);
 
   useEffect(() => {
     if (pollVote?.data?.[0]) {
@@ -43,12 +49,13 @@ export default function VotingSection({ poll }: VoteSectionProps) {
 
     if (!getDataFromSession('pdfUserJwt')) {
       let res = await signMessage(
-        'To proceed, please sign this data to verify your identity. This ensures that the action is secure and confirms your identity.',
-        stakeKey,
-        true,
+        `To proceed, please sign this data to verify your dRep identity. This ensures that the action is secure and confirms your identity. Timestamp: ${new Date()?.getTime()}`,
+        dRepId,
+        activeWallet === AuthMethod.HOT_WALLET ? true : false,
+        activeWallet === AuthMethod.LOGIN_FILE ? true : false,
       );
       const userResponse = await loginUserToPdf({
-        identifier: stakeKey,
+        identifier: dRepId,
         signedData: res,
       });
       setUpPdfJwt(userResponse);
@@ -57,8 +64,8 @@ export default function VotingSection({ poll }: VoteSectionProps) {
     try {
       const voteData = {
         bd_poll_id: `${poll[0]?.id}`,
-        drep_id: dRepID,
-        drep_voting_power: dRepRegistration?.voting_power,
+        drep_id: dRepId,
+        drep_voting_power: dRepDelegatedToVotingPower,
         vote_result: vote === 'yes' ? true : false,
       };
       await postProposalVote(voteData);
