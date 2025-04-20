@@ -32,20 +32,7 @@ export interface AuthenticationProvider {
   reconnect?(): Promise<AuthResult>;
   disconnect(): Promise<void>;
 
-  getAccountInfo(): Promise<{
-    address: string;
-    balance: string;
-    stakeKey: string;
-    dRepInfo: {
-      isDRep: boolean;
-      votingPower: string;
-      dRepId: string;
-      dRepKeyHash: Ed25519KeyHash;
-      delegatedTo: string;
-      dRepIdBech32: string
-    };
-    stakeKeyBech32: string
-  }>;
+  getAccountInfo(): Promise<AccountInfo | null>;
   isConnected(): boolean;
   supportsMessageSigning?: boolean;
   supportsColdWallet?: boolean;

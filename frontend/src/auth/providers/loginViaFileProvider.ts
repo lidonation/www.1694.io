@@ -11,7 +11,10 @@ import {
   getFileFromIndexedDB,
   setFileToIndexedDB,
 } from '@/lib/indexedDb';
-import {Ed25519KeyHash} from "@emurgo/cardano-serialization-lib-asmjs";
+import {
+  Credential,
+  Ed25519KeyHash,
+} from '@emurgo/cardano-serialization-lib-asmjs';
 
 /**
  * Provider that handles authentication via a login key file
@@ -98,7 +101,9 @@ export class LoginFileProvider implements AuthenticationProvider {
    */
   async reconnect(): Promise<AuthResult> {
     try {
-      const savedLoginData = await getFileFromIndexedDB(LOGIN_FILE_LS_KEY) as File;
+      const savedLoginData = (await getFileFromIndexedDB(
+        LOGIN_FILE_LS_KEY,
+      )) as File;
 
       if (!savedLoginData) {
         return {
@@ -165,6 +170,9 @@ export class LoginFileProvider implements AuthenticationProvider {
             isDRep: profileData?.isDrep,
             dRepId: profileData?.isDrep ? profileData?.selfDRepRaw : '',
             dRepIdBech32: profileData?.isDrep ? profileData?.selfDRepView : '',
+            dRepKeyHash: profileData?.isDrep
+              ? this.buildCredentialFromBech32Key(profileData?.selfDRepView).to_keyhash()
+              : null,
             delegatedTo: profileData?.isDrep
               ? profileData?.selfDRepView
               : profileData?.delegatedToDRepView,
@@ -172,7 +180,7 @@ export class LoginFileProvider implements AuthenticationProvider {
               ? profileData?.selfVotingPower
               : profileData?.delegatedToVotingPower,
           },
-        };
+        } as AccountInfo;
 
         this.connected = true;
         await setFileToIndexedDB(LOGIN_FILE_LS_KEY, params.file);
@@ -210,24 +218,21 @@ export class LoginFileProvider implements AuthenticationProvider {
     return this.connected && this.loginCredentials !== null;
   }
 
+  buildCredentialFromBech32Key(key: string) {
+    try {
+      const keyHash = Ed25519KeyHash.from_hex(key);
+      return Credential.from_keyhash(keyHash);
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+  }
+
   /**
    * Get account information
    * @returns Account info or null if not connected
    */
-  async getAccountInfo(): Promise<{
-      address: string;
-      balance: string;
-      stakeKey: string;
-      dRepInfo: {
-          isDRep: boolean;
-          votingPower: string;
-          dRepId: string;
-        Ed25519KeyHash: string;
-          delegatedTo: string;
-          dRepIdBech32: string
-      };
-      stakeKeyBech32: string
-  }> {
+  async getAccountInfo(): Promise<AccountInfo | null> {
     return this.accountInfo;
   }
 }
