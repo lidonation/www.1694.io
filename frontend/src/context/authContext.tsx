@@ -10,7 +10,7 @@ interface AuthContextType {
   accountInfo: AccountInfo | null;
   isAuthenticating: boolean;
   authError: string | null;
-  activeProvider: string | null;
+  activeProvider: AuthMethod | null;
   authenticate: (method: AuthMethod | string, params?: any) => Promise<{
     success: boolean;
     error?: string;
@@ -46,7 +46,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
   const [accountInfo, setAccountInfo] = useState<AccountInfo | null>(null);
   const [isAuthenticating, setIsAuthenticating] = useState<boolean>(false);
   const [authError, setAuthError] = useState<string | null>(null);
-  const [activeProvider, setActiveProvider] = useState<string | null>(null);
+  const [activeProvider, setActiveProvider] = useState<AuthMethod | null>(null);
 
   useEffect(() => {
     const checkAuthStatus = async () => {
@@ -95,6 +95,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
     
     try {
       const result = await service.authenticate(method, params);
+      console.log('Authentication result:', result);
       
       if (result.success) {
         setIsAuthenticated(true);

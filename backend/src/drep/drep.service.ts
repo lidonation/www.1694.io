@@ -68,6 +68,7 @@ import { getDrepVotingActivityQuery } from 'src/queries/drepVotingActivity';
 import { Currency } from 'src/common/enums';
 import { Signature } from 'src/entities/signatures.entity';
 import { MiscellaneousService } from 'src/miscellaneous/miscellaneous.service';
+import { getCurrentDelegationQuery } from 'src/queries/currentDelegation';
 
 @Injectable()
 export class DrepService {
@@ -1110,6 +1111,7 @@ export class DrepService {
       return savedMetadata?.[0].metadata;
     }
   }
+
   async getVoltaireDRepViaVoterID(drepVoterId) {
     return await this.voltaireService
       .getRepository('Drep')
@@ -1117,5 +1119,85 @@ export class DrepService {
       .leftJoinAndSelect('signature', 'signature', 'signature.drepId = drep.id')
       .where('signature.drep_bech32 = :drepVoterId', { drepVoterId })
       .getRawOne();
+  }
+
+  async getVoterProfileData(stakeKey: string) {
+    try {
+      // Get stake key information
+      const stakeKeyInfo = await this.blockfrostService.getStakeAddressInfo(stakeKey);
+
+      // Get current delegation information
+      const delegations = await this.cexplorerService.manager.query(
+        getCurrentDelegationQuery,
+        [stakeKey],
+      );
+
+      const delegation = delegations[0];
+
+      if (!delegation) {
+        return {
+          walletBalance: stakeKeyInfo?.controlled_amount ?? null,
+          delegatedToDRepView: null,
+          delegatedToDRepRaw: null,
+          delegatedToVotingPower: null,
+          has_script: false,
+          delegatedToIsRegistered: false,
+          isDrep: false,
+        };
+      }
+
+      // Get DRep registration information
+      const registrations = await this.cexplorerService.manager.query(
+        drepRegistrationQuery,
+        [delegation.drep_view],
+      );
+
+      const registration = registrations[0];
+
+      if (!registration) {
+        return {
+          walletBalance: stakeKeyInfo?.controlled_amount ?? null,
+          delegatedToDRepView: delegation.drep_view,
+          delegatedToDRepRaw: delegation.drep_raw,
+          delegatedToVotingPower: delegation.voting_power,
+          has_script: delegation.has_script,
+          delegatedToIsRegistered: false,
+          isDrep: false,
+        };
+      }
+
+      // Check if the delegation is to the same DRep that owns the stake address
+      const isDrep =
+        registration.stake_address_id === delegation.stake_address_id;
+
+      if (!isDrep) {
+        return {
+          walletBalance: stakeKeyInfo?.controlled_amount ?? null,
+          delegatedToDRepView: delegation.drep_view,
+          delegatedToDRepRaw: delegation.drep_raw,
+          delegatedToVotingPower: delegation.voting_power,
+          has_script: delegation.has_script,
+          delegatedToIsRegistered: registration.deposit === null || registration.deposit > 0,
+          isDrep: false,
+        };
+      }
+
+      return {
+        walletBalance: stakeKeyInfo?.controlled_amount ?? null,
+        selfDRepView: registration.view,
+        selfDRepRaw: registration.raw,
+        selfVotingPower: registration.voting_power,
+        has_script: delegation.has_script,
+        selfIsRegistered:
+          registration.deposit === null || registration.deposit > 0,
+        isDrep,
+      };
+    } catch (error) {
+      console.error('Error in getVoterProfileData:', error);
+      return {
+        isDrep: false,
+        error: 'Failed to retrieve DRep profile data',
+      };
+    }
   }
 }

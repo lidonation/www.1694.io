@@ -44,20 +44,26 @@ function ProposalIdentity({
 
   return (
     <Box className="rounded-md bg-white p-6 shadow-sm">
-      <Box className="mb-4 flex items-center justify-between">
+      <Box className="mb-4 flex items-center justify-between flex-wrap">
         <Box>
           <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
           <Box className="mt-2 flex flex-col items-center text-sm text-gray-700 sm:flex-row">
             {author && (
-              <span className="mr-3 font-medium">Author: @{author}</span>
+              <p className="font-medium">
+                Author: <span className="text-base">@{author}</span>
+              </p>
             )}
-            <span className="text-gray-400">•</span>
-            <span className="mx-3">
+            <span className="mx-3 text-gray-400">•</span>
+            <p className="">
               Proposed on:{' '}
-              {formatNumberTimeToReadable(proposal?.attributes?.createdAt)}
-            </span>
-            <span className="text-gray-400">•</span>
-            <span className="mx-3">Category: {category}</span>
+              <span className="text-base">
+                {formatNumberTimeToReadable(proposal?.attributes?.createdAt)}
+              </span>
+            </p>
+            <span className="mx-3 text-gray-400">•</span>
+            <p>
+              Category: <span className="text-base">{category}</span>
+            </p>
           </Box>
         </Box>
         <Box>

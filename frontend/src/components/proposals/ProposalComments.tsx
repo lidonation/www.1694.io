@@ -11,6 +11,8 @@ import { postProposalComment } from '@/services/requests/postProposalComment';
 import { setUpPdfJwt } from '@/lib/pdfJwtHelper';
 import { useGetDRepRegistrationQuery } from '@/hooks/useGetDRepRegistrationQuery';
 import { loginUserToPdf } from '@/services/requests/loginUserToPdf';
+import { useWallet } from '@/context/walletContext';
+import { AuthMethod } from '../../../types/auth';
 
 type CommentData = {
   bd_proposal_id: string;
@@ -138,9 +140,12 @@ function ProposalComments({
     commentId: null,
   });
 
-  const { setIsWalletListModalOpen } = useDRepContext();
-  const { dRepID, isEnabled, stakeKey, signMessage, dRepRegistration } =
-    useCardano();
+  const { setLoginModalOpen } = useDRepContext();
+  const { signMessage } = useCardano();
+  const {
+    wallet: { isConnected, dRepId, stakeKey, isDRep },
+    activeWallet,
+  } = useWallet();
   const { addWarningAlert, addSuccessAlert } = useGlobalNotifications();
   const queryClient = useQueryClient();
 
@@ -157,22 +162,22 @@ function ProposalComments({
   };
 
   const handleLoginToPdf = async () => {
-    if (!getDataFromSession('pdfUserJwt')) {
-      let res = await signMessage(
-        'To proceed, please sign this data to verify your identity. This ensures that the action is secure and confirms your identity.',
-        stakeKey,
-      );
-      const userResponse = await loginUserToPdf({
-        identifier: stakeKey,
-        signedData: res,
-      });
-      setUpPdfJwt(userResponse);
-    }
+    let res = await signMessage(
+      'To proceed, please sign this data to verify your identity. This ensures that the action is secure and confirms your identity.',
+      stakeKey,
+      activeWallet === AuthMethod.HOT_WALLET ? true : false,
+      activeWallet === AuthMethod.LOGIN_FILE ? true : false,
+    );
+    const userResponse = await loginUserToPdf({
+      identifier: stakeKey,
+      signedData: res,
+    });
+    setUpPdfJwt(userResponse);
   };
 
   const checkWalletConnection = (): boolean => {
-    if (!isEnabled) {
-      setIsWalletListModalOpen(true);
+    if (!isConnected) {
+      setLoginModalOpen(true);
       return false;
     }
     return true;
@@ -190,7 +195,7 @@ function ProposalComments({
     return {
       bd_proposal_id: proposal.id.toString(),
       comment_text: text,
-      drep_id: dRepRegistration?.registered ? dRepID || '' : '',
+      drep_id: isDRep ? dRepId || '' : '',
       ...(parentId && { comment_parent_id: parentId.toString() }),
     };
   };
@@ -252,17 +257,31 @@ function ProposalComments({
 
   return (
     <Box id="comments" className="space-y-6 rounded-md bg-white p-6 shadow-sm">
-      <h2 className="mb-4 text-xl font-semibold">Comments ({totalComments})</h2>
+      <h2 className="text-xl font-semibold">Comments ({totalComments})</h2>
 
-      <Box className="mb-4">
-        <Box className="flex items-start space-x-3">
-          <CommentForm
-            value={commentText}
-            onChange={(e) => setCommentText(e.target.value)}
-            onSubmit={handleCommentSubmit}
-          />
+      {isConnected && (
+        <Box className="my-4">
+          <Box className="flex items-start space-x-3">
+            <CommentForm
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              onSubmit={handleCommentSubmit}
+            />
+          </Box>
         </Box>
-      </Box>
+      )}
+
+      {!isConnected && (
+        <Button
+          variant="outlined"
+          className="flex items-center gap-1"
+          size="medium"
+          onClick={() => setLoginModalOpen(true)}
+        >
+          <ChatBubbleOutline fontSize="small" />
+          Login to leave a comment
+        </Button>
+      )}
 
       {isCommentsLoading ? (
         <p className="text-center">Loading proposal comments...</p>
@@ -274,17 +293,19 @@ function ProposalComments({
                 <CommentContent comment={comment} />
 
                 <Box className="mt-2">
-                  <Button
-                    variant="outlined"
-                    className="flex items-center gap-1"
-                    size="medium"
-                    onClick={() => toggleReply(comment.id)}
-                  >
-                    <ChatBubbleOutline fontSize="small" />
-                    {replying.isReplying && replying.commentId === comment.id
-                      ? 'Close'
-                      : 'Reply'}
-                  </Button>
+                  {isConnected && (
+                    <Button
+                      variant="outlined"
+                      className="flex items-center gap-1"
+                      size="medium"
+                      onClick={() => toggleReply(comment.id)}
+                    >
+                      <ChatBubbleOutline fontSize="small" />
+                      {replying.isReplying && replying.commentId === comment.id
+                        ? 'Close'
+                        : 'Reply'}
+                    </Button>
+                  )}
 
                   {replying.isReplying && replying.commentId === comment.id && (
                     <Box className="mt-2 flex-1">

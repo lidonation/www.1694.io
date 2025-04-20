@@ -11,8 +11,11 @@ type WalletInfoCardProps = {
 };
 
 export const WalletInfoCard = ({ test_name }: WalletInfoCardProps) => {
-  const { wallet:{address,isConnected}, disconnectWallet } = useWallet();
-  const {logout } = useDRepContext();
+  const {
+    wallet: { isConnected, stakeKeyBech32 },
+    disconnectWallet,
+  } = useWallet();
+  const { logout } = useDRepContext();
   const [showDetails, setShowDetails] = useState(false);
 
   const dropDownRef = useRef(null);
@@ -44,12 +47,11 @@ export const WalletInfoCard = ({ test_name }: WalletInfoCardProps) => {
     }, 400);
   }
 
-
   return (
     <Grow
       in={isConnected}
       style={{ transformOrigin: 'top center' }}
-      {...(!!address ? { timeout: 0 } : { timeout: 300 })}
+      {...(!!stakeKeyBech32 ? { timeout: 0 } : { timeout: 300 })}
     >
       <Box
         ref={dropDownRef}

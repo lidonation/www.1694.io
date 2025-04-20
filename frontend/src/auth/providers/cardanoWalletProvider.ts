@@ -90,6 +90,12 @@ export class CardanoWalletProvider implements AuthenticationProvider {
    */
   async getAccountInfo(): Promise<AccountInfo | null> {
     if (!this.isConnected()) return null;
+        
+    await new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(null);
+      }, 1000);
+    });
 
     return {
       address: this.cardanoContext.address || '',
@@ -97,7 +103,9 @@ export class CardanoWalletProvider implements AuthenticationProvider {
       stakeKeyBech32: this.cardanoContext.stakeKeyBech32 || '',
       balance: this.cardanoContext.walletState?.balance?.toString() || '',
       dRepInfo: {
-        id: this.cardanoContext.dRepID || '',
+        isDRep: this.cardanoContext?.dRepRegistration?.registered || false,
+        dRepId: this.cardanoContext.dRepID || '',
+        dRepIdBech32: this.cardanoContext.dRepIDBech32 || '',
         delegatedTo: this.cardanoContext.delegatedDRepID || '',
         votingPower: this.cardanoContext.dRepRegistration?.voting_power || '',
       },

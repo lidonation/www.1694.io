@@ -3,6 +3,7 @@ import {
   AuthenticationProvider,
   AuthResult,
   AccountInfo,
+  AuthMethod,
 } from '../../types/auth';
 
 /**
@@ -10,7 +11,7 @@ import {
  */
 export class AuthenticationService {
   private providers: Record<string, AuthenticationProvider> = {};
-  private activeProvider: string | null = null;
+  private activeProvider: AuthMethod | null = null;
 
   /**
    * Register an authentication provider
@@ -64,7 +65,7 @@ export class AuthenticationService {
    * Get the currently active provider name
    * @returns Provider name or null if none active
    */
-  getActiveProviderName(): string | null {
+  getActiveProviderName(): AuthMethod | null {
     return this.activeProvider;
   }
 
@@ -125,7 +126,7 @@ export class AuthenticationService {
   }
 
   private setActiveProvider(providerName: string) {
-    this.activeProvider = providerName;
+    this.activeProvider = providerName as AuthMethod;
     setItemToLocalStorage(ACTIVE_PROVIDER_LS_KEY, providerName);
   }
 
