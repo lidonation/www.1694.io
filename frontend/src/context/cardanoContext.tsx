@@ -104,6 +104,7 @@ export interface CardanoContext {
     message: string,
     signingKey?: string,
     disableDownloadOption?: boolean,
+    disableSignatureOption?: boolean,
   ) => Promise<any>;
   buildStakeKeyRegCert: () => Promise<Certificate>;
   buildVoteDelegationCert: (target: string) => Promise<Certificate>;
@@ -511,8 +512,9 @@ function CardanoProvider(props: Props) {
     message: string,
     signingKey?: string,
     disableDownloadOption: boolean = false,
+    disableSignatureOption: boolean = false,
   ) => {
-    if (!walletApi) return;
+    // if (!walletApi) return;
     try {
       const res = handleTransaction(
         walletApi,
@@ -525,6 +527,7 @@ function CardanoProvider(props: Props) {
           objectToSign: 'message',
           message,
           disableDownload: disableDownloadOption,
+          disableSigning: disableSignatureOption,
         },
       );
       return res;

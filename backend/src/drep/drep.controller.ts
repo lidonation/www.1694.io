@@ -167,4 +167,9 @@ export class DrepController {
       order,
     );
   }
+
+  @Get(':stakeKey/profile-data')
+  getVoterProfileData(@Param('stakeKey') stakeKey: string) {
+    return this.drepService.getVoterProfileData(stakeKey);
+  }
 }

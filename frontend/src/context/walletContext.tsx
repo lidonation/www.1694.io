@@ -15,6 +15,9 @@ interface WalletState {
   stakeKeyBech32: string | null;
   isConnected: boolean;
   balance: string | null;
+  isDRep: boolean;
+  dRepId: string | null;
+  dRepIdBech32: string | null;
   dRepDelegatedTo?: string | null;
   dRepDelegatedToVotingPower?: string | null;
   isConnecting: boolean;
@@ -23,6 +26,7 @@ interface WalletState {
 
 interface WalletContextType {
   wallet: WalletState;
+  activeWallet: AuthMethod | null;
   connectWallet: (method: string, params?: any) => Promise<{
     success: boolean;
     error?: string;
@@ -55,6 +59,9 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     stakeKeyBech32: null,
     isConnected: false,
     balance: null,
+    isDRep: false,
+    dRepId: null,
+    dRepIdBech32: null,
     dRepDelegatedTo: null,
     dRepDelegatedToVotingPower: null,
     isConnecting: false,
@@ -69,6 +76,9 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
         stakeKeyBech32: accountInfo.stakeKeyBech32 || null,
         isConnected: true,
         balance: accountInfo.balance || null,
+        isDRep: accountInfo.dRepInfo?.isDRep || false,
+        dRepId: accountInfo.dRepInfo?.dRepId || null,
+        dRepIdBech32: accountInfo.dRepInfo?.dRepIdBech32 || null,
         dRepDelegatedTo: accountInfo.dRepInfo?.delegatedTo || null,
         dRepDelegatedToVotingPower: accountInfo.dRepInfo?.votingPower || null,
         isConnecting: false,
@@ -114,6 +124,9 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
       stakeKeyBech32: null,
       isConnected: false,
       balance: null,
+      isDRep: false,
+      dRepId: null,
+      dRepIdBech32: null,
       dRepDelegatedTo: null,
       dRepDelegatedToVotingPower: null,
       isConnecting: false,
@@ -129,6 +142,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
       wallet,
       connectWallet,
       disconnectWallet,
+      activeWallet: activeProvider,
       isHotWallet,
       isColdWallet,
     }),

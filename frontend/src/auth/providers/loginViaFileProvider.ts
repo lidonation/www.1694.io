@@ -1,9 +1,16 @@
-import { getItemFromLocalStorage, LOGIN_FILE_LS_KEY } from '@/lib';
+import { LOGIN_FILE_LS_KEY } from '@/lib';
 import {
   AuthenticationProvider,
   AccountInfo,
   AuthResult,
 } from '../../../types/auth';
+import { verifySignatures } from '@/services/requests/verifySignatures';
+import { getProfileData } from '@/services/requests/getProfileData';
+import {
+  deleteItemFromIndexedDB,
+  getFileFromIndexedDB,
+  setFileToIndexedDB,
+} from '@/lib/indexedDb';
 
 /**
  * Provider that handles authentication via a login key file
@@ -80,91 +87,97 @@ export class LoginFileProvider implements AuthenticationProvider {
     }
   }
 
-
   updateCardanoContext(newContext: any) {
     this.cardanoContext = newContext;
   }
-  
+
   /**
    * Reconnect using saved credentials
    * @returns Authentication result
    */
   async reconnect(): Promise<AuthResult> {
-  try {
-    const savedCredentials = getItemFromLocalStorage(LOGIN_FILE_LS_KEY);
-    
-    if (!savedCredentials) {
+    try {
+      const savedLoginData = await getFileFromIndexedDB(LOGIN_FILE_LS_KEY) as File;
+
+      if (!savedLoginData) {
+        return {
+          success: false,
+          error: 'No saved login credentials found',
+        };
+      }
+
+      return this.connect({ file: savedLoginData });
+    } catch (error) {
       return {
         success: false,
-        error: 'No saved login credentials found'
+        error: error instanceof Error ? error.message : String(error),
       };
     }
-    
-    // Connect using saved credentials
-    return this.connect({ credentials: savedCredentials });
-  } catch (error) {
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : String(error)
-    };
   }
-}
 
   /**
    * Connect using a login file
    * @param params File object or login credentials directly
    * @returns Authentication result
    */
-  async connect(params?: {
-    file?: File;
-    credentials?: { signature: string; key: string };
-  }): Promise<AuthResult> {
+  async connect(params?: { file?: File }): Promise<AuthResult> {
     try {
-      let credentials;
-
       if (params?.file) {
-        // Read credentials from uploaded file
         const fileContent = await params.file.text();
         const loginData = JSON.parse(fileContent);
 
-        if (!loginData.signature || !loginData.key) {
+        if (
+          !loginData.signatures.signature ||
+          !loginData.signatures.vkey ||
+          !loginData.stakeKeyBech32
+        ) {
           throw new Error('Invalid login file format');
         }
 
-        credentials = {
-          signature: loginData.signature,
-          key: loginData.key,
+        const signaturesVerification = await verifySignatures({
+          signatures: {
+            signature: loginData.signatures.signature,
+            vkey: loginData.signatures.vkey,
+          },
+          address: loginData.stakeKeyBech32,
+        });
+
+        if (!signaturesVerification.payloadResultMatch) {
+          throw new Error('Signature verification failed');
+        }
+
+        const credentials = {
+          signature: loginData.signatures.signature,
+          key: loginData.signatures.vkey,
         };
-      } else if (params?.credentials) {
-        // Use provided credentials directly
-        credentials = params.credentials;
+
+        this.loginCredentials = credentials;
+
+        const profileData = await getProfileData(loginData.stakeKeyBech32);
+
+        this.accountInfo = {
+          address: null,
+          stakeKey: loginData.stakeKeyHex,
+          stakeKeyBech32: loginData.stakeKeyBech32,
+          balance: profileData?.walletBalance,
+          dRepInfo: {
+            isDRep: profileData?.isDrep,
+            dRepId: profileData?.isDrep ? profileData?.selfDRepRaw : '',
+            dRepIdBech32: profileData?.isDrep ? profileData?.selfDRepView : '',
+            delegatedTo: profileData?.isDrep
+              ? profileData?.selfDRepView
+              : profileData?.delegatedToDRepView,
+            votingPower: profileData?.isDrep
+              ? profileData?.selfVotingPower
+              : profileData?.delegatedToVotingPower,
+          },
+        };
+
+        this.connected = true;
+        await setFileToIndexedDB(LOGIN_FILE_LS_KEY, params.file);
       } else {
         throw new Error('Either a login file or credentials must be provided');
       }
-
-      // Verify credentials with backend if needed
-      // In a real implementation, you would verify these credentials
-      // with your backend to ensure they're valid
-
-      this.loginCredentials = credentials;
-      this.connected = true;
-
-      // Extract account info from the credentials
-      // In a real implementation, you might need to make an API call
-      // to get this information based on the public key
-      this.accountInfo = {
-        address: params?.file
-          ? JSON.parse(await params.file.text()).address
-          : '',
-        stakeKey: credentials.key,
-        // Other fields would need to be fetched from an API
-        balance: '',
-        dRepInfo: {
-          id: '',
-          delegatedTo: '',
-          votingPower: '',
-        },
-      };
 
       return {
         success: true,
@@ -185,6 +198,7 @@ export class LoginFileProvider implements AuthenticationProvider {
     this.connected = false;
     this.accountInfo = null;
     this.loginCredentials = null;
+    await deleteItemFromIndexedDB(LOGIN_FILE_LS_KEY);
   }
 
   /**

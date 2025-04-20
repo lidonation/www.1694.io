@@ -1,4 +1,3 @@
-// src/auth/syncCardanoContext.ts
 import { useEffect } from 'react';
 import { useCardano } from '@/context/cardanoContext';
 import { authService } from './authService';
@@ -12,6 +11,7 @@ export function useCardanoSync() {
   const cardanoContext = useCardano();
   const hotWalletProvider = authService.getProviders()[ExtendedAuthMethod.HOT_WALLET] as CardanoWalletProvider;
   const loginFileProvider = authService.getProviders()[ExtendedAuthMethod.LOGIN_FILE] as LoginFileProvider;
+  const activeProvider = authService.getActiveProviderName();
   
   useEffect(() => {
     if (hotWalletProvider) {
@@ -26,8 +26,7 @@ export function useCardanoSync() {
       hotWalletProvider.syncConnectionState();
     }
     
-    if (!cardanoContext.isEnabled && authService.isConnected()) {
-      console.log('Cardano context is disabled, disconnecting from wallet');
+    if (!cardanoContext.isEnabled && authService.isConnected() && activeProvider === ExtendedAuthMethod.HOT_WALLET) {
       authService.disconnect();
     }
     
