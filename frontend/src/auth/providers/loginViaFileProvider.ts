@@ -11,6 +11,7 @@ import {
   getFileFromIndexedDB,
   setFileToIndexedDB,
 } from '@/lib/indexedDb';
+import {Ed25519KeyHash} from "@emurgo/cardano-serialization-lib-asmjs";
 
 /**
  * Provider that handles authentication via a login key file
@@ -213,7 +214,20 @@ export class LoginFileProvider implements AuthenticationProvider {
    * Get account information
    * @returns Account info or null if not connected
    */
-  async getAccountInfo(): Promise<AccountInfo | null> {
+  async getAccountInfo(): Promise<{
+      address: string;
+      balance: string;
+      stakeKey: string;
+      dRepInfo: {
+          isDRep: boolean;
+          votingPower: string;
+          dRepId: string;
+        Ed25519KeyHash: string;
+          delegatedTo: string;
+          dRepIdBech32: string
+      };
+      stakeKeyBech32: string
+  }> {
     return this.accountInfo;
   }
 }

@@ -1,4 +1,4 @@
-import { getItemFromLocalStorage, WALLET_LS_KEY } from '@/lib';
+import {fromBech32ToHex, getItemFromLocalStorage, WALLET_LS_KEY} from '@/lib';
 import {
   AuthenticationProvider,
   AccountInfo,
@@ -6,6 +6,7 @@ import {
 } from '../../../types/auth';
 import { CardanoContext } from '@/context/cardanoContext';
 import { CardanoApiWallet } from '@/models/wallet';
+import {Credential, Ed25519KeyHash} from "@emurgo/cardano-serialization-lib-asmjs";
 
 export class CardanoWalletProvider implements AuthenticationProvider {
   private cardanoContext: CardanoContext;
@@ -88,7 +89,20 @@ export class CardanoWalletProvider implements AuthenticationProvider {
    * Get current account information
    * @returns Account information
    */
-  async getAccountInfo(): Promise<AccountInfo | null> {
+  async getAccountInfo(): Promise<{
+    address: string;
+    balance: string;
+    stakeKey: string;
+    dRepInfo: {
+      isDRep: boolean;
+      votingPower: string;
+      dRepId: string;
+      dRepKeyHash: Ed25519KeyHash;
+      delegatedTo: string;
+      dRepIdBech32: string
+    };
+    stakeKeyBech32: string
+  }> {
     if (!this.isConnected()) return null;
         
     await new Promise((resolve) => {
@@ -96,6 +110,10 @@ export class CardanoWalletProvider implements AuthenticationProvider {
         resolve(null);
       }, 1000);
     });
+
+    const dRepId = fromBech32ToHex(this.cardanoContext.dRepIDBech32);
+    const dRepCredential = this.buildCredentialFromBech32Key(dRepId);
+
 
     return {
       address: this.cardanoContext.address || '',
@@ -105,6 +123,7 @@ export class CardanoWalletProvider implements AuthenticationProvider {
       dRepInfo: {
         isDRep: this.cardanoContext?.dRepRegistration?.registered || false,
         dRepId: this.cardanoContext.dRepID || '',
+        dRepKeyHash: dRepCredential.to_keyhash() || null,
         dRepIdBech32: this.cardanoContext.dRepIDBech32 || '',
         delegatedTo: this.cardanoContext.delegatedDRepID || '',
         votingPower: this.cardanoContext.dRepRegistration?.voting_power || '',
@@ -179,5 +198,15 @@ export class CardanoWalletProvider implements AuthenticationProvider {
    */
   getWalletName(): string | null {
     return this.walletName;
+  }
+
+  buildCredentialFromBech32Key(key: string)  {
+    try {
+      const keyHash = Ed25519KeyHash.from_hex(key);
+      return Credential.from_keyhash(keyHash);
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
   }
 }

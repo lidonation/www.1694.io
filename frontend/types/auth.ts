@@ -1,3 +1,5 @@
+import {Ed25519KeyHash} from "@emurgo/cardano-serialization-lib-asmjs";
+
 export interface AuthResult {
   success: boolean;
   accountInfo?: AccountInfo;
@@ -13,6 +15,7 @@ export interface AccountInfo {
     isDRep: boolean;
     dRepId: string | null;
     dRepIdBech32?: string | null;
+    dRepKeyHash?: Ed25519KeyHash | null;
     votingPower?: string;
     delegatedTo?: string;
     delegatedToVotingPower?: string;
@@ -28,7 +31,21 @@ export interface AuthenticationProvider {
   connect(params?: any): Promise<AuthResult>;
   reconnect?(): Promise<AuthResult>;
   disconnect(): Promise<void>;
-  getAccountInfo(): Promise<AccountInfo | null>;
+
+  getAccountInfo(): Promise<{
+    address: string;
+    balance: string;
+    stakeKey: string;
+    dRepInfo: {
+      isDRep: boolean;
+      votingPower: string;
+      dRepId: string;
+      dRepKeyHash: Ed25519KeyHash;
+      delegatedTo: string;
+      dRepIdBech32: string
+    };
+    stakeKeyBech32: string
+  }>;
   isConnected(): boolean;
   supportsMessageSigning?: boolean;
   supportsColdWallet?: boolean;
