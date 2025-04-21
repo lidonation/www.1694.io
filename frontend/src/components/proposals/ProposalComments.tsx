@@ -174,6 +174,7 @@ function ProposalComments({
             identifier: stakeKey,
             signedData: res,
         });
+        await setUpPdfJwt(userResponse);
 
         if (isDRep) {
             alert('You are a DRep! We need to verify your drep key.')
@@ -184,11 +185,9 @@ function ProposalComments({
                 activeWallet === AuthMethod.LOGIN_FILE ? true : false,
             );
             const drepResponse = await loginUserToPdf({
-                jwt: userResponse?.jwt,
                 identifier: dRepKeyHash.to_hex(),
                 signedData,
             });
-            console.log({drepResponse, userResponse, dRepId});
 
             await setUpPdfJwt(drepResponse);
         } else {

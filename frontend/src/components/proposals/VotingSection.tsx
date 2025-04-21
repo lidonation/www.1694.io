@@ -59,8 +59,10 @@ export default function VotingSection({ poll }: VoteSectionProps) {
         identifier: stakeKey,
         signedData: userRes,
       });
+      await setUpPdfJwt(userResponse);
 
       if (isDRep) {
+        addSuccessAlert('Your comment has been recorded successfully');
         let res = await signMessage(
             `To proceed, please sign this data to verify your dRep identity. This ensures that the action is secure and confirms your identity. Timestamp: ${new Date()?.getTime()}`,
             dRepId,
