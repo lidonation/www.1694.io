@@ -89,20 +89,7 @@ export class ColdWalletProvider implements AuthenticationProvider {
    * Get account information
    * @returns Account info or null if not connected
    */
-  async getAccountInfo(): Promise<{
-      address: string;
-      balance: string;
-      stakeKey: string;
-      dRepInfo: {
-          isDRep: boolean;
-          votingPower: string;
-          dRepId: string;
-          Ed25519KeyHash: string;
-          delegatedTo: string;
-          dRepIdBech32: string
-      };
-      stakeKeyBech32: string
-  }> {
+  async getAccountInfo(): Promise<AccountInfo | null> {
     return this.accountInfo;
   }
 
