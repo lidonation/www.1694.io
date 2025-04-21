@@ -12,4 +12,13 @@ export class MetricsController {
   ) {
     return this.metricsService.getProposalMetrics(search, category);
   }
+
+  @Get('catalyst-proposals')
+  async getCatalystParticipation(
+    @Query('username') username: string,
+  ) {
+    return {
+      count: await this.metricsService.getCatalystParticipation(username),
+    };
+  }
 }

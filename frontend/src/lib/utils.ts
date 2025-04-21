@@ -250,7 +250,6 @@ export const decodeCIP129Identifier = (cip129Identifier: string) => {
   return { txID, index, prefix };
 };
 
-
 export const parseContent = (content: string): string => {
   if (!content) {
     return '';
@@ -263,27 +262,31 @@ export const parseContent = (content: string): string => {
 
 export const utf8ToHex = (str) => {
   return Array.from(str)
-      .map((char: any) => char.charCodeAt(0).toString(16).padStart(2, '0'))
-      .join('');
+    .map((char: any) => char.charCodeAt(0).toString(16).padStart(2, '0'))
+    .join('');
 };
 
-export const saveDataInSession = (key, value) => {
+export const saveDataInSession = (key: string, value: string) => {
   const data = { value, timestamp: new Date().getTime() };
   sessionStorage.setItem(key, JSON.stringify(data));
 };
 
-export const getDataFromSession = (key) => {
+export const getDataFromSession = (key: string) => {
   const data = JSON.parse(sessionStorage.getItem(key));
   if (data) {
-      return data.value;
+    return data.value;
   } else {
-      return null;
+    return null;
   }
+};
+
+export const deletedDataFromSession = (key: string) => {
+  sessionStorage.removeItem(key);
 };
 
 export const openInNewTab = (url) => {
   if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      url = 'https://' + url;
+    url = 'https://' + url;
   }
   const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
   if (newWindow) newWindow.opener = null;
