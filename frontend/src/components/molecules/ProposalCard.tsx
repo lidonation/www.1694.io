@@ -15,7 +15,7 @@ import {
   CardActions,
 } from '@mui/material';
 import ReactMarkdown from 'react-markdown';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import {
   Chat as ChatIcon,
@@ -24,6 +24,7 @@ import {
   Share as ShareIcon,
 } from '@mui/icons-material';
 import Link from 'next/link';
+import { useUserParticipationQuery } from '@/hooks/useUserCatalystParticipationQuery';
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
   '& .MuiBadge-badge': {
@@ -63,6 +64,7 @@ function ProposalCard({ proposal }: { proposal: any }) {
   const proposalBenefit = psapbData?.proposal_benefit || 'No benefit info';
   const username = creator?.govtool_username || 'anonymous';
   const commentsCount = proposal?.attributes?.prop_comments_number || 0;
+  const { data: participationNumber = 0 } = useUserParticipationQuery(username);
 
   const proposedDate = proposal?.attributes?.createdAt
     ? format(new Date(proposal.attributes.createdAt), 'dd MMM yyyy')
@@ -78,7 +80,6 @@ function ProposalCard({ proposal }: { proposal: any }) {
   function copyToClipboard(value) {
     navigator.clipboard.writeText(value);
   }
-
   return (
     <Card
       sx={{
@@ -198,6 +199,14 @@ function ProposalCard({ proposal }: { proposal: any }) {
               </Box>
             </Box>
           )}
+          <Box>
+            <Typography variant="subtitle2" fontWeight="semi-bold">
+              Catalyst Participation : {" "}
+              {participationNumber === null || participationNumber === undefined
+                ? "Not known"
+                : participationNumber}
+            </Typography>
+          </Box>
         </CardContent>
       </Box>
 

@@ -1,7 +1,7 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { catchError, firstValueFrom } from 'rxjs';
+import { catchError, firstValueFrom, of } from 'rxjs';
 
 @Injectable()
 export class MetricsService {
@@ -50,6 +50,32 @@ export class MetricsService {
     } catch (error) {
       console.error('Error fetching proposal metrics:', error);
       throw error;
+    }
+  }
+  async getCatalystParticipation(govToolUserName: string): Promise<number> {
+    try {
+      if (!govToolUserName) {
+        return 0;
+      }
+  
+      const url = `${this.METRICS_URL}/metrics/catalyst-proposals/${govToolUserName}`;
+      
+      const response = await firstValueFrom(
+        this.httpService.get(url).pipe(
+          catchError((error) => {
+            console.error(
+              'Error fetching catalyst participation:',
+              error?.response?.data || error,
+            );
+            return of({ data: { proposals: 0 } });
+          }),
+        ),
+      );
+  
+      return response?.data?.proposals ?? 0;
+    } catch (error) {
+      console.error('Error fetching catalyst participation:', error);
+      return 0;
     }
   }
 }
