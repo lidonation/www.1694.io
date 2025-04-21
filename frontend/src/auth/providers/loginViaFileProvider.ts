@@ -1,4 +1,4 @@
-import { deletedDataFromSession, LOGIN_FILE_LS_KEY } from '@/lib';
+import {  deleteDataFromSession, LOGIN_FILE_LS_KEY } from '@/lib';
 import {
   AuthenticationProvider,
   AccountInfo,
@@ -210,7 +210,7 @@ export class LoginFileProvider implements AuthenticationProvider {
     this.accountInfo = null;
     this.loginCredentials = null;
     await deleteItemFromIndexedDB(LOGIN_FILE_LS_KEY);
-    deletedDataFromSession('pdfUserJwt');
+    deleteDataFromSession('pdfUserJwt');
   }
 
   /**
