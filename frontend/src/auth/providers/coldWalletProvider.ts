@@ -4,6 +4,7 @@ import {
   AccountInfo,
   AuthResult,
 } from '../../../types/auth';
+import {Ed25519KeyHash} from "@emurgo/cardano-serialization-lib-asmjs";
 /**
  * Provider that handles cold wallet signing via file download/upload
  */

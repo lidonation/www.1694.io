@@ -8,6 +8,7 @@ import React, {
 } from 'react';
 import { useAuth } from './authContext';
 import { AuthMethod } from '../../types/auth';
+import {Ed25519KeyHash} from "@emurgo/cardano-serialization-lib-asmjs";
 
 interface WalletState {
   address: string | null;
@@ -17,6 +18,7 @@ interface WalletState {
   balance: string | null;
   isDRep: boolean;
   dRepId: string | null;
+  dRepKeyHash: Ed25519KeyHash | null;
   dRepIdBech32: string | null;
   dRepDelegatedTo?: string | null;
   dRepDelegatedToVotingPower?: string | null;
@@ -62,6 +64,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
     isDRep: false,
     dRepId: null,
     dRepIdBech32: null,
+    dRepKeyHash: null,
     dRepDelegatedTo: null,
     dRepDelegatedToVotingPower: null,
     isConnecting: false,
@@ -79,6 +82,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
         isDRep: accountInfo.dRepInfo?.isDRep || false,
         dRepId: accountInfo.dRepInfo?.dRepId || null,
         dRepIdBech32: accountInfo.dRepInfo?.dRepIdBech32 || null,
+        dRepKeyHash: accountInfo.dRepInfo?.dRepKeyHash || null,
         dRepDelegatedTo: accountInfo.dRepInfo?.delegatedTo || null,
         dRepDelegatedToVotingPower: accountInfo.dRepInfo?.votingPower || null,
         isConnecting: false,
@@ -126,6 +130,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
       balance: null,
       isDRep: false,
       dRepId: null,
+      dRepKeyHash: null,
       dRepIdBech32: null,
       dRepDelegatedTo: null,
       dRepDelegatedToVotingPower: null,

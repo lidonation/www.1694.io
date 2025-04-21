@@ -29,7 +29,7 @@ export default function VotingSection({ poll }: VoteSectionProps) {
   const { addSuccessAlert, addWarningAlert } = useGlobalNotifications();
   const {
     activeWallet,
-    wallet: { dRepId, dRepDelegatedToVotingPower },
+    wallet: { dRepId, stakeKey, dRepDelegatedToVotingPower, isDRep },
   } = useWallet();
 
   const pollId = poll[0]?.id;
@@ -48,17 +48,32 @@ export default function VotingSection({ poll }: VoteSectionProps) {
     setSubmitting(true);
 
     if (!getDataFromSession('pdfUserJwt')) {
-      let res = await signMessage(
-        `To proceed, please sign this data to verify your dRep identity. This ensures that the action is secure and confirms your identity. Timestamp: ${new Date()?.getTime()}`,
-        dRepId,
-        activeWallet === AuthMethod.HOT_WALLET ? true : false,
-        activeWallet === AuthMethod.LOGIN_FILE ? true : false,
+      // first login as regular user
+      let userRes = await signMessage(
+          'To proceed, please sign this data to verify your identity. This ensures that the action is secure and confirms your identity.',
+          stakeKey,
+          activeWallet === AuthMethod.HOT_WALLET ? true : false,
+          activeWallet === AuthMethod.LOGIN_FILE ? true : false,
       );
       const userResponse = await loginUserToPdf({
-        identifier: dRepId,
-        signedData: res,
+        identifier: stakeKey,
+        signedData: userRes,
       });
-      setUpPdfJwt(userResponse);
+
+      if (isDRep) {
+        let res = await signMessage(
+            `To proceed, please sign this data to verify your dRep identity. This ensures that the action is secure and confirms your identity. Timestamp: ${new Date()?.getTime()}`,
+            dRepId,
+            activeWallet === AuthMethod.HOT_WALLET ? true : false,
+            activeWallet === AuthMethod.LOGIN_FILE ? true : false,
+        );
+        const drepResponse = await loginUserToPdf({
+          jwt: userResponse?.jwt,
+          identifier: dRepId,
+          signedData: res,
+        });
+        await setUpPdfJwt(drepResponse);
+      }
     }
 
     try {

@@ -95,7 +95,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
     
     try {
       const result = await service.authenticate(method, params);
-      console.log('Authentication result:', result);
       
       if (result.success) {
         setIsAuthenticated(true);
