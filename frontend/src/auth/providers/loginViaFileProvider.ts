@@ -1,4 +1,4 @@
-import { LOGIN_FILE_LS_KEY } from '@/lib';
+import { deletedDataFromSession, LOGIN_FILE_LS_KEY } from '@/lib';
 import {
   AuthenticationProvider,
   AccountInfo,
@@ -171,7 +171,9 @@ export class LoginFileProvider implements AuthenticationProvider {
             dRepId: profileData?.isDrep ? profileData?.selfDRepRaw : '',
             dRepIdBech32: profileData?.isDrep ? profileData?.selfDRepView : '',
             dRepKeyHash: profileData?.isDrep
-              ? this.buildCredentialFromBech32Key(profileData?.selfDRepRaw).to_keyhash()
+              ? this.buildCredentialFromBech32Key(
+                  profileData?.selfDRepRaw,
+                ).to_keyhash()
               : null,
             delegatedTo: profileData?.isDrep
               ? profileData?.selfDRepView
@@ -208,6 +210,7 @@ export class LoginFileProvider implements AuthenticationProvider {
     this.accountInfo = null;
     this.loginCredentials = null;
     await deleteItemFromIndexedDB(LOGIN_FILE_LS_KEY);
+    deletedDataFromSession('pdfUserJwt');
   }
 
   /**

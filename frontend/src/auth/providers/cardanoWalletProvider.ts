@@ -1,4 +1,9 @@
-import {fromBech32ToHex, getItemFromLocalStorage, WALLET_LS_KEY} from '@/lib';
+import {
+  deletedDataFromSession,
+  fromBech32ToHex,
+  getItemFromLocalStorage,
+  WALLET_LS_KEY,
+} from '@/lib';
 import {
   AuthenticationProvider,
   AccountInfo,
@@ -6,7 +11,10 @@ import {
 } from '../../../types/auth';
 import { CardanoContext } from '@/context/cardanoContext';
 import { CardanoApiWallet } from '@/models/wallet';
-import {Credential, Ed25519KeyHash} from "@emurgo/cardano-serialization-lib-asmjs";
+import {
+  Credential,
+  Ed25519KeyHash,
+} from '@emurgo/cardano-serialization-lib-asmjs';
 
 export class CardanoWalletProvider implements AuthenticationProvider {
   private cardanoContext: CardanoContext;
@@ -75,6 +83,7 @@ export class CardanoWalletProvider implements AuthenticationProvider {
     await this.cardanoContext.disconnectWallet();
     this.connected = false;
     this.walletName = null;
+    deletedDataFromSession('pdfUserJwt');
   }
 
   /**
@@ -99,12 +108,12 @@ export class CardanoWalletProvider implements AuthenticationProvider {
       dRepId: string;
       dRepKeyHash: Ed25519KeyHash;
       delegatedTo: string;
-      dRepIdBech32: string
+      dRepIdBech32: string;
     };
-    stakeKeyBech32: string
+    stakeKeyBech32: string;
   }> {
     if (!this.isConnected()) return null;
-        
+
     await new Promise((resolve) => {
       setTimeout(() => {
         resolve(null);
@@ -113,7 +122,6 @@ export class CardanoWalletProvider implements AuthenticationProvider {
 
     const dRepId = fromBech32ToHex(this.cardanoContext.dRepIDBech32);
     const dRepCredential = this.buildCredentialFromBech32Key(dRepId);
-
 
     return {
       address: this.cardanoContext.address || '',
@@ -200,7 +208,7 @@ export class CardanoWalletProvider implements AuthenticationProvider {
     return this.walletName;
   }
 
-  buildCredentialFromBech32Key(key: string)  {
+  buildCredentialFromBech32Key(key: string) {
     try {
       const keyHash = Ed25519KeyHash.from_hex(key);
       return Credential.from_keyhash(keyHash);

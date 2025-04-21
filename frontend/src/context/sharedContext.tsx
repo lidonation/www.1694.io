@@ -10,6 +10,7 @@ const SharedContext = createContext(null);
 export interface SharedState {
   isWalletListModalOpen: boolean;
   isLoginModalOpen: boolean;
+  isGovToolUsernameModalOpen: boolean;
   isLoggedIn: boolean;
   isNotDRepErrorModalOpen: boolean;
   isMobileDrawerOpen: boolean;
@@ -26,6 +27,7 @@ export function SharedProvider({ children }) {
   const [sharedState, setSharedState] = useState({
     isWalletListModalOpen: false,
     isLoginModalOpen: false,
+    isGovToolUsernameModalOpen: false,
     isLoggedIn: false,
     isNotDRepErrorModalOpen: false,
     isMobileDrawerOpen: false,

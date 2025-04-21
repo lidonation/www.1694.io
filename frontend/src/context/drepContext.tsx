@@ -36,6 +36,7 @@ import {
   verifyOwnership,
   VerifyOwnershipPayloadResponse,
 } from '@/services/requests/verifyOwnership';
+import GovToolUserNameModal from '@/components/organisms/GovtoolUserNameModal';
 
 export type StepStatus = 'success' | 'active' | 'pending' | 'update';
 
@@ -53,6 +54,7 @@ interface DRepContext extends SharedState {
   updateStep: (step: keyof Steps, status: StepStatus) => void;
   isLoggedIn: boolean;
   loginModalOpen: boolean;
+  govToolUsernameModalOpen: boolean;
   hideCloseButtonOnLoginModal: boolean;
   isWalletListModalOpen: boolean;
   hideCloseButtonOnWalletListModal: boolean;
@@ -73,6 +75,7 @@ interface DRepContext extends SharedState {
   setCurrentLocale: React.Dispatch<React.SetStateAction<string>>;
   setNewDrepId: React.Dispatch<React.SetStateAction<number>>;
   setLoginModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setGovToolUsernameModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setHideCloseButtonOnLoginModal: React.Dispatch<React.SetStateAction<boolean>>;
   metadataJsonLd: any;
   setMetadataJsonLd: React.Dispatch<React.SetStateAction<any>>;
@@ -127,6 +130,8 @@ function DRepProvider(props: Props) {
   const [drepId, setNewDrepId] = useState<number | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const [govToolUsernameModalOpen, setGovToolUsernameModalOpen] =
+    useState(false);
   const [hideCloseButtonOnLoginModal, setHideCloseButtonOnLoginModal] =
     useState(false);
   const res = useGetOwnership({
@@ -164,6 +169,7 @@ function DRepProvider(props: Props) {
       isNotDRepErrorModalOpen,
       isLoggedIn,
       isLoginModalOpen: loginModalOpen,
+      isGovToolUsernameModalOpen: govToolUsernameModalOpen,
       hideCloseButtonOnLoginModal: hideCloseButtonOnLoginModal,
     });
   }, [
@@ -171,6 +177,7 @@ function DRepProvider(props: Props) {
     isNotDRepErrorModalOpen,
     isLoggedIn,
     loginModalOpen,
+    govToolUsernameModalOpen,
     hideCloseButtonOnLoginModal,
   ]);
 
@@ -231,29 +238,32 @@ function DRepProvider(props: Props) {
     }
   };
 
-  const isDRepOwner = useCallback(async (drepId: string) => {
-    try {
-      const convertedDrepId = convertDrepPhraseToCIP105Legacy(drepId);
-      const convertedVoterId = convertDrepPhraseToCIP105Legacy(
-        sharedState?.dRepIDBech32,
-      );
-      if (
-        !convertedDrepId ||
-        !convertedVoterId ||
-        !isCip105(convertedDrepId) ||
-        !isCip105(convertedVoterId)
-      ) {
-        return null;
+  const isDRepOwner = useCallback(
+    async (drepId: string) => {
+      try {
+        const convertedDrepId = convertDrepPhraseToCIP105Legacy(drepId);
+        const convertedVoterId = convertDrepPhraseToCIP105Legacy(
+          sharedState?.dRepIDBech32,
+        );
+        if (
+          !convertedDrepId ||
+          !convertedVoterId ||
+          !isCip105(convertedDrepId) ||
+          !isCip105(convertedVoterId)
+        ) {
+          return null;
+        }
+        const res = await verifyOwnership({
+          drepId: convertedDrepId,
+          voterId: convertedVoterId,
+        });
+        return res?.result;
+      } catch (error) {
+        console.log(error);
       }
-      const res = await verifyOwnership({
-        drepId: convertedDrepId,
-        voterId: convertedVoterId,
-      });
-      return res?.result;
-    } catch (error) {
-      console.log(error);
-    }
-  }, [sharedState?.dRepIDBech32]);
+    },
+    [sharedState?.dRepIDBech32],
+  );
 
   const handleRefresh = async () => {
     const locallySavedJsonld = await getItemFromIndexedDB('metadataJsonLd');
@@ -277,7 +287,7 @@ function DRepProvider(props: Props) {
         if (!drepId) return;
 
         const isDRepRegistered = await getDRepRegStatus(drepId);
-        
+
         if (!isDRepRegistered?.registered) return;
         setIsDRepRegistered(isDRepRegistered?.registered);
 
@@ -412,6 +422,7 @@ function DRepProvider(props: Props) {
       setMetadataJsonHash,
       currentRegistrationStep,
       loginModalOpen,
+      govToolUsernameModalOpen,
       isDRepOwner,
       hideCloseButtonOnWalletListModal,
       hideCloseButtonOnLoginModal,
@@ -427,6 +438,7 @@ function DRepProvider(props: Props) {
       persistLogin,
       logout,
       setLoginModalOpen,
+      setGovToolUsernameModalOpen,
       drepToBeClaimed,
       drepEntityToBeClaimed,
       drepClaimMismatch,
@@ -448,6 +460,7 @@ function DRepProvider(props: Props) {
       ownership,
       signatureId,
       loginModalOpen,
+      govToolUsernameModalOpen,
       steps,
       updateStep,
       sharedState,
@@ -476,6 +489,7 @@ function DRepProvider(props: Props) {
           <UserLoginModal hideCloseButton={hideCloseButtonOnLoginModal} />
         </div>
       )}
+
       {isActionModalOpen && (
         <div className="blur-container fixed left-0 top-0  z-50 flex h-screen w-full items-center justify-center">
           <ActionModal
@@ -485,6 +499,12 @@ function DRepProvider(props: Props) {
               setIsActionModalOpen(false);
             }}
           />
+        </div>
+      )}
+
+      {govToolUsernameModalOpen && (
+        <div className="blur-container fixed left-0 top-0  z-50 flex h-screen w-full items-center justify-center">
+          <GovToolUserNameModal hideCloseButton={true} />
         </div>
       )}
     </DRepContext.Provider>
