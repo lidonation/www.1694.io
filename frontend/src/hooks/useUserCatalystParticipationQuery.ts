@@ -14,7 +14,6 @@ export const useUserParticipationQuery = (govToolUserName: string): UseQueryResu
         queryFn: async () => {
             if (!govToolUserName) return null;
             const res = await axiosInstance.get(`/metrics/catalyst-proposals/${govToolUserName}`);
-            console.log(res);
             return {...res.data} as CxProposalsMetrics;
         },
         enabled: !!govToolUserName,

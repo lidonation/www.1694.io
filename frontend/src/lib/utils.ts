@@ -280,7 +280,7 @@ export const getDataFromSession = (key: string) => {
   }
 };
 
-export const deletedDataFromSession = (key: string) => {
+export const deleteDataFromSession = (key: string) => {
   sessionStorage.removeItem(key);
 };
 

@@ -5,7 +5,11 @@ import { useDRepContext } from '@/context/drepContext';
 import { useCardano } from '@/context/cardanoContext';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { useQueryClient } from 'react-query';
-import { formatNumberTimeToReadable, getDataFromSession } from '@/lib';
+import {
+  deleteDataFromSession,
+  formatNumberTimeToReadable,
+  getDataFromSession,
+} from '@/lib';
 import MarkdownParser from '../atoms/MarkdownParser';
 import { postProposalComment } from '@/services/requests/postProposalComment';
 import { setUpPdfJwt } from '@/lib/pdfJwtHelper';
@@ -146,7 +150,8 @@ function ProposalComments({
     wallet: { isConnected, dRepId, dRepKeyHash, stakeKey, isDRep },
     activeWallet,
   } = useWallet();
-  const { addWarningAlert, addSuccessAlert } = useGlobalNotifications();
+  const { addWarningAlert, addSuccessAlert, addErrorAlert } =
+    useGlobalNotifications();
   const queryClient = useQueryClient();
 
   const totalComments = proposal?.attributes?.prop_comments_number || 0;
@@ -164,41 +169,62 @@ function ProposalComments({
   };
 
   const handleLoginToPdf = async () => {
-    let res = await signMessage(
-      'To proceed, please sign this data to verify your identity. This ensures that the action is secure and confirms your identity.',
-      stakeKey,
-      activeWallet === AuthMethod.HOT_WALLET ? true : false,
-      activeWallet === AuthMethod.LOGIN_FILE ? true : false,
-    );
-    const userResponse = await loginUserToPdf({
-      identifier: stakeKey,
-      signedData: res,
-    });
-
-    await setUpPdfJwt(userResponse);
-
-    if (!userResponse?.user?.govtool_username) {
-      setGovToolUsernameModalOpen(true);
-      return { userNameModalActive: true };
-    }
-
-    if (isDRep && userResponse?.user?.govtool_username) {
-      addWarningAlert(
-        'You are a DRep! We need to verify your drep key.',
-        false,
-      );
-      let signedData = await signMessage(
-        `To proceed, please sign this data to verify your dRep identity. This ensures that the action is secure and confirms your identity. Timestamp: ${new Date()?.getTime()}`,
-        dRepId,
+    try {
+      // Sign with stake key first
+      let res = await signMessage(
+        'To proceed, please sign this data to verify your identity. This ensures that the action is secure and confirms your identity.',
+        stakeKey,
         activeWallet === AuthMethod.HOT_WALLET ? true : false,
         activeWallet === AuthMethod.LOGIN_FILE ? true : false,
       );
-      const drepResponse = await loginUserToPdf({
-        identifier: dRepKeyHash.to_hex(),
-        signedData,
+
+      const userResponse = await loginUserToPdf({
+        identifier: stakeKey,
+        signedData: res,
       });
 
-      await setUpPdfJwt(drepResponse);
+      await setUpPdfJwt(userResponse);
+
+      // Check if username needs to be set
+      if (!userResponse?.user?.govtool_username) {
+        setGovToolUsernameModalOpen(true);
+        return { userNameModalActive: true };
+      }
+
+      // Handle DRep verification
+      if (isDRep && userResponse?.user?.govtool_username) {
+        addWarningAlert(
+          'You are a DRep! We need to verify your drep key.',
+          false,
+        );
+
+        try {
+          let signedData = await signMessage(
+            `To proceed, please sign this data to verify your dRep identity. This ensures that the action is secure and confirms your identity. Timestamp: ${new Date()?.getTime()}`,
+            dRepId,
+            activeWallet === AuthMethod.HOT_WALLET ? true : false,
+            activeWallet === AuthMethod.LOGIN_FILE ? true : false,
+          );
+
+          const drepResponse = await loginUserToPdf({
+            identifier: dRepKeyHash.to_hex(),
+            signedData,
+          });
+
+          await setUpPdfJwt(drepResponse);
+          addSuccessAlert('DRep verification passed.');
+        } catch (error) {
+          console.error('DRep verification failed:', error);
+          deleteDataFromSession('pdfUserJwt');
+          addErrorAlert('DRep verification failed. Please try again.');
+        }
+      }
+
+      addSuccessAlert('Login verification passed.');
+    } catch (error) {
+      console.error('Login process failed:', error);
+      deleteDataFromSession('pdfUserJwt');
+      addErrorAlert('Login failed. Please try again.');
     }
   };
 
@@ -212,7 +238,7 @@ function ProposalComments({
 
   const validateCommentText = (text: string): boolean => {
     if (text.trim() === '') {
-      addWarningAlert('Comment cannot be empty');
+      addWarningAlert('Hey, comment text cannot be empty');
       return false;
     }
     return true;
@@ -232,7 +258,7 @@ function ProposalComments({
 
     if (!getDataFromSession('pdfUserJwt')) {
       const loginRes = await handleLoginToPdf();
-      if (loginRes?.userNameModalActive) return;
+      if (!!loginRes?.userNameModalActive) return;
     }
 
     try {
@@ -245,6 +271,7 @@ function ProposalComments({
       addSuccessAlert('Your comment has been recorded successfully');
     } catch (error) {
       console.error('Failed to post comment:', error);
+      deleteDataFromSession('pdfUserJwt');
       addWarningAlert('Failed to record comment. Please try again.');
     }
   };
@@ -253,7 +280,8 @@ function ProposalComments({
     if (!checkWalletConnection() || !validateCommentText(replyText)) return;
 
     if (!getDataFromSession('pdfUserJwt')) {
-      await handleLoginToPdf();
+      const loginRes = await handleLoginToPdf();
+      if (!!loginRes?.userNameModalActive) return;
     }
 
     try {
@@ -267,6 +295,7 @@ function ProposalComments({
       addSuccessAlert('Your comment has been recorded successfully');
     } catch (error) {
       console.error('Failed to post reply:', error);
+      deleteDataFromSession('pdfUserJwt');
       addWarningAlert('Failed to record comment. Please try again.');
     }
   };

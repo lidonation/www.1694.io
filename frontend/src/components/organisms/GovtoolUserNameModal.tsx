@@ -9,6 +9,7 @@ import { loginUserToPdf } from '@/services/requests/loginUserToPdf';
 import { useWallet } from '@/context/walletContext';
 import { useCardano } from '@/context/cardanoContext';
 import { AuthMethod } from '../../../types/auth';
+import { deleteDataFromSession } from '@/lib';
 
 function GovToolUserNameModal({
   hideCloseButton,
@@ -52,6 +53,7 @@ function GovToolUserNameModal({
 
   const handleSubmit = async () => {
     try {
+      // Post username to government tool
       await postUsernameToGovTool({
         govtoolUsername: username,
       });
@@ -59,33 +61,48 @@ function GovToolUserNameModal({
       addSuccessAlert('Your username was recorded successfully.');
       setGovToolUsernameModalOpen(false);
 
+      // Handle DRep verification if needed
       if (isDRep) {
         addWarningAlert(
           'You are a DRep! We need to verify your drep key.',
           false,
         );
-        await signAsDRep();
+
+        try {
+          await signAsDRep();
+        } catch (drepError) {
+          console.error('Error in DRep verification:', drepError);
+        }
       }
     } catch (error) {
+      // Handle username submission error
+      console.error('Username submission error:', error);
       setUsername('');
-      addErrorAlert(error);
-      console.error(error);
+      setUsernameError('Failed to save username. Please try again.');
+      addErrorAlert('Failed to save username. Please try again.');
     }
   };
 
   const signAsDRep = async () => {
-    let signedData = await signMessage(
-      `To proceed, please sign this data to verify your dRep identity. This ensures that the action is secure and confirms your identity. Timestamp: ${new Date()?.getTime()}`,
-      dRepId,
-      activeWallet === AuthMethod.HOT_WALLET ? true : false,
-      activeWallet === AuthMethod.LOGIN_FILE ? true : false,
-    );
-    const drepResponse = await loginUserToPdf({
-      identifier: dRepKeyHash.to_hex(),
-      signedData,
-    });
+    try {
+      let signedData = await signMessage(
+        `To proceed, please sign this data to verify your dRep identity. This ensures that the action is secure and confirms your identity. Timestamp: ${new Date()?.getTime()}`,
+        dRepId,
+        activeWallet === AuthMethod.HOT_WALLET ? true : false,
+        activeWallet === AuthMethod.LOGIN_FILE ? true : false,
+      );
+      const drepResponse = await loginUserToPdf({
+        identifier: dRepKeyHash.to_hex(),
+        signedData,
+      });
 
-    await setUpPdfJwt(drepResponse);
+      await setUpPdfJwt(drepResponse);
+    } catch (error) {
+      console.error('DRep verification failed:', error);
+      deleteDataFromSession('pdfUserJwt');
+      addErrorAlert('DRep verification failed. Please try again.');
+      return;
+    }
   };
 
   return (
