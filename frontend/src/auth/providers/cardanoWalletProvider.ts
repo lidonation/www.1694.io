@@ -1,5 +1,5 @@
 import {
-  deletedDataFromSession,
+  deleteDataFromSession,
   fromBech32ToHex,
   getItemFromLocalStorage,
   WALLET_LS_KEY,
@@ -83,7 +83,7 @@ export class CardanoWalletProvider implements AuthenticationProvider {
     await this.cardanoContext.disconnectWallet();
     this.connected = false;
     this.walletName = null;
-    deletedDataFromSession('pdfUserJwt');
+    deleteDataFromSession('pdfUserJwt');
   }
 
   /**
