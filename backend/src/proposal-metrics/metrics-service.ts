@@ -15,7 +15,7 @@ export class MetricsService {
 
   async getProposalMetrics(search?: string, category?: string): Promise<any> {
     try {
-      let url = `${this.METRICS_URL}/metrics`;
+      let url = `${this.METRICS_URL}/cardano/budget-proposals/metrics`;
       const queryParams = {
         s: search,
         category,
