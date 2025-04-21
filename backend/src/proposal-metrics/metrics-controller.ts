@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { MetricsService } from './metrics-service';
 
 @Controller('metrics')
@@ -13,12 +13,8 @@ export class MetricsController {
     return this.metricsService.getProposalMetrics(search, category);
   }
 
-  @Get('catalyst-proposals')
-  async getCatalystParticipation(
-    @Query('username') username: string,
-  ) {
-    return {
-      count: await this.metricsService.getCatalystParticipation(username),
-    };
+  @Get('catalyst-proposals/:username')
+  async getCatalystParticipation(@Param('username') username: string) {
+    return await this.metricsService.getCatalystParticipation(username);
   }
 }

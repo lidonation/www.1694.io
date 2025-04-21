@@ -1,15 +1,23 @@
-import { useQuery } from 'react-query';
-import axios from 'axios';
+import {useQuery, UseQueryResult} from 'react-query';
+import axiosInstance from "@/services/axiosInstance";
 
-export const useUserParticipationQuery = (govToolUserName: string) => {
-  return useQuery<number | null>({
-    queryKey: ['userParticipation', govToolUserName],
-    queryFn: async () => {
-      if (!govToolUserName) return null;
-      const { data } = await axios.get(`/api/metrics/catalyst-proposals/${govToolUserName}`);
-      return data?.proposals ?? null; 
-    },
-    enabled: !!govToolUserName,
-    refetchOnWindowFocus: false,
-  });
+export interface CxProposalsMetrics {
+    proposals: number;
+    funded_proposals: number;
+    completed_proposals: number;
+    outstanding_proposals: number;
+}
+
+export const useUserParticipationQuery = (govToolUserName: string): UseQueryResult<CxProposalsMetrics> => {
+    return useQuery<CxProposalsMetrics>({
+        queryKey: ['userParticipation', govToolUserName],
+        queryFn: async () => {
+            if (!govToolUserName) return null;
+            const res = await axiosInstance.get(`/metrics/catalyst-proposals/${govToolUserName}`);
+            console.log(res);
+            return {...res.data} as CxProposalsMetrics;
+        },
+        enabled: !!govToolUserName,
+        refetchOnWindowFocus: false,
+    });
 };

@@ -11,8 +11,7 @@ export class MetricsService {
   ) {}
 
   private readonly METRICS_URL =
-    this.configService.get<string>('METRICS_BASE_URL') ||
-    'https://www.lidonation.com/api/cardano/budget-proposals';
+    this.configService.get<string>('METRICS_BASE_URL');
 
   async getProposalMetrics(search?: string, category?: string): Promise<any> {
     try {
@@ -57,9 +56,8 @@ export class MetricsService {
       if (!govToolUserName) {
         return 0;
       }
-  
-      const url = `${this.METRICS_URL}/metrics/catalyst-proposals/${govToolUserName}`;
-      
+
+      const url = `${this.METRICS_URL}/cardano/budget-proposals/metrics/catalyst-proposals/${govToolUserName}`;
       const response = await firstValueFrom(
         this.httpService.get(url).pipe(
           catchError((error) => {
@@ -67,12 +65,12 @@ export class MetricsService {
               'Error fetching catalyst participation:',
               error?.response?.data || error,
             );
-            return of({ data: { proposals: 0 } });
+            return of({ data: null});
           }),
         ),
       );
-  
-      return response?.data?.proposals ?? 0;
+
+      return response?.data;
     } catch (error) {
       console.error('Error fetching catalyst participation:', error);
       return 0;
