@@ -1124,7 +1124,8 @@ export class DrepService {
   async getVoterProfileData(stakeKey: string) {
     try {
       // Get stake key information
-      const stakeKeyInfo = await this.blockfrostService.getStakeAddressInfo(stakeKey);
+      const stakeKeyInfo =
+        await this.blockfrostService.getStakeAddressInfo(stakeKey);
 
       // Get current delegation information
       const delegations = await this.cexplorerService.manager.query(
