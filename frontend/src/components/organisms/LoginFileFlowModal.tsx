@@ -248,13 +248,14 @@ export function LoginFileFlowModal({
         return (
           <Box sx={{ mt: 3 }}>
             <Typography variant="body1" paragraph>
-              To get started, we'll generate a verification file that you'll
-              need to sign using your Cardano command-line wallet.
+              We're going to help you generate a verification file
+              using the cardano-signer cli tool.
             </Typography>
 
             <Typography variant="body2" color="text.secondary" paragraph>
-              This verification file contains a unique message that will be used
-              to authenticate your identity.
+              Once created and signed the file using CIP-08,
+              you will be able to reuse the file in the future to
+              login to 1694 and participate in Cardano governance.
             </Typography>
 
             <Button

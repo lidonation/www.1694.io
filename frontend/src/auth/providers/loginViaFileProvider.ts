@@ -171,7 +171,7 @@ export class LoginFileProvider implements AuthenticationProvider {
             dRepId: profileData?.isDrep ? profileData?.selfDRepRaw : '',
             dRepIdBech32: profileData?.isDrep ? profileData?.selfDRepView : '',
             dRepKeyHash: profileData?.isDrep
-              ? this.buildCredentialFromBech32Key(profileData?.selfDRepView).to_keyhash()
+              ? this.buildCredentialFromBech32Key(profileData?.selfDRepRaw).to_keyhash()
               : null,
             delegatedTo: profileData?.isDrep
               ? profileData?.selfDRepView
