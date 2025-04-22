@@ -136,6 +136,7 @@ export interface CardanoContext {
   setWalletApi: (api: CardanoApiWallet) => void;
   delegatedDRepID?: string;
   setDelegatedDRepID: (key: string) => void;
+  setEpochParams: () => Promise<any>;
   dRepRegistration: {
     registered: boolean;
     view: string;
@@ -316,7 +317,7 @@ function CardanoProvider(props: Props) {
           throw {
             status: 'ERROR',
             error: 'errors.walletNoCIP30Nor90Support',
-          }
+          };
         } else if (
           !window.cardano[walletName].supportedExtensions.some(
             (item) => item.cip === 95,
@@ -325,7 +326,7 @@ function CardanoProvider(props: Props) {
           throw {
             status: 'ERROR',
             error: 'errors.walletNoCIP95Support',
-          }
+          };
         }
 
         // Enable wallet connection
@@ -369,7 +370,7 @@ function CardanoProvider(props: Props) {
           throw {
             status: 'ERROR',
             error: 'errors.walletNoCIP95Support',
-          }
+          };
         }
 
         //Check and set wallet balance
@@ -381,7 +382,7 @@ function CardanoProvider(props: Props) {
           throw {
             status: 'ERROR',
             error: 'errors.noAddressesFound',
-          }
+          };
         }
         if (!usedAddresses.length) {
           setAddress(unusedAddresses[0]);
@@ -538,13 +539,12 @@ function CardanoProvider(props: Props) {
   };
 
   const initTransactionBuilder = async () => {
-    const protocolParams = getItemFromLocalStorage(
-      'protocolParams',
-    ) as Protocol;
+    let protocolParams = getItemFromLocalStorage('protocolParams') as Protocol;
+
     if (!protocolParams) {
-      await getEpochParams();
-      throw new Error('No protocol params found');
+      protocolParams = await setEpochParams();
     }
+
     const txBuilder = TransactionBuilder.new(
       TransactionBuilderConfigBuilder.new()
         .fee_algo(
@@ -874,6 +874,7 @@ function CardanoProvider(props: Props) {
       signMessage,
       dRepRegistration,
       setWalletApi,
+      setEpochParams,
     }),
     [
       address,
@@ -902,6 +903,7 @@ function CardanoProvider(props: Props) {
       registeredStakeKeysListState,
       buildVote,
       dRepRegistration,
+      setEpochParams,
     ],
   );
 

@@ -8,7 +8,8 @@ type VoteResultsCardProps = {
 };
 
 export default function VoteResultsCard({ poll }: VoteResultsCardProps) {
-  if (!poll) return null;
+  if (!poll || poll?.length === 0) return;
+
   const voteData = poll[0]?.attributes;
   const totalVotes = voteData?.poll_yes + voteData?.poll_no;
   const yesPercentage =
