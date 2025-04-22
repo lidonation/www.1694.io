@@ -19,7 +19,7 @@ type VoteSectionProps = {
 };
 
 export default function VotingSection({ poll }: VoteSectionProps) {
-  if (!poll) return null;
+  if (!poll || poll?.length === 0) return;
 
   const [vote, setVote] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);

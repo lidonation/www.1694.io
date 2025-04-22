@@ -1,6 +1,6 @@
 import { ChatBubbleOutline, Send } from '@mui/icons-material';
-import { Box, Button } from '@mui/material';
-import React, { useEffect, useRef, useState } from 'react';
+import { Box, Button, CircularProgress, Typography } from '@mui/material';
+import React, { memo, useEffect, useRef, useState } from 'react';
 import { useDRepContext } from '@/context/drepContext';
 import { useCardano } from '@/context/cardanoContext';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
@@ -35,34 +35,56 @@ const CommentForm = ({
   value,
   onChange,
   onSubmit,
-  placeholder = 'Add your comment...',
+  placeholder = 'Add your comment here...',
+  isLoading,
 }: {
   value: string;
-  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  onChange: (
+    e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
+  ) => void;
   onSubmit: () => void;
   placeholder?: string;
-}) => (
-  <Box className="flex-1">
-    <textarea
-      value={value}
-      onChange={onChange}
-      placeholder={placeholder}
-      className="w-full resize-none rounded-lg border border-gray-300 p-3 shadow-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
-      rows={3}
-    />
-    <Box className="mt-2 flex justify-end">
-      <Button
-        variant="outlined"
-        size="medium"
-        className="flex w-fit justify-between gap-1"
-        onClick={onSubmit}
-      >
-        <Send fontSize="small" />
-        <span>Submit</span>
-      </Button>
+  isLoading: boolean;
+}) => {
+  const MAX_COMMENT_LENGTH = 2500;
+
+  return (
+    <Box className="flex-1">
+      <textarea
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        className="w-full resize-none rounded-lg border border-gray-300 p-3 shadow-sm outline-none focus:border-primary-300 focus:ring-1 focus:ring-primary-300"
+        rows={3}
+        disabled={isLoading}
+      />
+
+      <Box className="mt-2 flex items-center justify-end">
+        <Typography
+          variant="caption"
+          className={`${value?.length >= MAX_COMMENT_LENGTH ? 'text-red-600' : ''}`}
+          sx={{
+            float: 'right',
+            mr: 2,
+          }}
+        >
+          {`${value?.length || 0}/${MAX_COMMENT_LENGTH}`}
+        </Typography>
+        <Button
+          variant="outlined"
+          size="medium"
+          className="flex w-fit justify-between gap-1"
+          onClick={onSubmit}
+          disabled={isLoading || !value.trim()}
+        >
+          {isLoading && <CircularProgress size={20} sx={{ mr: 1 }} />}
+          <Send fontSize="small" />
+          <span>Submit</span>
+        </Button>
+      </Box>
     </Box>
-  </Box>
-);
+  );
+};
 
 const CommentContent = ({ comment }: { comment: any }) => {
   const contentRef = useRef<HTMLDivElement>(null);
@@ -136,6 +158,8 @@ function ProposalComments({
 }: ProposalCommentsProps) {
   const [commentText, setCommentText] = useState('');
   const [replyText, setReplyText] = useState('');
+  const [submittingComment, setSubmittingComment] = useState(false);
+  const [submittingReply, setSubmittingReply] = useState(false);
   const [replying, setReplying] = useState<{
     isReplying: boolean;
     commentId: string | null;
@@ -256,9 +280,14 @@ function ProposalComments({
   const handleCommentSubmit = async () => {
     if (!checkWalletConnection() || !validateCommentText(commentText)) return;
 
+    setSubmittingComment(true);
+
     if (!getDataFromSession('pdfUserJwt')) {
       const loginRes = await handleLoginToPdf();
-      if (!!loginRes?.userNameModalActive) return;
+      if (!!loginRes?.userNameModalActive) {
+        setSubmittingComment(false);
+        return;
+      }
     }
 
     try {
@@ -273,15 +302,22 @@ function ProposalComments({
       console.error('Failed to post comment:', error);
       deleteDataFromSession('pdfUserJwt');
       addWarningAlert('Failed to record comment. Please try again.');
+    } finally {
+      setSubmittingComment(false);
     }
   };
 
   const handleReplySubmit = async (commentId: string) => {
     if (!checkWalletConnection() || !validateCommentText(replyText)) return;
 
+    setSubmittingReply(true);
+
     if (!getDataFromSession('pdfUserJwt')) {
       const loginRes = await handleLoginToPdf();
-      if (!!loginRes?.userNameModalActive) return;
+      if (!!loginRes?.userNameModalActive) {
+        setSubmittingReply(false);
+        return;
+      }
     }
 
     try {
@@ -297,6 +333,8 @@ function ProposalComments({
       console.error('Failed to post reply:', error);
       deleteDataFromSession('pdfUserJwt');
       addWarningAlert('Failed to record comment. Please try again.');
+    } finally {
+      setSubmittingReply(false);
     }
   };
 
@@ -323,6 +361,7 @@ function ProposalComments({
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
               onSubmit={handleCommentSubmit}
+              isLoading={submittingComment}
             />
           </Box>
         </Box>
@@ -370,6 +409,7 @@ function ProposalComments({
                         value={replyText}
                         onChange={(e) => setReplyText(e.target.value)}
                         onSubmit={() => handleReplySubmit(comment.id)}
+                        isLoading={submittingReply}
                       />
                     </Box>
                   )}
@@ -395,4 +435,4 @@ function ProposalComments({
   );
 }
 
-export default ProposalComments;
+export default memo(ProposalComments);
