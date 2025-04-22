@@ -1,4 +1,4 @@
-import {  deleteDataFromSession, LOGIN_FILE_LS_KEY } from '@/lib';
+import { deleteDataFromSession, LOGIN_FILE_LS_KEY } from '@/lib';
 import {
   AuthenticationProvider,
   AccountInfo,
@@ -15,6 +15,7 @@ import {
   Credential,
   Ed25519KeyHash,
 } from '@emurgo/cardano-serialization-lib-asmjs';
+import { CardanoContext } from '@/context/cardanoContext';
 
 /**
  * Provider that handles authentication via a login key file
@@ -22,7 +23,7 @@ import {
  * without needing their wallet connected
  */
 export class LoginFileProvider implements AuthenticationProvider {
-  private cardanoContext: any;
+  private cardanoContext: CardanoContext;
   private connected: boolean = false;
   private accountInfo: AccountInfo | null = null;
   private loginCredentials: {
@@ -184,6 +185,7 @@ export class LoginFileProvider implements AuthenticationProvider {
           },
         } as AccountInfo;
 
+        await this.cardanoContext.setEpochParams();
         this.connected = true;
         await setFileToIndexedDB(LOGIN_FILE_LS_KEY, params.file);
       } else {

@@ -282,7 +282,7 @@ export function UserLoginModal({
                 />
 
                 <Button
-                  variant="contained"
+                  variant={selectedFile ? 'outlined' : 'contained'}
                   color="primary"
                   fullWidth
                   onClick={() => fileInputRef.current?.click()}
