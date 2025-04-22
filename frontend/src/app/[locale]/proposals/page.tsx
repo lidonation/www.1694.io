@@ -7,6 +7,8 @@ import Pagination from '@/components/molecules/Pagination';
 import ProposalSearch from '@/components/atoms/ProposalSearch';
 import RecordsNotFound from '@/components/atoms/RecordsNotFound';
 import ProposalMetrics from '@/components/atoms/ProposalMetrics';
+import { ProposalDownloadButton } from '@/components/molecules/ProposalDownloadButton';
+import { Button } from '@mui/material';
 
 // hooks
 import { useProposalFilters } from '@/hooks/useProposalFilters';
@@ -95,7 +97,13 @@ function ProposalsPage() {
           </div>
         </div>
       </section>
-
+      <section className="w-full max-w-7xl mx-auto flex justify-end mb-4">
+        <ProposalDownloadButton
+          proposals={allFilteredProposals?.data || []}
+          searchQuery={search}
+          categoryFilter={selectedCategories}
+        />
+      </section>
       <section>
         {!isPaginatedLoading && proposalsData.length === 0 ? (
           <RecordsNotFound message="No proposals match your criteria." />
