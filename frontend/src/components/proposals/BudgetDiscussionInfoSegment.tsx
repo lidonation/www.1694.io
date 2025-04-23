@@ -24,7 +24,7 @@ const BudgetDiscussionInfoSegment = ({
 
   return (
     <Box>
-      <Typography className="text-lg leading-relaxed text-gray-500">
+      <Typography className="text-base leading-relaxed text-primary-300">
         {question}
       </Typography>
       <Box>

@@ -815,7 +815,6 @@ function CardanoProvider(props: Props) {
     [dRepID],
   );
   const disconnectWallet = useCallback(async () => {
-    console.log('Disconnecting wallet');
     removeItemFromLocalStorage(`${WALLET_LS_KEY}_name`);
     removeItemFromLocalStorage(`${WALLET_LS_KEY}_stake_key`);
     removeItemFromLocalStorage(`${WALLET_LS_KEY}_api`);
