@@ -1,7 +1,7 @@
-import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { catchError, firstValueFrom } from 'rxjs';
+import {HttpService} from '@nestjs/axios';
+import {Injectable} from '@nestjs/common';
+import {ConfigService} from '@nestjs/config';
+import {catchError, firstValueFrom} from 'rxjs';
 
 @Injectable()
 export class ActionsProposalsService {
@@ -49,9 +49,8 @@ export class ActionsProposalsService {
       }
 
       if (category) {
-        const categoryArray = category.split(',').map((cat) => cat.trim());
         filters['filters[$and][3][bd_psapb][type_name][type_name][$in]'] =
-          categoryArray;
+          category.split(',').map((cat) => cat.trim());
       }
 
       let backendSortField = 'createdAt';
