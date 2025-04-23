@@ -241,6 +241,7 @@ function ProposalComments({
           console.error('DRep verification failed:', error);
           deleteDataFromSession('pdfUserJwt');
           addErrorAlert('DRep verification failed. Please try again.');
+          return { loginFailed: true };
         }
       }
 
@@ -249,6 +250,7 @@ function ProposalComments({
       console.error('Login process failed:', error);
       deleteDataFromSession('pdfUserJwt');
       addErrorAlert('Login failed. Please try again.');
+      return { loginFailed: true };
     }
   };
 
@@ -284,7 +286,13 @@ function ProposalComments({
 
     if (!getDataFromSession('pdfUserJwt')) {
       const loginRes = await handleLoginToPdf();
+
       if (!!loginRes?.userNameModalActive) {
+        setSubmittingComment(false);
+        return;
+      }
+
+      if (!!loginRes?.loginFailed) {
         setSubmittingComment(false);
         return;
       }
@@ -314,8 +322,14 @@ function ProposalComments({
 
     if (!getDataFromSession('pdfUserJwt')) {
       const loginRes = await handleLoginToPdf();
+
       if (!!loginRes?.userNameModalActive) {
         setSubmittingReply(false);
+        return;
+      }
+
+      if (!!loginRes?.loginFailed) {
+        setSubmittingComment(false);
         return;
       }
     }

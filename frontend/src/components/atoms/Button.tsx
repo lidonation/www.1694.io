@@ -25,7 +25,7 @@ export interface ButtonProps {
   borderRadius?: string;
   sx?: object;
   children?: React.ReactNode;
-  handleClick?: (any) => any;
+  handleClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
   type?: 'submit' | 'button';
   className?: string;
 }
@@ -55,6 +55,13 @@ const Button: React.FC<ButtonProps> = ({
     smallest: 26,
   }[size];
 
+  const handleButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    if (handleClick) {
+      handleClick(event);
+    }
+  };
+
   return (
     <MUIButton
       className={`${className}`}
@@ -69,7 +76,7 @@ const Button: React.FC<ButtonProps> = ({
       disabled={disabled}
       variant={variant}
       color={color}
-      onClick={handleClick}
+      onClick={handleButtonClick}
       type={type}
       {...props}
     >
