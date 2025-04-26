@@ -23,9 +23,9 @@ export type GovAction = {
   gov_action_proposal_id: string | null;
   gov_action_proposal_index: string | null;
   type: string | null;
-  description:  {
+  description: {
     tag: string;
-    contents:string| null;
+    contents: string | null;
   } | null;
   vote: string | null;
   url: string | null;
@@ -142,3 +142,10 @@ export interface BlockfrostUTXO {
 }
 
 export interface StandardizedUTXO extends BlockfrostUTXO {}
+
+export interface CxProposalsMetrics {
+  proposals: number;
+  funded_proposals: number;
+  completed_proposals: number;
+  outstanding_proposals: number;
+}

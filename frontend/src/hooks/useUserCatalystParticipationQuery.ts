@@ -1,12 +1,6 @@
 import {useQuery, UseQueryResult} from 'react-query';
 import axiosInstance from "@/services/axiosInstance";
-
-export interface CxProposalsMetrics {
-    proposals: number;
-    funded_proposals: number;
-    completed_proposals: number;
-    outstanding_proposals: number;
-}
+import { CxProposalsMetrics } from '../../types/api';
 
 export const useUserParticipationQuery = (govToolUserName: string): UseQueryResult<CxProposalsMetrics> => {
     return useQuery<CxProposalsMetrics>({
