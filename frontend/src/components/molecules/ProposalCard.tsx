@@ -24,6 +24,8 @@ import {
 } from '@mui/icons-material';
 import Link from 'next/link';
 import {useUserParticipationQuery} from '@/hooks/useUserCatalystParticipationQuery';
+import {useGetActionProposalPollQuery} from '@/hooks/useGetActionProposalPollQuery';
+import ProposalVotesBadge from './ProposalVotesBadge';
 
 const StyledBadge = styled(Badge)(({theme}) => ({
     '& .MuiBadge-badge': {
@@ -46,6 +48,8 @@ function ProposalCard({proposal}: { proposal: any }) {
     const [shareAnchorEl, setShareAnchorEl] = useState(null);
     const [disableShare, setDisableShare] = useState(false);
     const openShare = Boolean(shareAnchorEl);
+
+    const { poll } = useGetActionProposalPollQuery(Number(proposal?.id));
 
     const proposalDetail =
         proposal?.attributes?.bd_proposal_detail?.data?.attributes;
@@ -140,16 +144,20 @@ function ProposalCard({proposal}: { proposal: any }) {
                           </span>
                         </Tooltip>
                     </Box>
-
-                    <Box>
-                        <Typography variant="subtitle2" fontWeight="semi-bold">
+                    <Box className="flex items-center justify-between w-full mb-2">
+                        <Box>
+                            <Typography variant="subtitle2" fontWeight="semi-bold">
                             Budget Category
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
                             {budgetCategory}
-                        </Typography>
-                    </Box>
+                            </Typography>
+                        </Box>
 
+                        <Box className="flex justify-end mr-2">
+                            <ProposalVotesBadge poll={poll?.data} />
+                        </Box>
+                    </Box>
                     <Box>
                         <Typography variant="subtitle2" fontWeight="semi-bold">
                             Budget Requested
