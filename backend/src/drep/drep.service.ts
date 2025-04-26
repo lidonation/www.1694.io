@@ -69,6 +69,7 @@ import { Currency } from 'src/common/enums';
 import { Signature } from 'src/entities/signatures.entity';
 import { MiscellaneousService } from 'src/miscellaneous/miscellaneous.service';
 import { getCurrentDelegationQuery } from 'src/queries/currentDelegation';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class DrepService {
@@ -84,6 +85,7 @@ export class DrepService {
     private readonly httpService: HttpService,
     private blockfrostService: BlockfrostService,
     private miscService: MiscellaneousService,
+    private configService: ConfigService,
   ) {}
 
   async getAllDReps(
@@ -1178,7 +1180,8 @@ export class DrepService {
           delegatedToDRepRaw: delegation.drep_raw,
           delegatedToVotingPower: delegation.voting_power,
           has_script: delegation.has_script,
-          delegatedToIsRegistered: registration.deposit === null || registration.deposit > 0,
+          delegatedToIsRegistered:
+            registration.deposit === null || registration.deposit > 0,
           isDrep: false,
         };
       }
@@ -1199,6 +1202,26 @@ export class DrepService {
         isDrep: false,
         error: 'Failed to retrieve DRep profile data',
       };
+    }
+  }
+
+  async getDRepsVotingPowerExternal(identifiers: string[]) {
+    try {
+      const govToolApiUrl = this.configService.get<string>(
+        'BASE_URL_GOVTOOL_API',
+      );
+
+      const params = new URLSearchParams();
+      identifiers.forEach((id) => params.append('identifiers', id));
+
+      const url = `${govToolApiUrl}/drep/voting-power-list?${params.toString()}`;
+
+      const response = await firstValueFrom(this.httpService.get(url));
+
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching DRep voting power:', error.message);
+      throw error;
     }
   }
 }
