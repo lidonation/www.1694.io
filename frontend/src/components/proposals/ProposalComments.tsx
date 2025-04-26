@@ -394,7 +394,7 @@ function ProposalComments({
       )}
 
       {isCommentsLoading ? (
-        <p className="text-center">Loading proposal comments...</p>
+        <p className="text-center animate-pulse">Loading proposal comments...</p>
       ) : parentComments && parentComments.length > 0 ? (
         <Box className="space-y-6">
           {parentComments.map((comment) => (

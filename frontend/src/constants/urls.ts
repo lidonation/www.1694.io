@@ -4,6 +4,7 @@ export const CONFIGURED_NETWORK_NAME =
 export const urls = {
   baseServerUrl: process.env.NEXT_PUBLIC_BASE_URL_API || '',
   govToolUrl: process.env.NEXT_PUBLIC_BASE_URL_GOVTOOL || '',
+  govToolApiUrl: process.env.NEXT_PUBLIC_BASE_URL_GOVTOOL_API || '',
   cexplorerUrl: process.env.NEXT_PUBLIC_BASE_URL_EXPLORER || '',
   ipfsGateway: process.env.NEXT_PUBLIC_IPFS_GATEWAY || '',
   adaStatUrl: process.env.NEXT_PUBLIC_BASE_URL_ADASTAT || '',
