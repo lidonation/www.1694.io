@@ -1,5 +1,6 @@
 import React from 'react';
 import { Box, Skeleton } from '@mui/material';
+import PollResultsSkeleton from './PollResultsSkeleton';
 
 const ProposalIdentityLoader = () => {
   return (
@@ -12,8 +13,8 @@ const ProposalIdentityLoader = () => {
         <span className="mx-3 text-gray-400">•</span>
         <Skeleton variant="text" width={120} height={20} />
       </Box>
+      <PollResultsSkeleton />
       <Box className="flex items-center gap-6 border-t py-3">
-        <Skeleton variant="text" width={120} height={28} />
         <Skeleton variant="text" width={120} height={28} />
         <Skeleton variant="text" width={120} height={28} />
         <Skeleton variant="text" width={120} height={28} />
