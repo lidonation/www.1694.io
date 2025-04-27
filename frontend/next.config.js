@@ -1,4 +1,4 @@
-const createNextIntlPlugin = require('next-intl/plugin');
+import createNextIntlPlugin from 'next-intl/plugin';
 
 const withNextIntl = createNextIntlPlugin({
   experimental: {
@@ -6,6 +6,9 @@ const withNextIntl = createNextIntlPlugin({
   },
 });
 
-const config = { output: 'standalone', reactStrictMode: true };
+const config = {
+  output: 'standalone',
+  reactStrictMode: true,
+};
 
-module.exports = withNextIntl(config);
+export default withNextIntl(config);

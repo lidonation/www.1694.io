@@ -29,7 +29,11 @@
     "src/context/context.js",
     ".next/types/**/*.ts",
     "src/app/[locale]/layout.js",
-    "src/app/[locale]/page.js"
+    "src/app/[locale]/page.js",
+    "src/middleware.js",
+    "src/i18n/request.js",
+    "src/i18n/navigation.js",
+    "src/i18n/routing.js"
   ],
   "exclude": ["node_modules"]
 }
