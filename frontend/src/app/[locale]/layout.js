@@ -14,7 +14,7 @@ import PageBanner from '@/components/atoms/PageBanner';
 const poppins = Poppins({
   weight: '400',
   style: 'normal',
-  subsets: ['devanagari'],
+  subsets: ['latin-ext'],
 });
 
 export function generateStaticParams() {
@@ -31,14 +31,28 @@ export const metadata = {
 // Dynamically imported ClientScriptLoader with no SSR
 const SprigClientScriptLoader = dynamic(
   () => import('@/components/analytics/SprigClientScriptLoader'),
-  { ssr: false },
+  {
+    // ssr: false
+  },
 );
 const FathomClientScriptLoader = dynamic(
   () => import('@/components/analytics/AnalyticsLoader'),
-  { ssr: false },
+  {
+    // ssr: false
+  },
 );
 
-async function RootLayout({ children, params: { locale } }) {
+async function RootLayout(props) {
+  const params = await props.params;
+
+  const {
+    locale
+  } = params;
+
+  const {
+    children
+  } = props;
+
   // Root layout component, sets up locale, loads messages, and wraps the app with providers.
   unstable_setRequestLocale(locale); // Set the locale for the request, use with caution due to unstable API.
   if (!locales.variants.includes(locale)) notFound(); // Check if the locale is supported, otherwise trigger a 404.

@@ -6,9 +6,15 @@ import DRepIntro from '@/components/organisms/DRepIntro';
 import GovernanceActionsCard from '@/components/organisms/GovernanceActionsCard';
 import PickADRep from '@/components/organisms/PickADRep';
 import { useDRepContext } from '@/context/drepContext';
-import React, { useEffect } from 'react';
+import React, { useEffect, use } from 'react';
 
-const page = ({ params: { locale } }) => {
+const page = props => {
+  const params = use(props.params);
+
+  const {
+    locale
+  } = params;
+
   const { setCurrentLocale } = useDRepContext();
   useEffect(() => {
     setCurrentLocale(locale);

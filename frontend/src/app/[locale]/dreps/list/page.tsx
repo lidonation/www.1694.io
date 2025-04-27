@@ -3,10 +3,10 @@ import DRepsMetrics from '@/components/atoms/DRepsMetrics';
 import DRepTableSearch from '@/components/atoms/DRepTableSearch';
 import BreadCrumbs from '@/components/molecules/BreadCrumbs';
 import DRepsTable from '@/components/molecules/DRepsTable';
-import React from 'react';
+import React, { use } from 'react';
 
 type PageProps = {
-  searchParams?: {
+  searchParams?: Promise<{
     s?: string;
     page?: string;
     sort?: string;
@@ -15,9 +15,10 @@ type PageProps = {
     include_retired?: string;
     campaign?: string;
     type?: string;
-  };
+  }>;
 };
-const page = ({ searchParams }: PageProps) => {
+const page = (props: PageProps) => {
+  const searchParams = use(props.searchParams);
   const query = searchParams?.s || '';
   const page = Number(searchParams?.page) || 1;
   const sort = searchParams?.sort || null;

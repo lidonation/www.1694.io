@@ -36,6 +36,10 @@ migrate:
 watch:
 	docker-compose up -d && docker-compose exec frontend yarn run dev
 
+.PHONY: start
+start:
+	docker-compose up -d && docker-compose exec frontend yarn run start
+
 .PHONY: build
 build:
 	docker-compose exec frontend yarn run build

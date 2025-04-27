@@ -1,9 +1,9 @@
 // src/app/[locale]/dreps/ServerPage.js
-import { headers } from 'next/headers';
+import { headers, type UnsafeUnwrappedHeaders } from 'next/headers';
 import React from 'react';
 
 const ServerPage = ({ children }) => {
-    const headersList = headers();
+    const headersList = (headers() as unknown as UnsafeUnwrappedHeaders);
     const redirectCause = headersList.get('x-status-reason');
     return (
         <div>
