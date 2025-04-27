@@ -9,7 +9,7 @@ const intlMiddleware = createMiddleware({
 
 export const config = {
   matcher: ['/((?!_next).*)'],
-  runtime: 'edge',
+  runtime: 'experimental-edge',
 };
 
 function getLocale() {
