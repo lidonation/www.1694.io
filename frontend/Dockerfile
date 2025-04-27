@@ -46,7 +46,7 @@ COPY --from=builder /app/scripts ./scripts
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 
-COPY --from=builder /app/messages ./.next/standalone/messages
+COPY --from=builder /app/messages ./messages
 
 RUN chmod +x ./scripts/entrypoint.sh
 RUN apk add --no-cache bash
