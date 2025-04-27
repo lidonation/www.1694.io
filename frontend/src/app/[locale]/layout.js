@@ -11,6 +11,7 @@ import { ThemeProvider } from '@mui/material';
 import theme from '@/assets/theme';
 import PageBanner from '@/components/atoms/PageBanner';
 import { routing } from '@/i18n/routing';
+import { getMessages } from 'next-intl/server';
 const poppins = Poppins({
   weight: '400',
   style: 'normal',
@@ -18,8 +19,7 @@ const poppins = Poppins({
 });
 
 export function generateStaticParams() {
-  // Generate static params for each locale, used in static generation methods.
-  return locales.variants.map((locale) => ({ locale }));
+  return routing.locales.map((locale) => ({ locale }));
 }
 
 // Define common metadata for the application.
@@ -42,6 +42,8 @@ async function RootLayout({ children, params: { locale } }) {
   if (!hasLocale(routing.locales, locale)) {
     notFound();
   }
+  setRequestLocale(locale);
+  const messages = await getMessages();
 
   return (
     // Set the document language
@@ -52,7 +54,7 @@ async function RootLayout({ children, params: { locale } }) {
       </head>
       {/* Apply font class and suppress hydration warning. */}
       <body className={poppins.className} suppressHydrationWarning={true}>
-        <NextIntlClientProvider>
+        <NextIntlClientProvider locale={locale} messages={messages}>
           <AppRouterCacheProvider>
             <ThemeProvider theme={theme}>
               <AppContextProvider>
