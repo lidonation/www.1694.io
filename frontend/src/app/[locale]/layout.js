@@ -2,7 +2,7 @@ import { locales } from '@/constants';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v13-appRouter';
 import { AppContextProvider } from '@/context/context';
 import { NextIntlClientProvider } from 'next-intl';
-import { unstable_setRequestLocale } from 'next-intl/server';
+import { setRequestLocale } from 'next-intl/server';
 import { Poppins } from 'next/font/google';
 import { notFound } from 'next/navigation';
 import '@/assets/styles/globals.css';
@@ -40,7 +40,7 @@ const FathomClientScriptLoader = dynamic(
 
 async function RootLayout({ children, params: { locale } }) {
   // Root layout component, sets up locale, loads messages, and wraps the app with providers.
-  unstable_setRequestLocale(locale); // Set the locale for the request, use with caution due to unstable API.
+  setRequestLocale(locale); // Set the locale for the request, use with caution due to unstable API.
   if (!locales.variants.includes(locale)) notFound(); // Check if the locale is supported, otherwise trigger a 404.
 
   let messages;
