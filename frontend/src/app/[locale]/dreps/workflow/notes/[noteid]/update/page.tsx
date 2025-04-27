@@ -7,7 +7,7 @@ import { useCardano } from '@/context/cardanoContext';
 import { getSingleNote } from '@/services/requests/getSingleNote';
 import React, { useEffect, useState } from 'react';
 
-const page = (params: { params: { noteid: number } }) => {
+const page = (params: { searchParams: { noteid: number } }) => {
   const { isEnabled } = useCardano();
   const [initialValues, setInitialValues] = useState(null);
   const { setIsWalletListModalOpen, setHideCloseButtonOnWalletListModal } =
