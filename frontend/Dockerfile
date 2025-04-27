@@ -1,6 +1,6 @@
 FROM node:20-alpine AS base
 
-FROM base as dependencies
+FROM base AS dependencies
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
@@ -14,7 +14,7 @@ RUN \
   fi
 
 
-FROM base as builder
+FROM base AS builder
 
 WORKDIR /app
 
@@ -30,7 +30,7 @@ RUN \
   else echo "Lockfile not found." && exit 1; \
   fi
 
-FROM base as runner
+FROM base AS runner
 
 WORKDIR /app
 
