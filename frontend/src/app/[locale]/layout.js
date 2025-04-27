@@ -1,4 +1,3 @@
-import { locales } from '@/constants';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v13-appRouter';
 import { AppContextProvider } from '@/context/context';
 import { hasLocale, NextIntlClientProvider } from 'next-intl';
@@ -11,7 +10,7 @@ import { ThemeProvider } from '@mui/material';
 import theme from '@/assets/theme';
 import PageBanner from '@/components/atoms/PageBanner';
 import { routing } from '@/i18n/routing';
-import { getMessages } from 'next-intl/server';
+import { getMessages, setRequestLocale } from 'next-intl/server';
 const poppins = Poppins({
   weight: '400',
   style: 'normal',
