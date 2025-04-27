@@ -1,8 +1,7 @@
 import { locales } from '@/constants';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v13-appRouter';
 import { AppContextProvider } from '@/context/context';
-import { NextIntlClientProvider } from 'next-intl';
-import { setRequestLocale } from 'next-intl/server';
+import { hasLocale, NextIntlClientProvider } from 'next-intl';
 import { Poppins } from 'next/font/google';
 import { notFound } from 'next/navigation';
 import '@/assets/styles/globals.css';
@@ -11,6 +10,7 @@ import '@fontsource/poppins';
 import { ThemeProvider } from '@mui/material';
 import theme from '@/assets/theme';
 import PageBanner from '@/components/atoms/PageBanner';
+import { routing } from '@/i18n/routing';
 const poppins = Poppins({
   weight: '400',
   style: 'normal',
@@ -39,16 +39,8 @@ const FathomClientScriptLoader = dynamic(
 );
 
 async function RootLayout({ children, params: { locale } }) {
-  // Root layout component, sets up locale, loads messages, and wraps the app with providers.
-  setRequestLocale(locale); // Set the locale for the request, use with caution due to unstable API.
-  if (!locales.variants.includes(locale)) notFound(); // Check if the locale is supported, otherwise trigger a 404.
-
-  let messages;
-  try {
-    // Attempt to dynamically load the message bundle for the current locale.
-    messages = (await import(`../../../messages/${locale}.json`)).default;
-  } catch (error) {
-    notFound(); // Trigger a 404 if the message bundle cannot be loaded.
+  if (!hasLocale(routing.locales, locale)) {
+    notFound();
   }
 
   return (
@@ -60,7 +52,7 @@ async function RootLayout({ children, params: { locale } }) {
       </head>
       {/* Apply font class and suppress hydration warning. */}
       <body className={poppins.className} suppressHydrationWarning={true}>
-        <NextIntlClientProvider locale={locale} messages={messages}>
+        <NextIntlClientProvider>
           <AppRouterCacheProvider>
             <ThemeProvider theme={theme}>
               <AppContextProvider>
