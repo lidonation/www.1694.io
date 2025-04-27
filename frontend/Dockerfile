@@ -35,20 +35,19 @@ FROM base as runner
 WORKDIR /app
 
 ENV NODE_ENV=production
-
 ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
+# Copy necessary files
 COPY --from=builder /app/public ./public
-COPY ./frontend/messages ./messages
-
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-# facilitates using the same image for preview and production with client env from the host
 COPY --from=builder /app/scripts ./scripts
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+
+COPY --from=builder /app/messages ./.next/standalone/messages
+
 RUN chmod +x ./scripts/entrypoint.sh
 RUN apk add --no-cache bash
 
@@ -57,9 +56,8 @@ USER nextjs
 EXPOSE 3000
 
 ENV HOSTNAME "0.0.0.0"
-
 ENV PORT 3000
 
-ENTRYPOINT [ "./scripts/entrypoint.sh" ]
+ENTRYPOINT ["./scripts/entrypoint.sh"]
 
 CMD ["node", "server.js"]
