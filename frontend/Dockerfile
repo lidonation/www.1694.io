@@ -41,14 +41,15 @@ RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/messages/*.json ./messages
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
 COPY --from=builder /app/scripts ./scripts
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+
+RUN mkdir ./messages
+COPY --from=builder /app/messages/*.json ./messages/
+
 RUN chmod +x ./scripts/entrypoint.sh
 RUN apk add --no-cache bash
-
 
 USER nextjs
 
@@ -60,3 +61,4 @@ ENV PORT 3000
 ENTRYPOINT ["./scripts/entrypoint.sh"]
 
 CMD ["node", "server.js"]
+
