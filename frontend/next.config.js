@@ -10,11 +10,22 @@ const withNextIntl = createNextIntlPlugin({
 const config = {
   output: 'standalone',
   reactStrictMode: true,
-  webpack: (config) => {
+  webpack: (config, { isServer }) => {
     config.resolve.alias = {
       ...config.resolve.alias,
       '@messages': path.resolve('./messages'),
+      'rdf-canonize-native': false,
     };
+
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        path: false,
+        crypto: false,
+      };
+    }
+
     return config;
   },
 };
