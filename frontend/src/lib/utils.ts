@@ -89,6 +89,23 @@ export const formatNumberTimeToReadable = (time: number) => {
   const startTimeFormatted = new Date(time).toLocaleString(undefined, options);
   return startTimeFormatted;
 };
+
+export const formatDateTimeToUTC = (timestamp: number): string => {
+  const date = new Date(timestamp);
+  const day = date.getUTCDate().toString().padStart(2, '0');
+  const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
+  const year = date.getUTCFullYear();
+
+  const hours = date.getUTCHours();
+  const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+
+  const amPm = hours >= 12 ? 'PM' : 'AM';
+
+  const hours12 = hours % 12 || 12;
+
+  return `${day}/${month}/${year} - ${hours12}:${minutes} ${amPm} UTC`;
+};
+
 export const toBase64 = (file) => {
   if (!file) return;
   if (typeof file === 'string') return file;
@@ -99,6 +116,7 @@ export const toBase64 = (file) => {
     reader.onerror = (error) => reject(error);
   });
 };
+
 export async function sha256(file: File) {
   const arrayBuffer = await file.arrayBuffer();
   const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
@@ -150,6 +168,7 @@ export const convertDrepPhraseToCIP105 = (phrase: string) => {
   const hex = dRepPhraseProcessor(phrase);
   return formHexToBech32(hex);
 };
+
 export const convertDrepPhraseToCIP105Legacy = (phrase: string) => {
   if (phrase.startsWith('drep_always')) {
     return phrase;
@@ -290,4 +309,19 @@ export const openInNewTab = (url) => {
   }
   const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
   if (newWindow) newWindow.opener = null;
+};
+
+export const scrollToElement = (e: any, elementId: string) => {
+  e.preventDefault();
+  const voteResultsSection = document.getElementById(elementId);
+
+  if (voteResultsSection) {
+    const rect = voteResultsSection.getBoundingClientRect();
+    const offsetPosition = window.pageYOffset + rect.top - 40;
+
+    window.scrollTo({
+      top: offsetPosition,
+      behavior: 'smooth',
+    });
+  }
 };
