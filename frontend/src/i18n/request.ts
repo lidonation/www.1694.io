@@ -1,8 +1,7 @@
 import { getRequestConfig } from 'next-intl/server';
 import { hasLocale } from 'next-intl';
 import { routing } from './routing';
-import path from 'path';
-import fs from 'fs';
+import { readMessages } from '@/lib/readMessages';
 
 export default getRequestConfig(async ({ requestLocale }) => {
   const requested = await requestLocale;
@@ -10,8 +9,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
     ? requested
     : routing.defaultLocale;
 
-  const filePath = path.join(process.cwd(), 'messages', `${locale}.json`);
-  const messages = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  const messages = readMessages(locale);
 
   return {
     locale,
