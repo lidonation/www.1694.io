@@ -83,3 +83,10 @@ logs-frontend:
 .PHONY: logs-backend
 logs-backend:
 	docker-compose logs -f backend
+
+.PHONY: image-build
+image-build:
+	docker build \
+	-f ./frontend/Dockerfile.dev \
+	-t frontend \
+	./frontend/.
