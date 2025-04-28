@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@messages/*": ["./messages/*"],
     },
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
