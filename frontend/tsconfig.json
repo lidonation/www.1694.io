@@ -30,12 +30,12 @@
     "**/*.tsx",
     "src/context/context.js",
     ".next/types/**/*.ts",
-    "src/app/[locale]/layout.js",
+    "src/app/[locale]/layout.tsx",
     "src/app/[locale]/page.js",
-    "src/middleware.js",
-    "src/i18n/request.js",
-    "src/i18n/navigation.js",
-    "src/i18n/routing.js"
+    "src/middleware.ts",
+    "src/i18n/request.ts",
+    "src/i18n/navigation.ts",
+    "src/i18n/routing.ts"
   ],
   "exclude": ["node_modules"]
 }

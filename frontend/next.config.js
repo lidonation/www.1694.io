@@ -1,6 +1,10 @@
 import createNextIntlPlugin from 'next-intl/plugin';
 
-const withNextIntl = createNextIntlPlugin();
+const withNextIntl = createNextIntlPlugin({
+  experimental: {
+    createMessagesDeclaration : ["./messages/en.json", "./messages/en.json"]
+  }
+});
 
 const config = {
   output: 'standalone',
