@@ -13,7 +13,8 @@ const config = {
   webpack: (config) => {
     config.resolve.alias = {
       ...config.resolve.alias,
-      '@messages': path.resolve('./messages')
+      '@messages': path.resolve('./messages'),
+      'rdf-canonize-native': false,
     };
     return config;
   },
