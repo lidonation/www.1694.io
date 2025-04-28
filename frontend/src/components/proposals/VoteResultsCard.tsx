@@ -40,15 +40,14 @@ export default function VoteResultsCard({
     totalVotes > 0 ? (pollData?.poll_yes / totalVotes) * 100 : 0;
   const noPercentage =
     totalVotes > 0 ? (pollData?.poll_no / totalVotes) * 100 : 0;
-  const { drepList, totalVotingPower, totalYesPower, totalNoPower } = voteData;
 
   const formatVotingPower = (power: number) => {
     return formatAsCurrency(lovelaceToAda(power));
   };
 
   const dRepInfluence = (power: number) => {
-    if (totalVotingPower) {
-      return ((power / totalVotingPower) * 100).toFixed(2);
+    if (voteData?.totalVotingPower) {
+      return ((power / voteData?.totalVotingPower) * 100).toFixed(2);
     }
   };
 
@@ -104,7 +103,7 @@ export default function VoteResultsCard({
                     className="text-black"
                     sx={{ fontWeight: 600, fontSize: 14 }}
                   >
-                    ₳ {formatVotingPower(totalYesPower)}
+                    ₳ {formatVotingPower(voteData?.totalYesPower)}
                   </Typography>
                   ({yesPercentage.toFixed(0)}%)
                 </Typography>
@@ -122,7 +121,7 @@ export default function VoteResultsCard({
                 {pollData?.poll_no} -{' '}
                 <span className="text-sm text-gray-400">
                   <span className="font-bold text-black">
-                    ₳ {formatVotingPower(totalNoPower)}
+                    ₳ {formatVotingPower(voteData?.totalNoPower)}
                   </span>
                   ({noPercentage.toFixed(0)}%)
                 </span>
@@ -130,24 +129,26 @@ export default function VoteResultsCard({
             </Box>
           </Box>
         </Box>
-        {showFullDetails && isExpanded && drepList?.length <= 0 && (
-          <Typography className="p-2 text-center text-lg text-gray-500">
-            No related votes found!
-          </Typography>
-        )}
-        {showFullDetails && isExpanded && !!totalVotingPower && (
+        {showFullDetails &&
+          isExpanded &&
+          (!voteData || voteData?.drepList?.length <= 0) && (
+            <Typography className="p-2 text-center text-lg text-gray-500">
+              No related votes found!
+            </Typography>
+          )}
+        {showFullDetails && isExpanded && !!voteData?.totalVotingPower && (
           <Box className="p-2 text-center transition-all">
             <Typography sx={{ fontSize: 14 }} className="text-gray-500">
               Total Participate Stake
             </Typography>
             <Typography sx={{ fontSize: 24 }}>
-              ₳ {formatVotingPower(totalVotingPower)}
+              ₳ {formatVotingPower(voteData?.totalVotingPower)}
             </Typography>
           </Box>
         )}
-        {showFullDetails && isExpanded && drepList?.length > 0 && (
+        {showFullDetails && isExpanded && voteData?.drepList?.length > 0 && (
           <Box className="divide-y transition-all">
-            {drepList.map((dRep) => (
+            {voteData?.drepList.map((dRep) => (
               <DRepVoteCard
                 key={dRep?.hashRaw}
                 name={dRep?.givenName}

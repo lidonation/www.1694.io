@@ -15,7 +15,7 @@ const PollResultsSkeleton = () => {
         sx={{ borderRadius: 8, mb: 1 }}
       />
 
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
         <Stack direction="row" spacing={1} alignItems="center">
           <Box>
             <Stack direction="row" spacing={1} alignItems="center">
@@ -37,7 +37,7 @@ const PollResultsSkeleton = () => {
         </Stack>
       </Box>
 
-      <Box display="flex" justifyContent="center">
+      <Box display="flex" justifyContent="center" className="p-4">
         <Skeleton
           variant="rectangular"
           width={180}

@@ -313,10 +313,10 @@ export const openInNewTab = (url) => {
 
 export const scrollToElement = (e: any, elementId: string) => {
   e.preventDefault();
-  const voteResultsSection = document.getElementById(elementId);
+  const element = document.getElementById(elementId);
 
-  if (voteResultsSection) {
-    const rect = voteResultsSection.getBoundingClientRect();
+  if (element) {
+    const rect = element.getBoundingClientRect();
     const offsetPosition = window.pageYOffset + rect.top - 40;
 
     window.scrollTo({
