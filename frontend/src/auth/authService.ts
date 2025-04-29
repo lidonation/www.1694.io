@@ -5,6 +5,7 @@ import {
   AccountInfo,
   AuthMethod,
 } from '../../types/auth';
+import { CardanoApiWallet } from '@/models/wallet';
 
 /**
  * Service that coordinates different authentication providers
@@ -12,6 +13,7 @@ import {
 export class AuthenticationService {
   private providers: Record<string, AuthenticationProvider> = {};
   private activeProvider: AuthMethod | null = null;
+  private walletApi: CardanoApiWallet | undefined = undefined;
 
   /**
    * Register an authentication provider
@@ -46,6 +48,9 @@ export class AuthenticationService {
       const result = await provider.connect(params);
       if (result.success) {
         this.setActiveProvider(providerName);
+        if (result.walletApi) {
+          this.walletApi = result.walletApi;
+        }
       }
       return result;
     } catch (error) {
@@ -67,6 +72,10 @@ export class AuthenticationService {
    */
   getActiveProviderName(): AuthMethod | null {
     return this.activeProvider;
+  }
+
+  getWalletApi(): CardanoApiWallet | undefined {
+    return this.walletApi;
   }
 
   async reconnect(): Promise<AuthResult> {

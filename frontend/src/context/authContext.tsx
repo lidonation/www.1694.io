@@ -1,17 +1,27 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode, useRef } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+  useRef,
+} from 'react';
 import { authService, AuthenticationService } from '../auth/authService';
-import { 
-  AuthMethod,
-  AccountInfo, 
-} from '../../types/auth';
+import { AuthMethod, AccountInfo } from '../../types/auth';
+import { CardanoApiWallet } from '@/models/wallet';
 
 interface AuthContextType {
   isAuthenticated: boolean;
   accountInfo: AccountInfo | null;
+  walletApi?: CardanoApiWallet;
   isAuthenticating: boolean;
   authError: string | null;
+  walletBeingConnected?: string | null;
   activeProvider: AuthMethod | null;
-  authenticate: (method: AuthMethod | string, params?: any) => Promise<{
+  authenticate: (
+    method: AuthMethod | string,
+    params?: any,
+  ) => Promise<{
     success: boolean;
     error?: string;
   }>;
@@ -21,6 +31,8 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   accountInfo: null,
+  walletApi: undefined,
+  walletBeingConnected:null,
   isAuthenticating: false,
   authError: null,
   activeProvider: null,
@@ -36,17 +48,21 @@ interface AuthProviderProps {
   service?: AuthenticationService;
 }
 
-
-export const AuthProvider: React.FC<AuthProviderProps> = ({ 
+export const AuthProvider: React.FC<AuthProviderProps> = ({
   children,
-  service = authService 
+  service = authService,
 }) => {
-  const hasReconnected=useRef(false);
+  const hasReconnected = useRef(false);
+  const [walletBeingConnected, setWalletBeingConnected] =
+    useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [accountInfo, setAccountInfo] = useState<AccountInfo | null>(null);
   const [isAuthenticating, setIsAuthenticating] = useState<boolean>(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [activeProvider, setActiveProvider] = useState<AuthMethod | null>(null);
+  const [walletApi, setWalletApi] = useState<CardanoApiWallet | undefined>(
+    undefined,
+  );
 
   useEffect(() => {
     const checkAuthStatus = async () => {
@@ -57,7 +73,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
         setAccountInfo(info);
       }
     };
-    
+
     checkAuthStatus();
   }, [service]);
 
@@ -71,12 +87,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
           setActiveProvider(service.getActiveProviderName());
           setAccountInfo(result.accountInfo || null);
           hasReconnected.current = true;
+          if (result.walletApi) {
+            setWalletApi(result.walletApi);
+          }
         }
       } catch (error) {
         console.error('Reconnection error:', error);
       }
     };
-    
+
     tryReconnect();
   }, [service]);
 
@@ -86,38 +105,59 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
    * @param params Optional parameters for the method
    * @returns Success status
    */
-  const authenticate = async (method: AuthMethod | string, params?: any): Promise<{
+  const authenticate = async (
+    method: AuthMethod | string,
+    params?: any,
+  ): Promise<{
     success: boolean;
     error?: string;
   }> => {
     setIsAuthenticating(true);
     setAuthError(null);
-    
+
     try {
+      if (method === AuthMethod.HOT_WALLET) {
+        setWalletBeingConnected(params);
+      }
       const result = await service.authenticate(method, params);
-      
+
       if (result.success) {
         setIsAuthenticated(true);
         setAccountInfo(result.accountInfo || null);
         setActiveProvider(service.getActiveProviderName());
+        if (result.walletApi) {
+          setWalletApi(result.walletApi);
+        }
+        setWalletBeingConnected(null);
         return {
           success: true,
           error: null,
-        }
+        };
       } else {
         setAuthError(result.error || 'Authentication failed');
+        setIsAuthenticated(false);
+        setAccountInfo(null);
+        setActiveProvider(null);
+        setWalletApi(undefined);
+        setWalletBeingConnected(null);
         return {
           success: false,
           error: result.error || 'Authentication failed',
-        }
+        };
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       setAuthError(errorMessage);
+      setIsAuthenticated(false);
+      setAccountInfo(null);
+      setActiveProvider(null);
+      setWalletApi(undefined);
+      setWalletBeingConnected(null);
       return {
         success: false,
         error: errorMessage,
-      }
+      };
     } finally {
       setIsAuthenticating(false);
     }
@@ -128,6 +168,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
       await service.disconnect();
       setIsAuthenticated(false);
       setAccountInfo(null);
+      setWalletApi(undefined);
       setActiveProvider(null);
     } catch (error) {
       console.error('Error during logout:', error);
@@ -141,7 +182,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
     authError,
     activeProvider,
     authenticate,
-    logout
+    logout,
+    walletApi,
+    walletBeingConnected,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -153,10 +196,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
  */
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
-  
+
   if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
-  
+
   return context;
 };

@@ -18,17 +18,13 @@ import {
   frontmatterPlugin,
   toolbarPlugin,
   markdownShortcutPlugin,
-  DiffSourceToggleWrapper,
-  UndoRedo,
   BoldItalicUnderlineToggles,
-  InsertTable,
   ButtonOrDropdownButton,
   StrikeThroughSupSubToggles,
 } from '@mdxeditor/editor';
 
 import '@mdxeditor/editor/style.css';
 import { Controller } from 'react-hook-form';
-import { useCardano } from '@/context/cardanoContext';
 import OverlayForm from '../molecules/OverlayForm';
 
 interface EditorProps {
@@ -184,8 +180,8 @@ const PostTextareaInput = ({
   errors,
   name = 'postText',
   label = 'Write your note',
+  isEnabled = true,
 }) => {
-  const { isEnabled } = useCardano();
   const editorRef = React.useRef<MDXEditorMethods>(null);
 
   return (

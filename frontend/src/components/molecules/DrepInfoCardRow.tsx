@@ -1,13 +1,15 @@
 import React from 'react';
 import DrepInfoCard from '../atoms/DrepInfoCard';
 import { urls } from '@/constants';
-import { useDRepContext } from '@/context/drepContext';
-import { useCardano } from '@/context/cardanoContext';
 import { useGetAdaHolderCurrentDelegationQuery } from '@/hooks/useGetAdaHolderCurrentDelegationQuery';
+import { useWallet } from '@/context/globalContext';
+import { ModalType, useModals } from '@/context/globalContext';
 
 const DrepInfoCardRow = () => {
-  const { setIsWalletListModalOpen } = useDRepContext();
-  const { isEnabled, stakeKey } = useCardano();
+  const {
+    wallet: { stakeKey, isConnected },
+  } = useWallet();
+  const { openModal } = useModals();
   const currentDelegation = useGetAdaHolderCurrentDelegationQuery(stakeKey);
 
   return (
@@ -16,17 +18,11 @@ const DrepInfoCardRow = () => {
         img={'/img/regImg.png'}
         title={'Registration'}
         action={{
-          label: isEnabled ? 'Register on-chain' : 'Connect Wallet',
-          href: isEnabled ? `${urls.govToolUrl}/register_drep` : '',
-          target: isEnabled ? '_blank' : undefined,
+          label: isConnected ? 'Register on-chain' : 'Connect Wallet',
+          href: isConnected ? `${urls.govToolUrl}/register_drep` : '',
+          target: isConnected ? '_blank' : undefined,
         }}
-        clicked={
-          isEnabled
-            ? undefined
-            : () => {
-                setIsWalletListModalOpen(true);
-              }
-        }
+        clicked={isConnected ? undefined : () => openModal(ModalType.LOGIN)}
         description={
           'Like stake pools, DRep registers their intention on chain via DRep Certificates.'
         }
@@ -36,16 +32,10 @@ const DrepInfoCardRow = () => {
         img={'/img/delegImg.png'}
         title={'Delegation'}
         action={{
-          label: isEnabled ? 'Create your campaign' : 'Connect Wallet',
-          href: isEnabled ? '/dreps/workflow/profile/new' : '',
+          label: isConnected ? 'Create your campaign' : 'Connect Wallet',
+          href: isConnected ? '/dreps/workflow/profile/new' : '',
         }}
-        clicked={
-          isEnabled
-            ? undefined
-            : () => {
-                setIsWalletListModalOpen(true);
-              }
-        }
+        clicked={isConnected ? undefined : () => openModal(ModalType.LOGIN)}
         description={
           'Just like staking a pool, Ada holders can delegate their stake to a DRep with Transaction.'
         }
@@ -55,18 +45,12 @@ const DrepInfoCardRow = () => {
         img={'/img/credImg.png'}
         title={'Voting Power'}
         action={{
-          label: isEnabled ? 'See Your Profile' : 'Connect Wallet',
-          href: isEnabled
+          label: isConnected ? 'See Your Profile' : 'Connect Wallet',
+          href: isConnected
             ? `/dreps/${currentDelegation?.currentDelegation?.drep_view}`
             : '',
         }}
-        clicked={
-          isEnabled
-            ? undefined
-            : () => {
-                setIsWalletListModalOpen(true);
-              }
-        }
+        clicked={isConnected ? undefined : () => openModal(ModalType.LOGIN)}
         description={
           'DRep voting power will be the total value of staked Ada delegated to the DRep.'
         }
@@ -76,21 +60,15 @@ const DrepInfoCardRow = () => {
         img={'/img/statusImg.png'}
         title={'Status'}
         action={{
-          label: isEnabled ? 'Go To Your Timeline' : 'Connect Wallet',
-          href: isEnabled
+          label: isConnected ? 'Go To Your Timeline' : 'Connect Wallet',
+          href: isConnected
             ? `/dreps/${currentDelegation?.currentDelegation?.drep_view}`
             : '',
         }}
         description={
           'Registered DReps will need to vote regularly to still be considered active.'
         }
-        clicked={
-          isEnabled
-            ? undefined
-            : () => {
-                setIsWalletListModalOpen(true);
-              }
-        }
+        clicked={isConnected ? undefined : () => openModal(ModalType.LOGIN)}
       />
     </div>
   );

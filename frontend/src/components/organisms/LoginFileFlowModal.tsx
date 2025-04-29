@@ -23,6 +23,7 @@ import {
   PublicKey,
   RewardAddress,
 } from '@emurgo/cardano-serialization-lib-asmjs';
+import { Check } from '@mui/icons-material';
 
 const StyledStepLabel = styled(StepLabel)(({ theme }) => ({
   '& .MuiStepLabel-label': {
@@ -305,7 +306,7 @@ export function LoginFileFlowModal({
             <CodeSnippet>
               {cliCommand}
               <CopyButton onClick={handleCopyCommand} size="small">
-                {copied ? 'Copied!' : <ContentCopyIcon fontSize="small" />}
+                {copied ? <Check fontSize='small'/> : <ContentCopyIcon fontSize="small" />}
               </CopyButton>
             </CodeSnippet>
 

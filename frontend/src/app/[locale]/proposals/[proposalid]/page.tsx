@@ -11,7 +11,7 @@ import { Box } from '@mui/material';
 import VoteResultsCard from '@/components/proposals/VoteResultsCard';
 import { useGetActionProposalPollQuery } from '@/hooks/useGetActionProposalPollQuery';
 import VotingSection from '@/components/proposals/VotingSection';
-import { useWallet } from '@/context/walletContext';
+import { useWallet } from '@/context/globalContext';
 import CatalystParticipation from '@/components/proposals/CatalystParticipation';
 import { useUserParticipationQuery } from '@/hooks/useUserCatalystParticipationQuery';
 

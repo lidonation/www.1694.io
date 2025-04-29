@@ -1,4 +1,3 @@
-import { Utxos } from '@/context/cardanoContext';
 import {
   BodyAfterSign,
   BodyToSign,
@@ -6,6 +5,7 @@ import {
   MessageBodyAfterSign,
   Protocol,
   TxBody,
+  Utxos,
 } from '@/models/wallet';
 import {
   Address,
@@ -26,24 +26,46 @@ import {
   Value,
   VotingBuilder,
 } from '@emurgo/cardano-serialization-lib-asmjs';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useGetNodeStatusQuery } from './useGetNodeStatusQuery';
 import { getItemFromLocalStorage } from '@/lib';
 import { getAddressUtxos } from '@/services/requests/getAddressUtxos';
+import { usePostSubmitTransaction } from './usePostSubmitTransaction';
+import { useVerifySignatures } from './useVerifySignatures';
+import { AxiosError } from 'axios';
 
 interface GetUtxosOptions {
   address?: string;
   external?: boolean;
 }
+
 export type TxnTypes =
   | 'loginViaMessageSigning'
   | 'loginViaExpiredTxnSigning'
   | 'delegationTxn'
   | 'submitMetadataTxn';
 
+export type RequiredSigningKeyType = 'payment' | 'stake' | 'drep';
+export enum RequiredSigningKeyTypesEnum {
+  PAYMENT = 'payment',
+  STAKE = 'stake',
+  DREP = 'drep',
+}
+export interface RequiredSigningKey {
+  type: RequiredSigningKeyType;
+  value: string;
+}
+
+export enum TxnTypesEnum {
+  LOGIN_VIA_MESSAGE_SIGNING = 'loginViaMessageSigning',
+  LOGIN_VIA_EXPIRED_TXN_SIGNING = 'loginViaExpiredTxnSigning',
+  DELEGATION_TXN = 'delegationTxn',
+  SUBMIT_METADATA_TXN = 'submitMetadataTxn',
+}
+
 export type ObjectToSignType = 'transaction' | 'message';
 
-interface TxnModalState {
+export interface TxnModalState {
   isOpen: boolean;
   currentWalletApi?: CardanoApiWallet;
   isPrepping: boolean;
@@ -56,9 +78,21 @@ interface TxnModalState {
   error?: string;
 }
 
+export type TxnModalProps = TxnModalState & {
+  disableDownload: boolean;
+  disableSigning: boolean;
+};
+
 interface HandleTransactionParams {
   [key: string]: any;
+  /**
+   * The key to sign the message or transaction with.
+   */
   signingKey?: string;
+  /**
+   * The key(s) **required** to sign the message with, if applicable. Currently only used for message signing.
+   */
+  requiredSigningKeys?: RequiredSigningKey[];
   txBuilder?: TransactionBuilder;
   certBuilder?: Certificate | VotingBuilder;
 }
@@ -67,7 +101,14 @@ interface PendingTransaction {
   type: TxnTypes;
   txBuilder?: any;
   certBuilder?: any;
+  /**
+   * The key to sign the message or transaction with.
+   */
   signingKey?: string;
+  /**
+   * The key(s) **required** to sign the message with, if applicable. Currently only used for message signing.
+   */
+  requiredSigningKeys?: RequiredSigningKey[];
   transaction?: Transaction;
   message?: string;
   objectToSign?: ObjectToSignType;
@@ -78,7 +119,8 @@ interface TransactionHandlerProps {
     changeAddress: undefined | string;
     usedAddress: undefined | string;
     balance: number | undefined;
-  }
+  };
+  updateTxnModalState?: (options: Partial<TransactionHandler>) => void;
 }
 
 export interface TransactionHandler {
@@ -132,12 +174,13 @@ export interface TransactionHandler {
   }>;
   filterUtxosByTokenType: (
     utxos: TransactionUnspentOutputs,
-  ) => TransactionUnspentOutputs; 
+  ) => TransactionUnspentOutputs;
 }
 
 export const DEFAULT_TXN_TTL = 60 * 60; // 60 minutes
 export function useTransactionHandler({
   walletState,
+  updateTxnModalState,
 }: TransactionHandlerProps) {
   const [txnModalState, setTxnModalState] = useState<TxnModalState>({
     isOpen: false,
@@ -149,13 +192,34 @@ export function useTransactionHandler({
     type: 'submitMetadataTxn',
     currentWalletApi: undefined,
   });
+  const { verifySignatures } = useVerifySignatures();
   const [isLoading, setIsLoading] = useState(false);
   const [userActionState, setUserActionState] = useState({
     disableDownload: false,
     disableSigning: false,
   });
 
+  useEffect(() => {
+    updateTxnModalState({
+      txnModalState,
+      buildFinalTx,
+      closeTxnModal,
+      handleTransaction,
+      handleWalletSign,
+      handleDownloadUnsigned,
+      handleSubmitSignedTxFile,
+      getUtxos,
+      getTxUnspentOutputs,
+      prepExpiredTxn,
+      filterUtxosByTokenType,
+      isLoading,
+      prepareTxBody,
+      userActionState,
+    } as TransactionHandler);
+  }, [txnModalState, isLoading, userActionState]);
+
   const { refetch } = useGetNodeStatusQuery({ disablePolling: true });
+  const { mutateAsync } = usePostSubmitTransaction();
 
   const getUtxos = async (
     enabledApi?: CardanoApiWallet,
@@ -270,11 +334,12 @@ export function useTransactionHandler({
   const prepExpiredTxn = async (
     txBuilder: TransactionBuilder,
     walletApi: CardanoApiWallet,
+    options?: { deriveUtxosFrom?: string },
   ) => {
     try {
       const shelleyOutputAddress = Address.from_bech32(walletState.usedAddress);
       const shelleyChangeAddress = Address.from_bech32(
-        walletState.changeAddress,
+        options?.deriveUtxosFrom || walletState.changeAddress,
       );
 
       txBuilder.add_output(
@@ -284,10 +349,12 @@ export function useTransactionHandler({
         ),
       );
 
-      const utxos = await getUtxos(walletApi);
-      if (!utxos?.length) {
-        throw new Error('No UTXOs found in wallet');
-      }
+
+      const utxos = await getUtxos(walletApi, {
+        address: options?.deriveUtxosFrom,
+        external: Boolean(options?.deriveUtxosFrom),
+      });
+      if (!utxos?.length) throw new Error('No UTXOs available');
 
       const txUnspentOutputs = await getTxUnspentOutputs(utxos);
       txBuilder.add_inputs_from(txUnspentOutputs, 1);
@@ -392,7 +459,7 @@ export function useTransactionHandler({
         let newCertBuilder;
         switch (true) {
           case certBuilder instanceof Certificate:
-            certBuilder = (() => {
+            newCertBuilder = (() => {
               const builder = CertificatesBuilder.new();
               builder.add(certBuilder);
               return builder;
@@ -460,9 +527,9 @@ export function useTransactionHandler({
           message: pendingTx?.message,
         };
       if (pendingTx.type === 'loginViaExpiredTxnSigning') {
-        if (!pendingTx.txBuilder || !walletApi)
+        if (!pendingTx.txBuilder)
           throw new Error('Arguments not ready');
-        return prepExpiredTxn(pendingTx.txBuilder, walletApi);
+        return prepExpiredTxn(pendingTx.txBuilder, walletApi, options);
       }
 
       if (
@@ -514,6 +581,7 @@ export function useTransactionHandler({
     } catch (error) {
       setTxnModalState((prev) => ({
         ...prev,
+        isOpen: false, // close modal on error
         isPrepping: false,
         error: error.message,
       }));
@@ -696,7 +764,7 @@ export function useTransactionHandler({
     setIsLoading(true);
     try {
       const {
-        pendingTx: { objectToSign },
+        pendingTx: { objectToSign, requiredSigningKeys },
       } = txnModalState;
       const fileContent = await signedTxFile.text();
       const content = JSON.parse(fileContent) as BodyAfterSign;
@@ -715,6 +783,26 @@ export function useTransactionHandler({
               case 'message':
                 const { COSE_Sign1_hex, COSE_Key_hex } =
                   content as MessageBodyAfterSign;
+                //if required keys is not empty, check if the key is in the response
+                if (requiredSigningKeys?.length) {
+                  const res = await verifySignatures({
+                    address: requiredSigningKeys[0].value,
+                    signatures: {
+                      signature: COSE_Sign1_hex,
+                      vkey: COSE_Key_hex,
+                    },
+                  });
+                  if (res.payloadResultMatch) {
+                    console.log('publicKeyMatch', res.payloadResultMatch);
+                    txnModalState.resolve({
+                      signature: COSE_Sign1_hex,
+                      key: COSE_Key_hex,
+                    });
+                  } else {
+                    throw new Error('The message signature is invalid. Please use the required signing key');
+                  }
+                }
+                //if no required keys, resolve the promise
                 txnModalState.resolve({
                   signature: COSE_Sign1_hex,
                   key: COSE_Key_hex,
@@ -735,7 +823,7 @@ export function useTransactionHandler({
           case 'delegationTxn':
           case 'submitMetadataTxn':
             try {
-              const txHash = await walletApi.submitTx(signedTx.to_hex());
+              const txHash = await handleSubmitTxToCardano(signedTx);
               txnModalState.resolve({ resultHash: txHash });
             } catch (error) {
               console.error('Submit signed transaction failed:', error);
@@ -782,11 +870,41 @@ export function useTransactionHandler({
       // Add error state to modal
       setTxnModalState((prev) => ({
         ...prev,
-        error: error?.message || error,
+        error:
+          error instanceof AxiosError
+            ? error.response?.data?.message
+            : error instanceof Error
+              ? error?.message
+              : String(error),
       }));
       throw error;
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSubmitTxToCardano = async (signedTx: Transaction) => {
+    if (!signedTx) {
+      throw new Error('No signed transaction provided');
+    }
+    try {
+      if (txnModalState.currentWalletApi) {
+        const txHash = await txnModalState.currentWalletApi.submitTx(
+          signedTx.to_hex(),
+        );
+        return txHash as string;
+      }
+      
+      //if walletApi is not available, use the mutateAsync function
+      const txHash = await mutateAsync({
+        tx: signedTx.to_hex(),
+      });
+      return txHash as string;
+    } catch (err) {
+      console.error('Error submitting transaction to Cardano', err);
+      throw new Error(
+        err instanceof Error ? err.message : 'Error submitting transaction',
+      );
     }
   };
 

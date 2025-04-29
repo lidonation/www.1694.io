@@ -15,6 +15,7 @@ export interface VerifySignaturesPayloadResponse {
   payloadDataHex: string;
   signature: string;
   publicKey: string;
+  error?: string;
 }
 
 export const verifySignatures = async (

@@ -12,6 +12,7 @@ export interface VerifyLoginFileSigsPayloadResponse {
   payloadDataHex: string;
   signature: string;
   publicKey: string;
+  error?: string;
 }
 
 export const verifyLoginFileSigs = async (

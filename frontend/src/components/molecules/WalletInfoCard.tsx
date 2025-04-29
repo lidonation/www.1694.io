@@ -1,10 +1,9 @@
 import { Box, Grow } from '@mui/material';
-import { useDRepContext } from '@/context/drepContext';
 import { useEffect, useRef, useState } from 'react';
 import { ConnectedWalletCard } from '../atoms/ConnectedWalletCard';
 import { DelegatedTo } from './DelegatedTo';
 import Button from '../atoms/Button';
-import { useWallet } from '@/context/walletContext';
+import { useWallet } from '@/context/globalContext';
 
 type WalletInfoCardProps = {
   test_name: string;
@@ -15,7 +14,6 @@ export const WalletInfoCard = ({ test_name }: WalletInfoCardProps) => {
     wallet: { isConnected, stakeKeyBech32 },
     disconnectWallet,
   } = useWallet();
-  const { logout } = useDRepContext();
   const [showDetails, setShowDetails] = useState(false);
 
   const dropDownRef = useRef(null);
@@ -42,7 +40,6 @@ export const WalletInfoCard = ({ test_name }: WalletInfoCardProps) => {
   function logUserOut() {
     setShowDetails(false);
     setTimeout(() => {
-      logout();
       disconnectWallet();
     }, 400);
   }

@@ -1,30 +1,31 @@
 import React, { useState } from 'react';
 import { ModalContents, ModalHeader, ModalWrapper } from '../atoms';
-import { useDRepContext } from '@/context/drepContext';
 import { Button, TextField, Typography } from '@mui/material';
 import { postUsernameToGovTool } from '@/services/requests/postUsernameToGovTool';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { setUpPdfJwt } from '@/lib/pdfJwtHelper';
 import { loginUserToPdf } from '@/services/requests/loginUserToPdf';
-import { useWallet } from '@/context/walletContext';
-import { useCardano } from '@/context/cardanoContext';
+import { useWallet } from '@/context/globalContext';
 import { AuthMethod } from '../../../types/auth';
 import { deleteDataFromSession } from '@/lib';
 
+interface GovToolUserNameModalProps {
+  hideCloseButton: boolean;
+  onClose?: () => void;
+}
+
 function GovToolUserNameModal({
   hideCloseButton,
-}: {
-  hideCloseButton: boolean;
-}) {
+  onClose,
+}: GovToolUserNameModalProps) {
   const [username, setUsername] = useState('');
   const [usernameError, setUsernameError] = useState('');
-  const { setGovToolUsernameModalOpen } = useDRepContext();
   const { addSuccessAlert, addWarningAlert, addErrorAlert } =
     useGlobalNotifications();
-  const { signMessage } = useCardano();
   const {
     wallet: { dRepId, dRepKeyHash, isDRep },
     activeWallet,
+    signMessage
   } = useWallet();
 
   const validateUsername = (username) => {
@@ -59,7 +60,7 @@ function GovToolUserNameModal({
       });
 
       addSuccessAlert('Your username was recorded successfully.');
-      setGovToolUsernameModalOpen(false);
+      onClose();
 
       // Handle DRep verification if needed
       if (isDRep) {
@@ -108,7 +109,7 @@ function GovToolUserNameModal({
   return (
     <ModalWrapper
       hideCloseButton={hideCloseButton}
-      onClose={() => setGovToolUsernameModalOpen(false)}
+      onClose={onClose}
     >
       <ModalHeader>Add your GovTool username</ModalHeader>
       <ModalContents>

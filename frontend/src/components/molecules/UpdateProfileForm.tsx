@@ -9,13 +9,16 @@ interface UpdateProfileFormProps {
   errors: any;
   setProfileUrl: any;
   currentProfileUrl?: string;
+  isDisabled?: boolean;
 }
+
 const UpdateProfileForm = ({
   register,
   control,
   errors,
   setProfileUrl,
   currentProfileUrl,
+  isDisabled,
 }: UpdateProfileFormProps) => {
   const isUpdate = true;
   return (
@@ -27,6 +30,7 @@ const UpdateProfileForm = ({
         registerValue={register}
         errors={errors}
         dataTestId={'profile-name-input'}
+        isDisabled={isDisabled}
       />
       <PostInput
         inputName={'Bio'}
@@ -35,6 +39,7 @@ const UpdateProfileForm = ({
         registerValue={register}
         errors={errors}
         dataTestId={'profile-bio-input'}
+        isDisabled={isDisabled}
       />
       <PostInput
         inputName={'Email'}
@@ -43,6 +48,7 @@ const UpdateProfileForm = ({
         registerValue={register}
         errors={errors}
         dataTestId={'profile-email-input'}
+        isDisabled={isDisabled}
       />
       <PostInput
         inputName={'Payment address'}
@@ -51,6 +57,7 @@ const UpdateProfileForm = ({
         registerValue={register}
         errors={errors}
         dataTestId={'payment-address-input'}
+        isDisabled={isDisabled}
       />
       <TextAreaInput
         inputName={'Objectives'}
@@ -59,6 +66,7 @@ const UpdateProfileForm = ({
         registerValue={register}
         errors={errors}
         dataTestId={'objective-input'}
+        isDisabled={isDisabled}
       />
       <TextAreaInput
         inputName={'Qualifications'}
@@ -67,6 +75,7 @@ const UpdateProfileForm = ({
         registerValue={register}
         errors={errors}
         dataTestId={'qualification-input'}
+        isDisabled={isDisabled}
       />
       <TextAreaInput
         inputName={'Motivations'}
@@ -75,6 +84,7 @@ const UpdateProfileForm = ({
         registerValue={register}
         errors={errors}
         dataTestId={'motivation-input'}
+        isDisabled={isDisabled}
       />
       <ProfileUploadCard
         registerUrl={register}

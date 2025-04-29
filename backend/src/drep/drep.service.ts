@@ -15,7 +15,6 @@ import {
   firstValueFrom,
   forkJoin,
   from,
-  lastValueFrom,
   map,
   mergeMap,
   Observable,
@@ -1102,10 +1101,7 @@ export class DrepService {
         return await this.miscService.fetchWithIPFSFallback(metadataUrl);
       } catch (error) {
         console.error('Error fetching metadata:', error);
-        throw new HttpException(
-          'Failed to fetch metadata',
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
+        return null;
       }
     } else if (savedMetadata?.[0]) {
       return savedMetadata?.[0].metadata;
@@ -1178,7 +1174,8 @@ export class DrepService {
           delegatedToDRepRaw: delegation.drep_raw,
           delegatedToVotingPower: delegation.voting_power,
           has_script: delegation.has_script,
-          delegatedToIsRegistered: registration.deposit === null || registration.deposit > 0,
+          delegatedToIsRegistered:
+            registration.deposit === null || registration.deposit > 0,
           isDrep: false,
         };
       }
@@ -1200,5 +1197,31 @@ export class DrepService {
         error: 'Failed to retrieve DRep profile data',
       };
     }
+  }
+  async getClaimedProfiles(voterId: string) {
+    const claimedProfiles = await this.voltaireService
+      .getRepository('Signature')
+      .find({
+        where: { voterId },
+        relations: {
+          drep: true,
+        },
+      });
+
+    if (!claimedProfiles || claimedProfiles.length === 0) {
+      return [];
+    }
+
+    return claimedProfiles.map((profile) => ({
+      voterDRepBech32: profile.voterId,
+      voterStakeKey: profile.stakeKey,
+      claimedDRepId: profile.drep.id,
+      claimedDRepBech32: profile.drep_bech32,
+      voterSignatureKey: profile.signatureKey,
+      voterSignature: profile.signature,
+      voterSignatureType: profile.type,
+      claimMethod:
+        profile.voterId == profile.drep_bech32 ? 'hot_wallet' : 'login_file',
+    }));
   }
 }

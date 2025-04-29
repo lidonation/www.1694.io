@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import TextEditOptions from '../molecules/TextEditOptions';
-import { useCardano } from '@/context/cardanoContext';
 import { Controller } from 'react-hook-form';
 import { Typography } from '@mui/material';
 import { marked } from 'marked';
 import { processContent } from '@/lib/ContentProcessor/processContent';
+import { useWallet } from '@/context/globalContext';
 
 type MarkdownEditorProps = {
   control: any;
@@ -14,7 +14,7 @@ type MarkdownEditorProps = {
 
 const MarkdownEditor = ({ control, errors, name }: MarkdownEditorProps) => {
   const [mode, setMode] = useState<'write' | 'preview'>('write');
-  const { isEnabled } = useCardano();
+  const { wallet:{isConnected} } = useWallet();
   return (
     <Controller
       name={name}
@@ -40,7 +40,7 @@ const MarkdownEditor = ({ control, errors, name }: MarkdownEditorProps) => {
               </div>
               <div>
                 <TextEditOptions
-                  active={isEnabled}
+                  active={isConnected}
                   setInitialMarkdown={(value) => {
                     if (typeof value === 'string') {
                       field.onChange(value);

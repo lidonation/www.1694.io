@@ -1,17 +1,15 @@
 import Comment from './Comment';
-import { useDRepContext } from '@/context/drepContext';
 import { Typography } from '@mui/material';
 
 const SingleNoteResponses = ({
   noteId,
   comments,
-  isEnabled,
-  isLoggedIn,
+  isConnected,
   currentVoter,
   handleRefetch,
   latestComment,
+  handleOpenLoginModal,
 }) => {
-  const { setIsWalletListModalOpen, setLoginModalOpen } = useDRepContext();
   return (
     <div className="flex flex-col gap-3 p-2 pl-8">
       {comments && comments.length > 0 ? (
@@ -22,10 +20,8 @@ const SingleNoteResponses = ({
             comment={comment}
             currentVoter={currentVoter}
             depth={0}
-            isEnabled={isEnabled}
-            isLoggedIn={isLoggedIn}
-            setIsWalletListModalOpen={setIsWalletListModalOpen}
-            setLoginModalOpen={setLoginModalOpen}
+            isConnected={isConnected}
+            handleOpenLoginModal={handleOpenLoginModal}
             handleRefetch={handleRefetch}
             latestComment={latestComment}
           />

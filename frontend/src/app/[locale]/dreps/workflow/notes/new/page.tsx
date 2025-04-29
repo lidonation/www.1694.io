@@ -2,37 +2,28 @@
 import BreadCrumbs from '@/components/molecules/BreadCrumbs';
 import ViewDraftsButton from '@/components/molecules/ViewDraftsButton';
 import NewNoteForm from '@/components/organisms/NewNoteForm';
-import { useDRepContext } from '@/context/drepContext';
-import { useCardano } from '@/context/cardanoContext';
+import { ModalType, useModals, useWallet } from '@/context/globalContext';
 import { usePathname } from 'next/navigation';
 import React, { useCallback, useEffect } from 'react';
 
 const page = () => {
-  const { isEnabled } = useCardano();
-  const pathname = usePathname();
   const {
-    setIsWalletListModalOpen,
-    isLoggedIn,
-    setLoginModalOpen,
-    isWalletListModalOpen,
-    loginModalOpen,
+    wallet: { isConnected },
     currentLocale,
-    setHideCloseButtonOnWalletListModal,
-    setHideCloseButtonOnLoginModal,
-  } = useDRepContext();
+  } = useWallet();
+  const { openModal } = useModals();
+  const pathname = usePathname();
 
   const checkAccess = useCallback(() => {
     if (!pathname.includes(`/${currentLocale}/dreps/workflow/notes/new`)) {
       return;
     }
-    if (!isEnabled) {
-      setIsWalletListModalOpen(true);
-      setHideCloseButtonOnWalletListModal(true);
-    } else if (isEnabled && !isLoggedIn) {
-      setLoginModalOpen(true);
-      setHideCloseButtonOnLoginModal(true);
+    if (!isConnected) {
+      openModal(ModalType.LOGIN, {
+        hideCloseButton: true,
+      });
     }
-  }, [isEnabled, isLoggedIn, isWalletListModalOpen, loginModalOpen]);
+  }, [isConnected]);
 
   useEffect(() => {
     checkAccess();
@@ -52,7 +43,7 @@ const page = () => {
           },
         ]}
       />
-      <div className="drep_radial_bg flex items-center justify-center mt-4">
+      <div className="drep_radial_bg mt-4 flex items-center justify-center">
         <div className="form_container h-full">
           <div className="w-full bg-white p-10">
             <div className="flex flex-row items-center justify-between">

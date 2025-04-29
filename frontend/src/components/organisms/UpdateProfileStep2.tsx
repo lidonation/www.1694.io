@@ -1,11 +1,7 @@
-import React, { ChangeEvent, useEffect, useState } from 'react';
-import { useCardano } from '@/context/cardanoContext';
-import { useDRepContext } from '@/context/drepContext';
-import { Address } from '@emurgo/cardano-serialization-lib-asmjs';
+import React, { useEffect, useRef, useState } from 'react';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { SubmitHandler, useForm } from 'react-hook-form';
-import { usePostUpdateDrepMutation } from '@/hooks/usePostUpdateDRepMutation';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import ProfileSubmitArea from '../atoms/ProfileSubmitArea';
 import { Box, Typography } from '@mui/material';
@@ -15,18 +11,17 @@ import {
   setItemToLocalStorage,
 } from '@/lib';
 import WalletConnectButton from '../molecules/WalletConnectButton';
-import LoginButton from '../molecules/LoginButton';
-import { getSwitchWithTextTrack } from './UserLoginModal';
-import { useScreenDimension } from '@/hooks';
 import CopyToClipboard from '../atoms/CopyToClipboard';
 import { useVerifyTransactionWitness } from '@/hooks/useGetWitnessVerification';
 import { usePostNewDrepMutation } from '@/hooks/usePostNewDRepMutation';
 import { drepInput } from '@/models/drep';
 import { ProfileWorkflowStepKey } from '@/lib/enums';
+import { ModalType, useModals, useWallet } from '@/context/globalContext';
+import { userLogin } from '@/services/requests/userLogin';
+import { useQueryClient } from 'react-query';
+import { QUERY_KEYS } from '@/constants/queryKeys';
 
 const FormSchema = z.object({
-  signature: z.string(),
-  key: z.string(),
   verificationSignature: z.string().optional(),
   verificationKey: z.string().optional(),
 });
@@ -37,48 +32,45 @@ const UpdateProfileStep2 = () => {
   const { handleSubmit, setValue, getValues } = useForm<InputType>({
     resolver: zodResolver(FormSchema),
   });
-  const { isMobile } = useScreenDimension();
-  const [isHardware, setIsHardware] = useState(!false);
+  const savedDRepId = useRef<number | null>(null);
   const [signatures, setSignatures] = useState({
     current: { signature: null, key: null },
     verification: { signature: null, key: null },
   });
-  const {
-    address,
-    isEnabled,
-    stakeKey,
-    loginHardwareWalletTransaction,
-    dRepIDBech32,
-  } = useCardano();
-
-  const SwitchWithTextTrack = getSwitchWithTextTrack(
-    isMobile,
-    isMobile ? '9.375rem' : '13.75rem',
-  );
-  const {
-    drepId,
-    drepToBeClaimed,
-    drepClaimMismatch,
-    setDrepClaimMismatch,
-    drepEntityToBeClaimed,
-    setNewDrepId,
-    updateStep,
-    ownership,
-  } = useDRepContext();
-
-
   const {
     addChangesSavedAlert,
     addErrorAlert,
     addSuccessAlert,
     addPendingAlert,
   } = useGlobalNotifications();
+  const queryClient = useQueryClient();
   const { verifyWitness, isWitnessVerifying } = useVerifyTransactionWitness();
   const newDRepMutation = usePostNewDrepMutation();
-  const updateDrepMutation = usePostUpdateDrepMutation();
-
+  const {
+    user: {
+      dRepClaimInfo: {
+        dRepIDToClaimBech32,
+        dRepEntityToClaim,
+        isCurrentOwnerOfDRepToClaim,
+      },
+      dRepProfilesClaimed,
+    },
+    wallet: {
+      isConnected,
+      address,
+      dRepIdBech32,
+      stakeKeyBech32,
+      isConnecting,
+    },
+    setUserInfo,
+    loginHardwareWalletTransaction,
+  } = useWallet();
+  const { openModal } = useModals();
+  const hasClaimedProfile = dRepProfilesClaimed.find(
+    (profile) => profile.claimedDRepBech32 == dRepIDToClaimBech32,
+  );
   const handleCheck = async () => {
-    if (drepClaimMismatch) {
+    if (!isCurrentOwnerOfDRepToClaim && !hasClaimedProfile) {
       addErrorAlert(
         'Please sign this expired txn to verify that you are indeed the owner of this DRep',
       );
@@ -93,7 +85,7 @@ const UpdateProfileStep2 = () => {
 
           const res = await verifyWitness({
             witnessSet: sigs,
-            address: drepEntityToBeClaimed.reg_address,
+            address: dRepEntityToClaim.reg_address,
           });
 
           if (res) {
@@ -115,9 +107,7 @@ const UpdateProfileStep2 = () => {
               }));
               setValue('verificationSignature', sigs.signature);
               setValue('verificationKey', sigs.vkey);
-
               addSuccessAlert('Signature verified successfully');
-              setDrepClaimMismatch(false);
               await createProfile();
               return true;
             }
@@ -138,30 +128,22 @@ const UpdateProfileStep2 = () => {
 
   const createProfile = async () => {
     try {
-      const stakeAddress = Address.from_bytes(
-        Buffer.from(stakeKey, 'hex') as any,
-      ).to_bech32();
       const formData: drepInput = {
         signatures: [
-          {
-            signature: getValues('signature'),
-            key: getValues('key'),
-            type: 'signer',
-          },
           {
             signature: getValues('verificationSignature'),
             key: getValues('verificationKey'),
             type: 'drep',
           },
         ],
-        stake_addr: stakeAddress,
-        voter_id: convertDrepPhraseToCIP105(dRepIDBech32),
-        drep_bech32: convertDrepPhraseToCIP105(drepToBeClaimed),
+        stake_addr: stakeKeyBech32,
+        voter_id: convertDrepPhraseToCIP105(dRepIdBech32),
+        drep_bech32: convertDrepPhraseToCIP105(dRepIDToClaimBech32),
       };
       const { insertedDrep, token } = await newDRepMutation.mutateAsync({
         drep: formData as any,
       });
-      setNewDrepId(insertedDrep.raw[0].id);
+      savedDRepId.current = insertedDrep.raw[0].id;
       setItemToLocalStorage('token_1694', token);
       addSuccessAlert('Profile created successfully');
     } catch (error) {
@@ -172,90 +154,94 @@ const UpdateProfileStep2 = () => {
 
   const saveProfile: SubmitHandler<InputType> = async (data) => {
     try {
-      const stakeAddress = Address.from_bytes(
-        Buffer.from(stakeKey, 'hex') as any,
-      ).to_bech32();
-
-      const formData: drepInput = {
+      const formData = {
         signatures: [
-          {
-            signature: getValues('signature'),
-            key: getValues('key'),
-            type: 'signer',
-          },
           {
             signature: getValues('verificationSignature'),
             key: getValues('verificationKey'),
             type: 'drep',
           },
         ],
-        stake_addr: stakeAddress,
-        voter_id: convertDrepPhraseToCIP105(dRepIDBech32),
-        drep_bech32: convertDrepPhraseToCIP105(drepToBeClaimed),
+        stakeKey: stakeKeyBech32,
+        drep_bech32: convertDrepPhraseToCIP105(dRepIDToClaimBech32),
+        voterId: convertDrepPhraseToCIP105(dRepIdBech32),
+        drepId: savedDRepId.current,
       };
-
-      await updateDrepMutation.mutateAsync({
-        drepId: drepId,
-        drep: formData,
+      //TODO: refacfor signature logic
+      await userLogin({
+        expiry: '1h',
+        ...formData,
       });
+      queryClient.invalidateQueries(QUERY_KEYS.getVoterClaimedProfilesKey);
       addChangesSavedAlert();
     } catch (error) {
       console.log(error);
+      addErrorAlert('An error occurred while saving your profile');
     }
   };
 
   useEffect(() => {
-    try {
-      if (ownership && ownership.result === true) {
-        ownership.signatures.map((sig) => {
-          if (sig.type === 'drep') {
-            setSignatures((prev) => ({
-              ...prev,
-              verification: {
-                signature: sig.signature,
-                key: sig.key,
-              },
-            }));
-            setValue('verificationSignature', sig.signature);
-            setValue('verificationKey', sig.key);
-          }
+    console.log('dRepProfilesClaimed', {
+      dRepProfilesClaimed,
+      dRepIDToClaimBech32,
+    });
+    
 
-          if (sig.type === 'signer') {
-            setSignatures((prev) => ({
-              ...prev,
-              current: {
-                signature: sig.signature,
-                key: sig.key,
-              },
-            }));
-            setValue('signature', sig.signature);
-            setValue('key', sig.key);
-          }
-        });
-
-        if (ownership.signatures.length > 0) {
-          updateStep(ProfileWorkflowStepKey.SIGNATURES, 'update');
-        }
-      } else updateStep(ProfileWorkflowStepKey.SIGNATURES, 'active');
-    } catch (error) {
-      console.log(error);
-      addErrorAlert(
-        String(error) || 'An error occurred while loading your credentials',
-      );
+    if (hasClaimedProfile) {
+      switch (hasClaimedProfile.voterSignatureType) {
+        case 'drep':
+          setSignatures((prev) => ({
+            ...prev,
+            verification: {
+              signature: hasClaimedProfile.voterSignature,
+              key: hasClaimedProfile.voterSignatureKey,
+            },
+          }));
+          setValue('verificationSignature', hasClaimedProfile.voterSignature);
+          setValue('verificationKey', hasClaimedProfile.voterSignatureKey);
+          break;
+        case 'signer':
+          setSignatures((prev) => ({
+            ...prev,
+            current: {
+              signature: hasClaimedProfile.voterSignature,
+              key: hasClaimedProfile.voterSignatureKey,
+            },
+          }));
+          break;
+        default:
+          //do nothing
+          break;
+      }
+      setUserInfo({
+        dRepClaimProgress: {
+          [ProfileWorkflowStepKey.SIGNATURES]: 'update',
+        },
+      });
+    } else {
+      setUserInfo({
+        dRepClaimProgress: {
+          [ProfileWorkflowStepKey.SIGNATURES]: 'active',
+        },
+      });
     }
 
     return () => {
-      if (ownership && ownership.result === true) {
-        updateStep(ProfileWorkflowStepKey.SIGNATURES, 'success');
+      if (hasClaimedProfile) {
+        setUserInfo({
+          dRepClaimProgress: {
+            [ProfileWorkflowStepKey.SIGNATURES]: 'success',
+          },
+        });
       } else {
-        updateStep(ProfileWorkflowStepKey.SIGNATURES, 'pending');
+        setUserInfo({
+          dRepClaimProgress: {
+            [ProfileWorkflowStepKey.SIGNATURES]: 'pending',
+          },
+        });
       }
     };
-  }, [ownership]);
-
-  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setIsHardware(!event.target.checked);
-  };
+  }, [dRepProfilesClaimed, dRepIDToClaimBech32]);
 
   const onError = (err) => {
     console.log(err);
@@ -267,10 +253,10 @@ const UpdateProfileStep2 = () => {
         <Typography variant="h1" className="font-bold text-zinc-800">
           Your Signatures
         </Typography>
-        {drepToBeClaimed && (
+        {dRepIDToClaimBech32 && (
           <div className="flex flex-row flex-wrap gap-1 lg:flex-nowrap">
             <CopyToClipboard
-              text={drepToBeClaimed}
+              text={dRepIDToClaimBech32}
               textStyles="w-full break-words text-slate-500 lg:w-fit"
             >
               <img src="/svgs/copy.svg" alt="copy" />
@@ -287,18 +273,20 @@ const UpdateProfileStep2 = () => {
       </Box>
       <form id="profile_form" onSubmit={handleSubmit(saveProfile, onError)}>
         <div className="flex flex-col gap-1">
-          {!isEnabled ? (
-            <WalletConnectButton test_name={'component'} />
+          {!isConnected ? (
+            <WalletConnectButton
+              test_name={'component'}
+              isConnecting={isConnecting}
+              handleConnect={() => {
+                openModal(ModalType.LOGIN);
+              }}
+            />
           ) : (
             <>
               {!signatures.current.signature &&
               !signatures.verification.signature ? (
                 <div className="flex flex-col items-center justify-center">
-                  <SwitchWithTextTrack
-                    checked={!isHardware}
-                    onChange={handleChange}
-                  />
-                  <LoginButton isHardware={isHardware} />
+                  {/* <LoginButton isHardware={isHardware} /> */}
                 </div>
               ) : (
                 <Box className="flex flex-col gap-3">

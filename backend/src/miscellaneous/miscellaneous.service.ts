@@ -367,4 +367,36 @@ export class MiscellaneousService {
       }
     }
   }
+
+  async getAddressesRelatedToStakeAddress(
+    stakeAddress: string,
+  ): Promise<string[]> {
+    try {
+      const addresses =
+        await this.blockfrostService.getAddressesRelatedToStakeAddress(
+          stakeAddress,
+        );
+      return Array.isArray(addresses)
+        ? addresses.map((address) => address.address)
+        : [];
+    } catch (error) {
+      console.log(error);
+      throw new HttpException(
+        error?.message || error || 'An error occurred',
+        500,
+      );
+    }
+  }
+  async submitTx(txCbor: string) {
+    try {
+      const txHash = await this.blockfrostService.submitTransaction(txCbor);
+      return txHash;
+    } catch (error) {
+      console.log(error);
+      throw new HttpException(
+        error?.message || error || 'An error occurred',
+        500,
+      );
+    }
+  }
 }

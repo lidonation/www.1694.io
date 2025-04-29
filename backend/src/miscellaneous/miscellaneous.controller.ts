@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { MiscellaneousService } from './miscellaneous.service';
 
 @Controller('misc')
@@ -19,6 +19,10 @@ export class MiscellaneousController {
   getAddressUtxos(@Param('address') address: string) {
     return this.miscService.getAddressUtxos(address);
   }
+  @Get('stake-addr/:address/payment')
+  getRelatedPaymentAddrFromStakeAddr(@Param('address') address: string) {
+    return this.miscService.getAddressesRelatedToStakeAddress(address);
+  }
   @Get('node/status')
   getNodeStatus() {
     return this.miscService.getNodeStatus();
@@ -37,5 +41,9 @@ export class MiscellaneousController {
   getMetadata(@Query('url') url: string) {
     if (!url) return null;
     return this.miscService.fetchExternalMetadata(url);
+  }
+  @Post('submit-tx')
+  submitTx(@Body('tx') tx: string) {
+    return this.miscService.submitTx(tx);
   }
 }

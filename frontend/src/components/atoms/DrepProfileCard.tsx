@@ -20,7 +20,6 @@ import {
   renderJsonLdValue,
 } from '@/lib';
 import { useScreenDimension } from '@/hooks';
-import { useCardano } from '@/context/cardanoContext';
 import MetadataViewer from './MetadataViewer';
 import { renderJSONLDToJSONArr } from '@/lib/metadataProcessor';
 import DRepSocialLinks from './DRepSocialLinks';
@@ -29,13 +28,13 @@ import SubmitMetadataModal from './SubmitMetadataModal';
 import { deleteItemFromIndexedDB } from '@/lib/indexedDb';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import DRepAvatarCard from './DRepAvatarCard';
-import { useDRepContext } from '@/context/drepContext';
 import { useGetDRepMetadataQuery } from '@/hooks/useGetDRepMetadataQuery';
 import DRepIdHolder from './DRepIdHolder';
 import { useGetOwnership } from '@/hooks/useGetOwnership';
 import { useGetAdaHolderCurrentDelegationQuery } from '@/hooks/useGetAdaHolderCurrentDelegationQuery';
 import { useDelegateTodRep } from '@/hooks/useDelegateToDRep';
 import StatusChip from './StatusChip';
+import { useWallet, ModalType, useModals } from '@/context/globalContext';
 
 interface StatusProps {
   status:
@@ -55,16 +54,18 @@ type DrepProfileCardProps = {
 
 const DrepProfileCard = ({ drep, voterId, loading }: DrepProfileCardProps) => {
   const { isMobile } = useScreenDimension();
-  const { stakeKey, dRepIDBech32 } = useCardano();
-  const { setLoginModalOpen, isLoggedIn, setDrepToBeClaimed } =
-    useDRepContext();
+  const {
+    wallet: { stakeKey, dRepIdBech32, isConnected },
+    setUserInfo,
+  } = useWallet();
+  const { openModal } = useModals();
   const [canEdit, setCanEdit] = useState(false);
   const { addSuccessAlert } = useGlobalNotifications();
   const [isSubmittingMetadata, setIsSubmittingMetadata] = useState(false);
   const [hoveredOnWarning, setHoveredOnWarning] = useState(false);
   const { ownership } = useGetOwnership({
     drepId: drep?.view,
-    voterId: dRepIDBech32,
+    voterId: dRepIdBech32,
   });
   const { metadata, isMetadataLoading, metadataError } =
     useGetDRepMetadataQuery(voterId);
@@ -80,7 +81,9 @@ const DrepProfileCard = ({ drep, voterId, loading }: DrepProfileCardProps) => {
     },
     {
       label: 'Login to update',
-      action: () => setLoginModalOpen(true),
+      action: () => {
+        openModal(ModalType.LOGIN);
+      },
     },
   ];
 
@@ -95,7 +98,17 @@ const DrepProfileCard = ({ drep, voterId, loading }: DrepProfileCardProps) => {
   }
 
   const handleEdit = () => {
-    setDrepToBeClaimed(drep?.view);
+    if (!isConnected) {
+      openModal(ModalType.LOGIN);
+    } else if (dRepIdBech32) {
+      setUserInfo({
+        dRepClaimInfo: {
+          dRepIDToClaimBech32: dRepIdBech32,
+        },
+      });
+    } else {
+      openModal(ModalType.DREP_ERROR);
+    }
   };
   const renderUnsavedChanges = () => {
     const slider = (
@@ -193,9 +206,11 @@ const DrepProfileCard = ({ drep, voterId, loading }: DrepProfileCardProps) => {
         <StatusChip status="Verified" />
         {isDelegated && (
           <Tooltip title="You have delegated to this DRep">
-            <span><button>
-              <StatusChip status="Your DRep" />
-            </button></span>
+            <span>
+              <button>
+                <StatusChip status="Your DRep" />
+              </button>
+            </span>
           </Tooltip>
         )}
       </div>
@@ -299,7 +314,7 @@ const DrepProfileCard = ({ drep, voterId, loading }: DrepProfileCardProps) => {
               );
               resetDraft();
             }}
-            metadataType='drepUpdate'
+            metadataType="drepUpdate"
           />
         )}
         {ownership?.result &&
@@ -310,13 +325,13 @@ const DrepProfileCard = ({ drep, voterId, loading }: DrepProfileCardProps) => {
         <div className="flex max-w-prose flex-col gap-2">
           <Button
             handleClick={
-              isLoggedIn ? ctaActions[0].action : ctaActions[1].action
+              isConnected ? ctaActions[0].action : ctaActions[1].action
             }
             className="w-full"
           >
-            {isLoggedIn ? ctaActions[0].label : ctaActions[1].label}
+            {isConnected ? ctaActions[0].label : ctaActions[1].label}
           </Button>
-          {isLoggedIn && (
+          {isConnected && (
             <Link
               href={`/dreps/workflow/profile/update/step1`}
               onClick={handleEdit}

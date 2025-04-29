@@ -1,8 +1,7 @@
-import { useCardano } from '@/context/cardanoContext';
+
 import React from 'react';
 
-const PostVisibilityInput = ({ registerVisibility, errors }) => {
-  const { isEnabled } = useCardano();
+const PostVisibilityInput = ({ registerVisibility, errors, isDisabled }) => {
   return (
     <div className="flex flex-col items-start justify-center">
       <p>Set Visibility</p>
@@ -11,7 +10,7 @@ const PostVisibilityInput = ({ registerVisibility, errors }) => {
           id="everyone"
           type="radio"
           value="everyone"
-          disabled={!isEnabled}
+          disabled={isDisabled}
           {...registerVisibility('postVisibility')}
           name="postVisibility"
           className="cursor-pointer"
@@ -24,7 +23,7 @@ const PostVisibilityInput = ({ registerVisibility, errors }) => {
           type="radio"
           value="delegators"
           {...registerVisibility('postVisibility')}
-          disabled={!isEnabled}
+          disabled={isDisabled}
           name="postVisibility"
           className="cursor-pointer"
         />
@@ -36,7 +35,7 @@ const PostVisibilityInput = ({ registerVisibility, errors }) => {
           type="radio"
           value="myself"
           {...registerVisibility('postVisibility')}
-          disabled={!isEnabled}
+          disabled={isDisabled}
           name="postVisibility"
           className="cursor-pointer"
         />

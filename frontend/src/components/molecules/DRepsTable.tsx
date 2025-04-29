@@ -29,8 +29,8 @@ import Typography from '@mui/material/Typography';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { useDelegateTodRep } from '@/hooks/useDelegateToDRep';
 import ClaimProfileButton from '../atoms/ClaimProfileButton';
-import { useCardano } from '@/context/cardanoContext';
 import { useGetAdaHolderCurrentDelegationQuery } from '@/hooks/useGetAdaHolderCurrentDelegationQuery';
+import { useWallet } from '@/context/globalContext';
 
 type DRepsTableProps = {
   query?: string;
@@ -61,7 +61,7 @@ const DRepsTable = ({
   type,
 }: DRepsTableProps) => {
   const { isMobile } = useScreenDimension();
-  const { stakeKey } = useCardano();
+  const { wallet:{stakeKey} } = useWallet();
   const router = useRouter();
   const { addSuccessAlert } = useGlobalNotifications();
   const { delegate, isDelegating } = useDelegateTodRep();

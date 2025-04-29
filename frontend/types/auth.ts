@@ -1,15 +1,19 @@
+import { CardanoApiWallet } from "@/models/wallet";
 import {Ed25519KeyHash} from "@emurgo/cardano-serialization-lib-asmjs";
 
 export interface AuthResult {
   success: boolean;
   accountInfo?: AccountInfo;
+  walletApi?:CardanoApiWallet
   error?: string;
 }
 
 export interface AccountInfo {
   address: string;
+  addressBech32: string;
   stakeKey?: string;
   stakeKeyBech32?: string;
+  registeredStakeKeysListState?: string[];
   balance?: string;
   dRepInfo?: {
     isDRep: boolean;

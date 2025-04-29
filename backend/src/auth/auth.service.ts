@@ -575,10 +575,15 @@ export class AuthService {
       };
     } catch (error) {
       console.error('Error during verification:', error);
-      throw new HttpException(
-        error.message || 'Verification failed',
-        HttpStatus.BAD_REQUEST,
-      );
+      return {
+        workMode: 'verify-cip30',
+        payloadResultMatch: false,
+        publicKeyHex: '',
+        payloadDataHex: '',
+        signature: '',
+        publicKey: '',
+        error: error?.message || 'Verification failed',
+      };
     }
   }
 

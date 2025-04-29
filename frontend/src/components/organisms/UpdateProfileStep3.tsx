@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useCardano } from '@/context/cardanoContext';
-import { useDRepContext } from '@/context/drepContext';
 import { v4 as uuidv4 } from 'uuid';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import ProfileSubmitArea from '../atoms/ProfileSubmitArea';
@@ -15,21 +13,29 @@ import { HtmlTooltip } from '../atoms/HoverChip';
 import Button from '../atoms/Button';
 import CopyToClipboard from '../atoms/CopyToClipboard';
 import { ProfileWorkflowStepKey } from '@/lib/enums';
-const UpdateProfileStep3 = () => {
-  const { dRepIDBech32, loginSignTransaction } = useCardano();
+import { useWallet } from '@/context/globalContext';
 
+const UpdateProfileStep3 = () => {
+  const {
+    wallet: { dRepIdBech32 },
+    user: {
+      dRepClaimInfo: { dRepToBeClaimedJsonLd, dRepIDToClaimBech32 },
+      dRepProfilesClaimed,
+    },
+    setUserInfo,
+    loginSignTransaction,
+    handleRefreshUserJsonLd,
+  } = useWallet();
   const [errors, setErrors] = useState({});
   const [referencesArr, setReferencesArr] = useState([]);
-  const { metadataJsonLd, handleRefresh, updateStep, ownership } =
-    useDRepContext();
   const { addChangesSavedAlert, addSuccessAlert } = useGlobalNotifications();
 
   useEffect(() => {
     const getDRep = () => {
       let availableReferences = [];
       try {
-        if (!metadataJsonLd) return;
-        const metadataJson = renderJSONLDToJSONArr(metadataJsonLd);
+        if (!dRepToBeClaimedJsonLd) return;
+        const metadataJson = renderJSONLDToJSONArr(dRepToBeClaimedJsonLd);
         const referencesData = metadataJson.find(
           (item) => item.key === 'references',
         );
@@ -47,8 +53,18 @@ const UpdateProfileStep3 = () => {
           addSuccessAlert('Draft restored!');
         }
         if (availableReferences.length > 0) {
-          updateStep(ProfileWorkflowStepKey.SOCIALS, 'update');
-        } else updateStep(ProfileWorkflowStepKey.SOCIALS, 'active');
+          setUserInfo({
+            dRepClaimProgress: {
+              [ProfileWorkflowStepKey.SOCIALS]: 'update',
+            },
+          });
+        } else {
+          setUserInfo({
+            dRepClaimProgress: {
+              [ProfileWorkflowStepKey.SOCIALS]: 'active',
+            },
+          });
+        }
         return;
       } catch (error) {
         console.log(error);
@@ -57,10 +73,20 @@ const UpdateProfileStep3 = () => {
     getDRep();
     return () => {
       if (referencesArr.length > 0) {
-        updateStep(ProfileWorkflowStepKey.SOCIALS, 'success');
-      } else updateStep(ProfileWorkflowStepKey.SOCIALS, 'pending');
+        setUserInfo({
+          dRepClaimProgress: {
+            [ProfileWorkflowStepKey.SOCIALS]: 'success',
+          },
+        });
+      } else {
+        setUserInfo({
+          dRepClaimProgress: {
+            [ProfileWorkflowStepKey.SOCIALS]: 'pending',
+          },
+        });
+      }
     };
-  }, [metadataJsonLd]);
+  }, [dRepToBeClaimedJsonLd]);
 
   const handleAddReference = () => {
     setReferencesArr([...referencesArr, { id: uuidv4(), key: '', value: '' }]);
@@ -114,13 +140,16 @@ const UpdateProfileStep3 = () => {
 
   const saveProfile = async () => {
     try {
-      let toBeSubmittedMetadataJsonLd = metadataJsonLd;
-      const signatures = ownership?.signatures.map((sig) => {
-        return {
-          signature: sig.signature,
-          vkey: sig.key,
-        };
-      })?.[0];
+      const currentClaimedProfile = dRepProfilesClaimed.find(
+        (profile) =>
+          profile.voterDRepBech32 == dRepIdBech32 &&
+          profile.claimedDRepBech32 == dRepIDToClaimBech32,
+      );
+      let toBeSubmittedMetadataJsonLd = dRepToBeClaimedJsonLd;
+      const signatures = {
+        signature: currentClaimedProfile.voterSignature,
+        vkey: currentClaimedProfile.voterSignatureKey,
+      };
       const references = [];
       const links = referencesArr.reduce((acc, item) => {
         acc[item.key] = item.value;
@@ -134,7 +163,7 @@ const UpdateProfileStep3 = () => {
           });
         }
       }
-      const hasExistingReferences = metadataJsonLd?.body?.references;
+      const hasExistingReferences = dRepToBeClaimedJsonLd?.body?.references;
       if (!hasExistingReferences) {
         toBeSubmittedMetadataJsonLd.body = {
           ...toBeSubmittedMetadataJsonLd.body,
@@ -149,12 +178,12 @@ const UpdateProfileStep3 = () => {
           metadataKeys,
           toBeSubmittedMetadata as any,
           loginSignTransaction,
-          signatures
+          signatures,
         );
         setItemToLocalStorage('isUpdating', 'true');
         await setItemToIndexedDB('metadataJsonLd', jsonld);
         await setItemToIndexedDB('metadataJsonHash', jsonHash);
-        await handleRefresh();
+        await handleRefreshUserJsonLd();
         addChangesSavedAlert();
         return;
       } else {
@@ -188,12 +217,12 @@ const UpdateProfileStep3 = () => {
           metadataKeys,
           toBeSubmittedMetadata as any,
           loginSignTransaction,
-          signatures
+          signatures,
         );
         setItemToLocalStorage('isUpdating', 'true');
         await setItemToIndexedDB('metadataJsonLd', jsonld);
         await setItemToIndexedDB('metadataJsonHash', jsonHash);
-        await handleRefresh();
+        await handleRefreshUserJsonLd();
         addChangesSavedAlert();
       }
     } catch (error) {
@@ -205,10 +234,10 @@ const UpdateProfileStep3 = () => {
     <div className="flex w-full flex-col gap-5 px-10 py-5">
       <div className="flex flex-col gap-5">
         <h1 className="text-4xl font-bold text-zinc-800">Social Media</h1>
-        {dRepIDBech32 && (
+        {dRepIDToClaimBech32 && (
           <div className="flex flex-row flex-wrap gap-1 lg:flex-nowrap">
             <CopyToClipboard
-              text={dRepIDBech32}
+              text={dRepIDToClaimBech32}
               textStyles="w-full break-words text-slate-500 lg:w-fit"
             >
               <img src="/svgs/copy.svg" alt="copy" />

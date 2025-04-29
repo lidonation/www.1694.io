@@ -1,23 +1,24 @@
 import { Box, Typography } from '@mui/material';
 import { ModalContents, ModalHeader, ModalWrapper } from '../atoms';
-import { useDRepContext } from '@/context/drepContext';
 import Link from 'next/link';
 import { urls } from '@/constants';
 import Button from '../atoms/Button';
 interface NotDRepErrorModalProps {
   onConfirm: () => void;
   onCancel: () => void;
+  onClose?: () => void;
 }
 export function NotDRepErrorModal({
   onConfirm = () => {},
   onCancel = () => {},
+  onClose = () => {},
 }: NotDRepErrorModalProps) {
-  const { setIsNotDRepErrorModalOpen } = useDRepContext();
+
 
   return (
     <ModalWrapper
       dataTestId="not-drep-error-modal"
-      onClose={() => setIsNotDRepErrorModalOpen(false)}
+      onClose={onClose}
     >
       <ModalHeader
         sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}

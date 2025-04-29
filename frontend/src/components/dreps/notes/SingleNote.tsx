@@ -4,7 +4,6 @@ import Button from '@/components/atoms/Button';
 import { postAddReaction } from '@/services/requests/postAddReaction';
 import { postRemoveReaction } from '@/services/requests/postRemoveReaction';
 import SingleNoteResponses from './SingleNoteResponses';
-import { useDRepContext } from '@/context/drepContext';
 import { z } from 'zod';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -13,19 +12,18 @@ import { useGetSingleNoteQuery } from '@/hooks/useGetSingleNoteQuery';
 import { processContent } from '@/lib/ContentProcessor/processContent';
 import MarkdownEditor from '@/components/atoms/MarkdownEditor';
 import DisplayParsedContent from '@/components/atoms/DisplayParsedContent';
+import { ModalType, useModals } from '@/context/globalContext';
 
 const SingleNote = ({
   note,
   currentVoter,
-  isEnabled,
-  isLoggedIn,
+  isConnected,
 }: {
   note: any;
   currentVoter: string;
-  isEnabled: boolean;
-  isLoggedIn: boolean;
+  isConnected: boolean;
 }) => {
-  const { setIsWalletListModalOpen, setLoginModalOpen } = useDRepContext();
+  const { openModal } = useModals();
 
   // Initial reaction state from the note prop
   const initialReactions = {
@@ -95,13 +93,13 @@ const SingleNote = ({
     }
   }, [Note, isNoteLoading]);
 
+  const handleOpenLoginModal = () => {
+    openModal(ModalType.LOGIN);
+  }
+
   const startCommenting = () => {
-    if (!isEnabled) {
-      setIsWalletListModalOpen(true);
-      return;
-    }
-    if (!isLoggedIn) {
-      setLoginModalOpen(true);
+    if (!isConnected) {
+      handleOpenLoginModal();
       return;
     }
     setIsCommenting(true);
@@ -126,12 +124,8 @@ const SingleNote = ({
 
   const handleReaction = async (type) => {
     //to prevent orphan reaction till say wallet is done connecting
-    if (!isEnabled) {
-      setIsWalletListModalOpen(true);
-      return;
-    }
-    if (!isLoggedIn) {
-      setLoginModalOpen(true);
+    if (!isConnected) {
+      handleOpenLoginModal();
       return;
     }
     if (userReactions[type]) {
@@ -330,10 +324,10 @@ const SingleNote = ({
             noteId={note.note_id}
             comments={currentComments}
             currentVoter={currentVoter}
-            isEnabled={isEnabled}
-            isLoggedIn={isLoggedIn}
+            isConnected={isConnected}
             handleRefetch={handleRefetch}
             latestComment={latestComment}
+            handleOpenLoginModal={handleOpenLoginModal}
           />
         </>
       )}

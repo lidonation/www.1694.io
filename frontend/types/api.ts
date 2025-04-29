@@ -1,3 +1,5 @@
+import { AuthMethod } from "./auth";
+
 export type currentDelegation = {
   drep_raw: string | null;
   drep_view: string | null;
@@ -46,6 +48,17 @@ export type VoterGovActions = {
   currentPage: number;
   itemsPerPage: number;
   totalPages: number;
+};
+
+export type ClaimedProfile = {
+  voterDRepBech32: string;
+  voterStakeKey: string;
+  claimedDRepId: string;
+  claimedDRepBech32: string;
+  voterSignatureType: string;
+  voterSignatureKey: string;
+  voterSignature: string;
+  claimMethod: AuthMethod
 };
 
 export type SingleDRep = {

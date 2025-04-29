@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import ThumbDownIcon from '@mui/icons-material/ThumbDown';
 import { Box, Button, CircularProgress } from '@mui/material';
-import { useCardano } from '@/context/cardanoContext';
 import { deleteDataFromSession, getDataFromSession } from '@/lib';
 import { setUpPdfJwt } from '@/lib/pdfJwtHelper';
 import { postProposalVote } from '@/services/requests/postProposalVote';
@@ -10,9 +9,8 @@ import { useQueryClient } from 'react-query';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { useGetUserProposalVoteQuery } from '@/hooks/useGetUserProposalVoteQuery';
 import { loginUserToPdf } from '@/services/requests/loginUserToPdf';
-import { useWallet } from '@/context/walletContext';
+import { useWallet,  ModalType, useModals } from '@/context/globalContext';
 import { AuthMethod } from '../../../types/auth';
-import { useDRepContext } from '@/context/drepContext';
 
 type VoteSectionProps = {
   poll: any;
@@ -24,15 +22,15 @@ export default function VotingSection({ poll }: VoteSectionProps) {
   const [vote, setVote] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [hasVoted, setHasVoted] = useState(false);
-  const { signMessage } = useCardano();
   const queryClient = useQueryClient();
   const { addSuccessAlert, addWarningAlert, addErrorAlert } =
     useGlobalNotifications();
-  const { setGovToolUsernameModalOpen } = useDRepContext();
   const {
     activeWallet,
     wallet: { dRepId, stakeKey, dRepDelegatedToVotingPower, isDRep },
+    signMessage,
   } = useWallet();
+  const { openModal } = useModals();
 
   const { pollVote } = useGetUserProposalVoteQuery(poll?.[0]?.id, dRepId);
 
@@ -68,7 +66,7 @@ export default function VotingSection({ poll }: VoteSectionProps) {
           await setUpPdfJwt(userResponse);
 
           if (!userResponse?.user?.govtool_username) {
-            setGovToolUsernameModalOpen(true);
+            openModal(ModalType.USERNAME);
             setSubmitting(false);
             return;
           }

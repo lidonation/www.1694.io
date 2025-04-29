@@ -12,7 +12,7 @@ import Link from 'next/link';
 import CopyToClipBoardIcon from '../atoms/svgs/CopyToClipBoardIcon';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { useGetSingleDRepQuery } from '@/hooks/useGetSingleDRepQuery';
-import { useWallet } from '@/context/walletContext';
+import { useWallet } from '@/context/globalContext';
 
 type DelegatedToProps = {
   className?: string;

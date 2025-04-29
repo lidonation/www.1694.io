@@ -14,5 +14,6 @@ export const QUERY_KEYS = {
   getActionProposalPollKey: 'getActionProposalPollKey',
   getDRepRegStatusKey: 'getDRepRegStatusKey',
   getUserProposalVoteKey: 'getUserProposalVoteKey',
+  getVoterClaimedProfilesKey: 'getVoterClaimedProfilesKey',
   pollVotesKey: 'pollVotesKey',
 };
