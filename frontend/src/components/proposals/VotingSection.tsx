@@ -34,8 +34,7 @@ export default function VotingSection({ poll }: VoteSectionProps) {
     wallet: { dRepId, stakeKey, dRepDelegatedToVotingPower, isDRep },
   } = useWallet();
 
-  const pollId = poll[0]?.id;
-  const { pollVote } = useGetUserProposalVoteQuery(pollId, dRepId);
+  const { pollVote } = useGetUserProposalVoteQuery(poll?.[0]?.id, dRepId);
 
   useEffect(() => {
     if (pollVote?.data?.[0]) {
@@ -118,7 +117,7 @@ export default function VotingSection({ poll }: VoteSectionProps) {
 
       // Submit the vote
       const voteData = {
-        bd_poll_id: `${poll[0]?.id}`,
+        bd_poll_id: `${poll?.[0]?.id}`,
         drep_id: dRepId,
         drep_voting_power: dRepDelegatedToVotingPower,
         vote_result: vote === 'yes' ? true : false,
@@ -132,6 +131,9 @@ export default function VotingSection({ poll }: VoteSectionProps) {
       });
       queryClient.invalidateQueries({
         queryKey: ['getUserProposalVoteKey'],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['pollVotesKey'],
       });
 
       setHasVoted(true);

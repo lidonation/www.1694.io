@@ -12,6 +12,8 @@ import VoteResultsCard from '@/components/proposals/VoteResultsCard';
 import { useGetActionProposalPollQuery } from '@/hooks/useGetActionProposalPollQuery';
 import VotingSection from '@/components/proposals/VotingSection';
 import { useWallet } from '@/context/walletContext';
+import CatalystParticipation from '@/components/proposals/CatalystParticipation';
+import { useUserParticipationQuery } from '@/hooks/useUserCatalystParticipationQuery';
 
 function page() {
   const { proposalid } = useParams();
@@ -21,10 +23,17 @@ function page() {
   const { comments, isCommentsLoading } = useGetActionProposalCommentsQuery(
     Number(proposalid),
   );
-  const { poll } = useGetActionProposalPollQuery(Number(proposalid));
+  const { poll, isPollLoading } = useGetActionProposalPollQuery(
+    Number(proposalid),
+  );
   const {
     wallet: { isConnected, isDRep },
   } = useWallet();
+  const username =
+    actionProposal?.data?.attributes?.creator?.data?.attributes?.govtool_username ||
+    'anonymous';
+  const { data: proposalMetrics, isLoading } =
+    useUserParticipationQuery(username);
 
   return (
     <Box>
@@ -51,6 +60,7 @@ function page() {
             proposal={actionProposal?.data}
             isProposalLoading={isActionProposalLoading}
             poll={poll?.data}
+            isPollLoading={isPollLoading}
           />
 
           <ProposalDetails
@@ -58,9 +68,23 @@ function page() {
             isProposalLoading={isActionProposalLoading}
           />
 
+          <Box className="rounded-md bg-white p-6 shadow-sm">
+            <CatalystParticipation metrics={proposalMetrics} isLoading={isLoading}/>
+          </Box>
+
           {isConnected && isDRep && <VotingSection poll={poll?.data} />}
 
-          <VoteResultsCard poll={poll?.data} />
+          {poll?.data && (
+            <Box
+              id="vote-results"
+              className="rounded-md bg-white p-6 shadow-sm"
+            >
+              <VoteResultsCard
+                poll={poll?.data}
+                isPollLoading={isPollLoading}
+              />
+            </Box>
+          )}
 
           <ProposalComments
             proposal={actionProposal?.data}
