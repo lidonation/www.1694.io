@@ -181,12 +181,6 @@ const UpdateProfileStep2 = () => {
   };
 
   useEffect(() => {
-    console.log('dRepProfilesClaimed', {
-      dRepProfilesClaimed,
-      dRepIDToClaimBech32,
-    });
-    
-
     if (hasClaimedProfile) {
       switch (hasClaimedProfile.voterSignatureType) {
         case 'drep':

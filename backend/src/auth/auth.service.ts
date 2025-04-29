@@ -426,7 +426,6 @@ export class AuthService {
           `Can't cbor decode the given COSE_Key signature (${error})`,
         );
       }
-      console.log('COSE_Key_structure', COSE_Key_structure);
 
       // Validate COSE Key structure
       if (!(COSE_Key_structure instanceof Map) || COSE_Key_structure.size < 4) {
@@ -625,7 +624,6 @@ export class AuthService {
           `Can't cbor decode the given COSE_Key signature (${error})`,
         );
       }
-      console.log('COSE_Key_structure', COSE_Key_structure);
 
       // Validate COSE Key structure
       if (!(COSE_Key_structure instanceof Map) || COSE_Key_structure.size < 4) {

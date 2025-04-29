@@ -793,7 +793,6 @@ export function useTransactionHandler({
                     },
                   });
                   if (res.payloadResultMatch) {
-                    console.log('publicKeyMatch', res.payloadResultMatch);
                     txnModalState.resolve({
                       signature: COSE_Sign1_hex,
                       key: COSE_Key_hex,
