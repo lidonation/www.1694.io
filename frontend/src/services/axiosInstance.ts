@@ -3,6 +3,7 @@ import { urls } from '@/constants';
 import { getDataFromSession } from '@/lib';
 
 const baseURL = urls.baseServerUrl;
+console.log(baseURL);
 
 const axiosInstance = axios.create({
   baseURL,
@@ -10,10 +11,11 @@ const axiosInstance = axios.create({
 });
 
 axiosInstance.interceptors.request.use((config) => {
-  const token =
-    typeof window !== 'undefined' && getDataFromSession('pdfUserJwt');
-  if (token) {
-    config.headers['Authorization'] = `Bearer ${token}`;
+  if (config.method !== 'get') {
+    const token = typeof window !== 'undefined' && getDataFromSession('pdfUserJwt');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
   }
   return config;
 });

@@ -1,13 +1,15 @@
 #!/bin/sh
 set -e
 
-# Replace env variable placeholders with real values
-printenv | grep NEXT_PUBLIC_ | while read -r line ; do
-  key=$(echo $line | cut -d "=" -f1)
-  value=$(echo $line | cut -d "=" -f2)
+# Get NEXT_PUBLIC_ variables sorted by length descending
+printenv | grep NEXT_PUBLIC_ | awk -F= '{ print length($0), $0 }' | sort -rn | cut -d' ' -f2- | while IFS='=' read -r key value; do
+  if [ -n "$key" ] && [ -n "$value" ]; then
+    safe_value=$(printf '%s\n' "$value" | sed 's/[\/&]/\\&/g')
 
-  find /app/.next/ -type f -exec sed -i "s|$key|$value|g" {} \;
+    echo "Replacing $key with $value..."
+
+    find /app/.next/ -type f -exec sed -i "s|$key|$safe_value|g" {} +
+  fi
 done
 
-# Execute the container's main process (CMD in Dockerfile)
 exec "$@"
