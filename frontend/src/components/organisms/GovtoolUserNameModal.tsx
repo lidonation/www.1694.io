@@ -10,6 +10,7 @@ import { useWallet } from '@/context/walletContext';
 import { useCardano } from '@/context/cardanoContext';
 import { AuthMethod } from '../../../types/auth';
 import { deleteDataFromSession } from '@/lib';
+import { getPdfChallenge } from '@/services/requests/getPdfChallenge';
 
 function GovToolUserNameModal({
   hideCloseButton,
@@ -85,15 +86,24 @@ function GovToolUserNameModal({
 
   const signAsDRep = async () => {
     try {
+      const challengeRes = await getPdfChallenge({
+        query: `?identifier=${dRepId}`,
+      });
+      const { message } = challengeRes;
+
       let signedData = await signMessage(
-        `To proceed, please sign this data to verify your dRep identity. This ensures that the action is secure and confirms your identity. Timestamp: ${new Date()?.getTime()}`,
+        message,
         dRepId,
         activeWallet === AuthMethod.HOT_WALLET ? true : false,
         activeWallet === AuthMethod.LOGIN_FILE ? true : false,
       );
+      
       const drepResponse = await loginUserToPdf({
-        identifier: dRepKeyHash.to_hex(),
-        signedData,
+        identifier: dRepId,
+        signedMessage: {
+          ...signedData,
+          expectedSignedMessage: message,
+        },
       });
 
       await setUpPdfJwt(drepResponse);

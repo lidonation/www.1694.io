@@ -17,6 +17,8 @@ import { useGetDRepRegistrationQuery } from '@/hooks/useGetDRepRegistrationQuery
 import { loginUserToPdf } from '@/services/requests/loginUserToPdf';
 import { useWallet } from '@/context/walletContext';
 import { AuthMethod } from '../../../types/auth';
+import { getPdfChallenge } from '@/services/requests/getPdfChallenge';
+import { useGetActionProposalCommentsQuery } from '@/hooks/useGetActionProposalCommentsQuery';
 
 type CommentData = {
   bd_proposal_id: string;
@@ -27,8 +29,6 @@ type CommentData = {
 
 type ProposalCommentsProps = {
   proposal: any;
-  comments: any;
-  isCommentsLoading?: boolean;
 };
 
 const CommentForm = ({
@@ -151,11 +151,7 @@ const CommentContent = ({ comment }: { comment: any }) => {
   );
 };
 
-function ProposalComments({
-  proposal,
-  comments,
-  isCommentsLoading,
-}: ProposalCommentsProps) {
+function ProposalComments({ proposal }: ProposalCommentsProps) {
   const [commentText, setCommentText] = useState('');
   const [replyText, setReplyText] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
@@ -169,9 +165,12 @@ function ProposalComments({
   });
 
   const { setLoginModalOpen, setGovToolUsernameModalOpen } = useDRepContext();
+  const { comments, isCommentsLoading } = useGetActionProposalCommentsQuery(
+    Number(proposal?.id),
+  );
   const { signMessage } = useCardano();
   const {
-    wallet: { isConnected, dRepId, dRepKeyHash, stakeKey, isDRep },
+    wallet: { isConnected, dRepId, stakeKey, isDRep },
     activeWallet,
   } = useWallet();
   const { addWarningAlert, addSuccessAlert, addErrorAlert } =
@@ -195,8 +194,13 @@ function ProposalComments({
   const handleLoginToPdf = async () => {
     try {
       // Sign with stake key first
-      let res = await signMessage(
-        'To proceed, please sign this data to verify your identity. This ensures that the action is secure and confirms your identity.',
+      const challengeRes = await getPdfChallenge({
+        query: `?identifier=${stakeKey}`,
+      });
+      const { message } = challengeRes;
+
+      let signedData = await signMessage(
+        message,
         stakeKey,
         activeWallet === AuthMethod.HOT_WALLET ? true : false,
         activeWallet === AuthMethod.LOGIN_FILE ? true : false,
@@ -204,7 +208,10 @@ function ProposalComments({
 
       const userResponse = await loginUserToPdf({
         identifier: stakeKey,
-        signedData: res,
+        signedMessage: {
+          ...signedData,
+          expectedSignedMessage: message,
+        },
       });
 
       await setUpPdfJwt(userResponse);
@@ -223,16 +230,25 @@ function ProposalComments({
         );
 
         try {
+          const challengeRes = await getPdfChallenge({
+            query: `?identifier=${dRepId}`,
+          });
+          const { message } = challengeRes;
+
           let signedData = await signMessage(
-            `To proceed, please sign this data to verify your dRep identity. This ensures that the action is secure and confirms your identity. Timestamp: ${new Date()?.getTime()}`,
+            message,
             dRepId,
             activeWallet === AuthMethod.HOT_WALLET ? true : false,
             activeWallet === AuthMethod.LOGIN_FILE ? true : false,
           );
 
           const drepResponse = await loginUserToPdf({
-            identifier: dRepKeyHash.to_hex(),
-            signedData,
+            jwt: userResponse?.jwt,
+            identifier: dRepId,
+            signedMessage: {
+              ...signedData,
+              expectedSignedMessage: message,
+            },
           });
 
           await setUpPdfJwt(drepResponse);
@@ -394,7 +410,9 @@ function ProposalComments({
       )}
 
       {isCommentsLoading ? (
-        <p className="text-center animate-pulse">Loading proposal comments...</p>
+        <p className="animate-pulse text-center">
+          Loading proposal comments...
+        </p>
       ) : parentComments && parentComments.length > 0 ? (
         <Box className="space-y-6">
           {parentComments.map((comment) => (
