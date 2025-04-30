@@ -37,9 +37,15 @@ export default function VoteResultsCard({
 
   const totalVotes = pollData?.poll_yes + pollData?.poll_no;
   const yesPercentage =
-    totalVotes > 0 ? (pollData?.poll_yes / totalVotes) * 100 : 0;
+    totalVotes > 0
+      ? ((voteData?.totalYesPower / voteData?.totalVotingPower) * 100).toFixed(
+          2,
+        )
+      : 0;
   const noPercentage =
-    totalVotes > 0 ? (pollData?.poll_no / totalVotes) * 100 : 0;
+    totalVotes > 0
+      ? ((voteData?.totalNoPower / voteData?.totalVotingPower) * 100).toFixed(2)
+      : 0;
 
   const formatVotingPower = (power: number) => {
     return formatAsCurrency(lovelaceToAda(power));
@@ -47,7 +53,7 @@ export default function VoteResultsCard({
 
   const dRepInfluence = (power: number) => {
     if (voteData?.totalVotingPower) {
-      return ((power / voteData?.totalVotingPower) * 100).toFixed(2);
+      return ((power / voteData?.totalVotingPower) * 100).toFixed(3);
     }
   };
 
@@ -105,7 +111,7 @@ export default function VoteResultsCard({
                   >
                     ₳ {formatVotingPower(voteData?.totalYesPower)}
                   </Typography>
-                  ({yesPercentage.toFixed(0)}%)
+                  ({yesPercentage}%)
                 </Typography>
               </Typography>
             </Box>
@@ -123,7 +129,7 @@ export default function VoteResultsCard({
                   <span className="font-bold text-black">
                     ₳ {formatVotingPower(voteData?.totalNoPower)}
                   </span>
-                  ({noPercentage.toFixed(0)}%)
+                  ({noPercentage}%)
                 </span>
               </p>
             </Box>
