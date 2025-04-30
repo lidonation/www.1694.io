@@ -6,7 +6,6 @@ import React from 'react';
 import ProposalIdentity from '@/components/proposals/ProposalIdentity';
 import ProposalDetails from '@/components/proposals/ProposalDetails';
 import ProposalComments from '@/components/proposals/ProposalComments';
-import { useGetActionProposalCommentsQuery } from '@/hooks/useGetActionProposalCommentsQuery';
 import { Box } from '@mui/material';
 import VoteResultsCard from '@/components/proposals/VoteResultsCard';
 import { useGetActionProposalPollQuery } from '@/hooks/useGetActionProposalPollQuery';
@@ -18,9 +17,6 @@ import { useUserParticipationQuery } from '@/hooks/useUserCatalystParticipationQ
 function page() {
   const { proposalid } = useParams();
   const { actionProposal, isActionProposalLoading } = useGetActionProposalQuery(
-    Number(proposalid),
-  );
-  const { comments, isCommentsLoading } = useGetActionProposalCommentsQuery(
     Number(proposalid),
   );
   const { poll, isPollLoading } = useGetActionProposalPollQuery(
@@ -88,8 +84,6 @@ function page() {
 
           <ProposalComments
             proposal={actionProposal?.data}
-            comments={comments}
-            isCommentsLoading={isCommentsLoading}
           />
         </main>
       </section>

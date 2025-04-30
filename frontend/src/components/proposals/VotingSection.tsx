@@ -11,6 +11,7 @@ import { useGetUserProposalVoteQuery } from '@/hooks/useGetUserProposalVoteQuery
 import { loginUserToPdf } from '@/services/requests/loginUserToPdf';
 import { useWallet,  ModalType, useModals } from '@/context/globalContext';
 import { AuthMethod } from '../../../types/auth';
+import { getPdfChallenge } from '@/services/requests/getPdfChallenge';
 
 type VoteSectionProps = {
   poll: any;
@@ -50,9 +51,14 @@ export default function VotingSection({ poll }: VoteSectionProps) {
       // Check if user is logged in
       if (!getDataFromSession('pdfUserJwt')) {
         try {
-          // First login as regular user
+          // Sign with stake key first
+          const challengeRes = await getPdfChallenge({
+            query: `?identifier=${stakeKey}`,
+          });
+          const { message } = challengeRes;
+
           let userRes = await signMessage(
-            'To proceed, please sign this data to verify your identity. This ensures that the action is secure and confirms your identity.',
+            message,
             stakeKey,
             activeWallet === AuthMethod.HOT_WALLET ? true : false,
             activeWallet === AuthMethod.LOGIN_FILE ? true : false,
@@ -60,7 +66,10 @@ export default function VotingSection({ poll }: VoteSectionProps) {
 
           const userResponse = await loginUserToPdf({
             identifier: stakeKey,
-            signedData: userRes,
+            signedMessage: {
+              ...userRes,
+              expectedSignedMessage: message,
+            },
           });
 
           await setUpPdfJwt(userResponse);
@@ -71,7 +80,7 @@ export default function VotingSection({ poll }: VoteSectionProps) {
             return;
           }
 
-          // Handle DRep verification if needed
+          // Handle DRep verification
           if (isDRep && userResponse?.user?.govtool_username) {
             addWarningAlert(
               'You are a DRep! We need to verify your drep key.',
@@ -79,8 +88,13 @@ export default function VotingSection({ poll }: VoteSectionProps) {
             );
 
             try {
-              let res = await signMessage(
-                `To proceed, please sign this data to verify your dRep identity. This ensures that the action is secure and confirms your identity. Timestamp: ${new Date()?.getTime()}`,
+              const challengeRes = await getPdfChallenge({
+                query: `?identifier=${dRepId}`,
+              });
+              const { message } = challengeRes;
+
+              let signedData = await signMessage(
+                message,
                 dRepId,
                 activeWallet === AuthMethod.HOT_WALLET ? true : false,
                 activeWallet === AuthMethod.LOGIN_FILE ? true : false,
@@ -89,7 +103,10 @@ export default function VotingSection({ poll }: VoteSectionProps) {
               const drepResponse = await loginUserToPdf({
                 jwt: userResponse?.jwt,
                 identifier: dRepId,
-                signedData: res,
+                signedMessage: {
+                  ...signedData,
+                  expectedSignedMessage: message,
+                },
               });
 
               await setUpPdfJwt(drepResponse);
@@ -124,14 +141,14 @@ export default function VotingSection({ poll }: VoteSectionProps) {
       await postProposalVote(voteData);
 
       // Update UI and data
-      queryClient.invalidateQueries({
-        queryKey: ['getActionProposalPollKey'],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ['getUserProposalVoteKey'],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ['pollVotesKey'],
+      const queriesToInvalidate = [
+        'getActionProposalPollKey',
+        'getUserProposalVoteKey',
+        'pollVotesKey',
+      ];
+
+      queriesToInvalidate.forEach((queryKey) => {
+        queryClient.invalidateQueries({ queryKey: [queryKey] });
       });
 
       setHasVoted(true);
