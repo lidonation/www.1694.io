@@ -5,7 +5,7 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import Button from '../atoms/Button';
 import { Box, Typography, Button as MuiButton } from '@mui/material';
 import { Link } from '@mui/icons-material';
-import { openInNewTab } from '@/lib';
+import { formatAsCurrency, openInNewTab } from '@/lib';
 
 type ProposalDetailsProps = {
   proposal: any;
@@ -198,9 +198,9 @@ function ProposalDetails({
 
           <BudgetDiscussionInfoSegment
             question={'ADA Amount'}
-            answer={
-              proposal?.attributes?.bd_costing?.data?.attributes?.ada_amount
-            }
+            answer={formatAsCurrency(
+              proposal?.attributes?.bd_costing?.data?.attributes?.ada_amount,
+            )}
             show={showFullText}
           />
 
@@ -224,10 +224,10 @@ function ProposalDetails({
 
           <BudgetDiscussionInfoSegment
             question={'Amount in preferred currency'}
-            answer={
+            answer={formatAsCurrency(
               proposal?.attributes?.bd_costing?.data?.attributes
-                ?.amount_in_preferred_currency
-            }
+                ?.amount_in_preferred_currency,
+            )}
             show={showFullText}
           />
 
@@ -285,9 +285,7 @@ function ProposalDetails({
 
       {showFullText && (
         <Box className="space-y-4">
-          <h2 className="text-xl font-semibold">
-            Administration and Auditing
-          </h2>
+          <h2 className="text-xl font-semibold">Administration and Auditing</h2>
 
           <BudgetDiscussionInfoSegment
             question={

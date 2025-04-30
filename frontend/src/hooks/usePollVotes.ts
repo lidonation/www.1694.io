@@ -5,24 +5,16 @@ import { useQuery } from 'react-query';
 
 /**
  * Custom hook to fetch poll votes and drep voting power
- * @param {Object} options
- * @param {string} options.pollID - The ID of the poll
  * @returns {Object} Object containing voting data
  */
-export const usePollVotes = (pollID) => {
+export const usePollVotes = (pollID: string) => {
   return useQuery(
     [QUERY_KEYS.pollVotesKey, pollID],
     async () => {
       // Step 1: Fetch all votes (both YES and NO)
-      const yesVotes = await getBudgetDiscussionPollVotes({
-        pollID,
-        vote: true,
-      });
+      const yesVotes = await getBudgetDiscussionPollVotes(pollID, true);
 
-      const noVotes = await getBudgetDiscussionPollVotes({
-        pollID,
-        vote: false,
-      });
+      const noVotes = await getBudgetDiscussionPollVotes(pollID, false);
 
       const yesDrepIds =
         yesVotes?.map((vote) => vote?.attributes?.drep_id) || [];
