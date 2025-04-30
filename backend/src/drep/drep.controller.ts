@@ -23,7 +23,7 @@ export class DrepController {
   constructor(
     private drepService: DrepService,
     private voterService: VoterService,
-    private miscService:MiscellaneousService
+    private miscService: MiscellaneousService,
   ) {}
   @Get('')
   getAll(
@@ -51,11 +51,11 @@ export class DrepController {
       type,
     );
   }
-  
+
   @Get('verify-ownership')
   verifyDrepOwnership(
     @Query('voterId') voterId: string,
-    @Query('drepId') drepId: string
+    @Query('drepId') drepId: string,
   ) {
     return this.drepService.verifyOwnership(voterId, drepId);
   }
@@ -70,10 +70,7 @@ export class DrepController {
   }
 
   @Get('/media')
-  async getMedia(
-    @Res() res: Response,
-    @Query('assetUrl') assetUrl?: string,
-  ) {
+  async getMedia(@Res() res: Response, @Query('assetUrl') assetUrl?: string) {
     return this.miscService.getMedia(res, assetUrl);
   }
 
@@ -90,8 +87,7 @@ export class DrepController {
     @Query('endTimeCursor') endTimeCursor?: number,
     @Query('filterValues') filterValues?: string[] | undefined,
   ) {
-
-    const drep = await this.drepService.getVoltaireDRepViaVoterID(voterId)
+    const drep = await this.drepService.getVoltaireDRepViaVoterID(voterId);
     let delegation: Delegation = null;
 
     const { stakeKey, stakeKeyBech32 } = stakeKeys || {};
@@ -171,5 +167,15 @@ export class DrepController {
   @Get(':stakeKey/profile-data')
   getVoterProfileData(@Param('stakeKey') stakeKey: string) {
     return this.drepService.getVoterProfileData(stakeKey);
+  }
+
+  @Get('voting-power-list')
+  getDRepsVotingPowerExternal(
+    @Query('identifiers') identifiers: string | string[],
+  ) {
+    const identifiersArray = Array.isArray(identifiers)
+      ? identifiers
+      : [identifiers];
+    return this.drepService.getDRepsVotingPowerExternal(identifiersArray);
   }
 }
