@@ -173,14 +173,4 @@ export class DrepController {
   getClaimedProfiles(@Param('voterId') voterId: string) {
     return this.drepService.getClaimedProfiles(voterId);
   }
-
-  @Get('voting-power-list')
-  getDRepsVotingPowerExternal(
-    @Query('identifiers') identifiers: string | string[],
-  ) {
-    const identifiersArray = Array.isArray(identifiers)
-      ? identifiers
-      : [identifiers];
-    return this.drepService.getDRepsVotingPowerExternal(identifiersArray);
-  }
 }

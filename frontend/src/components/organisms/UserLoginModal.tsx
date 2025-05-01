@@ -78,12 +78,9 @@ export function UserLoginModal({
     }
     setIsLoading(true);
     try {
-      const { success } = await connectWallet(
-        ExtendedAuthMethod.LOGIN_FILE,
-        {
-          file: selectedFile,
-        },
-      );
+      const { success } = await connectWallet(ExtendedAuthMethod.LOGIN_FILE, {
+        file: selectedFile,
+      });
       if (!success) {
         addErrorAlert('Error logging in with file. Please try again.');
         return;
@@ -155,7 +152,7 @@ export function UserLoginModal({
                   variant="contained"
                   color="primary"
                   fullWidth
-                  size="large"                  
+                  size="large"
                   handleClick={handleHotWalletLogin}
                   disabled={isLoading || isConnected}
                   sx={{ mb: 2 }}
@@ -183,7 +180,7 @@ export function UserLoginModal({
                 }}
               >
                 <Typography variant="body1" sx={{ mb: 3 }}>
-                  Upload a login file:
+                  Upload a login file
                 </Typography>
 
                 <input
@@ -199,12 +196,11 @@ export function UserLoginModal({
                   color="primary"
                   fullWidth
                   handleClick={() => fileInputRef.current?.click()}
-                  sx={{ mb: 2 }}
                   bgcolor={selectedFile ? 'transparent' : undefined}
                 >
                   {selectedFile ? selectedFile.name : 'Choose Login File'}
                 </Button>
-
+                <Box className="p-2"></Box>
                 {selectedFile && (
                   <Button
                     variant="contained"
