@@ -1,4 +1,4 @@
-import { useWallet } from '@/context/walletContext';
+import { useWallet } from '@/context/globalContext';
 import { useScreenDimension } from '@/hooks';
 import { formattedAda, shortenAddress } from '@/lib';
 import { Box, Typography } from '@mui/material';

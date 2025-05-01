@@ -10,8 +10,6 @@ import {
 import MetadataViewer from './MetadataViewer';
 import DRepSocialLinks from './DRepSocialLinks';
 import DRepAvatarCard from './DRepAvatarCard';
-import { useCardano } from '@/context/cardanoContext';
-import { useDRepContext } from '@/context/drepContext';
 import { useGetDRepMetadataQuery } from '@/hooks/useGetDRepMetadataQuery';
 import DRepIdHolder from './DRepIdHolder';
 import { useDelegateTodRep } from '@/hooks/useDelegateToDRep';
@@ -19,6 +17,7 @@ import ClaimProfileButton from './ClaimProfileButton';
 import Button from './Button';
 import { useGetAdaHolderCurrentDelegationQuery } from '@/hooks/useGetAdaHolderCurrentDelegationQuery';
 import { useGetOwnership } from '@/hooks/useGetOwnership';
+import { useWallet } from '@/context/globalContext';
 
 type DrepClaimProfileCardProps = {
   drep: any;
@@ -31,14 +30,13 @@ const DrepClaimProfileCard = ({
   voterId,
   loading,
 }: DrepClaimProfileCardProps) => {
-  const { stakeKey, dRepIDBech32 } = useCardano();
-  const { isLoggedIn } = useDRepContext();
+  const { wallet:{stakeKey, dRepIdBech32, isConnected} } = useWallet();
   const { delegate, isDelegating } = useDelegateTodRep();
   const { metadata, isMetadataLoading, metadataError } =
     useGetDRepMetadataQuery(voterId);
   const { ownership } = useGetOwnership({
     drepId: drep?.view,
-    voterId: dRepIDBech32,
+    voterId: dRepIdBech32,
   });
   const { currentDelegation } = useGetAdaHolderCurrentDelegationQuery(stakeKey);
   const isDelegated = compareDRepIDs(drep?.view, currentDelegation?.drep_view);
@@ -159,7 +157,7 @@ const DrepClaimProfileCard = ({
           />
         )}
       </div>
-      {ownership && ownership.result === true && isLoggedIn && (
+      {ownership && ownership.result === true && isConnected && (
         <div className="flex max-w-prose flex-col gap-2">
           <ClaimProfileButton
             label="Claim your profile to update"

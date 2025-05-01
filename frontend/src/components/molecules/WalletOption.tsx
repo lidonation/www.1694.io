@@ -1,9 +1,7 @@
 import { FC, useCallback } from 'react';
 import { Box, CircularProgress, Typography } from '@mui/material';
-import { useCardano } from '@/context/cardanoContext';
-import { useDRepContext } from '@/context/drepContext';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
-import { useWallet } from '@/context/walletContext';
+import { useWallet, ModalType, useModals } from '@/context/globalContext';
 import { AuthMethod as ExtendedAuthMethod } from '../../../types/auth';
 
 export interface WalletOption {
@@ -15,15 +13,17 @@ export interface WalletOption {
 }
 
 export const WalletOptionButton: FC<WalletOption> = ({ ...props }) => {
-  const { isEnableLoading } = useCardano();
-  const { setIsWalletListModalOpen, setLoginModalOpen } = useDRepContext();
+  const {
+    wallet: { isConnecting, walletBeingConnected },
+  } = useWallet();
+  const { closeModal } = useModals();
   const { addErrorAlert } = useGlobalNotifications();
   const { connectWallet } = useWallet();
   const { dataTestId, icon, label, name, cip95Available } = props;
 
   const enableByWalletName = useCallback(async () => {
     try {
-      if (isEnableLoading) return;
+      if (isConnecting) return;
 
       const { success, error } = await connectWallet(
         ExtendedAuthMethod.HOT_WALLET,
@@ -31,31 +31,30 @@ export const WalletOptionButton: FC<WalletOption> = ({ ...props }) => {
       );
 
       if (success) {
-        setIsWalletListModalOpen(false);
-        setLoginModalOpen(false);
+        closeModal(ModalType.LOGIN);
+        closeModal(ModalType.WALLET_LIST);
       } else {
         console.log('Error connecting to wallet:', error);
         addErrorAlert(error || 'Unknown error connecting to wallet');
-       
       }
     } catch (error) {
       addErrorAlert(String(error?.error ? error?.error : error));
       console.log(error);
     }
-  }, [isEnableLoading, name]);
+  }, [isConnecting, name]);
 
   return (
     <Box
       data-testid={dataTestId}
       sx={{
         alignItems: 'center',
-        border: isEnableLoading ? 'none' : `1px solid #D6E2FF`,
-        bgcolor: isEnableLoading ? '#EAE9F0' : 'white',
+        border: isConnecting ? 'none' : `1px solid #D6E2FF`,
+        bgcolor: isConnecting ? '#EAE9F0' : 'white',
         borderRadius: '100px',
-        boxShadow: isEnableLoading ? undefined : '0px 0px 11px 0px #24223230',
+        boxShadow: isConnecting ? undefined : '0px 0px 11px 0px #24223230',
         boxSizing: 'border-box',
         cursor: cip95Available
-          ? isEnableLoading
+          ? isConnecting
             ? 'default'
             : 'pointer'
           : 'unset',
@@ -66,7 +65,7 @@ export const WalletOptionButton: FC<WalletOption> = ({ ...props }) => {
         transition: 'background .2s',
         position: 'relative',
         width: '100%',
-        '&:hover': isEnableLoading
+        '&:hover': isConnecting
           ? undefined
           : {
               background: '#D6E2FF',
@@ -78,10 +77,10 @@ export const WalletOptionButton: FC<WalletOption> = ({ ...props }) => {
       <img
         alt={`${name} icon`}
         src={icon}
-        className={`h-6 w-6 ${isEnableLoading && 'grayscale'}`}
+        className={`h-6 w-6 ${isConnecting && 'grayscale'}`}
       />
       <Typography
-        color={isEnableLoading ? '#C1BED3' : 'primaryBlue'}
+        color={isConnecting ? '#C1BED3' : 'primaryBlue'}
         sx={{
           fontSize: '16px',
           fontWeight: '500',
@@ -90,7 +89,7 @@ export const WalletOptionButton: FC<WalletOption> = ({ ...props }) => {
         {name ?? label}
       </Typography>
       <div className="h-6 w-6" />
-      {isEnableLoading === name && (
+      {walletBeingConnected === name && (
         <Box
           position="absolute"
           left={0}

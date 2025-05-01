@@ -1,11 +1,17 @@
 import React from 'react';
 import PostInput from '../atoms/PostInput';
-import PostTextareaInput from '../atoms/PostTextareaInput';
 import ProfileSubmitArea from '../atoms/ProfileSubmitArea';
 import ProfileUploadCard from '../atoms/ProfileUploadCard';
 import TextAreaInput from '../atoms/TextAreaInput';
 
-const NewProfileForm = ({ register, control, errors, setProfileUrl, currentProfileUrl }) => {
+const NewProfileForm = ({
+  register,
+  control,
+  errors,
+  setProfileUrl,
+  currentProfileUrl,
+  isDisabled,
+}) => {
   return (
     <div className="mt-3 flex flex-col gap-4">
       <PostInput
@@ -15,6 +21,7 @@ const NewProfileForm = ({ register, control, errors, setProfileUrl, currentProfi
         registerValue={register}
         errors={errors}
         dataTestId={'profile-name-input'}
+        isDisabled={isDisabled}
       />
       <PostInput
         inputName={'Bio'}
@@ -23,6 +30,7 @@ const NewProfileForm = ({ register, control, errors, setProfileUrl, currentProfi
         registerValue={register}
         errors={errors}
         dataTestId={'profile-bio-input'}
+        isDisabled={isDisabled}
       />
       <PostInput
         inputName={'Email'}
@@ -31,6 +39,7 @@ const NewProfileForm = ({ register, control, errors, setProfileUrl, currentProfi
         registerValue={register}
         errors={errors}
         dataTestId={'profile-email-input'}
+        isDisabled={isDisabled}
       />
       <PostInput
         inputName={'Payment address'}
@@ -39,6 +48,7 @@ const NewProfileForm = ({ register, control, errors, setProfileUrl, currentProfi
         registerValue={register}
         errors={errors}
         dataTestId={'payment-address-input'}
+        isDisabled={isDisabled}
       />
       <TextAreaInput
         inputName={'Objectives'}
@@ -47,6 +57,7 @@ const NewProfileForm = ({ register, control, errors, setProfileUrl, currentProfi
         registerValue={register}
         errors={errors}
         dataTestId={'objective-input'}
+        isDisabled={isDisabled}
       />
       <TextAreaInput
         inputName={'Qualifications'}
@@ -55,6 +66,7 @@ const NewProfileForm = ({ register, control, errors, setProfileUrl, currentProfi
         registerValue={register}
         errors={errors}
         dataTestId={'qualification-input'}
+        isDisabled={isDisabled}
       />
       <TextAreaInput
         inputName={'Motivations'}
@@ -63,8 +75,14 @@ const NewProfileForm = ({ register, control, errors, setProfileUrl, currentProfi
         registerValue={register}
         errors={errors}
         dataTestId={'motivation-input'}
-        />
-      <ProfileUploadCard registerUrl={register} control={control} setProfileUrl={setProfileUrl} currentProfileUrl={currentProfileUrl}/>
+        isDisabled={isDisabled}
+      />
+      <ProfileUploadCard
+        registerUrl={register}
+        control={control}
+        setProfileUrl={setProfileUrl}
+        currentProfileUrl={currentProfileUrl}
+      />
       <ProfileSubmitArea />
     </div>
   );

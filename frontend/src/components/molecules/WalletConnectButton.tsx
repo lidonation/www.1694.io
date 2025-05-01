@@ -1,22 +1,23 @@
-
 import React from 'react';
 import Button from '../atoms/Button';
-import { useDRepContext } from '@/context/drepContext';
-import { useWallet } from '@/context/walletContext';
+interface WalletConnectButtonProps {
+  test_name: string;
+  handleConnect: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  isConnecting: boolean;
+}
 
-const WalletConnectButton = ({ test_name }) => {
-  const { setLoginModalOpen } = useDRepContext();
-  const { wallet } = useWallet();
-  
+const WalletConnectButton = ({
+  test_name,
+  handleConnect,
+  isConnecting,
+}: WalletConnectButtonProps) => {
   return (
     <Button
-      handleClick={() => setLoginModalOpen(true)} 
+      handleClick={handleConnect}
       data-testid={`${test_name}-connect-wallet-button`}
-      size='small'
+      size="small"
     >
-      <p>
-        {wallet.isConnecting ? 'Connecting...' : 'Connect Wallet'}
-      </p>
+      <p>{isConnecting ? 'Connecting...' : 'Connect Wallet'}</p>
     </Button>
   );
 };

@@ -12,15 +12,12 @@ import { processContent } from '@/lib/ContentProcessor/processContent';
 import MarkdownEditor from '@/components/atoms/MarkdownEditor';
 import DisplayParsedContent from '@/components/atoms/DisplayParsedContent';
 
-
 type CommentProps = {
   parentNoteId: number;
   comment: any; // Replace `any` with your comment type
   currentVoter: string;
-  isEnabled: boolean;
-  isLoggedIn: boolean;
-  setIsWalletListModalOpen: Function;
-  setLoginModalOpen: Function;
+  isConnected: boolean;
+  handleOpenLoginModal: Function;
   depth?: number;
   handleRefetch?: Function;
   latestComment?: number;
@@ -30,10 +27,8 @@ const Comment: React.FC<CommentProps> = ({
   parentNoteId,
   comment,
   currentVoter,
-  isEnabled,
-  isLoggedIn,
-  setIsWalletListModalOpen,
-  setLoginModalOpen,
+  isConnected,
+  handleOpenLoginModal,
   depth = 0,
   handleRefetch,
   latestComment,
@@ -119,12 +114,8 @@ const Comment: React.FC<CommentProps> = ({
   };
 
   const handleReaction = async (commentId, type) => {
-    if (!isEnabled) {
-      setIsWalletListModalOpen(true);
-      return;
-    }
-    if (!isLoggedIn) {
-      setLoginModalOpen(true);
+    if (!isConnected) {
+      handleOpenLoginModal();
       return;
     }
 
@@ -267,10 +258,8 @@ const Comment: React.FC<CommentProps> = ({
             parentNoteId={parentNoteId}
             comment={childComment}
             currentVoter={currentVoter}
-            isEnabled={isEnabled}
-            isLoggedIn={isLoggedIn}
-            setIsWalletListModalOpen={setIsWalletListModalOpen}
-            setLoginModalOpen={setLoginModalOpen}
+            isConnected={isConnected}
+            handleOpenLoginModal={handleOpenLoginModal}
             depth={depth + 1}
             handleRefetch={handleRefetch}
           />

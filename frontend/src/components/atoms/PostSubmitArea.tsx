@@ -1,16 +1,17 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import Button from './Button';
-import { useCardano } from '@/context/cardanoContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import DotsLoader from './DotsLoader';
+import { useWallet } from '@/context/globalContext';
 
 type PostSubmitAreaProps = {
   isUpdating?: boolean;
   showViewTimeline?: boolean;
   isLoading?: boolean;
   noteCreatedAt?: string;
+  isDisabled?: boolean;
 };
 
 const PostSubmitArea = ({
@@ -18,12 +19,13 @@ const PostSubmitArea = ({
   showViewTimeline = true,
   isLoading,
   noteCreatedAt,
+  isDisabled,
 }: PostSubmitAreaProps) => {
+  const {wallet:{dRepIdBech32}} =useWallet();
   const [bgColor, setBgColor] = useState('transparent');
   const TEN_MINUTES = 10 * 60 * 1000;
 
   const router = useRouter();
-  const { isEnabled, dRepIDBech32 } = useCardano();
 
   const isRecentlyCreated = new Date().getTime() - new Date(noteCreatedAt).getTime() <= TEN_MINUTES;
 
@@ -59,12 +61,12 @@ const PostSubmitArea = ({
         <Button
           variant="text"
           bgcolor={bgColor}
-          sx={!isEnabled ? { pointerEvents: 'none' } : {}}
+          sx={isDisabled ? { pointerEvents: 'none' } : {}}
           disabled={!isUpdating}
           className="duration-3000 transition-all ease-linear"
         >
           <Link
-            href={`/dreps/${dRepIDBech32}`}
+            href={`/dreps/${dRepIdBech32}`}
             className="text-center text-sm font-medium leading-4 text-blue-800"
           >
             View In Timeline
@@ -77,7 +79,7 @@ const PostSubmitArea = ({
           variant="outlined"
           bgcolor="transparent"
           handleClick={handleCancel}
-          sx={!isEnabled ? { pointerEvents: 'none' } : {}}
+          sx={isDisabled ? { pointerEvents: 'none' } : {}}
         >
           <p className="text-center text-sm font-medium leading-4 text-blue-800">
             Cancel
@@ -86,7 +88,7 @@ const PostSubmitArea = ({
         <Button
           type="submit"
           data-testid="post-submit-button"
-          sx={!isEnabled ? { pointerEvents: 'none' } : {}}
+          sx={isDisabled ? { pointerEvents: 'none' } : {}}
           className="flex items-center gap-2"
         >
           {!isLoading && (

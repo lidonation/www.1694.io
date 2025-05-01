@@ -1,8 +1,5 @@
 import React from 'react';
 import { Box, Skeleton, Typography } from '@mui/material';
-import ReactMarkdown from 'react-markdown';
-import remarkMath from 'remark-math';
-import rehypeKatex from 'rehype-katex';
 import MarkdownParser from '../atoms/MarkdownParser';
 
 type BudgetDiscussionInfoSegmentProps = {

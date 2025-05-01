@@ -1,5 +1,5 @@
 'use client';
-import { useDRepContext } from '@/context/drepContext';
+import { useWallet } from '@/context/globalContext';
 import { useGetNodeStatusQuery } from '@/hooks/useGetNodeStatusQuery';
 import { Box, Slide, Typography } from '@mui/material';
 import { usePathname } from 'next/navigation';
@@ -12,7 +12,7 @@ const PageBanner = () => {
   const pathname = usePathname();
   const [showBanner, setShowBanner] = useState(false);
   const [nodeStats, setNodeStats] = useState(null);
-  const {currentLocale}=useDRepContext();
+  const {currentLocale}=useWallet();
   const dbNonDependentPages = [
     `/${currentLocale}`,
     `/${currentLocale}/dreps`,

@@ -1,114 +1,38 @@
 import {
   Box,
   Typography,
-  Switch,
-  switchClasses,
   Checkbox,
   Tabs,
   Tab,
-  Button,
   CircularProgress,
-  useTheme,
 } from '@mui/material';
-import { styled } from '@mui/material/styles';
 import { ModalContents, ModalHeader, ModalWrapper } from '../atoms';
-import { useDRepContext } from '@/context/drepContext';
 import { ChangeEvent, useState, useRef } from 'react';
-import { useWallet } from '@/context/walletContext';
+import { useWallet } from '@/context/globalContext';
 import { AuthMethod as ExtendedAuthMethod } from '../../../types/auth';
 import { LoginFileFlowModal } from './LoginFileFlowModal';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
-export const getSwitchWithTextTrack = (isMobile, switchWidth) =>
-  styled(Switch)(({ theme }) => ({
-    width: switchWidth,
-    height: 48,
-    padding: 8,
-    [`& .${switchClasses.switchBase}`]: {
-      padding: 11,
-      color: '#fff',
-    },
-    [`& .${switchClasses.thumb}`]: {
-      width: 26,
-      height: 26,
-      backgroundColor: 'none',
-      '&::before': {
-        content: "''",
-        position: 'absolute',
-        width: '100%',
-        height: '100%',
-        left: 0,
-        top: 0,
-        backgroundRepeat: 'no-repeat',
-        backgroundPosition: 'center',
-        transition: 'background-image 1s ease-in-out',
-      },
-    },
-    [`& .${switchClasses.track}`]: {
-      background: 'linear-gradient(to right, #ee0979, #ff6a00)',
-      opacity: '1 !important',
-      borderRadius: 20,
-      position: 'relative',
-      '&:before, &:after': {
-        display: 'inline-block',
-        position: 'absolute',
-        top: '50%',
-        width: '50%',
-        transform: 'translateY(-50%)',
-        color: '#fff',
-        textAlign: 'center',
-        textWrap: 'nowrap',
-        fontSize: isMobile ? 8 : 12,
-        fontWeight: 500,
-      },
-      '&:before': {
-        content: '"Sign in with hot wallet"',
-        left: 8,
-        opacity: 0,
-      },
-      '&:after': {
-        content: '"Sign in with hardware wallet"',
-        paddingLeft: 30,
-      },
-    },
-    [`& .${switchClasses.checked}`]: {
-      [`&.${switchClasses.switchBase}`]: {
-        color: '#fff',
-        transform: `translateX(calc(${switchWidth} - 105%))`,
-        '&:hover': {
-          backgroundColor: 'rgba(24,90,257,0.08)',
-        },
-      },
+import Button from '../atoms/Button';
 
-      [`& .${switchClasses.thumb}`]: {
-        backgroundColor: 'none',
-        '&::before': {},
-      },
-      [`& + .${switchClasses.track}`]: {
-        background: 'linear-gradient(to right, #43cea2, #185a9d)',
-        '&:before': {
-          opacity: 1,
-        },
-        '&:after': {
-          opacity: 0,
-        },
-      },
-    },
-  }));
+export interface UserLoginModalProps {
+  hideCloseButton?: boolean;
+  handleHotWalletLogin?: () => void;
+  onClose?: () => void;
+}
+
 export function UserLoginModal({
   hideCloseButton,
-}: {
-  hideCloseButton: boolean;
-}) {
+  onClose,
+  handleHotWalletLogin,
+}: UserLoginModalProps) {
   const [isLoginFlowModalOpen, setIsLoginFlowModalOpen] = useState(false);
-  const { setLoginModalOpen, setIsWalletListModalOpen } = useDRepContext();
   const [isChecked, setIsChecked] = useState(false);
-  const [loginPeriod, setLoginPeriod] = useState('24 hrs');
+  const [, setLoginPeriod] = useState('24 hrs');
   const [activeTab, setActiveTab] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { addErrorAlert } = useGlobalNotifications();
-  const theme = useTheme();
 
   const {
     wallet: { isConnected },
@@ -135,10 +59,6 @@ export function UserLoginModal({
     }
   };
 
-  const handleBrowserWalletLogin = () => {
-    setIsWalletListModalOpen(true);
-  };
-
   const handleLoginFileGenerate = async () => {
     setIsLoading(true);
     try {
@@ -158,26 +78,17 @@ export function UserLoginModal({
     }
     setIsLoading(true);
     try {
-      await connectWallet(ExtendedAuthMethod.LOGIN_FILE, {
+      const { success } = await connectWallet(ExtendedAuthMethod.LOGIN_FILE, {
         file: selectedFile,
       });
-      setLoginModalOpen(false);
+      if (!success) {
+        addErrorAlert('Error logging in with file. Please try again.');
+        return;
+      }
+      onClose();
     } catch (error) {
       console.error('Error logging in with file:', error);
       addErrorAlert('Error logging in with file. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleColdWalletLogin = async () => {
-    setIsLoading(true);
-    try {
-      await connectWallet(ExtendedAuthMethod.COLD_WALLET);
-      setLoginModalOpen(false);
-    } catch (error) {
-      console.error('Error logging in with cold wallet:', error);
-      addErrorAlert('Error logging in with cold wallet. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -188,7 +99,7 @@ export function UserLoginModal({
       <ModalWrapper
         dataTestId="login-modal"
         hideCloseButton={hideCloseButton}
-        onClose={() => setLoginModalOpen(false)}
+        onClose={onClose}
       >
         <ModalHeader
           sx={{
@@ -218,7 +129,6 @@ export function UserLoginModal({
           >
             <Tab label="Browser Wallet" />
             <Tab label="Login File" />
-            <Tab label="Cold Wallet" />
           </Tabs>
 
           <Box
@@ -243,7 +153,7 @@ export function UserLoginModal({
                   color="primary"
                   fullWidth
                   size="large"
-                  onClick={handleBrowserWalletLogin}
+                  handleClick={handleHotWalletLogin}
                   disabled={isLoading || isConnected}
                   sx={{ mb: 2 }}
                 >
@@ -270,7 +180,7 @@ export function UserLoginModal({
                 }}
               >
                 <Typography variant="body1" sx={{ mb: 3 }}>
-                  Upload a login file:
+                  Upload a login file
                 </Typography>
 
                 <input
@@ -285,18 +195,18 @@ export function UserLoginModal({
                   variant={selectedFile ? 'outlined' : 'contained'}
                   color="primary"
                   fullWidth
-                  onClick={() => fileInputRef.current?.click()}
-                  sx={{ mb: 2 }}
+                  handleClick={() => fileInputRef.current?.click()}
+                  bgcolor={selectedFile ? 'transparent' : undefined}
                 >
                   {selectedFile ? selectedFile.name : 'Choose Login File'}
                 </Button>
-
+                <Box className="p-2"></Box>
                 {selectedFile && (
                   <Button
                     variant="contained"
-                    color="secondary"
+                    color="primary"
                     fullWidth
-                    onClick={handleLoginWithFile}
+                    handleClick={handleLoginWithFile}
                     disabled={isLoading}
                   >
                     {isLoading ? (
@@ -318,7 +228,7 @@ export function UserLoginModal({
                   color="primary"
                   fullWidth
                   size="large"
-                  onClick={handleLoginFileGenerate}
+                  handleClick={handleLoginFileGenerate}
                   disabled={isLoading}
                   sx={{ mb: 3 }}
                 >
@@ -328,31 +238,6 @@ export function UserLoginModal({
                     'Generate Login File'
                   )}
                 </Button>
-              </Box>
-            )}
-
-            {activeTab === 2 && (
-              <Box sx={{ width: '100%', textAlign: 'center' }}>
-                {/* <Typography variant="body1" sx={{ mb: 2 }}>
-                Sign a transaction offline with your cold wallet
-                </Typography>
-                <Typography variant="body2" sx={{ mb: 3 }}>
-                This will prepare an expired transaction for you to sign offline.
-                You'll download the transaction, sign it, and upload the result.
-                </Typography>
-                <Button
-                variant="contained"
-                color="primary"
-                fullWidth
-                size="large"
-                onClick={handleColdWalletLogin}
-                disabled={isLoading}
-                >
-                {isLoading ? <CircularProgress size={24} /> : 'Start Cold Wallet Authentication'}
-                </Button> */}
-                <Typography variant="body1" sx={{ mb: 2 }}>
-                  Coming soon
-                </Typography>
               </Box>
             )}
           </Box>
@@ -380,8 +265,6 @@ export function UserLoginModal({
                 'Signing in with a browser wallet requires signature verification.'}
               {activeTab === 1 &&
                 'Login files allow you to authenticate without connecting your wallet each time.'}
-              {activeTab === 2 &&
-                'Signing in with a cold wallet requires signing an expired transaction.'}
             </Typography>
           </Box>
         </ModalContents>

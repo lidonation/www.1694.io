@@ -7,8 +7,6 @@ import TimelineContent from '@mui/lab/TimelineContent';
 import TimelineDot from '@mui/lab/TimelineDot';
 import { useScreenDimension } from '@/hooks';
 import SingleNote from '../dreps/notes/SingleNote';
-import { useCardano } from '@/context/cardanoContext';
-import { useDRepContext } from '@/context/drepContext';
 import EpochTimelineCard from '../atoms/EpochTimelineCard';
 import DrepVoteTimelineCard from '../atoms/DrepVoteTimelineCard';
 import Link from 'next/link';
@@ -16,7 +14,7 @@ import { urls } from '@/constants';
 import { ProfileClaimedChip } from './ProfileClaimedChip';
 import DrepDelegatorCard from '../atoms/DrepDelegatorCard';
 import { TimelineItem as DRepTimelineItem } from '../../../types/timeline';
-import { useGetOwnership } from '@/hooks/useGetOwnership';
+import { useWallet } from '@/context/globalContext';
 
 const DrepTimelineWaterfall = ({
   activity = [],
@@ -26,12 +24,10 @@ const DrepTimelineWaterfall = ({
   drepId: string;
 }) => {
   const { isMobile, screenWidth } = useScreenDimension();
-  const { stakeKeyBech32, isEnabled, dRepIDBech32 } = useCardano();
-  const { ownership } = useGetOwnership({
-    drepId,
-    voterId: dRepIDBech32,
-  });
-  const { isLoggedIn } = useDRepContext();
+  const { wallet:{stakeKeyBech32, isConnected}, user:{dRepProfilesClaimed} } = useWallet();
+  const isOwner = dRepProfilesClaimed?.some(
+    (drep) => drep.claimedDRepBech32 === drepId,
+  );
 
   return (
     <Timeline
@@ -62,8 +58,7 @@ const DrepTimelineWaterfall = ({
                   <SingleNote
                     note={item}
                     currentVoter={stakeKeyBech32}
-                    isEnabled={isEnabled}
-                    isLoggedIn={isLoggedIn}
+                    isConnected={isConnected}
                   />
                 </div>
                 <TimelineSeparator>
@@ -139,7 +134,7 @@ const DrepTimelineWaterfall = ({
                 <TimelineContent>
                   <DrepVoteTimelineCard
                     item={item}
-                    isVoteOwner={ownership?.result}
+                    isVoteOwner={isOwner}
                   />
                 </TimelineContent>
               </TimelineItem>

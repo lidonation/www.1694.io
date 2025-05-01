@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useCardano } from '@/context/cardanoContext';
-import { useDRepContext } from '@/context/drepContext';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { SubmitHandler, useForm } from 'react-hook-form';
@@ -20,6 +18,7 @@ import { urls } from '@/constants';
 import { PREDEFINED_KEYS } from './NewProfile';
 import CopyToClipboard from '../atoms/CopyToClipboard';
 import { ProfileWorkflowStepKey } from '@/lib/enums';
+import { useWallet } from '@/context/globalContext';
 const FormSchema = z.object({
   profileName: z.string().min(1, { message: 'Profile name is required' }),
   profileEmail: z.string().optional(),
@@ -44,22 +43,25 @@ const UpdateProfile = () => {
     resolver: zodResolver(FormSchema),
   });
   const {
+    user: {
+      dRepClaimInfo: { dRepToBeClaimedJsonLd, dRepIDToClaimBech32 },
+    },
+    setUserInfo,
+    handleRefreshUserJsonLd,
     loginSignTransaction,
-    walletState: { usedAddress, changeAddress },
-  } = useCardano();
+    wallet: { address },
+  } = useWallet();
   const [currentProfileUrl, setCurrentProfileUrl] = useState<string | null>(
     null,
   );
   const [currentMetadata, setCurrentMetadata] = useState(null);
-  const { updateStep, metadataJsonLd, handleRefresh, drepToBeClaimed } =
-    useDRepContext();
   const { addSuccessAlert } = useGlobalNotifications();
 
   useEffect(() => {
     const getDRep = () => {
       try {
-        if (!metadataJsonLd) return;
-        const metadataBody = metadataJsonLd?.body;
+        if (!dRepToBeClaimedJsonLd) return;
+        const metadataBody = dRepToBeClaimedJsonLd?.body;
         setValue('profileName', renderJsonLdValue(metadataBody?.givenName));
         setValue('profileBio', renderJsonLdValue(metadataBody?.bio));
         setValue('profileEmail', renderJsonLdValue(metadataBody?.email));
@@ -71,9 +73,7 @@ const UpdateProfile = () => {
         setValue('objectives', renderJsonLdValue(metadataBody?.objectives));
         setValue(
           'paymentAddress',
-          renderJsonLdValue(metadataBody?.paymentAddress) ||
-            usedAddress ||
-            changeAddress,
+          renderJsonLdValue(metadataBody?.paymentAddress) || address,
         );
         setValue(
           'profileUrl',
@@ -111,8 +111,18 @@ const UpdateProfile = () => {
           addSuccessAlert('Draft restored!');
         }
         if (Boolean(getValues('profileName'))) {
-          updateStep(ProfileWorkflowStepKey.PROFILE, 'update');
-        } else updateStep(ProfileWorkflowStepKey.PROFILE, 'active');
+          setUserInfo({
+            dRepClaimProgress: {
+              [ProfileWorkflowStepKey.PROFILE]: 'update',
+            },
+          });
+        } else {
+          setUserInfo({
+            dRepClaimProgress: {
+              [ProfileWorkflowStepKey.PROFILE]: 'active',
+            },
+          });
+        }
         return;
       } catch (error) {
         console.log(error);
@@ -120,9 +130,13 @@ const UpdateProfile = () => {
     };
     getDRep();
     return () => {
-      updateStep(ProfileWorkflowStepKey.PROFILE, 'success');
+      setUserInfo({
+        dRepClaimProgress: {
+          [ProfileWorkflowStepKey.PROFILE]: 'success',
+        },
+      });
     };
-  }, [metadataJsonLd]);
+  }, [dRepToBeClaimedJsonLd]);
 
   const saveProfile: SubmitHandler<InputType> = async (data) => {
     try {
@@ -215,7 +229,7 @@ const UpdateProfile = () => {
         await setItemToIndexedDB('metadataJsonLd', jsonld);
         await setItemToIndexedDB('metadataJsonHash', jsonHash);
         setItemToLocalStorage('isUpdating', 'true');
-        await handleRefresh();
+        await handleRefreshUserJsonLd();
       }
 
       addSuccessAlert('Draft saved!');
@@ -232,10 +246,10 @@ const UpdateProfile = () => {
         <h1 className="text-4xl font-bold text-zinc-800">
           Update your Profile
         </h1>
-        {drepToBeClaimed && (
+        {dRepIDToClaimBech32 && (
           <div className="flex flex-row flex-wrap gap-1 lg:flex-nowrap">
             <CopyToClipboard
-              text={drepToBeClaimed}
+              text={dRepIDToClaimBech32}
               textStyles="w-full break-words text-slate-500 lg:w-fit"
             >
               <img src="/svgs/copy.svg" alt="copy" />

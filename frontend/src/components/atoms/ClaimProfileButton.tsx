@@ -17,7 +17,7 @@ const ClaimProfileButton = ({
   const redirectLink = `/dreps/workflow/profile/new?drep=${drepToBeClaimed}`;
   return (
     <Link className="w-full" href={redirectLink} prefetch={prefetch}>
-      <Button className="w-full" {...buttonProps}>
+      <Button className="w-full" preventDefaultClick={false} {...buttonProps}>
         {label || 'Claim this profile'}
       </Button>
     </Link>

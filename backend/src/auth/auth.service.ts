@@ -426,7 +426,6 @@ export class AuthService {
           `Can't cbor decode the given COSE_Key signature (${error})`,
         );
       }
-      console.log('COSE_Key_structure', COSE_Key_structure);
 
       // Validate COSE Key structure
       if (!(COSE_Key_structure instanceof Map) || COSE_Key_structure.size < 4) {
@@ -575,10 +574,15 @@ export class AuthService {
       };
     } catch (error) {
       console.error('Error during verification:', error);
-      throw new HttpException(
-        error.message || 'Verification failed',
-        HttpStatus.BAD_REQUEST,
-      );
+      return {
+        workMode: 'verify-cip30',
+        payloadResultMatch: false,
+        publicKeyHex: '',
+        payloadDataHex: '',
+        signature: '',
+        publicKey: '',
+        error: error?.message || 'Verification failed',
+      };
     }
   }
 
@@ -620,7 +624,6 @@ export class AuthService {
           `Can't cbor decode the given COSE_Key signature (${error})`,
         );
       }
-      console.log('COSE_Key_structure', COSE_Key_structure);
 
       // Validate COSE Key structure
       if (!(COSE_Key_structure instanceof Map) || COSE_Key_structure.size < 4) {

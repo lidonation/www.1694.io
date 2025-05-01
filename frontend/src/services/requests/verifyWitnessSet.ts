@@ -15,6 +15,7 @@ export interface WitnessSetPayloadResponse {
   addressHex: string;
   signature: string;
   witnessSetHex: string;
+  error?: string;
 }
 export const verifyWitnessSet = async (payload: WitnessSetPayloadRequest) => {
   const response = await axiosInstance.post('auth/witnesses/verify', payload);

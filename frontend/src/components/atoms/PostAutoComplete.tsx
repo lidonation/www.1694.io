@@ -1,5 +1,4 @@
 import React from 'react';
-import { useCardano } from '@/context/cardanoContext';
 import { Autocomplete, Chip, TextField } from '@mui/material';
 import { Controller } from 'react-hook-form';
 
@@ -11,8 +10,8 @@ const CustomAutocomplete = ({
   options,
   errors,
   dataTestId,
+  isDisabled,
 }) => {
-  const { isEnabled } = useCardano();
 
   return (
     <div className="flex flex-col gap-1">
@@ -41,19 +40,19 @@ const CustomAutocomplete = ({
                 );
               })
             }
-            readOnly={!isEnabled}
+            readOnly={isDisabled}
             renderInput={(params) => (
               <TextField
                 {...params}
                 variant="outlined"
                 className={`border ${
-                  !isEnabled && 'pointer-events-none'
+                  isDisabled && 'pointer-events-none'
                 }  rounded-full border-zinc-100 bg-white`}
                 data-testid={dataTestId}
                 placeholder={placeholder}
               />
             )}
-            disabled={!isEnabled}
+            disabled={isDisabled}
           />
         )}
       />

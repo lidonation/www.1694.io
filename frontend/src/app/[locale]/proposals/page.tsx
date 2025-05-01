@@ -8,9 +8,6 @@ import ProposalSearch from '@/components/atoms/ProposalSearch';
 import RecordsNotFound from '@/components/atoms/RecordsNotFound';
 import ProposalMetrics from '@/components/atoms/ProposalMetrics';
 import { ProposalDownloadButton } from '@/components/molecules/ProposalDownloadButton';
-import { Button } from '@mui/material';
-
-// hooks
 import { useProposalFilters } from '@/hooks/useProposalFilters';
 import { useGetActionsProposalsQuery } from '@/hooks/useGetActionsProposalsQuery';
 

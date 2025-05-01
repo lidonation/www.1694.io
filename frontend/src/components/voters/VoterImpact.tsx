@@ -8,14 +8,17 @@ import DrepVoteTimelineCard, {
 import GovActionLoader from '../Loaders/GovActionLoader';
 import { Address } from '@emurgo/cardano-serialization-lib-asmjs';
 import Pagination from '../molecules/Pagination';
-import { useDRepContext } from '@/context/drepContext';
+import { useWallet } from '@/context/globalContext';
 
 const VoterImpact = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [ownershipCache, setOwnershipCache] = useState<Record<string, boolean>>(
     {},
   );
-  const { isDRepOwner, dRepIDBech32 } = useDRepContext();
+  const {
+    wallet: { dRepIdBech32 },
+    user: { dRepProfilesClaimed },
+  } = useWallet();
   const { voterId } = useParams();
   const searchParams = useSearchParams();
 
@@ -55,7 +58,11 @@ const VoterImpact = () => {
       );
 
       for (const view of viewsToCheck) {
-        const isOwner = await isDRepOwner(view);
+        const isOwner = dRepProfilesClaimed.some(
+          (profile) =>
+            profile.voterDRepBech32 == dRepIdBech32 &&
+            profile.claimedDRepBech32 == view,
+        );
         newCache[view] = isOwner;
       }
 
@@ -65,7 +72,7 @@ const VoterImpact = () => {
     };
 
     fetchOwnership();
-  }, [voterGovActions?.data, isDRepOwner, dRepIDBech32]);
+  }, [voterGovActions?.data, dRepIdBech32]);
 
   return (
     <Box className="flex flex-col gap-6">

@@ -1,4 +1,5 @@
 import axiosInstance from '../axiosInstance';
+
 type Payload = {
   stakeKey: string;
   signature: string;

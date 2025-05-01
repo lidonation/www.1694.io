@@ -1,4 +1,3 @@
-import { useCardano } from '@/context/cardanoContext';
 import React from 'react';
 
 const TextAreaInput = ({
@@ -8,20 +7,20 @@ const TextAreaInput = ({
   registerValue,
   errors,
   dataTestId,
+  isDisabled,
 }) => {
-  const { isEnabled } = useCardano();
   return (
     <div className="flex flex-col gap-1">
       <label>{inputName}</label>
       <textarea
         type="text"
         className={`border py-3 pl-5 pr-3 ${
-          !isEnabled && 'pointer-events-none'
+          isDisabled && 'pointer-events-none'
         }  rounded-md border-zinc-100`}
         data-testid={dataTestId}
         {...registerValue(id)}
         placeholder={placeholder}
-        readOnly={!isEnabled}
+        readOnly={isDisabled}
       />
       <div className="text-sm text-red-700" data-testid="error-msg">
         {errors[id] && errors[id].message}

@@ -3,21 +3,26 @@ import DRepProfileBar from '@/components/atoms/DrepProfileBar';
 import DrepTabGroup from '@/components/atoms/DrepTabGroup';
 import { useState } from 'react';
 import { Grow, IconButton } from '@mui/material';
-import { useCardano } from '@/context/cardanoContext';
 import { useGetSingleDRepQuery } from '@/hooks/useGetSingleDRepQuery';
 import { useParams } from 'next/navigation';
 import NotFound from './not-found';
 import BreadCrumbs from '@/components/molecules/BreadCrumbs';
-import { useGetOwnership } from '@/hooks/useGetOwnership';
+import { useWallet } from '@/context/globalContext';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  const { dRepIDBech32 } = useCardano();
+  const {
+    user: { dRepProfilesClaimed },
+  } = useWallet();
   const [isOpen, setIsOpen] = useState(false);
   const { drepid } = useParams();
-  const { dRep, isDRepLoading, fetchError } = useGetSingleDRepQuery(drepid.toString());
-  const {ownership}=useGetOwnership({drepId: drepid.toString(), voterId: dRepIDBech32});
+  const { dRep, isDRepLoading, fetchError } = useGetSingleDRepQuery(
+    drepid.toString(),
+  );
+  const isOwner = dRepProfilesClaimed?.some(
+    (drep) => drep.claimedDRepBech32 === drepid.toString(),
+  );
 
-  const currentUserIsDrep = dRep?.drep_id && ownership?.result && ownership?.result === true;
+  const currentUserIsDrep = dRep?.drep_id && isOwner;
 
   if (!isDRepLoading && fetchError?.response?.status === 404) {
     return (

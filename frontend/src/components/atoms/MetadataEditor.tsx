@@ -5,7 +5,6 @@ import { HtmlTooltip } from './HoverChip';
 import Button from './Button';
 import { submitMetadata } from '@/lib/metadataProcessor';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
-import { useCardano } from '@/context/cardanoContext';
 import {
   CircularProgress,
   Accordion,
@@ -14,7 +13,7 @@ import {
 } from '@mui/material';
 import { setItemToLocalStorage } from '@/lib';
 import { setItemToIndexedDB } from '@/lib/indexedDb';
-import { useDRepContext } from '@/context/drepContext';
+import { useWallet } from '@/context/globalContext';
 
 const IMMUTABLE_KEYS = ['givenName'];
 const HIDDEN_KEYS = ['references', 'image'];
@@ -25,11 +24,10 @@ const MetadataEditor = ({
 }) => {
   const [metadata, setMetadata] = useState([]);
   const [references, setReferences] = useState([]);
-  const { loginSignTransaction } = useCardano();
+  const { loginSignTransaction, handleRefreshUserJsonLd } = useWallet();
   const [imageData, setImageData] = useState(null);
   const [isSigningData, setIsSigningData] = useState(false);
   const [errors, setErrors] = useState({});
-  const { handleRefresh } = useDRepContext();
   const { addErrorAlert, addSuccessAlert } = useGlobalNotifications();
   useEffect(() => {
     if (initialMetadata === null) {
@@ -167,7 +165,7 @@ const MetadataEditor = ({
         setItemToLocalStorage('isUpdating', 'true');
         await setItemToIndexedDB('metadataJsonLd', jsonld);
         await setItemToIndexedDB('metadataJsonHash', jsonHash);
-        await handleRefresh();
+        await handleRefreshUserJsonLd();
         setIsSigningData(false);
         addSuccessAlert('Metadata updated!');
         onSuccessfulSubmit();

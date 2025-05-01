@@ -7,6 +7,9 @@
 import { bech32 } from 'bech32';
 import { JwtPayload, jwtDecode } from 'jwt-decode';
 import { formHexToBech32, fromBech32ToHex, isCip105 } from './getDrepId';
+import getEpochParams from '@/services/requests/getEpochParams';
+import { setItemToLocalStorage } from './localStorage';
+import { checkTxExists } from '@/services/requests/checkTxExists';
 
 export const sumTestExample = (a, b) => {
   return a + b;
@@ -324,4 +327,35 @@ export const scrollToElement = (e: any, elementId: string) => {
       behavior: 'smooth',
     });
   }
+};
+
+
+export const setEpochParams = async () => {
+  try {
+    const protocol = await getEpochParams();
+    setItemToLocalStorage('protocolParams', protocol);
+    return protocol;
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+export const pollTransaction = async (txHash: string) => {
+  const maxAttempts = 30; // 5 minutes total
+  let attempts = 0;
+
+  while (attempts < maxAttempts) {
+    try {
+      const isTxAvailable = await checkTxExists(txHash);
+      if (isTxAvailable) {
+        return true;
+      }
+    } catch (error) {
+      console.error('Polling error:', error);
+    } finally {
+      attempts++;
+      await new Promise((resolve) => setTimeout(resolve, 10000));
+    }
+  }
+  return false;
 };

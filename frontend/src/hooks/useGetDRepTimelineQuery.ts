@@ -1,11 +1,11 @@
 import { QUERY_KEYS } from '@/constants/queryKeys';
 import { useQuery } from 'react-query';
 import { getDRepTimeline } from '@/services/requests/getDRepTimeline';
-import { useCardano } from '@/context/cardanoContext';
 import { StakeKeys } from '../../types/commonTypes';
 import { useEffect, useRef, useState } from 'react';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { convertDrepPhraseToCIP105, formatNumberTimeToReadable } from '@/lib';
+import { useWallet } from '@/context/globalContext';
 
 export const useGetDRepTimelineQuery = (
   idOrVoterId: string | string[] | undefined,
@@ -13,7 +13,7 @@ export const useGetDRepTimelineQuery = (
 ) => {
   const [timeLineData, setTimeLineData] = useState([]);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
-  const { stakeKey, stakeKeyBech32 } = useCardano();
+  const { wallet:{stakeKey, stakeKeyBech32} } = useWallet();
   const { addWarningAlert } = useGlobalNotifications();
   const stakeKeys: StakeKeys = { stakeKey, stakeKeyBech32 };
   const prevFilterValuesRef = useRef<string[] | undefined>(filterValues);
@@ -48,6 +48,7 @@ export const useGetDRepTimelineQuery = (
       queryEndTime,
       queryStartTime,
       filterValues,
+      stakeKeys,
     ],
     queryFn: async () => {
       const cip105Id = convertDrepPhraseToCIP105(idOrVoterId as string);
@@ -63,8 +64,6 @@ export const useGetDRepTimelineQuery = (
       !!idOrVoterId &&
       !!queryEndTime &&
       !!queryStartTime &&
-      stakeKey !== null &&
-      stakeKeyBech32 !== null &&
       filterValues !== null,
     refetchOnWindowFocus: false,
     onSuccess: (newData) => {

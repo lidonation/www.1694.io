@@ -1,15 +1,15 @@
 import { QUERY_KEYS } from '@/constants/queryKeys';
-import { useCardano } from '@/context/cardanoContext';
 import { getNotes } from '@/services/requests/getNotes';
 import { useQuery } from 'react-query';
 import { StakeKeys } from '../../types/commonTypes';
+import { useWallet } from '@/context/globalContext';
 
 type GetNotesProps = {
   currentNote?: number;
   request?: string;
 }
 export const useGetNotesQuery = ({ currentNote, request }: GetNotesProps = {}) => {
-  const { stakeKey, stakeKeyBech32 } = useCardano();
+  const { wallet:{stakeKey, stakeKeyBech32} } = useWallet();
   const stakeKeys: StakeKeys = { stakeKey, stakeKeyBech32 };
   const { data, isLoading, refetch, isFetching, isPreviousData } = useQuery({
     queryKey: [QUERY_KEYS.getNotesKey, stakeKeys, currentNote,request],

@@ -15,7 +15,6 @@ import {
   firstValueFrom,
   forkJoin,
   from,
-  lastValueFrom,
   map,
   mergeMap,
   Observable,
@@ -69,7 +68,6 @@ import { Currency } from 'src/common/enums';
 import { Signature } from 'src/entities/signatures.entity';
 import { MiscellaneousService } from 'src/miscellaneous/miscellaneous.service';
 import { getCurrentDelegationQuery } from 'src/queries/currentDelegation';
-import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class DrepService {
@@ -85,7 +83,6 @@ export class DrepService {
     private readonly httpService: HttpService,
     private blockfrostService: BlockfrostService,
     private miscService: MiscellaneousService,
-    private configService: ConfigService,
   ) {}
 
   async getAllDReps(
@@ -1104,10 +1101,7 @@ export class DrepService {
         return await this.miscService.fetchWithIPFSFallback(metadataUrl);
       } catch (error) {
         console.error('Error fetching metadata:', error);
-        throw new HttpException(
-          'Failed to fetch metadata',
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
+        return null;
       }
     } else if (savedMetadata?.[0]) {
       return savedMetadata?.[0].metadata;
@@ -1204,24 +1198,30 @@ export class DrepService {
       };
     }
   }
+  async getClaimedProfiles(voterId: string) {
+    const claimedProfiles = await this.voltaireService
+      .getRepository('Signature')
+      .find({
+        where: { voterId },
+        relations: {
+          drep: true,
+        },
+      });
 
-  async getDRepsVotingPowerExternal(identifiers: string[]) {
-    try {
-      const govToolApiUrl = this.configService.get<string>(
-        'BASE_URL_GOVTOOL_API',
-      );
-
-      const params = new URLSearchParams();
-      identifiers.forEach((id) => params.append('identifiers', id));
-
-      const url = `${govToolApiUrl}/drep/voting-power-list?${params.toString()}`;
-
-      const response = await firstValueFrom(this.httpService.get(url));
-
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching DRep voting power:', error.message);
-      throw error;
+    if (!claimedProfiles || claimedProfiles.length === 0) {
+      return [];
     }
+
+    return claimedProfiles.map((profile) => ({
+      voterDRepBech32: profile.voterId,
+      voterStakeKey: profile.stakeKey,
+      claimedDRepId: profile.drep.id,
+      claimedDRepBech32: profile.drep_bech32,
+      voterSignatureKey: profile.signatureKey,
+      voterSignature: profile.signature,
+      voterSignatureType: profile.type,
+      claimMethod:
+        profile.voterId == profile.drep_bech32 ? 'hot_wallet' : 'login_file',
+    }));
   }
 }

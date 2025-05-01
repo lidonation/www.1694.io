@@ -2,7 +2,7 @@
 import Button from '@/components/atoms/Button';
 import TimerCountDown from '@/components/atoms/TimerCountDown';
 import { urls } from '@/constants';
-import { useDRepContext } from '@/context/drepContext';
+import { useWallet } from '@/context/globalContext';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { ProfileWorkflowStepKey } from '@/lib/enums';
 import { checkTxExists } from '@/services/requests/checkTxExists';
@@ -13,8 +13,13 @@ import { useSearchParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 
 const page = () => {
+  const {
+    user: {
+      dRepClaimInfo: { dRepIDToClaimBech32 },
+    },
+    setUserInfo,
+  } = useWallet();
   const [isTxSynced, setIsTxSynced] = useState(false);
-  const { updateStep, drepToBeClaimed } = useDRepContext();
   const { addErrorAlert } = useGlobalNotifications();
 
   const searchParams = useSearchParams();
@@ -28,7 +33,6 @@ const page = () => {
     const checkTxInterval = setInterval(() => {
       let isTxAvailable = checkTxExists(txHash);
 
-      console.log(isTxAvailable);
       if (!!isTxAvailable) {
         setIsTxSynced(true);
         clearInterval(checkTxInterval);
@@ -44,7 +48,7 @@ const page = () => {
     const checkTxInterval = setInterval(async () => {
       try {
         const isTxAvailable = await checkTxExists(txHash);
-        console.log(isTxAvailable);
+
         if (isTxAvailable) {
           setIsTxSynced(true);
           clearInterval(checkTxInterval);
@@ -96,16 +100,20 @@ const page = () => {
         <Button
           variant="outlined"
           bgcolor="transparent"
-          handleClick={() =>
-            updateStep(ProfileWorkflowStepKey.PROFILE, 'update')
-          }
+          handleClick={() => {
+            setUserInfo({
+              dRepClaimProgress: {
+                [ProfileWorkflowStepKey.PROFILE]: 'update',
+              },
+            });
+          }}
         >
           <Link className="w-fit" href="/dreps/workflow/profile/update/step1">
             Make Changes
           </Link>
         </Button>
         <Button>
-          <Link className="w-fit" href={`/dreps/${drepToBeClaimed}`}>
+          <Link className="w-fit" href={`/dreps/${dRepIDToClaimBech32}`}>
             View your Profile
           </Link>
         </Button>
