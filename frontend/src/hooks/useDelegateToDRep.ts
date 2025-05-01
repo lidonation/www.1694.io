@@ -1,11 +1,12 @@
 import { useCallback, useState } from 'react';
 import { CertificatesBuilder } from '@emurgo/cardano-serialization-lib-asmjs';
-import { useCardano } from '@/context/cardanoContext';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { useGetSingleDRepQuery } from './useGetSingleDRepQuery';
-import { useDRepContext } from '@/context/drepContext';
 import { useQueryClient } from 'react-query';
 import { QUERY_KEYS } from '@/constants/queryKeys';
+import { useWallet, ModalType, useModals } from '@/context/globalContext';
+import { pollTransaction } from '@/lib';
+import { AuthMethod } from '../../types/auth';
 
 type DelegateOptions = {
   isRetired?: boolean;
@@ -17,17 +18,19 @@ export const useDelegateTodRep = () => {
     buildVoteDelegationCert,
     buildDRepRetirementCert,
     buildStakeKeyRegCert,
-    registeredStakeKeysListState,
-    dRepIDBech32,
-    isEnabled,
-    pollTransaction,
-  } = useCardano();
+    wallet: {
+      addressBech32,
+      isConnected,
+      dRepIdBech32,
+      registeredStakeKeysListState,
+    },
+    activeWallet,
+  } = useWallet();
   const queryClient = useQueryClient();
   const { addSuccessAlert, addErrorAlert, addPendingAlert } =
     useGlobalNotifications();
-  const { handleActionModalOpen, handleActionModalClose } = useDRepContext();
-  const { dRep } = useGetSingleDRepQuery(dRepIDBech32);
-
+  const { openModal, closeModal } = useModals();
+  const { dRep } = useGetSingleDRepQuery(dRepIdBech32);
   const [isDelegating, setIsDelegating] = useState<string | null>(null);
 
   const processDelegation = async (dRepId: string) => {
@@ -53,11 +56,22 @@ export const useDelegateTodRep = () => {
       const voteDelegationCert = await buildVoteDelegationCert(dRepId);
       certBuilder.add(voteDelegationCert);
 
-      const txResult = await signAndSubmitTransaction('delegationTxn', certBuilder, {
-        disableDownload: true,
-      });
+      const txResult = await signAndSubmitTransaction(
+        'delegationTxn',
+        certBuilder as any,
+        {
+          disableDownload: activeWallet === AuthMethod.HOT_WALLET,
+          disableSigning: activeWallet === AuthMethod.LOGIN_FILE,
+          ...(activeWallet === AuthMethod.LOGIN_FILE && {
+            deriveUtxosFrom: addressBech32,
+          }),
+        },
+      );
       if (txResult?.resultHash) {
-        addPendingAlert(`Confirming transaction ${txResult?.resultHash}....`, false);
+        addPendingAlert(
+          `Confirming transaction ${txResult?.resultHash}.... \n.This action may take a few minutes, but will happen in the background.`,
+          false,
+        );
         const result = await pollTransaction(txResult?.resultHash);
         if (result === true) {
           addSuccessAlert('Successfully delegated to DRep');
@@ -70,14 +84,14 @@ export const useDelegateTodRep = () => {
         );
       }
       queryClient.invalidateQueries(
-        QUERY_KEYS.getAdaHolderCurrentDelegationKey,
+        QUERY_KEYS.getAdaHolderCurrentDelegationKey
       );
     } catch (error: any) {
       console.error(error);
       addErrorAlert(error?.message || 'Something went wrong while delegating');
     } finally {
       setIsDelegating(null);
-      handleActionModalClose();
+      closeModal(ModalType.ACTION);
     }
   };
 
@@ -87,12 +101,12 @@ export const useDelegateTodRep = () => {
       setIsDelegating(dRepId);
 
       try {
-        if (!isEnabled) {
-          throw new Error('Please enable your wallet to delegate');
+        if (!isConnected) {
+          throw new Error('Please login to delegate');
         }
 
         if (options?.isRetired) {
-          handleActionModalOpen({
+          openModal(ModalType.ACTION, {
             title: 'Delegate to Retired DRep',
             children: 'Are you sure you want to delegate to a retired DRep?',
             severity: 'warning',
@@ -102,7 +116,7 @@ export const useDelegateTodRep = () => {
                 label: 'Cancel',
                 handleClick: () => {
                   setIsDelegating(null);
-                  handleActionModalClose();
+                  closeModal(ModalType.ACTION);
                 },
               },
               {
@@ -132,8 +146,7 @@ export const useDelegateTodRep = () => {
       buildVoteDelegationCert,
       dRep?.deposit,
       dRep?.is_registered_as_sole_voter,
-      handleActionModalOpen,
-      isEnabled,
+      isConnected,
       processDelegation,
     ],
   );

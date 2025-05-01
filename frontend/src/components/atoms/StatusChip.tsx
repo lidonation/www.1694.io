@@ -51,6 +51,21 @@ const StatusChip = ({ status }: StatusProps) => {
     case 'Voting Option':
       statusClass = 'bg-blue-800 text-white';
       break;
+    case 'Claimed':
+      statusClass = 'bg-blue-800 text-white';
+      break;
+    case 'Not claimed':
+      statusClass = 'bg-gray-800 text-white';
+      break;
+    case 'Not registered':
+      statusClass = 'bg-orange-500 text-white';
+      break;
+    case 'Not Delegated':
+      statusClass = 'bg-gray-800 text-white';
+      break;
+    case 'Retired':
+      statusClass = 'bg-orange-500 text-white';
+      break;
     default:
       statusClass = 'bg-gray-800 text-white'; // Default to gray if status is not recognized
   }

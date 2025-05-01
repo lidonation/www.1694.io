@@ -9,12 +9,12 @@ import {
   SubmitMetadataType,
 } from '../../../types/commonTypes';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
-import { useCardano } from '@/context/cardanoContext';
 import { CircularProgress, Tabs, Tab } from '@mui/material';
 import { urls } from '@/constants';
 import { getItemFromIndexedDB } from '@/lib/indexedDb';
 import { postAddMetadataAttachment } from '@/services/requests/postAddMetadataAttachment';
-import { useDRepContext } from '@/context/drepContext';
+import { useWallet } from '@/context/globalContext';
+import { AuthMethod } from '../../../types/auth';
 interface SubmitMetadataModalProps {
   onClose: () => void;
   onSuccessfulSubmit: (resultHash?: string) => void;
@@ -34,13 +34,19 @@ const SubmitMetadataModal = ({
   extraData,
 }: SubmitMetadataModalProps) => {
   const {
-    signAndSubmitTransaction,
+    activeWallet,
+    user: {
+      dRepClaimInfo: {
+        isCurrentOwnerOfDRepToClaim,
+        dRepIDToClaimBech32,
+        dRepEntityToClaim,
+      },
+    },
+    wallet: { addressBech32 },
     buildDRepUpdateCert,
-    dRepIDBech32,
+    signAndSubmitTransaction,
     buildVote,
-  } = useCardano();
-  const { drepClaimMismatch, drepToBeClaimed, drepEntityToBeClaimed } =
-    useDRepContext();
+  } = useWallet();
   const [isValidatingSubmission, setIsValidatingSubmission] = useState(false);
   const [activeTab, setActiveTab] = useState('selfHost');
   const [jsonld, setJsonld] = useState<any>(null);
@@ -112,12 +118,13 @@ const SubmitMetadataModal = ({
       switch (metadataType) {
         case 'drepUpdate':
           return await buildDRepUpdateCert(
+            dRepIDToClaimBech32,
             metadataUrl,
             metadataUrlHash,
-            drepToBeClaimed !== dRepIDBech32 ? drepToBeClaimed : dRepIDBech32,
           );
         case 'voteUpdate':
-          const { vote, voteTxHash, voteTxIndex, voterId } = extraData?.voteUpdate;
+          const { vote, voteTxHash, voteTxIndex, voterId } =
+            extraData?.voteUpdate;
           return await buildVote(
             vote,
             voteTxHash,
@@ -132,6 +139,24 @@ const SubmitMetadataModal = ({
     } catch (error) {
       console.log(error);
       throw new Error(error);
+    }
+  };
+
+  const getAddressToDeriveUtxosFrom = () => {
+    switch (true) {
+      //claiming own drep via login file
+      case isCurrentOwnerOfDRepToClaim &&
+        activeWallet !== AuthMethod.HOT_WALLET:
+        return addressBech32;
+      //assumed to claim drep via hot wallet or login file
+      case !isCurrentOwnerOfDRepToClaim &&
+        activeWallet === AuthMethod.HOT_WALLET:
+      case !isCurrentOwnerOfDRepToClaim &&
+        activeWallet === AuthMethod.LOGIN_FILE:
+        return dRepEntityToClaim?.reg_address;
+      default:
+        //use address from state
+        return null;
     }
   };
 
@@ -182,10 +207,9 @@ const SubmitMetadataModal = ({
         'submitMetadataTxn',
         actionCert,
         {
-          disableSigning: drepClaimMismatch || drepToBeClaimed !== dRepIDBech32,
-          deriveUtxosFrom:
-            (drepClaimMismatch || drepToBeClaimed !== dRepIDBech32) &&
-            drepEntityToBeClaimed?.reg_address, // if drepClaimMismatch, derive utxos from reg_address
+          disableSigning: !isCurrentOwnerOfDRepToClaim || activeWallet === AuthMethod.LOGIN_FILE,
+          disableDownload: activeWallet === AuthMethod.HOT_WALLET,
+          deriveUtxosFrom: getAddressToDeriveUtxosFrom(),
         },
       );
       onSuccessfulSubmit(res.resultHash);

@@ -10,8 +10,8 @@ import {
   VoteRationaleModal,
   VoteRationaleModalProps,
 } from '../molecules/VoteRationaleModal';
-import { useCardano } from '@/context/cardanoContext';
 import { GovAction } from '../../../types/api';
+import { useWallet } from '@/context/globalContext';
 
 interface DrepVoteTimelineCardProps {
   item: DrepVote | GovAction;
@@ -42,7 +42,7 @@ const DrepVoteTimelineCard = ({
   item,
   isVoteOwner,
 }: DrepVoteTimelineCardProps) => {
-  const { latestEpoch } = useCardano();
+  const { latestEpoch } = useWallet();
   const [govActionName, setGovActionName] = useState(null);
   const [rationaleModalOptions, setRationalModalOptions] =
     useState<VoteRationaleModalProps>({

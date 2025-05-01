@@ -83,7 +83,6 @@ export class AttachmentController {
     } else {
       throw new Error('Invalid attachment format');
     }
-    console.log(attachmentFormData);
     return this.attachmentService.uploadAttachmentToIPFS(attachmentFormData);
   }
 }

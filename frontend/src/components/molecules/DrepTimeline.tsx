@@ -3,7 +3,6 @@ import React, { memo, useEffect, useState } from 'react';
 import DrepTimelineWaterfall from './DrepTimelineWaterfall';
 import Link from 'next/link';
 import Button from '../atoms/Button';
-import { useCardano } from '@/context/cardanoContext';
 import {
   useParams,
   usePathname,
@@ -20,7 +19,7 @@ import DRepTimeLIneFilters from './DRepTimeLineFilters';
 import DatabaseNullIcon from '../atoms/svgs/DatabaseNullIcon';
 import { useScreenDimension } from '@/hooks';
 import Typography from '@mui/material/Typography';
-import { useGetOwnership } from '@/hooks/useGetOwnership';
+import { useWallet } from '@/context/globalContext';
 
 const DrepTimeline = ({ drep }: { drep: any }) => {
   const { drepid } = useParams();
@@ -43,8 +42,10 @@ const DrepTimeline = ({ drep }: { drep: any }) => {
   const [isLoadingNewerData, setIsLoadingNewerData] = useState(false);
   const [isLoadingOlderData, setIsLoadingOlderData] = useState(false);
   
-  const { dRepIDBech32, latestEpoch, firstEpoch } = useCardano();
-  const {ownership}=useGetOwnership({drepId: drepid.toString(), voterId: dRepIDBech32});
+  const {latestEpoch, firstEpoch, user:{dRepProfilesClaimed} } = useWallet();
+  const isOwner = dRepProfilesClaimed?.some(
+    (drep) => drep.claimedDRepBech32 === drepid.toString(),
+  );
   const searchParams = useSearchParams();
   const pathName = usePathname();
   const { replace } = useRouter();
@@ -166,7 +167,7 @@ const DrepTimeline = ({ drep }: { drep: any }) => {
         <div className="flex w-full justify-between">
           <Typography variant="h4">Timeline</Typography>
           <div className="flex items-center gap-4">
-            {ownership?.result && ownership?.result === true && drep?.drep_id && (
+            {isOwner && drep?.drep_id && (
               <Button size="medium" className="flex w-fit items-center">
                 <Link href={`/dreps/workflow/notes/new`}>
                   {isMobile ? (

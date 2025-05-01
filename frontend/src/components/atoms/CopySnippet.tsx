@@ -1,6 +1,8 @@
 import { handleCopyText } from '@/lib';
-import { Box, IconButton, Typography } from '@mui/material';
-import React from 'react';
+import { styled } from '@mui/material/styles';
+import { IconButton, Paper, Typography } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { Check, ContentCopy } from '@mui/icons-material';
 
 interface CopySnippetProps {
   snippetToCopy?: string;
@@ -13,28 +15,47 @@ const CopySnippet = ({
   extraText,
   isError,
 }: CopySnippetProps) => {
+  const [hasCopied, setHasCopied] = useState(false);
+  useEffect(() => {
+    if (hasCopied) {
+      const timer = setTimeout(() => {
+        setHasCopied(false);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [hasCopied]);
+  
   const handleCopyHelperSnippet = () => {
-    const normalizedSnippet = snippetToCopy.replace(/\n/g, ' ');
-    handleCopyText(normalizedSnippet);
+    if (!snippetToCopy) {
+      return;
+    }
+    handleCopyText(snippetToCopy);
+    setHasCopied(true);
   };
+
+  const CodeSnippet = styled(Paper)(({ theme }) => ({
+    backgroundColor: theme.palette.grey[900],
+    color: theme.palette.common.white,
+    padding: theme.spacing(2),
+    borderRadius: theme.spacing(1),
+    fontFamily: 'monospace',
+    fontSize: '0.85rem',
+    position: 'relative',
+    overflow: 'auto',
+    marginTop: theme.spacing(2),
+    marginBottom: theme.spacing(2),
+    maxHeight: '200px',
+    whiteSpace: 'pre-wrap',
+    wordBreak: 'break-all',
+  }));
 
   const renderSnippetContent = ({ snippet }) => {
     if (!snippet) {
       return null;
     }
     return (
-      <Box
-        sx={{
-          bgcolor: 'background.paper',
-          p: 2,
-          borderRadius: 1,
-          fontFamily: 'monospace',
-          fontSize: '0.875rem',
-          position: 'relative',
-          border: '1px solid rgba(0, 0, 0, 0.12)',
-        }}
-      >
-        <pre className="m-0x text-xs leading-none">{snippet?.trim()}</pre>
+      <CodeSnippet>
+        {snippetToCopy}
         <IconButton
           size="small"
           sx={{
@@ -42,12 +63,13 @@ const CopySnippet = ({
             top: 4,
             right: 4,
             bgcolor: 'transparent',
+            color: hasCopied ? 'success.main' : 'white',
           }}
           onClick={handleCopyHelperSnippet}
         >
-          <img src="/svgs/copy.svg" alt="copy" />
+          {hasCopied ? <Check fontSize='small'/> : <ContentCopy fontSize="small" />}
         </IconButton>
-      </Box>
+      </CodeSnippet>
     );
   };
 

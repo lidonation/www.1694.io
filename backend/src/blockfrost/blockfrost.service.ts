@@ -161,21 +161,70 @@ export class BlockfrostService {
 
   async getStakeAddressInfo(stakeAddress: string) {
     try {
-      const apiUrl = `${this.blockfrostAPIURL}/accounts/${stakeAddress}`
+      const apiUrl = `${this.blockfrostAPIURL}/accounts/${stakeAddress}`;
       const response = await lastValueFrom(
         this.httpService.get(apiUrl, {
           headers: {
             project_id: this.blockfrostAPIProjectID,
-          }
-        })
-      )
-      return response.data
+          },
+        }),
+      );
+      return response.data;
     } catch (error) {
-      console.log(error)
+      console.log(error);
       throw new HttpException(
         error?.response?.data || 'An error occured',
         error?.response?.status || 500,
-      )
+      );
+    }
+  }
+
+  async getAddressesRelatedToStakeAddress(stakeAddress: string) {
+    try {
+      const apiUrl = `${this.blockfrostAPIURL}/accounts/${stakeAddress}/addresses`;
+      const response = await lastValueFrom(
+        this.httpService.get(apiUrl, {
+          headers: {
+            project_id: this.blockfrostAPIProjectID,
+          },
+        }),
+      );
+      return response.data;
+    } catch (error) {
+      console.log(error);
+      throw new HttpException(
+        error?.response?.data || 'An error occured',
+        error?.response?.status || 500,
+      );
+    }
+  }
+
+  async submitTransaction(transactionCbor: string) {
+    try {
+      if (!transactionCbor) {
+        throw new HttpException('Transaction CBOR is required', 400);
+      }
+      console.log('Submitting transaction to Blockfrost', transactionCbor);
+      const apiUrl = `${this.blockfrostAPIURL}/tx/submit`;
+      const response = await lastValueFrom(
+        this.httpService.post(
+          apiUrl,
+          Buffer.from(transactionCbor, 'hex'),
+          {
+            headers: {
+              project_id: this.blockfrostAPIProjectID,
+              'Content-Type': 'application/cbor',
+            },
+          },
+        ),
+      );
+      return response.data;
+    } catch (error) {
+      console.log(error);
+      throw new HttpException(
+        error?.response?.data || 'An error occured',
+        error?.response?.status || 500,
+      );
     }
   }
 }

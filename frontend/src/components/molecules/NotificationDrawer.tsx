@@ -5,16 +5,16 @@ import Grow from '@mui/material/Grow';
 import { Box, Badge, Divider } from '@mui/material';
 import { useGetUserNotificationQuery } from '@/hooks/useGetUserNotificationQuery';
 import Typography from '@mui/material/Typography';
-import { useDRepContext } from '@/context/drepContext';
 import NotificationItem from '../atoms/SingleNotification';
 import {
   postMarkNotificationAsRead,
   postMarkNotificationAsUnread,
 } from '@/services/requests/postNotificationRequests';
+import { useWallet } from '@/context/globalContext';
 
 export default function NotificationDrawer() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const { signatureId } = useDRepContext();
+  const { user:{signatureData:{currentSignatureId}} } = useWallet();
   const open = Boolean(anchorEl);
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -26,7 +26,7 @@ export default function NotificationDrawer() {
 
   const { notifications: allNotifications = [], refetch } =
     useGetUserNotificationQuery({
-      recipientId: signatureId,
+      recipientId: currentSignatureId,
     });
 
   const inboxNotifications = allNotifications.filter(
@@ -47,7 +47,7 @@ export default function NotificationDrawer() {
       return (
         <MenuItem disableRipple className="pointer-events-none">
           <Box className="mb-4 flex flex-col text-wrap py-2 text-complementary-500">
-            {signatureId ? (
+            {currentSignatureId ? (
               <>
                 <Typography variant="subtitle2" className="font-bold">
                   Mempool Clear

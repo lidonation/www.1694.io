@@ -4,11 +4,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import SingleNote from './SingleNote';
 import NotesPageHeader from './NotesPageHeader';
 import { CircularProgress, List, Skeleton } from '@mui/material';
-import { useCardano } from '@/context/cardanoContext';
-import { useDRepContext } from '@/context/drepContext';
 import { useGetNotesQuery } from '@/hooks/useGetNotesQuery';
 import _ from 'lodash';
 import useInfiniteScroll from 'react-easy-infinite-scroll-hook';
+import { useWallet } from '@/context/globalContext';
 const LoaderComponent = () => {
   return Array.from({ length: 4 }).map((_, index) => (
     <div
@@ -26,8 +25,7 @@ const LoaderComponent = () => {
 function NotesPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { stakeKeyBech32, isEnabled } = useCardano();
-  const { isLoggedIn } = useDRepContext();
+  const { wallet:{ stakeKeyBech32, isConnected} } = useWallet();
   const [dominantNoteId, setDominantNoteId] = useState<number | undefined>(
     undefined,
   );
@@ -201,8 +199,7 @@ function NotesPage() {
                 <SingleNote
                   note={note}
                   currentVoter={stakeKeyBech32}
-                  isEnabled={isEnabled}
-                  isLoggedIn={isLoggedIn}
+                  isConnected={isConnected}
                 />
               </div>
             );

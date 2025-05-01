@@ -1,8 +1,6 @@
 import { ChatBubbleOutline, Send } from '@mui/icons-material';
 import { Box, Button, CircularProgress, Typography } from '@mui/material';
 import React, { memo, useEffect, useRef, useState } from 'react';
-import { useDRepContext } from '@/context/drepContext';
-import { useCardano } from '@/context/cardanoContext';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { useQueryClient } from 'react-query';
 import {
@@ -15,7 +13,7 @@ import { postProposalComment } from '@/services/requests/postProposalComment';
 import { setUpPdfJwt } from '@/lib/pdfJwtHelper';
 import { useGetDRepRegistrationQuery } from '@/hooks/useGetDRepRegistrationQuery';
 import { loginUserToPdf } from '@/services/requests/loginUserToPdf';
-import { useWallet } from '@/context/walletContext';
+import { useWallet, ModalType, useModals } from '@/context/globalContext';
 import { AuthMethod } from '../../../types/auth';
 import { getPdfChallenge } from '@/services/requests/getPdfChallenge';
 import { useGetActionProposalCommentsQuery } from '@/hooks/useGetActionProposalCommentsQuery';
@@ -164,14 +162,14 @@ function ProposalComments({ proposal }: ProposalCommentsProps) {
     commentId: null,
   });
 
-  const { setLoginModalOpen, setGovToolUsernameModalOpen } = useDRepContext();
+  const { openModal } = useModals();
   const { comments, isCommentsLoading } = useGetActionProposalCommentsQuery(
     Number(proposal?.id),
   );
-  const { signMessage } = useCardano();
   const {
     wallet: { isConnected, dRepId, stakeKey, isDRep },
     activeWallet,
+    signMessage,
   } = useWallet();
   const { addWarningAlert, addSuccessAlert, addErrorAlert } =
     useGlobalNotifications();
@@ -218,7 +216,7 @@ function ProposalComments({ proposal }: ProposalCommentsProps) {
 
       // Check if username needs to be set
       if (!userResponse?.user?.govtool_username) {
-        setGovToolUsernameModalOpen(true);
+        openModal(ModalType.USERNAME);
         return { userNameModalActive: true };
       }
 
@@ -272,7 +270,7 @@ function ProposalComments({ proposal }: ProposalCommentsProps) {
 
   const checkWalletConnection = (): boolean => {
     if (!isConnected) {
-      setLoginModalOpen(true);
+      openModal(ModalType.LOGIN)
       return false;
     }
     return true;
@@ -402,7 +400,7 @@ function ProposalComments({ proposal }: ProposalCommentsProps) {
           variant="outlined"
           className="flex items-center gap-1"
           size="medium"
-          onClick={() => setLoginModalOpen(true)}
+          onClick={() => openModal(ModalType.LOGIN)}
         >
           <ChatBubbleOutline fontSize="small" />
           Login to leave a comment

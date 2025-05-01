@@ -17,10 +17,9 @@ import {
   getItemFromLocalStorage,
   removeItemFromLocalStorage,
   renderJsonLdValue,
+  setItemToLocalStorage,
 } from '@/lib';
 import { useScreenDimension } from '@/hooks';
-import { useCardano } from '@/context/cardanoContext';
-import { useDRepContext } from '@/context/drepContext';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { deleteItemFromIndexedDB } from '@/lib/indexedDb';
 import { renderJSONLDToJSONArr } from '@/lib/metadataProcessor';
@@ -34,10 +33,10 @@ import DRepAvatarCard from './DRepAvatarCard';
 import DRepIdHolder from './DRepIdHolder';
 import ClaimProfileButton from './ClaimProfileButton';
 import { useGetDRepMetadataQuery } from '@/hooks/useGetDRepMetadataQuery';
-import { useGetOwnership } from '@/hooks/useGetOwnership';
 import { useGetAdaHolderCurrentDelegationQuery } from '@/hooks/useGetAdaHolderCurrentDelegationQuery';
 import { useDelegateTodRep } from '@/hooks/useDelegateToDRep';
 import { SingleDRep } from '../../../types/api';
+import { ModalType, useModals, useWallet } from '@/context/globalContext';
 
 interface DynamicDRepProfileCardProps {
   drep: SingleDRep;
@@ -51,18 +50,17 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
   loading,
 }) => {
   const { isMobile } = useScreenDimension();
-  const { stakeKey, dRepIDBech32 } = useCardano();
-  const { setLoginModalOpen, isLoggedIn, setDrepToBeClaimed } =
-    useDRepContext();
+  const {
+    wallet: { stakeKey, isConnected },
+    user: { dRepProfilesClaimed },
+    setUserInfo,
+  } = useWallet();
+  const { openModal } = useModals();
   const { addSuccessAlert } = useGlobalNotifications();
   const { delegate, isDelegating } = useDelegateTodRep();
   const [canEdit, setCanEdit] = useState(false);
   const [isSubmittingMetadata, setIsSubmittingMetadata] = useState(false);
   const [hoveredOnWarning, setHoveredOnWarning] = useState(false);
-  const { ownership } = useGetOwnership({
-    drepId: drep?.view,
-    voterId: dRepIDBech32,
-  });
   const { metadata, isMetadataLoading, metadataError } =
     useGetDRepMetadataQuery(voterId);
   const { currentDelegation } = useGetAdaHolderCurrentDelegationQuery(stakeKey);
@@ -71,7 +69,9 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
     drep?.type === 'scripted' ||
     drep?.type === 'voting_option' ||
     drep?.drep_id;
-  const isOwner = ownership?.result;
+  const isOwner = dRepProfilesClaimed?.some(
+    (claimedDRep) => claimedDRep?.claimedDRepBech32 === drep?.view,
+  );
 
   const metadataJson =
     !isMetadataLoading && metadata ? renderJSONLDToJSONArr(metadata) : null;
@@ -83,13 +83,16 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
     delegate(drep?.view, { isRetired: drep?.retired });
   };
 
-
-
-  useEffect(() => {
-    if (drep?.view) {
-      setDrepToBeClaimed(drep?.view);
+  const handleEditProfile = () => {
+    if (drep?.type !== 'scripted' && drep?.type !== 'voting_option') {
+      setUserInfo({
+        dRepClaimInfo: {
+          dRepIDToClaimBech32: drep?.view,
+        },
+      });
+      setItemToLocalStorage('isUpdating', true);
     }
-  }, [drep?.view]);
+  };
 
   const resetDraft = async () => {
     removeItemFromLocalStorage('isUpdating');
@@ -202,10 +205,11 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
 
       {renderStatusChips()}
 
-      {!isClaimed && (
+      {!isClaimed && drep?.view && (
         <ClaimProfileButton
           label="Claim this profile"
           drepToBeClaimed={drep?.view}
+          
         />
       )}
       {!isDelegated && (
@@ -321,16 +325,21 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
         <div className="flex max-w-prose flex-col gap-2">
           <Button
             handleClick={
-              isLoggedIn
+              isConnected
                 ? () => setCanEdit(true)
-                : () => setLoginModalOpen(true)
+                : () => {
+                    openModal(ModalType.LOGIN);
+                  }
             }
             className="w-full"
           >
-            {isLoggedIn ? 'Edit Metadata' : 'Login to update'}
+            {isConnected ? 'Edit Metadata' : 'Login to update'}
           </Button>
-          {isLoggedIn && isOwner && (
-            <Link href="/dreps/workflow/profile/update/step1">
+          {isConnected && isOwner && (
+            <Link
+              href="/dreps/workflow/profile/update/step1"
+              onClick={handleEditProfile}
+            >
               <Button
                 className="w-full"
                 variant="outlined"

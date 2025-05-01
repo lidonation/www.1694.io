@@ -1,4 +1,8 @@
-import { deleteDataFromSession, LOGIN_FILE_LS_KEY } from '@/lib';
+import {
+  deleteDataFromSession,
+  LOGIN_FILE_LS_KEY,
+  setEpochParams,
+} from '@/lib';
 import {
   AuthenticationProvider,
   AccountInfo,
@@ -6,16 +10,17 @@ import {
 } from '../../../types/auth';
 import { verifySignatures } from '@/services/requests/verifySignatures';
 import { getProfileData } from '@/services/requests/getProfileData';
+import { getRelatedPaymentAddrFromStakeAddr } from '@/services/requests/getRelatedPaymentAddrFromStakeAddr';
 import {
   deleteItemFromIndexedDB,
   getFileFromIndexedDB,
   setFileToIndexedDB,
 } from '@/lib/indexedDb';
 import {
+  Address,
   Credential,
   Ed25519KeyHash,
 } from '@emurgo/cardano-serialization-lib-asmjs';
-import { CardanoContext } from '@/context/cardanoContext';
 
 /**
  * Provider that handles authentication via a login key file
@@ -23,7 +28,6 @@ import { CardanoContext } from '@/context/cardanoContext';
  * without needing their wallet connected
  */
 export class LoginFileProvider implements AuthenticationProvider {
-  private cardanoContext: CardanoContext;
   private connected: boolean = false;
   private accountInfo: AccountInfo | null = null;
   private loginCredentials: {
@@ -35,66 +39,7 @@ export class LoginFileProvider implements AuthenticationProvider {
   supportsMessageSigning = false;
   supportsColdWallet = false;
 
-  constructor(cardanoContext: any) {
-    this.cardanoContext = cardanoContext;
-  }
-
-  /**
-   * Generate and download a login file for the user
-   * @returns Promise that resolves when the file has been downloaded
-   */
-  async generateLoginFile(): Promise<boolean> {
-    try {
-      if (!this.cardanoContext.isEnabled) {
-        throw new Error('Wallet must be connected to generate a login file');
-      }
-
-      // Generate login credentials using a generic verification message
-      const verificationMessage = 'Verify DRep Login';
-      const credentials = await this.cardanoContext.signMessage(
-        verificationMessage,
-        this.cardanoContext.stakeKey,
-      );
-
-      if (!credentials || !credentials.signature || !credentials.key) {
-        throw new Error('Failed to generate login credentials');
-      }
-
-      // Create login file content
-      const loginFileContent = {
-        version: 1,
-        address: this.cardanoContext.address,
-        pubKey: this.cardanoContext.pubDRepKey,
-        stakeKey: this.cardanoContext.stakeKey,
-        signature: credentials.signature,
-        key: credentials.key,
-        timestamp: Date.now(),
-        message: verificationMessage,
-      };
-
-      // Download file
-      const blob = new Blob([JSON.stringify(loginFileContent)], {
-        type: 'application/json',
-      });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `drep-login-${Date.now()}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-
-      return true;
-    } catch (error) {
-      console.error('Error generating login file:', error);
-      return false;
-    }
-  }
-
-  updateCardanoContext(newContext: any) {
-    this.cardanoContext = newContext;
-  }
+  constructor() {}
 
   /**
    * Reconnect using saved credentials
@@ -161,12 +106,21 @@ export class LoginFileProvider implements AuthenticationProvider {
         this.loginCredentials = credentials;
 
         const profileData = await getProfileData(loginData.stakeKeyBech32);
+        const relatedAddresses = await getRelatedPaymentAddrFromStakeAddr(
+          loginData.stakeKeyBech32,
+        );
 
         this.accountInfo = {
-          address: null,
+          address:
+            relatedAddresses.length > 0
+              ? Address.from_bech32(relatedAddresses[0]).to_hex()
+              : null,
+          addressBech32:
+            relatedAddresses.length > 0 ? relatedAddresses[0] : null,
           stakeKey: loginData.stakeKeyHex,
           stakeKeyBech32: loginData.stakeKeyBech32,
           balance: profileData?.walletBalance,
+          registeredStakeKeysListState: [loginData?.stakeKeyBech32], //TODO: check if this is correct
           dRepInfo: {
             isDRep: profileData?.isDrep,
             dRepId: profileData?.isDrep ? profileData?.selfDRepRaw : '',
@@ -185,7 +139,7 @@ export class LoginFileProvider implements AuthenticationProvider {
           },
         } as AccountInfo;
 
-        await this.cardanoContext.setEpochParams();
+        await setEpochParams();
         this.connected = true;
         await setFileToIndexedDB(LOGIN_FILE_LS_KEY, params.file);
       } else {

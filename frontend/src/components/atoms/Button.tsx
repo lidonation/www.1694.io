@@ -1,23 +1,10 @@
 import React from 'react';
-import { Button as MUIButton } from '@mui/material';
+import { Button as MUIButton, ButtonProps as MUIButtonProps } from '@mui/material';
 
-export interface ButtonProps {
-  size?:
-    | 'extraLarge'
-    | 'large'
-    | 'medium'
-    | 'small'
-    | 'extraSmall'
-    | 'smallest';
+export interface ButtonProps extends Omit<MUIButtonProps, 'size' | 'onClick' | 'className'> {
+  size?: 'extraLarge' | 'large' | 'medium' | 'small' | 'extraSmall' | 'smallest';
   variant?: 'text' | 'outlined' | 'contained';
-  color?:
-    | 'inherit'
-    | 'primary'
-    | 'secondary'
-    | 'error'
-    | 'info'
-    | 'success'
-    | 'warning';
+  color?: 'inherit' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning';
   width?: number | string;
   bgcolor?: string;
   id?: string;
@@ -28,6 +15,7 @@ export interface ButtonProps {
   handleClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
   type?: 'submit' | 'button';
   className?: string;
+  preventDefaultClick?: boolean;
 }
 
 const Button: React.FC<ButtonProps> = ({
@@ -44,6 +32,7 @@ const Button: React.FC<ButtonProps> = ({
   handleClick,
   type = 'button',
   className,
+  preventDefaultClick = false, // Default to false to allow normal navigation
   ...props
 }) => {
   const buttonHeight = {
@@ -56,7 +45,11 @@ const Button: React.FC<ButtonProps> = ({
   }[size];
 
   const handleButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault();
+    // Only prevent default if explicitly requested
+    if (preventDefaultClick) {
+      event.preventDefault();
+    }
+    
     if (handleClick) {
       handleClick(event);
     }
@@ -64,7 +57,7 @@ const Button: React.FC<ButtonProps> = ({
 
   return (
     <MUIButton
-      className={`${className}`}
+      className={className}
       style={{
         height: buttonHeight,
         width: width,

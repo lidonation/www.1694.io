@@ -1,29 +1,32 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { useCardano } from '@/context/cardanoContext';
 import WalletConnectButton from '@/components/molecules/WalletConnectButton';
 import { WalletInfoCard } from '@/components/molecules';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useDRepContext } from '@/context/drepContext';
 import { useScreenDimension } from '@/hooks';
 import VoltaireMenu from '../molecules/VoltaireMenu';
 import DRepMenu from '../molecules/DRepMenu';
 import { SliderMenu } from '../organisms/SliderMenu';
 import NotificationDrawer from '@/components/molecules/NotificationDrawer';
 import { CONFIGURED_NETWORK_NAME } from '@/constants';
-import { useWallet } from '@/context/walletContext';
+import { ModalType, useModals, useWallet } from '@/context/globalContext';
 
 const Header = () => {
-  const { wallet:{isConnected} } = useWallet();
+  const {
+    wallet: { isConnected, isConnecting },
+    currentLocale,
+  } = useWallet();
+  const { openModal } = useModals();
   const [networkName, setNetworkName] = useState('');
-  const { currentLocale } = useDRepContext();
   const { isMobile } = useScreenDimension();
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const pathname = usePathname();
   const [activeLink, setActiveLink] = useState(null);
+
   useEffect(() => {
     setNetworkName(CONFIGURED_NETWORK_NAME);
   }, [CONFIGURED_NETWORK_NAME]);
+
   const renderLogoOnNetworkChange = useCallback(() => {
     if (networkName) {
       switch (networkName) {
@@ -40,10 +43,12 @@ const Header = () => {
     // Default to voltaire logo
     return '/img/logos/voltaire-black.png';
   }, [networkName]);
+
   useEffect(() => {
     // Setting the active link based on the current pathname
     setActiveLink(pathname);
   }, [pathname]);
+
   //add event listener to the window to check if the screen is mobile
   return (
     <header className="w-full bg-white bg-opacity-50">
@@ -86,7 +91,13 @@ const Header = () => {
           )}
           <div>
             {!isConnected ? (
-              <WalletConnectButton test_name={'header'} />
+              <WalletConnectButton
+                test_name={'header'}
+                isConnecting={isConnecting}
+                handleConnect={() => {
+                  openModal(ModalType.LOGIN);
+                }}
+              />
             ) : (
               <WalletInfoCard test_name={'header'} />
             )}

@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { useVoterDataByIdentityQuery } from '@/hooks/useGetVoterDataByIdentityQuery';
 import { Address } from '@emurgo/cardano-serialization-lib-asmjs';
 import { convertDrepPhraseToCIP105 } from '@/lib';
+
 const convertAddressToBech32 = (address: string) => {
   if (address.includes('addr') || address.includes('stake')) {
     return address;
@@ -13,6 +14,7 @@ const convertAddressToBech32 = (address: string) => {
   } else
     return Address.from_bytes(Buffer.from(address, 'hex') as any).to_bech32();
 };
+
 const VoterDashboard = () => {
   const { voterId } = useParams();
   const { voterData, isVoterDataLoading } = useVoterDataByIdentityQuery(

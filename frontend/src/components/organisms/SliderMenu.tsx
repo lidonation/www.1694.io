@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Drawer, Grid, IconButton } from '@mui/material';
-import { useDRepContext } from '@/context/drepContext';
-import { useCardano } from '@/context/cardanoContext';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Background } from '../atoms/Background';
@@ -10,6 +8,7 @@ import { WalletInfoCard } from '@/components/molecules';
 import VoltaireMenu from '../molecules/VoltaireMenu';
 import DRepMenu from '../molecules/DRepMenu';
 import { useScreenDimension } from '@/hooks';
+import { ModalType, useModals, useWallet } from '@/context/globalContext';
 
 interface SliderMenuProps {
   isOpen: boolean;
@@ -20,12 +19,16 @@ const DRAWER_PADDING = 2;
 const CALCULATED_DRAWER_PADDING = DRAWER_PADDING * 8 * 2;
 
 export const SliderMenu = ({ isOpen, handleClose }: SliderMenuProps) => {
-  const { currentLocale } = useDRepContext();
+  const {
+    wallet: { isConnected, isConnecting },
+    currentLocale,
+  } = useWallet();
+  const { openModal } = useModals();
   const { screenWidth } = useScreenDimension();
-  const { isEnabled } = useCardano();
   const pathname = usePathname();
   const [activeLink, setActiveLink] = useState(null);
-  const [currentPath, ] = useState(pathname);
+  const [currentPath] = useState(pathname);
+
   useEffect(() => {
     setActiveLink(pathname);
     if (isOpen && pathname !== currentPath) {
@@ -72,8 +75,14 @@ export const SliderMenu = ({ isOpen, handleClose }: SliderMenuProps) => {
               className="flex flex-col items-center text-center"
             >
               <Grid item>
-                {!isEnabled ? (
-                  <WalletConnectButton test_name={'mobile-menu'} />
+                {!isConnected ? (
+                  <WalletConnectButton
+                    test_name={'mobile-menu'}
+                    isConnecting={isConnecting}
+                    handleConnect={() => {
+                      openModal(ModalType.LOGIN);
+                    }}
+                  />
                 ) : (
                   <WalletInfoCard test_name={'mobile-menu'} />
                 )}

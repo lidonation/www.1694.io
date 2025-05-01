@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useCardano } from '@/context/cardanoContext';
-import { useDRepContext } from '@/context/drepContext';
 import { Address } from '@emurgo/cardano-serialization-lib-asmjs';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -8,6 +6,7 @@ import { SubmitHandler, useForm } from 'react-hook-form';
 import UpdateNotePostForm from '../molecules/UpdateNotePostForm';
 import { usePostUpdateNoteMutation } from '@/hooks/usePostUpdateNoteMutation';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
+import { useWallet, ModalType, useModals } from '@/context/globalContext';
 
 const FormSchema = z.object({
   postTitle: z
@@ -34,8 +33,10 @@ const UpdateNoteForm = ({ noteId, initialValues }) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const mutation = usePostUpdateNoteMutation();
-  const { dRepIDBech32, stakeKey } = useCardano();
-  const { setIsNotDRepErrorModalOpen } = useDRepContext();
+  const {
+    wallet: { isDRep, dRepIdBech32, stakeKey, isConnected },
+  } = useWallet();
+  const { openModal } = useModals();
   const { addSuccessAlert, addErrorAlert } = useGlobalNotifications();
 
   useEffect(() => {
@@ -48,13 +49,13 @@ const UpdateNoteForm = ({ noteId, initialValues }) => {
   }, [initialValues]);
   const updateNote: SubmitHandler<InputType> = async (data) => {
     try {
-      if (!dRepIDBech32 || dRepIDBech32 == '') {
-        setIsNotDRepErrorModalOpen(true);
+      if (!isDRep) {
+        openModal(ModalType.DREP_ERROR);
         return;
       }
       setIsLoading(true);
       const stakeAddress = Address.from_bytes(
-        Buffer.from(stakeKey, 'hex'),
+        Buffer.from(stakeKey, 'hex') as any,
       ).to_bech32();
       const { postTag, postText, postTitle, postVisibility } = data;
       const updatedNote = {
@@ -63,7 +64,7 @@ const UpdateNoteForm = ({ noteId, initialValues }) => {
         content: postText,
         visibility: postVisibility,
         stake_addr: stakeAddress,
-        drep: dRepIDBech32,
+        drep: dRepIdBech32,
       };
       await mutation.mutateAsync({ noteId: noteId, note: updatedNote });
 
@@ -90,6 +91,7 @@ const UpdateNoteForm = ({ noteId, initialValues }) => {
         errors={errors}
         createdAt={initialValues?.createdAt}
         isLoading={isLoading}
+        isDisabled={!isConnected}
       />
     </form>
   );

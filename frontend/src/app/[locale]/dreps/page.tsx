@@ -5,11 +5,11 @@ import DRepInfo from '@/components/organisms/DRepInfo';
 import DRepIntro from '@/components/organisms/DRepIntro';
 import GovernanceActionsCard from '@/components/organisms/GovernanceActionsCard';
 import PickADRep from '@/components/organisms/PickADRep';
-import { useDRepContext } from '@/context/drepContext';
+import { useWallet } from '@/context/globalContext';
 import React, { useEffect } from 'react';
 
 const page = ({ params: { locale } }) => {
-  const { setCurrentLocale } = useDRepContext();
+  const { setCurrentLocale } = useWallet();
   useEffect(() => {
     setCurrentLocale(locale);
   }, []);

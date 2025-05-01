@@ -1,95 +1,119 @@
 'use client';
 import NewProfile from '@/components/organisms/NewProfile';
-import { useDRepContext } from '@/context/drepContext';
-import { useCardano } from '@/context/cardanoContext';
+import { ModalType, useModals, useWallet } from '@/context/globalContext';
 import { compareDRepIDs } from '@/lib';
 import { ProfileWorkflowStepKey } from '@/lib/enums';
 import { getSingleDRepViaVoterId } from '@/services/requests/getSingleDrepViaVoterId';
-import { usePathname,  useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import React, { useEffect } from 'react';
-
 
 const Page = () => {
   const {
-    setIsWalletListModalOpen,
-    updateStep,
-    setNewDrepId,
-    setHideCloseButtonOnWalletListModal,
-    setDrepToBeClaimed,
-    drepToBeClaimed,
-    handleActionModalOpen,
-    handleActionModalClose
-  } = useDRepContext();
-
-  const { isEnabled, dRepIDBech32 } = useCardano();
+    wallet: { isConnected, dRepIdBech32 },
+    user: {
+      dRepClaimInfo: { dRepIDToClaimBech32, isCurrentOwnerOfDRepToClaim },
+      dRepProfilesClaimed,
+    },
+    setUserInfo,
+  } = useWallet();
+  const { openModal, closeModal } = useModals();
+  const isOwner = isCurrentOwnerOfDRepToClaim || dRepProfilesClaimed?.some((drep) =>
+    compareDRepIDs(drep.claimedDRepBech32, dRepIDToClaimBech32),
+  );
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
 
   useEffect(() => {
-    if (params.has('drep') && params.get('drep') !== '' && params.get('drep') !== null) {
-      setDrepToBeClaimed(params.get('drep'));
-    }else {
-      setDrepToBeClaimed(null);
+    if (
+      params.has('drep') &&
+      params.get('drep') !== '' &&
+      params.get('drep') !== null
+    ) {
+      setUserInfo({
+        dRepClaimInfo: {
+          dRepIDToClaimBech32: params.get('drep'),
+        },
+      });
+    } else {
       //show eror modal
-      handleActionModalOpen({
+      openModal(ModalType.ACTION, {
         title: 'Unidentifiable DRep ID',
         severity: 'error',
         hideCloseButton: true,
-        children: 'It seems there is an issue with the DRep ID you are trying to claim. Try selecting one from the DRep list.',
+        children:
+          'It seems there is an issue with the DRep ID you are trying to claim. Try selecting one from the DRep list.',
         actionButtons: [
           {
             label: 'Go to DRep List',
             handleClick: () => {
-              handleActionModalClose();
+              closeModal(ModalType.ACTION);
               router.push('/dreps/list');
+              setUserInfo({
+                dRepClaimInfo: {
+                  dRepIDToClaimBech32: null,
+                },
+              });
             },
           },
         ],
         handleClose: () => {
           router.push('/dreps/list');
-          handleActionModalClose();
+          closeModal(ModalType.ACTION);
+          setUserInfo({
+            dRepClaimInfo: {
+              dRepIDToClaimBech32: null,
+            },
+          });
         },
       });
     }
   }, [params, pathname]);
 
+  //todo: update to check from drepClaimed array
   useEffect(() => {
-    if (!isEnabled) {
-      setIsWalletListModalOpen(true);
-      setHideCloseButtonOnWalletListModal(true);
-    } else if (dRepIDBech32) {
+    if (!isConnected) {
+      openModal(ModalType.LOGIN, {
+        hideCloseButton: true,
+      });
+    } else if (dRepIdBech32) {
+      closeModal(ModalType.LOGIN);
       const checkIfExistingDRep = async () => {
         try {
-          const drep = await getSingleDRepViaVoterId(dRepIDBech32);
-          if (drep?.drep_id) {
-            setNewDrepId(drep.drep_id);
-            updateStep(ProfileWorkflowStepKey.PROFILE, 'update');
-            router.push(`/dreps/workflow/profile/update/step1`);
-          } else {
-            updateStep(ProfileWorkflowStepKey.PROFILE, 'active');
-          }
+          const drep = await getSingleDRepViaVoterId(dRepIdBech32);
+            if (drep?.drep_id && isOwner) {
+              setUserInfo({
+                dRepClaimProgress: {
+                  [ProfileWorkflowStepKey.PROFILE]: 'update',
+                },
+              });
+              router.push(`/dreps/workflow/profile/update/step1`);
+            } else {
+              setUserInfo({
+                dRepClaimProgress: {
+                  [ProfileWorkflowStepKey.PROFILE]: 'active',
+                },
+              });
+            }
         } catch (error) {
           if (
             error.response?.status === 404 &&
             error.response?.data?.message === 'Drep not found!'
           ) {
-            updateStep(ProfileWorkflowStepKey.PROFILE, 'active');
+            setUserInfo({
+              dRepClaimProgress: {
+                [ProfileWorkflowStepKey.PROFILE]: 'active',
+              },
+            });
           }
         }
       };
 
-
-      if (drepToBeClaimed && compareDRepIDs(drepToBeClaimed, dRepIDBech32)) {
+      if (dRepIDToClaimBech32) {
         checkIfExistingDRep();
       }
     }
-
-    return () => {
-      setIsWalletListModalOpen(false);
-      setHideCloseButtonOnWalletListModal(false);
-    };
-  }, [isEnabled, dRepIDBech32, drepToBeClaimed]);
+  }, [isConnected, dRepIdBech32, dRepIDToClaimBech32]);
 
   return <NewProfile />;
 };

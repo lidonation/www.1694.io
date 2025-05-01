@@ -25,8 +25,8 @@ import {
 import Link from 'next/link';
 import {useUserParticipationQuery} from '@/hooks/useUserCatalystParticipationQuery';
 import { useGetActionProposalPollQuery } from '@/hooks/useGetActionProposalPollQuery';
-import { useWallet } from '@/context/walletContext';
 import ProposalVotesBadge from './proposalVotesBadge';
+import { useWallet } from '@/context/globalContext';
 
 const StyledBadge = styled(Badge)(({theme}) => ({
   '& .MuiBadge-badge': {

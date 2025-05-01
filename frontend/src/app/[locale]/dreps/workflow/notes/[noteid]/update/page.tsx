@@ -2,23 +2,25 @@
 import BreadCrumbs from '@/components/molecules/BreadCrumbs';
 import ViewDraftsButton from '@/components/molecules/ViewDraftsButton';
 import UpdateNoteForm from '@/components/organisms/UpdateNoteForm';
-import { useDRepContext } from '@/context/drepContext';
-import { useCardano } from '@/context/cardanoContext';
+import { ModalType, useModals, useWallet } from '@/context/globalContext';
 import { getSingleNote } from '@/services/requests/getSingleNote';
 import React, { useEffect, useState } from 'react';
 
 const page = (params: { params: { noteid: number } }) => {
-  const { isEnabled } = useCardano();
+  const {
+    wallet: { isConnected },
+  } = useWallet();
+  const { openModal, closeModal } = useModals();
   const [initialValues, setInitialValues] = useState(null);
-  const { setIsWalletListModalOpen, setHideCloseButtonOnWalletListModal } =
-    useDRepContext();
+
   //displays or hides modal only if in form page
   useEffect(() => {
     const fetchNoteAndCheckLogin = async () => {
       try {
-        if (!isEnabled) {
-          setIsWalletListModalOpen(true);
-          setHideCloseButtonOnWalletListModal(true);
+        if (!isConnected) {
+          openModal(ModalType.LOGIN, {
+            hideCloseButton: true,
+          });
         }
         const note = await getSingleNote(params.params.noteid);
         setInitialValues(note);
@@ -28,8 +30,7 @@ const page = (params: { params: { noteid: number } }) => {
     };
     fetchNoteAndCheckLogin();
     return () => {
-      setIsWalletListModalOpen(false);
-      setHideCloseButtonOnWalletListModal(false);
+      closeModal(ModalType.WALLET_LIST);
     };
   }, []);
   return (

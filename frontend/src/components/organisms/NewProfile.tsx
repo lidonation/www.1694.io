@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useCardano } from '@/context/cardanoContext';
-import { useDRepContext } from '@/context/drepContext';
 import { Address } from '@emurgo/cardano-serialization-lib-asmjs';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -24,6 +22,9 @@ import CopyToClipboard from '../atoms/CopyToClipboard';
 import { Typography } from '@mui/material';
 import { drepInput } from '@/models/drep';
 import { ProfileWorkflowStepKey } from '@/lib/enums';
+import { ModalType, useModals, useWallet } from '@/context/globalContext';
+import { useQueryClient } from 'react-query';
+import { QUERY_KEYS } from '@/constants/queryKeys';
 
 const FormSchema = z.object({
   profileName: z.string().min(1, { message: 'Profile name is required' }),
@@ -62,12 +63,23 @@ const NewProfile = () => {
   } = useForm<InputType>({
     resolver: zodResolver(FormSchema),
   });
+  const queryClient = useQueryClient();
   const {
-    stakeKey,
+    wallet: { address, stakeKey, dRepIdBech32, isConnected },
+    user: {
+      dRepClaimInfo: {
+        isCurrentOwnerOfDRepToClaim,
+        dRepIDToClaimBech32,
+        isDRepTobeClaimedRegistered,
+        dRepToBeClaimedJsonLd,
+        isFetchingMetadataForClaim
+      },
+    },
     loginSignTransaction,
-    walletState: { usedAddress, changeAddress },
-    dRepIDBech32,
-  } = useCardano();
+    handleRefreshUserJsonLd,
+    setUserInfo,
+  } = useWallet();
+  const { openModal, closeModal } = useModals();
   const { addSuccessAlert, addErrorAlert } = useGlobalNotifications();
   const [currentMetadata, setCurrentMetadata] = useState(null);
   const [currentProfileUrl, setCurrentProfileUrl] = useState<string | null>(
@@ -75,25 +87,12 @@ const NewProfile = () => {
   );
   const router = useRouter();
   const newDRepMutation = usePostNewDrepMutation();
-  const {
-    setNewDrepId,
-    setCurrentRegistrationStep,
-    setIsLoggedIn,
-    metadataJsonLd,
-    handleRefresh,
-    isDRepRegistered,
-    handleActionModalOpen,
-    handleActionModalClose,
-    drepToBeClaimed,
-    drepClaimMismatch,
-    updateStep,
-  } = useDRepContext();
 
   useEffect(() => {
     const getDRep = () => {
       try {
-        if (!metadataJsonLd) return;
-        const metadataBody = metadataJsonLd?.body;
+        if (!dRepToBeClaimedJsonLd) return;
+        const metadataBody = dRepToBeClaimedJsonLd?.body;
         setValue(
           'profileName',
           renderJsonLdValue(metadataBody?.givenName || metadataBody?.dRepName),
@@ -108,9 +107,7 @@ const NewProfile = () => {
         setValue('objectives', renderJsonLdValue(metadataBody?.objectives));
         setValue(
           'paymentAddress',
-          renderJsonLdValue(metadataBody?.paymentAddress) ||
-            usedAddress ||
-            changeAddress,
+          renderJsonLdValue(metadataBody?.paymentAddress) || address,
         );
         setValue(
           'profileUrl',
@@ -154,13 +151,13 @@ const NewProfile = () => {
       setCurrentMetadata(null);
       setCurrentProfileUrl(null);
     };
-  }, [metadataJsonLd]);
+  }, [dRepToBeClaimedJsonLd]);
 
   const renderModal = () => {
     switch (true) {
       //case where the user tries to claim a retired or unknown DRep
-      case !isDRepRegistered && drepClaimMismatch:
-        handleActionModalOpen({
+      case !isDRepTobeClaimedRegistered && !isCurrentOwnerOfDRepToClaim:
+        openModal(ModalType.ACTION, {
           title: 'Invalid DRep Claim',
           severity: 'error',
           children: (
@@ -174,13 +171,13 @@ const NewProfile = () => {
             </Typography>
           ),
           actionButtons: [],
-          handleClose: handleActionModalClose,
+          handleClose: () => closeModal(ModalType.ACTION),
         });
         return true;
 
       //case where the user tries to claim a DRep that is already registered but doesn't match the user's DRep ID
-      case isDRepRegistered && drepClaimMismatch:
-        handleActionModalOpen({
+      case isDRepTobeClaimedRegistered && !isCurrentOwnerOfDRepToClaim:
+        openModal(ModalType.ACTION, {
           title: 'DRep Claim Mismatch',
           severity: 'warning',
           children: (
@@ -204,17 +201,17 @@ const NewProfile = () => {
               label: 'Proceed',
               handleClick: () => {
                 saveProfile(getValues());
-                handleActionModalClose();
+                closeModal(ModalType.ACTION);
               },
             },
             {
               label: 'Cancel',
               handleClick: () => {
-                handleActionModalClose();
+                closeModal(ModalType.ACTION);
               },
             },
           ],
-          handleClose: handleActionModalClose,
+          handleClose: () => closeModal(ModalType.ACTION),
         });
         return true;
       default:
@@ -231,7 +228,12 @@ const NewProfile = () => {
 
   const saveProfile: SubmitHandler<InputType> = async (data) => {
     try {
-      const signatureResult = await loginSignTransaction(drepToBeClaimed);
+      const signatureResult = await loginSignTransaction(dRepIDToClaimBech32, [
+        {
+          type: 'drep',
+          value: dRepIDToClaimBech32,
+        },
+      ]);
       if (!signatureResult?.signature || !signatureResult?.key) {
         throw new Error('Failed to get signature');
       }
@@ -313,36 +315,39 @@ const NewProfile = () => {
         await setItemToIndexedDB('metadataJsonLd', jsonld);
         await setItemToIndexedDB('metadataJsonHash', jsonHash);
         setItemToLocalStorage('isUpdating', 'true');
-        await handleRefresh();
+        await handleRefreshUserJsonLd();
       }
       //we are confident that the DRep being claimed is the same as the user's DRep ID
-      if (!drepClaimMismatch) {
+      if (isCurrentOwnerOfDRepToClaim) {
         const stakeAddress = Address.from_bytes(
           Buffer.from(stakeKey, 'hex') as any,
         ).to_bech32();
         const formData: drepInput = {
           signatures: [{ signature, key, type: 'drep' }],
           stake_addr: stakeAddress,
-          voter_id: convertDrepPhraseToCIP105(dRepIDBech32),
-          drep_bech32: convertDrepPhraseToCIP105(drepToBeClaimed),
+          voter_id: convertDrepPhraseToCIP105(dRepIdBech32),
+          drep_bech32: convertDrepPhraseToCIP105(dRepIDToClaimBech32),
         };
         const res = await newDRepMutation.mutateAsync({
           drep: formData as any,
         });
-        const { insertedDrep, token } = res;
-        setNewDrepId(insertedDrep.raw[0].id);
+        const { token } = res;
         setItemToLocalStorage('token_1694', token);
       }
-      setCurrentRegistrationStep(2);
       addSuccessAlert(
-        drepClaimMismatch
+        !isCurrentOwnerOfDRepToClaim
           ? 'Profile saved locally!'
           : 'DRep Profile created successfully!',
       );
-      updateStep(ProfileWorkflowStepKey.PROFILE, 'success');
-      updateStep(ProfileWorkflowStepKey.SIGNATURES, 'active');
+      setUserInfo({
+        dRepClaimProgress: {
+          [ProfileWorkflowStepKey.PROFILE]: 'success',
+          [ProfileWorkflowStepKey.SIGNATURES]: 'active',
+          currentRegistrationStep: 2,
+        },
+      });
       setItemToLocalStorage('signatures', { signature, key });
-      setIsLoggedIn(true);
+      queryClient.invalidateQueries(QUERY_KEYS.getVoterClaimedProfilesKey);
       router.push(`/dreps/workflow/profile/update/step2`);
     } catch (error) {
       addErrorAlert('Error Creating DRep Profile!');
@@ -358,10 +363,10 @@ const NewProfile = () => {
         <h1 className="text-4xl font-bold text-zinc-800">
           Create Your DRep Campaign
         </h1>
-        {drepToBeClaimed && (
+        {dRepIDToClaimBech32 && (
           <div className="flex flex-row flex-wrap gap-1 lg:flex-nowrap">
             <CopyToClipboard
-              text={drepToBeClaimed}
+              text={dRepIDToClaimBech32}
               textStyles="w-full break-words text-slate-500 lg:w-fit"
             >
               <img src="/svgs/copy.svg" alt="copy" />
@@ -383,6 +388,7 @@ const NewProfile = () => {
           errors={errors}
           setProfileUrl={setValue}
           currentProfileUrl={currentProfileUrl}
+          isDisabled={!isConnected || isFetchingMetadataForClaim}
         />
       </form>
     </div>

@@ -1,15 +1,20 @@
 import React, { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { StepStatus, useDRepContext } from '@/context/drepContext';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { Tabs, Tab, Box } from '@mui/material';
 import { ProfileWorkflowStepKey } from '@/lib/enums';
+import { StepStatus, useWallet } from '@/context/globalContext';
+import { useScreenDimension } from '@/hooks';
 
 export const STEPS = [
   { number: 1, key: ProfileWorkflowStepKey.PROFILE, label: 'Profile set up' },
-  { number: 2, key:  ProfileWorkflowStepKey.SIGNATURES, label: 'Verify DRep profile' },
-  { number: 3, key:  ProfileWorkflowStepKey.SOCIALS, label: 'References/Links' },
-  { number: 4, key:  ProfileWorkflowStepKey.REVIEW, label: 'Metadata setup' },
+  {
+    number: 2,
+    key: ProfileWorkflowStepKey.SIGNATURES,
+    label: 'Verify DRep profile',
+  },
+  { number: 3, key: ProfileWorkflowStepKey.SOCIALS, label: 'References/Links' },
+  { number: 4, key: ProfileWorkflowStepKey.REVIEW, label: 'Metadata setup' },
 ] as const;
 
 const stepPathnameRegex = /\/dreps\/workflow\/profile\/update\/step(\d+)/;
@@ -35,16 +40,24 @@ const StepIcon = ({ step, status }: { step: number; status: StepStatus }) => {
 };
 
 const SetupProgressBar = () => {
-  const {
-    steps,
-    updateStep,
-    setCurrentRegistrationStep,
-    currentLocale,
-    drepClaimMismatch,
-  } = useDRepContext();
   const router = useRouter();
   const pathname = usePathname();
+  const {
+    user: {
+      dRepClaimProgress,
+      dRepClaimInfo: { isCurrentOwnerOfDRepToClaim, dRepIDToClaimBech32 },
+      dRepProfilesClaimed,
+    },
+    currentLocale,
+    setUserInfo,
+  } = useWallet();
+
+  const hasClaimedProfile = dRepProfilesClaimed.find(
+    (profile) => profile.claimedDRepBech32 == dRepIDToClaimBech32 
+  );
+  
   const { addWarningAlert } = useGlobalNotifications();
+  const { isMobile } = useScreenDimension();
 
   // Get step from URL - returns 1-based number
   const match = stepPathnameRegex.exec(pathname);
@@ -59,20 +72,23 @@ const SetupProgressBar = () => {
       return;
     }
 
-    // newStep is 0-based from MUI, convert to 1-based for URL/state
     const stepNumber = newStep + 1;
     const stepKey = STEPS[newStep].key;
 
     const currentStepMatch = stepPathnameRegex.exec(pathname);
     const currentStep = currentStepMatch ? Number(currentStepMatch[1]) : 0;
 
-    if (drepClaimMismatch && currentStep === 2 && stepNumber > 2) {
+    if (!isCurrentOwnerOfDRepToClaim && !hasClaimedProfile && currentStep === 2 && stepNumber > 2) {
       addWarningAlert('You need to verify your DRep profile first.');
       return;
     }
 
-    updateStep(stepKey, 'active');
-    setCurrentRegistrationStep(stepNumber);
+    setUserInfo({
+      dRepClaimProgress: {
+        [stepKey]: 'active',
+        currentRegistrationStep: stepNumber,
+      },
+    });
     router.push(`/dreps/workflow/profile/update/step${stepNumber}`);
   };
 
@@ -80,8 +96,12 @@ const SetupProgressBar = () => {
     const match = stepPathnameRegex.exec(pathname);
     if (match) {
       const stepNumber = Number(match[1]);
-      updateStep(STEPS[stepNumber - 1].key, 'active');
-      setCurrentRegistrationStep(stepNumber);
+      setUserInfo({
+        dRepClaimProgress: {
+          [STEPS[stepNumber - 1].key]: 'active',
+          currentRegistrationStep: stepNumber,
+        },
+      });
     }
   }, [pathname]);
 
@@ -90,13 +110,12 @@ const SetupProgressBar = () => {
       <Tabs
         value={activeStep}
         onChange={handleStepChange}
-        variant="scrollable"
         scrollButtons="auto"
+        variant={isMobile ? 'scrollable' : 'fullWidth'}
         allowScrollButtonsMobile
         sx={{
           '& .MuiTab-root': {
             minWidth: 'auto',
-            padding: '12px 64px',
             borderBottom: '2px solid',
             borderColor: 'grey.300',
             '&.Mui-selected': {
@@ -113,7 +132,10 @@ const SetupProgressBar = () => {
             key={step.number}
             label={
               <div className="flex flex-col items-center gap-1">
-                <StepIcon step={step.number} status={steps[step.key]} />
+                <StepIcon
+                  step={step.number}
+                  status={dRepClaimProgress[step.key]}
+                />
                 <span className="text-center capitalize">{step.label}</span>
               </div>
             }
