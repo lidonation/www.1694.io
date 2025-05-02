@@ -3,7 +3,6 @@ import { urls } from '@/constants';
 import { getDataFromSession } from '@/lib';
 
 const baseURL = urls.baseServerUrl;
-console.log(baseURL);
 
 const axiosInstance = axios.create({
   baseURL,

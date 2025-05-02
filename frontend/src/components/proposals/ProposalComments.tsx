@@ -3,20 +3,13 @@ import { Box, Button, CircularProgress, Typography } from '@mui/material';
 import React, { memo, useEffect, useRef, useState } from 'react';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { useQueryClient } from 'react-query';
-import {
-  deleteDataFromSession,
-  formatNumberTimeToReadable,
-  getDataFromSession,
-} from '@/lib';
+import { deleteDataFromSession, formatNumberTimeToReadable } from '@/lib';
 import MarkdownParser from '../atoms/MarkdownParser';
 import { postProposalComment } from '@/services/requests/postProposalComment';
-import { setUpPdfJwt } from '@/lib/pdfJwtHelper';
 import { useGetDRepRegistrationQuery } from '@/hooks/useGetDRepRegistrationQuery';
-import { loginUserToPdf } from '@/services/requests/loginUserToPdf';
 import { useWallet, ModalType, useModals } from '@/context/globalContext';
-import { AuthMethod } from '../../../types/auth';
-import { getPdfChallenge } from '@/services/requests/getPdfChallenge';
 import { useGetActionProposalCommentsQuery } from '@/hooks/useGetActionProposalCommentsQuery';
+import { usePdfTokenManager } from '@/hooks/usePdfTokenManager';
 
 type CommentData = {
   bd_proposal_id: string;
@@ -163,6 +156,7 @@ function ProposalComments({ proposal }: ProposalCommentsProps) {
   });
 
   const { openModal } = useModals();
+  const { ensureAuthenticated } = usePdfTokenManager();
   const { comments, isCommentsLoading } = useGetActionProposalCommentsQuery(
     Number(proposal?.id),
   );
@@ -189,88 +183,9 @@ function ProposalComments({ proposal }: ProposalCommentsProps) {
     );
   };
 
-  const handleLoginToPdf = async () => {
-    try {
-      // Sign with stake key first
-      const challengeRes = await getPdfChallenge({
-        query: `?identifier=${stakeKey}`,
-      });
-      const { message } = challengeRes;
-
-      let signedData = await signMessage(
-        message,
-        stakeKey,
-        activeWallet === AuthMethod.HOT_WALLET ? true : false,
-        activeWallet === AuthMethod.LOGIN_FILE ? true : false,
-      );
-
-      const userResponse = await loginUserToPdf({
-        identifier: stakeKey,
-        signedMessage: {
-          ...signedData,
-          expectedSignedMessage: message,
-        },
-      });
-
-      await setUpPdfJwt(userResponse);
-
-      // Check if username needs to be set
-      if (!userResponse?.user?.govtool_username) {
-        openModal(ModalType.USERNAME);
-        return { userNameModalActive: true };
-      }
-
-      // Handle DRep verification
-      if (isDRep && userResponse?.user?.govtool_username) {
-        addWarningAlert(
-          'You are a DRep! We need to verify your drep key.',
-          false,
-        );
-
-        try {
-          const challengeRes = await getPdfChallenge({
-            query: `?identifier=${dRepId}`,
-          });
-          const { message } = challengeRes;
-
-          let signedData = await signMessage(
-            message,
-            dRepId,
-            activeWallet === AuthMethod.HOT_WALLET ? true : false,
-            activeWallet === AuthMethod.LOGIN_FILE ? true : false,
-          );
-
-          const drepResponse = await loginUserToPdf({
-            jwt: userResponse?.jwt,
-            identifier: dRepId,
-            signedMessage: {
-              ...signedData,
-              expectedSignedMessage: message,
-            },
-          });
-
-          await setUpPdfJwt(drepResponse);
-          addSuccessAlert('DRep verification passed.');
-        } catch (error) {
-          console.error('DRep verification failed:', error);
-          deleteDataFromSession('pdfUserJwt');
-          addErrorAlert('DRep verification failed. Please try again.');
-          return { loginFailed: true };
-        }
-      }
-
-      addSuccessAlert('Login verification passed.');
-    } catch (error) {
-      console.error('Login process failed:', error);
-      deleteDataFromSession('pdfUserJwt');
-      addErrorAlert('Login failed. Please try again.');
-      return { loginFailed: true };
-    }
-  };
-
   const checkWalletConnection = (): boolean => {
     if (!isConnected) {
-      openModal(ModalType.LOGIN)
+      openModal(ModalType.LOGIN);
       return false;
     }
     return true;
@@ -298,18 +213,16 @@ function ProposalComments({ proposal }: ProposalCommentsProps) {
 
     setSubmittingComment(true);
 
-    if (!getDataFromSession('pdfUserJwt')) {
-      const loginRes = await handleLoginToPdf();
+    const authStatus = await ensureAuthenticated(
+      stakeKey,
+      dRepId,
+      isDRep,
+      activeWallet,
+    );
 
-      if (!!loginRes?.userNameModalActive) {
-        setSubmittingComment(false);
-        return;
-      }
-
-      if (!!loginRes?.loginFailed) {
-        setSubmittingComment(false);
-        return;
-      }
+    if (authStatus.userNameModalActive || authStatus.loginFailed) {
+      setSubmittingComment(false);
+      return;
     }
 
     try {
@@ -334,18 +247,16 @@ function ProposalComments({ proposal }: ProposalCommentsProps) {
 
     setSubmittingReply(true);
 
-    if (!getDataFromSession('pdfUserJwt')) {
-      const loginRes = await handleLoginToPdf();
+    const authStatus = await ensureAuthenticated(
+      stakeKey,
+      dRepId,
+      isDRep,
+      activeWallet,
+    );
 
-      if (!!loginRes?.userNameModalActive) {
-        setSubmittingReply(false);
-        return;
-      }
-
-      if (!!loginRes?.loginFailed) {
-        setSubmittingComment(false);
-        return;
-      }
+    if (authStatus.userNameModalActive || authStatus.loginFailed) {
+      setSubmittingReply(false);
+      return;
     }
 
     try {

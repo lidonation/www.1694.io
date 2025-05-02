@@ -65,7 +65,11 @@ const ProposalSort: React.FC<ProposalSortProps> = ({
         color="primary"
         sx={{ width: 40, height: 40 }}
       >
-        <SortIcon fontSize="large" />
+        <img
+          src="/svgs/arrows-sort.svg"
+          className="mt-1 h-5 w-5"
+          alt="Arrows Sort"
+        />
       </IconButton>
 
       {showSort && (
@@ -83,22 +87,39 @@ const ProposalSort: React.FC<ProposalSortProps> = ({
             zIndex: 50,
           }}
         >
-          <Typography variant="subtitle2" sx={{ pb: 1, borderBottom: '1px solid #ccc' }}>
+          <Typography
+            variant="subtitle2"
+            sx={{ pb: 1, borderBottom: '1px solid #ccc' }}
+          >
             Sort Proposals by:
           </Typography>
 
           <Box mt={2}>
             <FormControl component="fieldset">
               <RadioGroup
-                value={sortBy === 'alphabetical' ? 'alphabetical' : sortBy === 'lastModified' ? 'lastModified' : ''}
+                value={
+                  sortBy === 'alphabetical'
+                    ? 'alphabetical'
+                    : sortBy === 'lastModified'
+                      ? 'lastModified'
+                      : ''
+                }
                 onChange={(e) => {
                   const value = e.target.value;
                   setSortBy(value);
                   setSortOrder(value === 'alphabetical' ? 'asc' : 'desc');
                 }}
               >
-                <FormControlLabel value="alphabetical" control={<Radio />} label="Alphabetical" />
-                <FormControlLabel value="lastModified" control={<Radio />} label="Last Modified" />
+                <FormControlLabel
+                  value="alphabetical"
+                  control={<Radio />}
+                  label="Alphabetical"
+                />
+                <FormControlLabel
+                  value="lastModified"
+                  control={<Radio />}
+                  label="Last Modified"
+                />
               </RadioGroup>
             </FormControl>
           </Box>
@@ -115,8 +136,16 @@ const ProposalSort: React.FC<ProposalSortProps> = ({
                   setSortOrder(e.target.value as 'asc' | 'desc');
                 }}
               >
-                <FormControlLabel value="desc" control={<Radio />} label="Highest to Lowest" />
-                <FormControlLabel value="asc" control={<Radio />} label="Lowest to Highest" />
+                <FormControlLabel
+                  value="desc"
+                  control={<Radio />}
+                  label="Highest to Lowest"
+                />
+                <FormControlLabel
+                  value="asc"
+                  control={<Radio />}
+                  label="Lowest to Highest"
+                />
               </RadioGroup>
             </FormControl>
           </Box>
@@ -133,8 +162,16 @@ const ProposalSort: React.FC<ProposalSortProps> = ({
                   setSortOrder(e.target.value as 'asc' | 'desc');
                 }}
               >
-                <FormControlLabel value="desc" control={<Radio />} label="Highest to Lowest" />
-                <FormControlLabel value="asc" control={<Radio />} label="Lowest to Highest" />
+                <FormControlLabel
+                  value="desc"
+                  control={<Radio />}
+                  label="Highest to Lowest"
+                />
+                <FormControlLabel
+                  value="asc"
+                  control={<Radio />}
+                  label="Lowest to Highest"
+                />
               </RadioGroup>
             </FormControl>
           </Box>
@@ -147,7 +184,12 @@ const ProposalSort: React.FC<ProposalSortProps> = ({
                   setSortBy('createdAt');
                   setSortOrder('desc');
                 }}
-                sx={{ bgcolor: '#002e9f', '&:hover': { bgcolor: '#001e70' }, borderRadius: '999px', textTransform: 'none' }}
+                sx={{
+                  bgcolor: '#002e9f',
+                  '&:hover': { bgcolor: '#001e70' },
+                  borderRadius: '999px',
+                  textTransform: 'none',
+                }}
               >
                 Reset sorting
               </Button>

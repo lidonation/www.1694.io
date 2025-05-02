@@ -8,6 +8,7 @@ import {
   FormControl,
   FormControlLabel,
   Grow,
+  IconButton,
   Radio,
   RadioGroup,
   Switch,
@@ -96,11 +97,13 @@ export default function DRepListFilters() {
         aria-describedby={id}
         onClick={handleShow}
       >
-        <img
-          src="/svgs/filter.svg"
-          className="mt-1 h-5 w-5"
-          alt="Filter Sort"
-        />
+        <IconButton color="primary" sx={{ width: 40, height: 40 }}>
+          <img
+            src="/svgs/filter.svg"
+            className="mt-1 h-5 w-5"
+            alt="Filter Sort"
+          />
+        </IconButton>
 
         <Grow in={isFiltering}>
           <div className="absolute right-0 top-0">
@@ -130,7 +133,8 @@ export default function DRepListFilters() {
         }}
       >
         <Box className="bg-extra_gray px-6 py-4">
-          <Box className="flex flex-col">
+          <p className="text-sm font-semibold">Filter DReps by:</p>
+          <Box className="mt-2 flex flex-col">
             <FormControl>
               <span className="text-xs font-semibold">
                 Filter DReps by On-chain Status
@@ -170,9 +174,11 @@ export default function DRepListFilters() {
                 />
               </RadioGroup>
             </FormControl>
+
             <Divider />
+
             <FormControl>
-              <span className="text-xs font-semibold">
+              <span className="mt-2 text-xs font-semibold">
                 Filter DReps by Campaign Status
               </span>
               <RadioGroup
@@ -210,6 +216,7 @@ export default function DRepListFilters() {
                 />
               </RadioGroup>
             </FormControl>
+
             <Divider />
 
             <FormControl>
@@ -238,7 +245,9 @@ export default function DRepListFilters() {
                 />
               </RadioGroup>
             </FormControl>
+
             <Divider />
+
             <FormControl>
               <FormControlLabel
                 value="include_retired"

@@ -44,7 +44,7 @@ const page = ({ searchParams }: PageProps) => {
         <section className="mb-12">
           <h2 className="text-7xl font-black">Available DReps</h2>
         </section>
-        <section className="mb-5 flex flex-col gap-5 lg:flex-row lg:justify-between">
+        <section className="mb-5 flex flex-col gap-4 lg:flex-row lg:justify-between">
           <DRepsMetrics />
           <DRepTableSearch />
         </section>

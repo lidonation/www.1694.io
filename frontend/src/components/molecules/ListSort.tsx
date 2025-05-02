@@ -8,6 +8,7 @@ import {
   FormControl,
   FormControlLabel,
   Grow,
+  IconButton,
   Radio,
   RadioGroup,
 } from '@mui/material';
@@ -93,11 +94,13 @@ export default function ListSort({ tableType, sortOptions }: ListSortProps) {
         aria-describedby={id}
         onClick={handleShow}
       >
-        <img
-          src="/svgs/arrows-sort.svg"
-          className="mt-1 h-5 w-5"
-          alt="Arrows Sort"
-        />
+        <IconButton color="primary" sx={{ width: 40, height: 40 }}>
+          <img
+            src="/svgs/arrows-sort.svg"
+            className="mt-1 h-5 w-5"
+            alt="Arrows Sort"
+          />
+        </IconButton>
 
         <Grow in={isFiltering}>
           <div className="absolute right-0 top-0">
