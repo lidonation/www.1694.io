@@ -52,20 +52,17 @@ const ProposalSearch: React.FC<ProposalSearchProps> = ({
 
   return (
     <Box display="flex" alignItems="center" gap={1} width="100%">
-      <Paper
-        component="form"
+      <Box
         sx={{
           display: 'flex',
           alignItems: 'center',
           width: '100%',
           borderRadius: '9999px',
-          border: '1px solid #3b82f6',
           backgroundColor: 'transparent',
           px: 2,
           py: 1,
         }}
-        elevation={0}
-        onSubmit={(e) => e.preventDefault()}
+        className="border border-primary-300"
       >
         <IconButton sx={{ p: 0, mr: 1 }} aria-label="search" disableRipple>
           <SearchIcon sx={{ color: '#3b82f6' }} />
@@ -88,7 +85,7 @@ const ProposalSearch: React.FC<ProposalSearchProps> = ({
             <CloseIcon fontSize="small" />
           </IconButton>
         )}
-      </Paper>
+      </Box>
 
       <ProposalFilter
         showFilter={showFilter}

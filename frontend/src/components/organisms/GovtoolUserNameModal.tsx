@@ -24,7 +24,7 @@ function GovToolUserNameModal({
   const { addSuccessAlert, addWarningAlert, addErrorAlert } =
     useGlobalNotifications();
   const {
-    wallet: { dRepId, dRepKeyHash, isDRep },
+    wallet: { dRepId, isDRep },
     activeWallet,
     signMessage
   } = useWallet();

@@ -32,7 +32,7 @@ interface ProposalFilterProps {
 const categoryOptions: FilterOption[] = [
   { label: 'Core', value: 'Core' },
   { label: 'Research', value: 'Research' },
-  { label: ' Governance Support' , value: 'Governance Support' },
+  { label: ' Governance Support', value: 'Governance Support' },
   { label: 'Marketing & Innovation', value: 'Marketing & Innovation' },
   { label: 'None of these', value: 'None of these' },
 ];
@@ -74,13 +74,18 @@ const ProposalFilter: React.FC<ProposalFilterProps> = ({
       <IconButton
         ref={filterButtonRef}
         color="primary"
+        sx={{ width: 40, height: 40 }}
         onClick={() => {
           setShowFilter((prev) => !prev);
           setShowSort(false);
         }}
         aria-label="Filter"
       >
-        <FilterAltIcon />
+        <img
+          src="/svgs/filter.svg"
+          className="mt-1 h-5 w-5"
+          alt="Filter Sort"
+        />
       </IconButton>
 
       {showFilter && (
@@ -100,7 +105,11 @@ const ProposalFilter: React.FC<ProposalFilterProps> = ({
         >
           <Typography
             variant="subtitle2"
-            sx={{ borderBottom: '1px solid #e0e0e0', pb: 1, color: 'text.secondary' }}
+            sx={{
+              borderBottom: '1px solid #e0e0e0',
+              pb: 1,
+              color: 'text.secondary',
+            }}
           >
             Filter by Category
           </Typography>
@@ -123,23 +132,23 @@ const ProposalFilter: React.FC<ProposalFilterProps> = ({
             >
               {categoryOptions.map((option) => (
                 <FormControlLabel
-                key={option.value}
-                value={option.value}
-                control={<Radio color="primary" />}
-                label={option.label}
-                sx={{
-                  alignItems: 'center',
-                  mb: 1,
-                  ml: 0,
-                  '.MuiFormControlLabel-label': {
-                    fontSize: '0.95rem',
-                  },
-                  '.MuiRadio-root': {
-                    padding: '4px', 
-                    marginRight: '8px', 
-                  },
-                }}
-              />
+                  key={option.value}
+                  value={option.value}
+                  control={<Radio color="primary" />}
+                  label={option.label}
+                  sx={{
+                    alignItems: 'center',
+                    mb: 1,
+                    ml: 0,
+                    '.MuiFormControlLabel-label': {
+                      fontSize: '0.95rem',
+                    },
+                    '.MuiRadio-root': {
+                      padding: '4px',
+                      marginRight: '8px',
+                    },
+                  }}
+                />
               ))}
             </RadioGroup>
           </FormControl>

@@ -2,16 +2,13 @@ import { useState, useEffect } from 'react';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import ThumbDownIcon from '@mui/icons-material/ThumbDown';
 import { Box, Button, CircularProgress } from '@mui/material';
-import { deleteDataFromSession, getDataFromSession } from '@/lib';
-import { setUpPdfJwt } from '@/lib/pdfJwtHelper';
+import { deleteDataFromSession } from '@/lib';
 import { postProposalVote } from '@/services/requests/postProposalVote';
 import { useQueryClient } from 'react-query';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { useGetUserProposalVoteQuery } from '@/hooks/useGetUserProposalVoteQuery';
-import { loginUserToPdf } from '@/services/requests/loginUserToPdf';
-import { useWallet,  ModalType, useModals } from '@/context/globalContext';
-import { AuthMethod } from '../../../types/auth';
-import { getPdfChallenge } from '@/services/requests/getPdfChallenge';
+import { useWallet } from '@/context/globalContext';
+import { usePdfTokenManager } from '@/hooks/usePdfTokenManager';
 
 type VoteSectionProps = {
   poll: any;
@@ -24,14 +21,12 @@ export default function VotingSection({ poll }: VoteSectionProps) {
   const [submitting, setSubmitting] = useState(false);
   const [hasVoted, setHasVoted] = useState(false);
   const queryClient = useQueryClient();
-  const { addSuccessAlert, addWarningAlert, addErrorAlert } =
-    useGlobalNotifications();
+  const { addSuccessAlert, addWarningAlert } = useGlobalNotifications();
   const {
     activeWallet,
     wallet: { dRepId, stakeKey, dRepDelegatedToVotingPower, isDRep },
-    signMessage,
   } = useWallet();
-  const { openModal } = useModals();
+  const { ensureAuthenticated } = usePdfTokenManager();
 
   const { pollVote } = useGetUserProposalVoteQuery(poll?.[0]?.id, dRepId);
 
@@ -48,89 +43,18 @@ export default function VotingSection({ poll }: VoteSectionProps) {
     setSubmitting(true);
 
     try {
-      // Check if user is logged in
-      if (!getDataFromSession('pdfUserJwt')) {
-        try {
-          // Sign with stake key first
-          const challengeRes = await getPdfChallenge({
-            query: `?identifier=${stakeKey}`,
-          });
-          const { message } = challengeRes;
+      const authStatus = await ensureAuthenticated(
+        stakeKey,
+        dRepId,
+        isDRep,
+        activeWallet,
+      );
 
-          let userRes = await signMessage(
-            message,
-            stakeKey,
-            activeWallet === AuthMethod.HOT_WALLET ? true : false,
-            activeWallet === AuthMethod.LOGIN_FILE ? true : false,
-          );
-
-          const userResponse = await loginUserToPdf({
-            identifier: stakeKey,
-            signedMessage: {
-              ...userRes,
-              expectedSignedMessage: message,
-            },
-          });
-
-          await setUpPdfJwt(userResponse);
-
-          if (!userResponse?.user?.govtool_username) {
-            openModal(ModalType.USERNAME);
-            setSubmitting(false);
-            return;
-          }
-
-          // Handle DRep verification
-          if (isDRep && userResponse?.user?.govtool_username) {
-            addWarningAlert(
-              'You are a DRep! We need to verify your drep key.',
-              false,
-            );
-
-            try {
-              const challengeRes = await getPdfChallenge({
-                query: `?identifier=${dRepId}`,
-              });
-              const { message } = challengeRes;
-
-              let signedData = await signMessage(
-                message,
-                dRepId,
-                activeWallet === AuthMethod.HOT_WALLET ? true : false,
-                activeWallet === AuthMethod.LOGIN_FILE ? true : false,
-              );
-
-              const drepResponse = await loginUserToPdf({
-                jwt: userResponse?.jwt,
-                identifier: dRepId,
-                signedMessage: {
-                  ...signedData,
-                  expectedSignedMessage: message,
-                },
-              });
-
-              await setUpPdfJwt(drepResponse);
-              addSuccessAlert('DRep verification passed');
-            } catch (drepError) {
-              console.error('DRep verification failed:', drepError);
-              deleteDataFromSession('pdfUserJwt');
-              setSubmitting(false);
-              addErrorAlert('DRep verification failed. Please try again.');
-              return;
-            }
-          }
-
-          addSuccessAlert('Login verification passed');
-        } catch (loginError) {
-          console.error('Login process failed:', loginError);
-          deleteDataFromSession('pdfUserJwt');
-          setSubmitting(false);
-          addErrorAlert('Login failed. Please try again.');
-          return;
-        }
+      if (authStatus.userNameModalActive || authStatus.loginFailed) {
+        setSubmitting(false);
+        return;
       }
 
-      // Submit the vote
       const voteData = {
         bd_poll_id: `${poll?.[0]?.id}`,
         drep_id: dRepId,
@@ -140,7 +64,6 @@ export default function VotingSection({ poll }: VoteSectionProps) {
 
       await postProposalVote(voteData);
 
-      // Update UI and data
       const queriesToInvalidate = [
         'getActionProposalPollKey',
         'getUserProposalVoteKey',
