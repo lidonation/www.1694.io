@@ -158,7 +158,7 @@ function ProposalComments({ proposal }: ProposalCommentsProps) {
   const { openModal } = useModals();
   const { ensureAuthenticated } = usePdfTokenManager();
   const { comments, isCommentsLoading } = useGetActionProposalCommentsQuery(
-    Number(proposal?.id),
+    Number(proposal?.attributes?.master_id),
   );
   const {
     wallet: { isConnected, dRepId, stakeKey, isDRep },

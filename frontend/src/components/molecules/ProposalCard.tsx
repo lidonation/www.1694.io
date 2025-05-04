@@ -49,7 +49,7 @@ function ProposalCard({proposal}: { proposal: any }) {
   const [shareAnchorEl, setShareAnchorEl] = useState(null);
   const [disableShare, setDisableShare] = useState(false);
   const openShare = Boolean(shareAnchorEl);
-  const { poll } = useGetActionProposalPollQuery(proposal?.id);
+  const { poll } = useGetActionProposalPollQuery(proposal?.attributes?.master_id);
   const { wallet } = useWallet();
   
   const proposalDetail =
@@ -115,7 +115,7 @@ function ProposalCard({proposal}: { proposal: any }) {
           alignItems="flex-start"
           >
             <Box>
-              <Link href={`/proposals/${proposal?.id}`} passHref legacyBehavior>
+              <Link href={`/proposals/${proposal?.attributes?.master_id}`} passHref legacyBehavior>
                 <Typography
                   component="a"
                   variant="h6"
@@ -313,7 +313,7 @@ function ProposalCard({proposal}: { proposal: any }) {
               </IconButton>
             </span>
           </Tooltip>
-          <Link href={`/proposals/${proposal?.id}`}>
+          <Link href={`/proposals/${proposal?.attributes?.master_id}`}>
             <Button variant="contained" size="small">
               View Details
             </Button>
