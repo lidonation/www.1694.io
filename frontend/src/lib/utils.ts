@@ -329,7 +329,6 @@ export const scrollToElement = (e: any, elementId: string) => {
   }
 };
 
-
 export const setEpochParams = async () => {
   try {
     const protocol = await getEpochParams();
@@ -359,3 +358,15 @@ export const pollTransaction = async (txHash: string) => {
   }
   return false;
 };
+
+export function decodeJWT() {
+  const jwt = getDataFromSession('pdfUserJwt');
+
+  if (!jwt) {
+    return null;
+  }
+
+  const payload = jwt?.split('.')[1];
+  const decoded = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
+  return JSON.parse(decoded);
+}

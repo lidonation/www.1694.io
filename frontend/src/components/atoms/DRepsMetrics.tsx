@@ -20,8 +20,8 @@ const DRepsMetrics = () => {
   }, [isMetricsLoading, fetchedMetrics]);
 
   return (
-    <TableContainer className="drep_metrics">
-      <table className="w-fit">
+    <TableContainer className="drep_metrics" style={{ width: 'auto', overflowX: 'visible' }}>
+      <table className="w-full">
         <tbody>
           <tr className="flex">
             <MetricCard
