@@ -7,9 +7,13 @@ export const loginUserToPdf = async (loginData: {
   jwt?: any;
 }) => {
   try {
-    const { data } = await axiosInstance.post(`${urls.pdfApiUrl}/auth/local`, {
-      ...loginData,
-    });
+    const { data } = await axiosInstance.post(
+      `${urls.pdfApiUrl}/auth/local`,
+      {
+        ...loginData,
+      },
+      { withCredentials: true },
+    );
     return data;
   } catch (error) {
     console.error(error);

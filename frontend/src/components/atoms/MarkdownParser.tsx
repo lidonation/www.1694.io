@@ -46,34 +46,57 @@ const MarkdownParser = ({ text }: MarkdownParserProps) => {
   }
 
   const components: Components = {
-    // Headings
     h1: ({ children }) => (
-      <Typography variant="h1" component="h1" gutterBottom>
+      <Typography
+        variant="h1"
+        component="h1"
+        sx={{ fontWeight: 400, fontSize: '2rem' }}
+      >
         {children}
       </Typography>
     ),
     h2: ({ children }) => (
-      <Typography variant="h2" component="h2" gutterBottom>
+      <Typography
+        variant="h2"
+        component="h2"
+        sx={{ fontWeight: 400, fontSize: '1.75rem' }}
+      >
         {children}
       </Typography>
     ),
     h3: ({ children }) => (
-      <Typography variant="h3" component="h3" gutterBottom>
+      <Typography
+        variant="h3"
+        component="h3"
+        sx={{ fontWeight: 400, fontSize: '1.5rem' }}
+      >
         {children}
       </Typography>
     ),
     h4: ({ children }) => (
-      <Typography variant="h4" component="h4" gutterBottom>
+      <Typography
+        variant="h4"
+        component="h4"
+        sx={{ fontWeight: 400, fontSize: '1.25rem' }}
+      >
         {children}
       </Typography>
     ),
     h5: ({ children }) => (
-      <Typography variant="h5" component="h5" gutterBottom>
+      <Typography
+        variant="h5"
+        component="h5"
+        sx={{ fontWeight: 400, fontSize: '1.1rem' }}
+      >
         {children}
       </Typography>
     ),
     h6: ({ children }) => (
-      <Typography variant="h6" component="h6" gutterBottom>
+      <Typography
+        variant="h6"
+        component="h6"
+        sx={{ fontWeight: 400, fontSize: '1rem' }}
+      >
         {children}
       </Typography>
     ),
