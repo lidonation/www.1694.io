@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   Typography,
   Skeleton,
@@ -6,6 +6,7 @@ import {
   Accordion,
   AccordionDetails,
   Tooltip,
+  Box,
 } from '@mui/material';
 import Link from 'next/link';
 import {
@@ -37,6 +38,7 @@ import { useGetAdaHolderCurrentDelegationQuery } from '@/hooks/useGetAdaHolderCu
 import { useDelegateTodRep } from '@/hooks/useDelegateToDRep';
 import { SingleDRep } from '../../../types/api';
 import { ModalType, useModals, useWallet } from '@/context/globalContext';
+import ProfileSkeletonLoader from '../Loaders/ProfileSkeletonLoader';
 
 interface DynamicDRepProfileCardProps {
   drep: SingleDRep;
@@ -78,7 +80,10 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
   const name = metadata?.body?.givenName || metadata?.body?.dRepName;
   const displayName = name
     ? renderJsonLdValue(name)
-    : convertString(drep?.view, isMobile);
+    : drep?.type === 'voting_option'
+      ? drep?.view
+      : convertString(drep?.view, isMobile);
+
   const handleDelegate = () => {
     delegate(drep?.view, { isRetired: drep?.retired });
   };
@@ -101,7 +106,7 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
   };
 
   const renderStatusChips = () => (
-    <div className="flex flex-row gap-2">
+    <div className="flex flex-row items-center gap-2">
       {drep?.type === 'scripted' && <StatusChip status="Scripted" />}
       {drep?.type === 'voting_option' && <StatusChip status="Voting Option" />}
       {!isClaimed && <StatusChip status="Not claimed" />}
@@ -180,178 +185,186 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
   };
 
   return (
-    <div className="flex flex-col gap-5 bg-white bg-opacity-50 px-5 py-10">
-      <DRepAvatarCard
-        loading={loading}
-        imageSrc={metadata?.body?.image?.contentUrl}
-      />
-
-      {/* Profile Name */}
-      <div className="w-full">
-        <Typography
-          variant="h4"
-          sx={{
-            whiteSpace: 'normal',
-            wordBreak: 'break-word',
-          }}
-        >
-          {loading ? (
-            <Skeleton animation="wave" variant="text" width={200} height={50} />
-          ) : (
-            displayName
-          )}
-        </Typography>
-      </div>
-
-      {renderStatusChips()}
-
-      {!isClaimed && drep?.view && (
-        <ClaimProfileButton
-          label="Claim this profile"
-          drepToBeClaimed={drep?.view}
-          
+    <Box className="flex w-full flex-col gap-5 lg:flex-row lg:gap-10">
+      <Box className="flex flex-col gap-5 lg:sticky lg:top-10 lg:w-[35%] lg:self-start">
+        <DRepAvatarCard
+          loading={loading}
+          imageSrc={metadata?.body?.image?.contentUrl}
         />
-      )}
-      {!isDelegated && (
-        <Button
-          className="w-full"
-          disabled={!!isDelegating}
-          handleClick={handleDelegate}
-        >
-          Delegate
-        </Button>
-      )}
 
-      <div className="flex items-center gap-4">
-        <div>
-          <Typography variant="h6">Voting power</Typography>
-          <p className="flex items-center gap-3 font-normal">
+        {/* Profile Name */}
+        <Box className="w-full">
+          <Typography
+            variant="h4"
+            sx={{
+              whiteSpace: 'normal',
+              wordBreak: 'break-word',
+            }}
+          >
             {loading ? (
-              <Skeleton animation="wave" width={50} height={20} />
-            ) : drep?.voting_power != null ? (
-              `₳ ${formattedAda(drep?.voting_power, 2)}`
+              <Skeleton
+                animation="wave"
+                variant="text"
+                width={200}
+                height={50}
+              />
             ) : (
-              '-'
+              displayName
             )}
-          </p>
-        </div>
-        <div>
-          <Typography variant="h6">Live Stake</Typography>
-          <p className="flex items-center gap-3 font-normal">
-            {loading ? (
-              <Skeleton animation="wave" width={50} height={20} />
-            ) : drep?.live_stake != null ? (
-              `₳ ${formattedAda(drep?.live_stake, 2)}`
-            ) : (
-              '-'
-            )}
-          </p>
-        </div>
-      </div>
+          </Typography>
+        </Box>
 
-      <div>
-        <Typography variant="h6">Total delegation</Typography>
-        <p>
-          {loading ? (
-            <Skeleton animation="wave" width={100} height={20} />
-          ) : (
-            `${drep?.delegation_vote_count || 0} ${
-              Number(drep?.delegation_vote_count) > 1
-                ? 'Delegators'
-                : 'Delegator'
-            }`
-          )}
-        </p>
-      </div>
+        {renderStatusChips()}
 
-      <fieldset className="rounded-2xl border border-blue-100 px-2">
-        <legend className="font-bold">DRep ID</legend>
-        <div className="flex flex-col items-start justify-center gap-1 divide-y divide-blue-100 pb-2">
-          <DRepIdHolder
-            loading={loading}
-            drepId={convertHexToCIP129(!!drep?.has_script, drep?.chain_id)}
-            isCIP129={true}
-          />
-          <DRepIdHolder
-            loading={loading}
-            drepId={drep?.view}
-            isCIP129={false}
-            className="pt-1"
-          />
-        </div>
-      </fieldset>
-
-      <DRepSocialLinks links={metadata?.body?.references} />
-
-      <div>
-        {isMetadataLoading ? (
-          <Skeleton animation="wave" width={150} height={20} />
-        ) : (
-          <MetadataViewer
-            metadata={metadata}
-            isMetadataLoading={isMetadataLoading}
-            metadataError={metadataError}
-            metadataUrl={drep?.metadata_url}
+        {!isClaimed && drep?.view && (
+          <ClaimProfileButton
+            label="Claim this profile"
+            drepToBeClaimed={drep?.view}
           />
         )}
-      </div>
-
-      {isClaimed && isOwner && (
-        <div>
-          {canEdit && (
-            <MetadataEditor
-              onClose={() => setCanEdit(false)}
-              initialMetadata={metadataJson}
-              onSuccessfulSubmit={() => setIsSubmittingMetadata(true)}
-            />
-          )}
-          {isSubmittingMetadata && (
-            <SubmitMetadataModal
-              onClose={() => setIsSubmittingMetadata(false)}
-              onSuccessfulSubmit={() => {
-                addSuccessAlert(
-                  'Metadata updated successfully. It will probably take few minutes to reflect',
-                );
-                resetDraft();
-              }}
-              metadataType="drepUpdate"
-            />
-          )}
-          {renderUnsavedChanges()}
-        </div>
-      )}
-
-      {isClaimed && isOwner && (
-        <div className="flex max-w-prose flex-col gap-2">
+        {!isDelegated && (
           <Button
-            handleClick={
-              isConnected
-                ? () => setCanEdit(true)
-                : () => {
-                    openModal(ModalType.LOGIN);
-                  }
-            }
             className="w-full"
+            disabled={!!isDelegating}
+            handleClick={handleDelegate}
           >
-            {isConnected ? 'Edit Metadata' : 'Login to update'}
+            Delegate
           </Button>
-          {isConnected && isOwner && (
-            <Link
-              href="/dreps/workflow/profile/update/step1"
-              onClick={handleEditProfile}
-            >
-              <Button
-                className="w-full"
-                variant="outlined"
-                bgcolor="transparent"
-              >
-                Edit Profile
-              </Button>
-            </Link>
+        )}
+
+        <Box className="flex items-center gap-4">
+          <Box>
+            <Typography variant="h6">Voting power</Typography>
+            <p className="flex items-center gap-3 font-normal">
+              {loading ? (
+                <Skeleton animation="wave" width={50} height={20} />
+              ) : drep?.voting_power != null ? (
+                `₳ ${formattedAda(drep?.voting_power, 2)}`
+              ) : (
+                '-'
+              )}
+            </p>
+          </Box>
+          <Box>
+            <Typography variant="h6">Live Stake</Typography>
+            <p className="flex items-center gap-3 font-normal">
+              {loading ? (
+                <Skeleton animation="wave" width={50} height={20} />
+              ) : drep?.live_stake != null ? (
+                `₳ ${formattedAda(drep?.live_stake, 2)}`
+              ) : (
+                '-'
+              )}
+            </p>
+          </Box>
+        </Box>
+
+        <Box>
+          <Typography variant="h6">Total delegation</Typography>
+          <p>
+            {loading ? (
+              <Skeleton animation="wave" width={100} height={20} />
+            ) : (
+              `${drep?.delegation_vote_count || 0} ${
+                Number(drep?.delegation_vote_count) > 1
+                  ? 'Delegators'
+                  : 'Delegator'
+              }`
+            )}
+          </p>
+        </Box>
+
+        <fieldset className="rounded-2xl border border-blue-100 px-2">
+          <legend className="font-bold">DRep ID</legend>
+          <div className="flex flex-col items-start justify-center gap-1 divide-y divide-blue-100 pb-2">
+            <DRepIdHolder
+              loading={loading}
+              drepId={convertHexToCIP129(!!drep?.has_script, drep?.chain_id)}
+              isCIP129={true}
+            />
+            <DRepIdHolder
+              loading={loading}
+              drepId={drep?.view}
+              isCIP129={false}
+              className="pt-1"
+            />
+          </div>
+        </fieldset>
+
+        <DRepSocialLinks links={metadata?.body?.references} />
+      </Box>
+
+      <Box className="flex flex-col gap-5 lg:w-[65%]">
+        <div>
+          {isMetadataLoading ? (
+            <ProfileSkeletonLoader />
+          ) : (
+            <MetadataViewer
+              metadata={metadata}
+              isMetadataLoading={isMetadataLoading}
+              metadataError={metadataError}
+              metadataUrl={drep?.metadata_url}
+            />
           )}
         </div>
-      )}
-    </div>
+
+        {isClaimed && isOwner && (
+          <div>
+            {canEdit && (
+              <MetadataEditor
+                onClose={() => setCanEdit(false)}
+                initialMetadata={metadataJson}
+                onSuccessfulSubmit={() => setIsSubmittingMetadata(true)}
+              />
+            )}
+            {isSubmittingMetadata && (
+              <SubmitMetadataModal
+                onClose={() => setIsSubmittingMetadata(false)}
+                onSuccessfulSubmit={() => {
+                  addSuccessAlert(
+                    'Metadata updated successfully. It will probably take few minutes to reflect',
+                  );
+                  resetDraft();
+                }}
+                metadataType="drepUpdate"
+              />
+            )}
+            {renderUnsavedChanges()}
+          </div>
+        )}
+
+        {isClaimed && isOwner && (
+          <div className="flex max-w-prose flex-col gap-2">
+            <Button
+              handleClick={
+                isConnected
+                  ? () => setCanEdit(true)
+                  : () => {
+                      openModal(ModalType.LOGIN);
+                    }
+              }
+              className="w-full"
+            >
+              {isConnected ? 'Edit Metadata' : 'Login to update'}
+            </Button>
+            {isConnected && isOwner && (
+              <Link
+                href="/dreps/workflow/profile/update/step1"
+                onClick={handleEditProfile}
+              >
+                <Button
+                  className="w-full"
+                  variant="outlined"
+                  bgcolor="transparent"
+                >
+                  Edit Profile
+                </Button>
+              </Link>
+            )}
+          </div>
+        )}
+      </Box>
+    </Box>
   );
 };
 

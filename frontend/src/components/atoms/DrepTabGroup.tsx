@@ -1,44 +1,57 @@
+import React from 'react';
+import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+
+type TabItem = {
+  id: string;
+  label: string;
+  path: string;
+};
 
 const DrepTabGroup = ({ drepId }: { drepId: string }) => {
-  const [active, setActive] = useState('profile');
   const router = useRouter();
   const pathname = usePathname();
-  const activeClasses =
-    'bg-white border-b-2 border-b-blue-800 rounded-t-lg text-blue-800 ';
-  const inactiveClasses =
-    'bg-blue-50 rounded-t-lg text-gray-500 hover:text-gray-800 cursor-pointer';
 
-  const handleClick = (id) => {
-    if (id === 'profile') {
-      router.push(`/dreps/${drepId}`);
-    }
-    if (id === 'delegators') {
-      router.push(`/dreps/${drepId}/delegators`);
-    }
+  const tabs: TabItem[] = [
+    { id: 'profile', label: 'Profile', path: `/dreps/${drepId}` },
+    { id: 'timeline', label: 'Timeline', path: `/dreps/${drepId}/timeline` },
+    {
+      id: 'delegators',
+      label: 'Delegators',
+      path: `/dreps/${drepId}/delegators`,
+    },
+  ];
+
+  const activeTab =
+    tabs.find((tab) =>
+      tab.id === 'profile'
+        ? pathname === tab.path
+        : pathname.includes(tab.path),
+    )?.id || 'profile';
+
+  const handleTabClick = (path: string) => {
+    router.push(path);
   };
-  useEffect(() => {
-    if (pathname.includes(`/dreps/${drepId}/delegators`)) {
-      setActive('delegators');
-    } else setActive('profile');
-  }, [pathname]);
+
   return (
-    <div className="flex items-center gap-1 overflow-x-auto">
-      <div
-        id="timeline"
-        className={`px-16 py-4 ${active === 'profile' ? activeClasses : inactiveClasses}`}
-        onClick={() => handleClick('profile')}
-      >
-        <p>Profile</p>
-      </div>
-      <div
-        id="delegators"
-        className={`px-16 py-4 ${active === 'delegators' ? activeClasses : inactiveClasses}`}
-        onClick={() => handleClick('delegators')}
-      >
-        <p>Delegators</p>
-      </div>
+    <div className="flex items-center overflow-x-auto">
+      {tabs.map((tab) => (
+        <Link
+          key={tab.id}
+          href={tab.path}
+          onClick={() => handleTabClick(tab.path)}
+          prefetch={true}
+          className={`px-16 py-4 transition-colors duration-200 focus:outline-none
+            ${
+              activeTab === tab.id
+                ? 'rounded-t-lg border-b-2 border-blue-800 bg-white text-blue-800'
+                : 'rounded-t-lg bg-blue-50 text-gray-500 hover:text-gray-800'
+            }`}
+          aria-current={activeTab === tab.id ? 'page' : undefined}
+        >
+          {tab.label}
+        </Link>
+      ))}
     </div>
   );
 };
