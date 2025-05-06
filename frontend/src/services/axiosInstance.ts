@@ -33,4 +33,5 @@ export const SetupInterceptors = () =>
       return Promise.reject(error);
     },
   );
+
 export default axiosInstance;

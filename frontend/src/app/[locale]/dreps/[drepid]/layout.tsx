@@ -22,7 +22,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     (drep) => drep.claimedDRepBech32 === drepid.toString(),
   );
 
-  const currentUserIsDrep = dRep?.drep_id && isOwner;
+  const currentUserIsDrepOwner = dRep?.drep_id && isOwner;
 
   if (!isDRepLoading && fetchError?.response?.status === 404) {
     return (
@@ -53,14 +53,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       />
       <div className="flex">
         {/* If current user is a drep, the drawer will be available for use */}
-        {currentUserIsDrep && (
+        {currentUserIsDrepOwner && (
           <DRepProfileBar isOpen={isOpen} setIsOpen={setIsOpen} />
         )}
-        <div className="base_container mt-4 flex h-full w-full flex-col">
+        <div className="base_container my-5 flex h-full w-full flex-col shadow-sm">
           <div
-            className={`sticky top-0 z-10 flex items-center justify-start bg-blue-50 ${currentUserIsDrep && 'justify-between'}`}
+            className={`sticky top-0 z-10 flex items-center justify-start bg-blue-50 ${currentUserIsDrepOwner && 'justify-between'}`}
           >
-            {currentUserIsDrep && (
+            {currentUserIsDrepOwner && (
               <div className="shrink-0 lg:w-[30%]">
                 <IconButton
                   data-testid="close-drawer-button"
@@ -79,13 +79,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
             <div
               className={
-                currentUserIsDrep
+                currentUserIsDrepOwner
                   ? 'overflow-auto lg:w-[70%]'
                   : 'lg:w:[70%] w-full lg:flex lg:justify-end'
               }
             >
               <div
-                className={`flex justify-start ${!currentUserIsDrep && 'lg:w-[70%]'}`}
+                className={`flex justify-start ${!currentUserIsDrepOwner && 'lg:w-[70%]'}`}
               >
                 <DrepTabGroup drepId={drepid as string} />
               </div>
