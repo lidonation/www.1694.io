@@ -93,16 +93,20 @@ const ProfileUploadCard = ({
       ></div>
 
       {!preview ? (
-        <img src="/svgs/user-circle-filled.svg" alt="upload" />
+        <img src="/svgs/user-circle-filled.svg" alt="upload" className='mb-4' />
       ) : (
         <div
-          className="relative flex h-32 w-32 items-center justify-center "
+          className="relative mb-4 flex aspect-video w-40 items-center justify-center"
           onMouseEnter={() => setIsOverlay(true)}
           onMouseLeave={() => setIsOverlay(false)}
         >
-          <img src={preview as string} alt="Profile" />
+          <img
+            src={preview as string}
+            alt="Profile"
+            className="h-full w-full object-contain"
+          />
           <div
-            className={`absolute left-0 top-0 flex h-full w-full flex-col items-center justify-center  bg-slate-500 ${isOverlay ? 'opacity-90' : 'hidden'} cursor-pointer text-sm `}
+            className={`absolute left-0 top-0 flex h-full w-full flex-col items-center justify-center  bg-slate-500 ${isOverlay ? 'opacity-90' : 'hidden'} cursor-pointer text-sm text-white`}
             onClick={handleRemove}
           >
             Remove
@@ -110,7 +114,9 @@ const ProfileUploadCard = ({
         </div>
       )}
       <p className="mb-4 text-[11px] font-medium text-slate-500">
-        Drag and drop your photo or
+        {!preview
+          ? 'Drag and drop your photo or'
+          : 'Hover on the image to remove it'}
       </p>
       <Button handleClick={() => document.getElementById('fileInput').click()}>
         Upload

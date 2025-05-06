@@ -162,7 +162,7 @@ const DrepTimeline = ({ drep }: { drep: any }) => {
   };
 
   return (
-    <div className="flex h-full w-full flex-col gap-5 bg-white px-5 py-3">
+    <div className="flex h-full w-full flex-col gap-5 bg-white">
       <div className="flex flex-col items-center gap-2 sm:flex-row sm:justify-between">
         <div className="flex w-full justify-between">
           <Typography variant="h4">Timeline</Typography>

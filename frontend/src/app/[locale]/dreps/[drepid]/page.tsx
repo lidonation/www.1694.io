@@ -1,10 +1,8 @@
 'use client';
-import { Suspense } from 'react';
 import { useParams } from 'next/navigation';
 import { useGetSingleDRepQuery } from '@/hooks/useGetSingleDRepQuery';
 import DynamicDRepProfileCard from '@/components/atoms/DynamicDRepProfileCard';
-import DrepTimeline from '@/components/molecules/DrepTimeline';
-import Loading from '../loading';
+import Loading from './loading';
 
 const Page = () => {
   const { drepid } = useParams();
@@ -15,19 +13,12 @@ const Page = () => {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row">
-      <div className="lg:sticky lg:top-10 lg:w-[30%] lg:self-start lg:!scroll-smooth">
-        <DynamicDRepProfileCard
-          drep={dRep}
-          voterId={drepid.toString()}
-          loading={isDRepLoading}
-        />
-      </div>
-      <div className="lg:w-[70%]">
-        <Suspense>
-          <DrepTimeline drep={dRep} />
-        </Suspense>
-      </div>
+    <div className="bg-white bg-opacity-50 px-5 py-10 lg:!scroll-smooth">
+      <DynamicDRepProfileCard
+        drep={dRep}
+        voterId={drepid.toString()}
+        loading={isDRepLoading}
+      />
     </div>
   );
 };

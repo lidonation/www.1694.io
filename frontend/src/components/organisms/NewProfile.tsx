@@ -72,7 +72,7 @@ const NewProfile = () => {
         dRepIDToClaimBech32,
         isDRepTobeClaimedRegistered,
         dRepToBeClaimedJsonLd,
-        isFetchingMetadataForClaim
+        isFetchingMetadataForClaim,
       },
     },
     loginSignTransaction,
@@ -367,7 +367,7 @@ const NewProfile = () => {
           <div className="flex flex-row flex-wrap gap-1 lg:flex-nowrap">
             <CopyToClipboard
               text={dRepIDToClaimBech32}
-              textStyles="w-full break-words text-slate-500 lg:w-fit"
+              textStyles="text-slate-500"
             >
               <img src="/svgs/copy.svg" alt="copy" />
             </CopyToClipboard>
