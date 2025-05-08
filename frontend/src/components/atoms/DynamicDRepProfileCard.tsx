@@ -7,6 +7,7 @@ import {
   AccordionDetails,
   Tooltip,
   Box,
+  Divider,
 } from '@mui/material';
 import Link from 'next/link';
 import {
@@ -14,6 +15,7 @@ import {
   compareDRepIDs,
   convertHexToCIP129,
   convertString,
+  formatAsCurrency,
   formattedAda,
   getItemFromLocalStorage,
   removeItemFromLocalStorage,
@@ -39,6 +41,8 @@ import { useDelegateTodRep } from '@/hooks/useDelegateToDRep';
 import { SingleDRep } from '../../../types/api';
 import { ModalType, useModals, useWallet } from '@/context/globalContext';
 import ProfileSkeletonLoader from '../Loaders/ProfileSkeletonLoader';
+import LinearProgressBar from '../molecules/LinearProgressBar';
+import { useGetDRepParticipationQuery } from '@/hooks/useGetDRepParticipationQuery';
 
 interface DynamicDRepProfileCardProps {
   drep: SingleDRep;
@@ -66,6 +70,8 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
   const { metadata, isMetadataLoading, metadataError } =
     useGetDRepMetadataQuery(voterId);
   const { currentDelegation } = useGetAdaHolderCurrentDelegationQuery(stakeKey);
+  const { participationData, isParticipationDataLoading } =
+    useGetDRepParticipationQuery(voterId);
   const isDelegated = compareDRepIDs(drep?.view, currentDelegation?.drep_view);
   const isClaimed =
     drep?.type === 'scripted' ||
@@ -185,14 +191,16 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
   };
 
   return (
-    <Box className="flex w-full flex-col gap-5 lg:flex-row lg:gap-10">
-      <Box className="flex flex-col gap-5 lg:sticky lg:top-10 lg:w-[35%] lg:self-start">
+    <Box className="flex w-full flex-col bg-white bg-opacity-50 lg:flex-row">
+      <Box className="flex flex-col gap-5 p-5 lg:sticky lg:top-10 lg:w-[30%] lg:self-start">
         <DRepAvatarCard
           loading={loading}
           imageSrc={metadata?.body?.image?.contentUrl}
+          size="large"
+          showStatusInfo
+          variant="rounded"
         />
 
-        {/* Profile Name */}
         <Box className="w-full">
           <Typography
             variant="h4"
@@ -216,21 +224,26 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
 
         {renderStatusChips()}
 
-        {!isClaimed && drep?.view && (
-          <ClaimProfileButton
-            label="Claim this profile"
-            drepToBeClaimed={drep?.view}
-          />
-        )}
-        {!isDelegated && (
-          <Button
-            className="w-full"
-            disabled={!!isDelegating}
-            handleClick={handleDelegate}
-          >
-            Delegate
-          </Button>
-        )}
+        <Box className="flex flex-wrap gap-2">
+          {!isClaimed && drep?.view && (
+            <ClaimProfileButton
+              size="small"
+              className="w-fit"
+              label="Claim profile"
+              drepToBeClaimed={drep?.view}
+            />
+          )}
+          {!isDelegated && (
+            <Button
+              size="small"
+              className="w-fit"
+              disabled={!!isDelegating}
+              handleClick={handleDelegate}
+            >
+              Delegate
+            </Button>
+          )}
+        </Box>
 
         <Box className="flex items-center gap-4">
           <Box>
@@ -259,21 +272,6 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
           </Box>
         </Box>
 
-        <Box>
-          <Typography variant="h6">Total delegation</Typography>
-          <p>
-            {loading ? (
-              <Skeleton animation="wave" width={100} height={20} />
-            ) : (
-              `${drep?.delegation_vote_count || 0} ${
-                Number(drep?.delegation_vote_count) > 1
-                  ? 'Delegators'
-                  : 'Delegator'
-              }`
-            )}
-          </p>
-        </Box>
-
         <fieldset className="rounded-2xl border border-blue-100 px-2">
           <legend className="font-bold">DRep ID</legend>
           <div className="flex flex-col items-start justify-center gap-1 divide-y divide-blue-100 pb-2">
@@ -291,78 +289,138 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
           </div>
         </fieldset>
 
+        <Box>
+          <Typography variant="h6">Total delegation</Typography>
+          <p>
+            {loading ? (
+              <Skeleton animation="wave" width={100} height={20} />
+            ) : (
+              `${formatAsCurrency(drep?.delegation_vote_count || 0)} ${
+                Number(drep?.delegation_vote_count) > 1
+                  ? 'Delegators'
+                  : 'Delegator'
+              }`
+            )}
+          </p>
+        </Box>
+
         <DRepSocialLinks links={metadata?.body?.references} />
       </Box>
 
-      <Box className="flex flex-col gap-5 lg:w-[65%]">
-        <div>
-          {isMetadataLoading ? (
-            <ProfileSkeletonLoader />
-          ) : (
-            <MetadataViewer
-              metadata={metadata}
-              isMetadataLoading={isMetadataLoading}
-              metadataError={metadataError}
-              metadataUrl={drep?.metadata_url}
-            />
-          )}
-        </div>
-
-        {isClaimed && isOwner && (
+      <Box className="bg-white p-5 lg:w-[70%]">
+        <Box className="mb-8">
+          <Typography variant="h6" className="">
+            Metrics
+          </Typography>
+          <Box className="flex flex-col gap-1">
+            <Typography sx={{ fontSize: 14 }}>
+              Governance Actions Participation
+            </Typography>
+            {drep?.type !== 'voting_option' && (
+              <LinearProgressBar
+                primaryValue={participationData?.participation}
+                secondaryValue={participationData?.non_participation}
+                primaryPercentage={Number(
+                  (
+                    (participationData?.participation /
+                      participationData?.total_actions) *
+                    100
+                  ).toFixed(2),
+                )}
+                secondaryPercentage={Number(
+                  (
+                    (participationData?.non_participation /
+                      participationData?.total_actions) *
+                    100
+                  ).toFixed(2),
+                )}
+                primaryLabel="Voted"
+                secondaryLabel="Not Voted"
+                primaryColor="#4caf50"
+                secondaryColor="#f44336"
+                isLoading={isParticipationDataLoading}
+                dataAvailability={!!participationData}
+              />
+            )}
+            {drep?.type === 'voting_option' && (
+              <Typography sx={{ fontSize: 12 }}>
+                This is a voting option DRep and does not participate in
+                governance directly.
+              </Typography>
+            )}
+          </Box>
+        </Box>
+        <Box className="flex flex-col gap-5">
           <div>
-            {canEdit && (
-              <MetadataEditor
-                onClose={() => setCanEdit(false)}
-                initialMetadata={metadataJson}
-                onSuccessfulSubmit={() => setIsSubmittingMetadata(true)}
+            {isMetadataLoading ? (
+              <ProfileSkeletonLoader />
+            ) : (
+              <MetadataViewer
+                metadata={metadata}
+                isMetadataLoading={isMetadataLoading}
+                metadataError={metadataError}
+                metadataUrl={drep?.metadata_url}
               />
             )}
-            {isSubmittingMetadata && (
-              <SubmitMetadataModal
-                onClose={() => setIsSubmittingMetadata(false)}
-                onSuccessfulSubmit={() => {
-                  addSuccessAlert(
-                    'Metadata updated successfully. It will probably take few minutes to reflect',
-                  );
-                  resetDraft();
-                }}
-                metadataType="drepUpdate"
-              />
-            )}
-            {renderUnsavedChanges()}
           </div>
-        )}
 
-        {isClaimed && isOwner && (
-          <div className="flex max-w-prose flex-col gap-2">
-            <Button
-              handleClick={
-                isConnected
-                  ? () => setCanEdit(true)
-                  : () => {
-                      openModal(ModalType.LOGIN);
-                    }
-              }
-              className="w-full"
-            >
-              {isConnected ? 'Edit Metadata' : 'Login to update'}
-            </Button>
-            {isConnected && isOwner && (
-              <Link
-                href="/dreps/workflow/profile/update/step1"
-                onClick={handleEditProfile}
+          {isClaimed && isOwner && (
+            <div>
+              {canEdit && (
+                <MetadataEditor
+                  onClose={() => setCanEdit(false)}
+                  initialMetadata={metadataJson}
+                  onSuccessfulSubmit={() => setIsSubmittingMetadata(true)}
+                />
+              )}
+              {isSubmittingMetadata && (
+                <SubmitMetadataModal
+                  onClose={() => setIsSubmittingMetadata(false)}
+                  onSuccessfulSubmit={() => {
+                    addSuccessAlert(
+                      'Metadata updated successfully. It will probably take few minutes to reflect',
+                    );
+                    resetDraft();
+                  }}
+                  metadataType="drepUpdate"
+                />
+              )}
+              {renderUnsavedChanges()}
+            </div>
+          )}
+
+          {isClaimed && isOwner && (
+            <div className="flex max-w-prose flex-wrap gap-2">
+              <Button
+                handleClick={
+                  isConnected
+                    ? () => setCanEdit(true)
+                    : () => {
+                        openModal(ModalType.LOGIN);
+                      }
+                }
+                className="w-fit"
               >
-                <Button
-                  className="w-full"
-                  variant="outlined"
-                  bgcolor="transparent"
+                {isConnected ? 'Edit Metadata' : 'Login to update'}
+              </Button>
+              {isConnected && isOwner && (
+                <Link
+                  href="/dreps/workflow/profile/update/step1"
+                  onClick={handleEditProfile}
+                  className="w-fit"
                 >
-                  Edit Profile
-                </Button>
-              </Link>
-            )}
-          </div>
-        )}
+                  <Button
+                    className="w-fit"
+                    variant="outlined"
+                    bgcolor="transparent"
+                  >
+                    Edit Profile
+                  </Button>
+                </Link>
+              )}
+            </div>
+          )}
+        </Box>
       </Box>
     </Box>
   );

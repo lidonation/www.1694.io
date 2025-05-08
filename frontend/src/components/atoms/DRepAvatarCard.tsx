@@ -1,16 +1,25 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Avatar, Skeleton, Typography } from '@mui/material';
+import { Avatar, Box, Skeleton, Typography } from '@mui/material';
 import axios, { CancelTokenSource } from 'axios';
 import axiosInstance from '@/services/axiosInstance';
 
 interface DRepAvatarCardProps {
   loading: boolean;
   imageSrc: string;
+  showStatusInfo?: boolean;
+  size?: 'extraSmall' | 'small' | 'medium' | 'large';
+  variant?: 'circular' | 'rounded' | 'square';
 }
 
-const DRepAvatarCard: React.FC<DRepAvatarCardProps> = ({ loading, imageSrc }) => {
+const DRepAvatarCard: React.FC<DRepAvatarCardProps> = ({
+  loading,
+  imageSrc,
+  showStatusInfo = true,
+  size = 'small',
+  variant = 'circular',
+}) => {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isImageLoading, setIsImageLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const cancelTokenRef = useRef<CancelTokenSource | null>(null);
 
@@ -18,20 +27,18 @@ const DRepAvatarCard: React.FC<DRepAvatarCardProps> = ({ loading, imageSrc }) =>
     const fetchImage = async () => {
       if (!imageSrc) return;
 
-      setIsLoading(true);
+      setIsImageLoading(true);
       setError(null);
 
-      // Create a cancel token source
       cancelTokenRef.current = axios.CancelToken.source();
 
       try {
-        // Use axiosInstance with the cancel token
         const response = await axiosInstance.get('/dreps/media', {
           params: {
-            assetUrl: imageSrc
+            assetUrl: imageSrc,
           },
           responseType: 'blob',
-          cancelToken: cancelTokenRef.current.token
+          cancelToken: cancelTokenRef.current.token,
         });
 
         const imageObjectUrl = URL.createObjectURL(response.data);
@@ -48,13 +55,12 @@ const DRepAvatarCard: React.FC<DRepAvatarCardProps> = ({ loading, imageSrc }) =>
           setError('Failed to load image');
         }
       } finally {
-        setIsLoading(false);
+        setIsImageLoading(false);
       }
     };
 
     fetchImage();
 
-    // Cleanup function
     return () => {
       if (cancelTokenRef.current) {
         cancelTokenRef.current.cancel('Component unmounted');
@@ -67,44 +73,31 @@ const DRepAvatarCard: React.FC<DRepAvatarCardProps> = ({ loading, imageSrc }) =>
     };
   }, [imageSrc]);
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center">
-        <Skeleton
-          animation="wave"
-          variant="circular"
-          width={200}
-          height={200}
-        />
-      </div>
-    );
-  }
+  const sizeMap = {
+    extraSmall: '2rem',
+    small: '4rem',
+    medium: '8rem',
+    large: '14rem',
+  };
 
   return (
-    <div className="flex flex-col items-center justify-center">
+    <Box className="flex flex-col">
       <Avatar
-        variant="rounded"
-        className="w-full"
+        variant={variant}
+        className={`${!imageUrl && (loading || isImageLoading) ? 'animate-pulse bg-gray-300' : ''}`}
         src={imageUrl || undefined}
         sx={{
-          width: '100%',
-          height: '100%',
+          width: sizeMap[size],
+          height: sizeMap[size],
         }}
+        alt="DRep Avatar"
       />
-      {isLoading && (
-        <Typography
-          variant="caption"
-          className="mt-2 animate-pulse text-gray-500"
-        >
-          Loading image...
-        </Typography>
-      )}
-      {error && (
+      {showStatusInfo && error && (
         <Typography variant="caption" className="mt-2 text-red-500">
           {error}
         </Typography>
       )}
-    </div>
+    </Box>
   );
 };
 

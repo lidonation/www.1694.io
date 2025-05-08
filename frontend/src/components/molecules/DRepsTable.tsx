@@ -31,6 +31,7 @@ import { useDelegateTodRep } from '@/hooks/useDelegateToDRep';
 import ClaimProfileButton from '../atoms/ClaimProfileButton';
 import { useGetAdaHolderCurrentDelegationQuery } from '@/hooks/useGetAdaHolderCurrentDelegationQuery';
 import { useWallet } from '@/context/globalContext';
+import DRepLogo from './DRepLogo';
 
 type DRepsTableProps = {
   query?: string;
@@ -61,7 +62,9 @@ const DRepsTable = ({
   type,
 }: DRepsTableProps) => {
   const { isMobile } = useScreenDimension();
-  const { wallet:{stakeKey} } = useWallet();
+  const {
+    wallet: { stakeKey },
+  } = useWallet();
   const router = useRouter();
   const { addSuccessAlert } = useGlobalNotifications();
   const { delegate, isDelegating } = useDelegateTodRep();
@@ -77,6 +80,7 @@ const DRepsTable = ({
     includeRetired,
     type,
   );
+
   const handleViewOrDelegate = (drep: any) => {
     if (compareDRepIDs(drep?.view, currentDelegation?.drep_view)) {
       // View DRep
@@ -153,6 +157,11 @@ const DRepsTable = ({
               >
                 <td className="py-2.5">
                   <Box className="flex flex-row items-center gap-3">
+                    {!(
+                      drep?.type === 'voting_option' ||
+                      drep?.type === 'scripted'
+                    ) && <DRepLogo drepView={drep?.view} />}
+
                     {drep?.type === 'voting_option' ||
                     drep?.type === 'scripted' ? (
                       <Link
@@ -169,7 +178,7 @@ const DRepsTable = ({
                     ) : drep?.drep_id ? (
                       <Button
                         size="extraSmall"
-                        className='w-fit'
+                        className="w-fit"
                         handleClick={() => handleViewOrDelegate(drep)}
                         disabled={!!isDelegating}
                       >
@@ -195,21 +204,21 @@ const DRepsTable = ({
                       <Box className="flex flex-nowrap items-center">
                         <Tooltip title="Copy DRep ID (CIP-129)">
                           <span>
-                          <IconButton
-                            size="small"
-                            onClick={() =>
-                              handleCopyText(
-                                convertHexToCIP129(
-                                  drep?.has_script,
-                                  drep?.chain_id,
-                                ),
-                                addSuccessAlert,
-                              )
-                            }
-                          >
-                            <CopyToClipBoard width={18} height={18} />
-                          </IconButton>
-                          </span> 
+                            <IconButton
+                              size="small"
+                              onClick={() =>
+                                handleCopyText(
+                                  convertHexToCIP129(
+                                    drep?.has_script,
+                                    drep?.chain_id,
+                                  ),
+                                  addSuccessAlert,
+                                )
+                              }
+                            >
+                              <CopyToClipBoard width={18} height={18} />
+                            </IconButton>
+                          </span>
                         </Tooltip>
 
                         <Link
@@ -252,18 +261,18 @@ const DRepsTable = ({
 
                       <Tooltip title="DRep onchain status" disableFocusListener>
                         <span>
-                        <button className="flex gap-2 hover:cursor-default">
-                          <StatusChip
-                            status={
-                              drep?.type === 'voting_option'
-                                ? 'Active'
-                                : checkStatus(drep?.active)
-                            }
-                          />
-                          {drep.retired && drep?.type !== 'voting_option' && (
-                            <StatusChip status={'Retired'} />
-                          )}
-                        </button>
+                          <button className="flex gap-2 hover:cursor-default">
+                            <StatusChip
+                              status={
+                                drep?.type === 'voting_option'
+                                  ? 'Active'
+                                  : checkStatus(drep?.active)
+                              }
+                            />
+                            {drep.retired && drep?.type !== 'voting_option' && (
+                              <StatusChip status={'Retired'} />
+                            )}
+                          </button>
                         </span>
                       </Tooltip>
                     </Box>

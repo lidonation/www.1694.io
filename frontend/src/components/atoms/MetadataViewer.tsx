@@ -32,7 +32,7 @@ const MetadataViewer = ({
 
     if (metadataError) {
       return (
-        <div className="flex flex-col items-center justify-center">
+        <div className="mt-3 flex flex-col items-center justify-center">
           <div className="flex w-full flex-col items-center rounded-lg border-2 border-dashed border-gray-300 p-12 hover:border-gray-400">
             <DatabaseNullIcon width={60} height={50} />
             <span className="mt-2 block text-sm font-semibold text-gray-500">
@@ -45,7 +45,7 @@ const MetadataViewer = ({
 
     if (!metadata || !metadata.body) {
       return (
-        <div className="flex flex-col items-center justify-center">
+        <div className="mt-3 flex flex-col items-center justify-center">
           <div className="flex w-full flex-col items-center rounded-lg border-2 border-dashed border-gray-300 p-12 hover:border-gray-400">
             <DatabaseNullIcon width={60} height={50} />
             <span className="mt-2 block text-sm font-semibold text-gray-500">
@@ -114,7 +114,7 @@ const MetadataViewer = ({
     <div className="flex flex-col gap-2">
       {renderContent()}
       {metadataUrl && (
-        <Link href={metadataUrl} target="_blank">
+        <Link href={metadataUrl} target="_blank" className="w-fit">
           <div className="flex items-center gap-1 text-sm">
             <p className="font-semibold text-gray-600 hover:text-gray-800">
               View External Link

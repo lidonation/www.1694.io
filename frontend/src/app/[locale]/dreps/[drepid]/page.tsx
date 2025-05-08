@@ -13,7 +13,7 @@ const Page = () => {
   }
 
   return (
-    <div className="bg-white bg-opacity-50 px-5 py-10 lg:!scroll-smooth">
+    <div className="lg:!scroll-smooth">
       <DynamicDRepProfileCard
         drep={dRep}
         voterId={drepid.toString()}

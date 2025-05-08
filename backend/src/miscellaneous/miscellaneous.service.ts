@@ -132,34 +132,32 @@ export class MiscellaneousService {
   }
 
   private async tryIPFSGateways(hash: string, res: Response): Promise<any> {
-    let lastError;
+    const gateways = [
+      `https://ipfs.io/ipfs/${hash}`,
+      `https://dweb.link/ipfs/${hash}`,
+      `https://cloudflare-ipfs.com/ipfs/${hash}`,
+      `https://gateway.pinata.cloud/ipfs/${hash}`,
+    ];
 
-    // Try ipfs.io first
-    try {
-      const ipfsUrl = `https://ipfs.io/ipfs/${hash}`;
-      const response = await this.httpService.axiosRef.get(ipfsUrl, {
-        responseType: 'stream',
-      });
-      res.setHeader('Content-Type', response.headers['content-type']);
-      return response.data.pipe(res);
-    } catch (error) {
-      lastError = error;
+    const requests = gateways.map(
+      (url) =>
+        this.httpService.axiosRef
+          .get(url, {
+            responseType: 'stream',
+            timeout: 3000,
+          })
+          .catch((e) => e),
+    );
+
+    const responses = await Promise.all(requests);
+    const successfulResponse = responses.find((r) => !(r instanceof Error));
+
+    if (successfulResponse) {
+      res.setHeader('Content-Type', successfulResponse.headers['content-type']);
+      return successfulResponse.data.pipe(res);
     }
 
-    // Try dweb.link as fallback
-    try {
-      const dwebUrl = `https://dweb.link/ipfs/${hash}`;
-      const response = await this.httpService.axiosRef.get(dwebUrl, {
-        responseType: 'stream',
-      });
-      res.setHeader('Content-Type', response.headers['content-type']);
-      return response.data.pipe(res);
-    } catch (error) {
-      lastError = error;
-    }
-
-    // If both gateways fail
-    throw lastError;
+    throw new HttpException('All IPFS gateways failed', HttpStatus.BAD_GATEWAY);
   }
 
   async getMedia(res: Response, assetUrl?: string) {
@@ -219,52 +217,47 @@ export class MiscellaneousService {
     const { isIPFS, hash } = this.isIPFSUrl(url);
 
     if (isIPFS && hash) {
-      let lastError;
+      const gatewayUrls = [
+        `https://ipfs.io/ipfs/${hash}`,
+        `https://dweb.link/ipfs/${hash}`,
+        `https://cloudflare-ipfs.com/ipfs/${hash}`,
+        `https://gateway.pinata.cloud/ipfs/${hash}`,
+      ];
 
-      // Try ipfs.io first
-      try {
-        const ipfsUrl = `https://ipfs.io/ipfs/${hash}`;
-        const { data } = await firstValueFrom(
-          this.httpService.get(ipfsUrl).pipe(
-            catchError((err) => {
-              lastError = err;
-              throw err;
+      const requests = gatewayUrls.map((gatewayUrl) =>
+        firstValueFrom(
+          this.httpService.get(gatewayUrl, { timeout: 3000 }).pipe(
+            catchError(() => {
+              return new Promise((_, reject) =>
+                reject(new Error(`Failed to fetch from ${gatewayUrl}`)),
+              );
             }),
           ),
-        );
-        return data;
-      } catch (error) {
-        console.warn('Failed to fetch from ipfs.io:', error.message);
-      }
+        ),
+      );
 
-      // Try dweb.link as fallback
       try {
-        const dwebUrl = `https://dweb.link/ipfs/${hash}`;
-        const { data } = await firstValueFrom(
-          this.httpService.get(dwebUrl).pipe(
-            catchError((err) => {
-              lastError = err;
-              throw err;
-            }),
-          ),
-        );
-        return data;
+        const response = await Promise.race(requests);
+        return response;
       } catch (error) {
-        console.warn('Failed to fetch from dweb.link:', error.message);
-        throw lastError;
+        throw new Error('All IPFS gateways failed');
       }
     }
 
-    // If not IPFS, do regular fetch
-    const { data } = await firstValueFrom(
-      this.httpService.get(url).pipe(
-        catchError((err) => {
-          console.log(err);
-          throw new Error('Metadata url not reachable!');
-        }),
-      ),
-    );
-    return data;
+    // Regular fetch for non-IPFS URLs
+    try {
+      const { data } = await firstValueFrom(
+        this.httpService.get(url, { timeout: 30000 }).pipe(
+          catchError(() => {
+            throw new Error('Metadata URL not reachable!');
+          }),
+        ),
+      );
+      return data;
+    } catch (error) {
+      console.error('Error fetching from URL:', error.message);
+      throw error;
+    }
   }
 
   private getUrlProtocol(url: string): string {
