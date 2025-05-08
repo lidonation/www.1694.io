@@ -71,6 +71,12 @@ export const usePdfTokenManager = () => {
         stakeKey,
         activeWallet === AuthMethod.HOT_WALLET ? true : false,
         activeWallet === AuthMethod.LOGIN_FILE ? true : false,
+        [
+          {
+            type: 'stake',
+            value: stakeKey,
+          }
+        ]
       );
 
       const userResponse = await loginUserToPdf({
@@ -107,6 +113,12 @@ export const usePdfTokenManager = () => {
             dRepId,
             activeWallet === AuthMethod.HOT_WALLET ? true : false,
             activeWallet === AuthMethod.LOGIN_FILE ? true : false,
+            [
+              {
+                type: 'drep',
+                value: dRepId,
+              }
+            ]
           );
 
           const drepResponse = await loginUserToPdf({
