@@ -5,6 +5,7 @@ import ChevronRightIcon from '../atoms/svgs/ChevronRightIcon';
 import ChevronLeftIcon from '../atoms/svgs/ChevronLeftIcon';
 import ChevronsLeftIcon from '../atoms/svgs/ChevronsLeftIcon';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { formatAsCurrency } from '@/lib';
 
 type PaginationProps = {
   currentPage: number;
@@ -17,7 +18,7 @@ const Pagination = ({
   currentPage,
   totalPages,
   totalItems,
-  dataType
+  dataType,
 }: PaginationProps) => {
   const searchParams = useSearchParams();
   const pathName = usePathname();
@@ -117,7 +118,7 @@ const Pagination = ({
             </Box>
           </Box>
           <span className="textColor2 mr-2 text-sm">
-            Total {dataType}: {totalItems}
+            Total {dataType}: {formatAsCurrency(totalItems)}
           </span>
         </Box>
       )}

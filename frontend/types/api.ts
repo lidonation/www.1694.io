@@ -162,3 +162,9 @@ export interface CxProposalsMetrics {
   completed_proposals: number;
   outstanding_proposals: number;
 }
+
+export interface DRepParticipation {
+  participation: number,
+  total_actions: number,
+  non_participation: number
+}

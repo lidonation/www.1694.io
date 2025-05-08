@@ -164,8 +164,7 @@ const DrepTimeline = ({ drep }: { drep: any }) => {
   return (
     <div className="flex h-full w-full flex-col gap-5 bg-white">
       <div className="flex flex-col items-center gap-2 sm:flex-row sm:justify-between">
-        <div className="flex w-full justify-between">
-          <Typography variant="h4">Timeline</Typography>
+        <div className="flex w-full justify-end">
           <div className="flex items-center gap-4">
             {isOwner && drep?.drep_id && (
               <Button size="medium" className="flex w-fit items-center">
