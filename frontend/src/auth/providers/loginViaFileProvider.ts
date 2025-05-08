@@ -20,7 +20,9 @@ import {
   Address,
   Credential,
   Ed25519KeyHash,
+  RewardAddress,
 } from '@emurgo/cardano-serialization-lib-asmjs';
+import { CONFIGURED_NETWORK_ID } from '@/constants';
 
 /**
  * Provider that handles authentication via a login key file
@@ -86,6 +88,23 @@ export class LoginFileProvider implements AuthenticationProvider {
           throw new Error('Invalid login file format');
         }
 
+        const networkId =
+          loginData?.networkId ||
+          this.extractNetworkIdFromStakeBech32(loginData.stakeKeyBech32);
+
+        const requiredNetwork = CONFIGURED_NETWORK_ID;
+
+        if (requiredNetwork !== networkId) {
+          if (requiredNetwork == 1) {
+            throw new Error(
+              'Mainnet network wallet required, please switch to mainnet',
+            );
+          } else {
+            throw new Error(
+              'Testnet network wallet required, please switch to testnet',
+            );
+          }
+        }
         const signaturesVerification = await verifySignatures({
           signatures: {
             signature: loginData.signatures.signature,
@@ -177,10 +196,22 @@ export class LoginFileProvider implements AuthenticationProvider {
     return this.connected && this.loginCredentials !== null;
   }
 
-  buildCredentialFromBech32Key(key: string) {
+  private buildCredentialFromBech32Key(key: string) {
     try {
       const keyHash = Ed25519KeyHash.from_hex(key);
       return Credential.from_keyhash(keyHash);
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+  }
+
+  private extractNetworkIdFromStakeBech32(key: string) {
+    try {
+      const networkId = RewardAddress.from_address(
+        Address.from_bech32(key),
+      ).network_id();
+      return networkId;
     } catch (e) {
       console.error(e);
       throw e;

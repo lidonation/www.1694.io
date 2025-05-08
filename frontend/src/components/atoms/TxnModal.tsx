@@ -13,9 +13,9 @@ import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import CopySnippet from './CopySnippet';
 import { RequiredSigningKeyType, TxnTypes } from '@/hooks/useTransactionHandler';
 import { helperSnippets } from '@/models/helperSnippets';
+import { ModalWrapper } from './modal/ModalWrapper';
 
 interface CardanoTxModalProps {
-  open?: boolean;
   isPrepping?: boolean;
   fileToDownload?: string;
   onClose?: () => void;
@@ -33,7 +33,6 @@ interface CardanoTxModalProps {
 }
 
 const CardanoTxModal = ({
-  open = false,
   isPrepping = false,
   fileToDownload = 'tx.raw',
   onClose = () => {},
@@ -55,6 +54,8 @@ const CardanoTxModal = ({
   const { addErrorAlert } = useGlobalNotifications();
   const [signedTxFile, setSignedTxFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  
 
   useEffect(() => {
     let timer;
@@ -283,12 +284,9 @@ const CardanoTxModal = ({
   );
 
   return (
-    <Dialog
-      open={open}
-      sx={{ zIndex: 9999 }}
+    <ModalWrapper
+      sx={{ zIndex: 9999, minWidth: '700px' }}
       onClose={isLoading || isPrepping ? undefined : handleClose}
-      maxWidth="sm"
-      fullWidth
     >
       {isPrepping
         ? renderPreppingContent()
@@ -300,7 +298,7 @@ const CardanoTxModal = ({
           Cancel
         </Button>
       </DialogActions>
-    </Dialog>
+    </ModalWrapper>
   );
 };
 
