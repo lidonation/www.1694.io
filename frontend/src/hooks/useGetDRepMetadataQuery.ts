@@ -11,6 +11,7 @@ export const useGetDRepMetadataQuery = (voterId: string) => {
       return await getDRepMetadata(cip105Id);
     },
     enabled: !!voterId,
+    retry: 2,
     refetchOnWindowFocus: false,
   });
 

@@ -68,6 +68,7 @@ import { Currency } from 'src/common/enums';
 import { Signature } from 'src/entities/signatures.entity';
 import { MiscellaneousService } from 'src/miscellaneous/miscellaneous.service';
 import { getCurrentDelegationQuery } from 'src/queries/currentDelegation';
+import { getDRepParticipationQuery } from 'src/queries/drepParticipation';
 
 @Injectable()
 export class DrepService {
@@ -1198,6 +1199,7 @@ export class DrepService {
       };
     }
   }
+
   async getClaimedProfiles(voterId: string) {
     const claimedProfiles = await this.voltaireService
       .getRepository('Signature')
@@ -1223,5 +1225,16 @@ export class DrepService {
       claimMethod:
         profile.voterId == profile.drep_bech32 ? 'hot_wallet' : 'login_file',
     }));
+  }
+
+  async getGovernanceParticipation(voterId: string) {
+    if (!voterId) return null;
+
+    const participation = await this.cexplorerService.manager.query(
+      getDRepParticipationQuery,
+      [voterId],
+    );
+
+    return participation?.[0] || null;
   }
 }

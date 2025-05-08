@@ -173,4 +173,9 @@ export class DrepController {
   getClaimedProfiles(@Param('voterId') voterId: string) {
     return this.drepService.getClaimedProfiles(voterId);
   }
+
+  @Get(':voterId/governance-participation')
+  getGovernanceParticipation(@Param('voterId') voterId: string) {
+    return this.drepService.getGovernanceParticipation(voterId);
+  }
 }
