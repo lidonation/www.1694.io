@@ -629,21 +629,21 @@ export const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
   };
 
   const getAddressToDeriveUtxosFrom = () => {
-      switch (true) {
-        //claiming own drep via login file
-        case user.dRepClaimInfo.isCurrentOwnerOfDRepToClaim &&
-          activeProvider !== AuthMethod.HOT_WALLET:
-          return wallet.addressBech32;
-        //assumed to claim drep via hot wallet or login file
-        case !user.dRepClaimInfo.isCurrentOwnerOfDRepToClaim &&
-          activeProvider === AuthMethod.HOT_WALLET:
-        case !user.dRepClaimInfo.isCurrentOwnerOfDRepToClaim &&
-          activeProvider === AuthMethod.LOGIN_FILE:
-          return user.dRepClaimInfo.dRepEntityToClaim?.reg_address;
-        default:
-          //use address from state
-          return null;
-      }
+    switch (true) {
+      //claiming own drep via login file
+      case user.dRepClaimInfo.isCurrentOwnerOfDRepToClaim &&
+        activeProvider !== AuthMethod.HOT_WALLET:
+        return wallet.addressBech32;
+      //assumed to claim drep via hot wallet or login file
+      case !user.dRepClaimInfo.isCurrentOwnerOfDRepToClaim &&
+        activeProvider === AuthMethod.HOT_WALLET:
+      case !user.dRepClaimInfo.isCurrentOwnerOfDRepToClaim &&
+        activeProvider === AuthMethod.LOGIN_FILE:
+        return user.dRepClaimInfo.dRepEntityToClaim?.reg_address;
+      default:
+        //use address from state
+        return null;
+    }
   };
 
   const loginHardwareWalletTransaction = async (
@@ -665,7 +665,7 @@ export const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
         {
           ...options,
           deriveUtxosFrom: getAddressToDeriveUtxosFrom(),
-        }
+        },
       );
       return result;
     } catch (error) {
@@ -1292,37 +1292,42 @@ export const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
         </div>
       )}
 
-      <CardanoTxModal
-        open={modalState.txnModal.txnModalState.isOpen}
-        isPrepping={modalState.txnModal.txnModalState.isPrepping}
-        onClose={modalState.txnModal.closeTxnModal}
-        onWalletSign={() =>
-          modalState.txnModal.handleWalletSign(
-            modalState.txnModal.txnModalState.currentWalletApi,
-          )
-        }
-        onDownloadUnsigned={modalState.txnModal.handleDownloadUnsigned}
-        onSubmitSignedTx={(signedTxHash: File) =>
-          modalState.txnModal.handleSubmitSignedTxFile(
-            signedTxHash,
-            modalState.txnModal.txnModalState.currentWalletApi,
-          )
-        }
-        fileToDownload={modalState.txnModal.txnModalState.fileToDownload}
-        currentNetwork={CONFIGURED_NETWORK_ID}
-        error={modalState.txnModal.txnModalState.error}
-        disableDownload={modalState.txnModal.userActionState.disableDownload}
-        disableSigning={modalState.txnModal.userActionState.disableSigning}
-        txHash={modalState.txnModal.txnModalState.txHash}
-        txType={modalState.txnModal.txnModalState.type}
-        isLoading={modalState.txnModal.isLoading}
-        requiredSigningKey={
-          Array.isArray(modalState.txnModal.txnModalState.pendingTx?.requiredSigningKeys) &&
-          modalState.txnModal.txnModalState.pendingTx?.requiredSigningKeys.length > 0
-            ? modalState.txnModal.txnModalState.pendingTx?.requiredSigningKeys[0].type
-            : undefined
-        }
-      />
+      {modalState.txnModal.txnModalState.isOpen && (
+        <CardanoTxModal
+          isPrepping={modalState.txnModal.txnModalState.isPrepping}
+          onClose={modalState.txnModal.closeTxnModal}
+          onWalletSign={() =>
+            modalState.txnModal.handleWalletSign(
+              modalState.txnModal.txnModalState.currentWalletApi,
+            )
+          }
+          onDownloadUnsigned={modalState.txnModal.handleDownloadUnsigned}
+          onSubmitSignedTx={(signedTxHash: File) =>
+            modalState.txnModal.handleSubmitSignedTxFile(
+              signedTxHash,
+              modalState.txnModal.txnModalState.currentWalletApi,
+            )
+          }
+          fileToDownload={modalState.txnModal.txnModalState.fileToDownload}
+          currentNetwork={CONFIGURED_NETWORK_ID}
+          error={modalState.txnModal.txnModalState.error}
+          disableDownload={modalState.txnModal.userActionState.disableDownload}
+          disableSigning={modalState.txnModal.userActionState.disableSigning}
+          txHash={modalState.txnModal.txnModalState.txHash}
+          txType={modalState.txnModal.txnModalState.type}
+          isLoading={modalState.txnModal.isLoading}
+          requiredSigningKey={
+            Array.isArray(
+              modalState.txnModal.txnModalState.pendingTx?.requiredSigningKeys,
+            ) &&
+            modalState.txnModal.txnModalState.pendingTx?.requiredSigningKeys
+              .length > 0
+              ? modalState.txnModal.txnModalState.pendingTx
+                  ?.requiredSigningKeys[0].type
+              : undefined
+          }
+        />
+      )}
     </GlobalContext.Provider>
   );
 };

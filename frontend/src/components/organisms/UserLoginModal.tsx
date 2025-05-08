@@ -78,17 +78,17 @@ export function UserLoginModal({
     }
     setIsLoading(true);
     try {
-      const { success } = await connectWallet(ExtendedAuthMethod.LOGIN_FILE, {
+      const { success, error } = await connectWallet(ExtendedAuthMethod.LOGIN_FILE, {
         file: selectedFile,
       });
       if (!success) {
-        addErrorAlert('Error logging in with file. Please try again.');
+        addErrorAlert(typeof error === 'string' ? error : 'Error logging in with file');
         return;
       }
       onClose();
     } catch (error) {
       console.error('Error logging in with file:', error);
-      addErrorAlert('Error logging in with file. Please try again.');
+      addErrorAlert(typeof error === 'string' ? error : 'Error logging in with file');
     } finally {
       setIsLoading(false);
     }

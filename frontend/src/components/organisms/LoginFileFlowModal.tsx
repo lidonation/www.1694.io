@@ -196,6 +196,7 @@ export function LoginFileFlowModal({
         stakeKeyPub: res.publicKey,
         stakeKeyHex: stakeKeyHex.to_hex(),
         stakeKeyBech32: stakeKeyHex.to_bech32(),
+        networkId: stakeKeyHex.network_id(),
       };
 
       const loginFileName = '1694-login.signed';
@@ -249,14 +250,14 @@ export function LoginFileFlowModal({
         return (
           <Box sx={{ mt: 3 }}>
             <Typography variant="body1" paragraph>
-              We're going to help you generate a verification file
-              using the cardano-signer cli tool.
+              We're going to help you generate a verification file using the
+              cardano-signer cli tool.
             </Typography>
 
             <Typography variant="body2" color="text.secondary" paragraph>
-              Once created and signed the file using CIP-08,
-              you will be able to reuse the file in the future to
-              login to 1694 and participate in Cardano governance.
+              Once created and signed the file using CIP-08, you will be able to
+              reuse the file in the future to login to 1694 and participate in
+              Cardano governance.
             </Typography>
 
             <Button
@@ -306,7 +307,11 @@ export function LoginFileFlowModal({
             <CodeSnippet>
               {cliCommand}
               <CopyButton onClick={handleCopyCommand} size="small">
-                {copied ? <Check fontSize='small'/> : <ContentCopyIcon fontSize="small" />}
+                {copied ? (
+                  <Check fontSize="small" />
+                ) : (
+                  <ContentCopyIcon fontSize="small" />
+                )}
               </CopyButton>
             </CodeSnippet>
 
