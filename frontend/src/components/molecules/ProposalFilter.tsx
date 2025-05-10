@@ -1,16 +1,14 @@
 'use client';
-import React, { useRef, useEffect } from 'react';
-import FilterAltIcon from '@mui/icons-material/FilterAlt';
+import React, { useRef, useState } from 'react';
 import {
   Box,
   IconButton,
-  Paper,
   Typography,
-  FormControl,
-  RadioGroup,
+  Checkbox,
+  FormGroup,
   FormControlLabel,
-  Radio,
   Button,
+  Popover,
 } from '@mui/material';
 
 type FilterOption = {
@@ -24,6 +22,8 @@ interface ProposalFilterProps {
   setShowSort: (value: boolean) => void;
   selectedCategories: string[];
   setSelectedCategories: (value: string[]) => void;
+  selectedCommittees: string[];
+  setSelectedCommittees: (value: string[]) => void;
   setSortBy: (value: string) => void;
   setSortOrder: (value: 'asc' | 'desc') => void;
   setSearch: (value: string) => void;
@@ -32,9 +32,23 @@ interface ProposalFilterProps {
 const categoryOptions: FilterOption[] = [
   { label: 'Core', value: 'Core' },
   { label: 'Research', value: 'Research' },
-  { label: ' Governance Support', value: 'Governance Support' },
+  { label: 'Governance Support', value: 'Governance Support' },
   { label: 'Marketing & Innovation', value: 'Marketing & Innovation' },
   { label: 'None of these', value: 'None of these' },
+];
+
+const committeeOptions: FilterOption[] = [
+  { label: 'Marketing Committee', value: 'Marketing Committee' },
+  { label: 'Open Source Committee', value: 'Open Source Committee' },
+  { label: 'Technical Steering Committee', value: 'Technical Steering Committee' },
+  { label: 'Membership & Community Committee', value: 'Membership & Community Committee' },
+  { label: 'Product Committee', value: 'Product Committee' },
+  { label: 'Civics Committee', value: 'Civics Committee' },
+  { label: 'Intersect Steering Committee Election', value: 'Intersect Steering Committee' },
+  { label: 'Intersect Board ', value: 'Intersect Board' },
+  { label: 'Growth and Marketing Committee', value: 'Growth and Marketing Committee' },
+  { label: 'Cardano Budget Committee', value: 'Cardano Budget Committee' },
+  { label: 'None', value: 'None' },
 ];
 
 const ProposalFilter: React.FC<ProposalFilterProps> = ({
@@ -43,36 +57,18 @@ const ProposalFilter: React.FC<ProposalFilterProps> = ({
   setShowSort,
   selectedCategories,
   setSelectedCategories,
+  selectedCommittees,
+  setSelectedCommittees,
   setSortBy,
   setSortOrder,
   setSearch,
 }) => {
-  const filterRef = useRef<HTMLDivElement>(null);
-  const filterButtonRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        showFilter &&
-        filterRef.current &&
-        !filterRef.current.contains(event.target as Node) &&
-        filterButtonRef.current &&
-        !filterButtonRef.current.contains(event.target as Node)
-      ) {
-        setShowFilter(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [showFilter]);
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
 
   return (
-    <Box sx={{ position: 'relative' }}>
+    <>
       <IconButton
-        ref={filterButtonRef}
+        ref={buttonRef}
         color="primary"
         sx={{ width: 40, height: 40 }}
         onClick={() => {
@@ -81,103 +77,124 @@ const ProposalFilter: React.FC<ProposalFilterProps> = ({
         }}
         aria-label="Filter"
       >
-        <img
-          src="/svgs/filter.svg"
-          className="mt-1 h-5 w-5"
-          alt="Filter Sort"
-        />
+        <img src="/svgs/filter.svg" className="mt-1 h-5 w-5" alt="Filter Sort" />
       </IconButton>
 
-      {showFilter && (
-        <Paper
-          ref={filterRef}
-          elevation={4}
-          sx={{
-            position: 'absolute',
-            top: '100%',
-            left: 0,
-            zIndex: 10,
+      <Popover
+        open={showFilter}
+        anchorEl={buttonRef.current}
+        onClose={() => setShowFilter(false)}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'left',
+        }}
+        PaperProps={{
+          sx: {
             mt: 1,
-            width: 300,
-            p: 2,
+            width: { xs: '90vw', sm: 300 },
             bgcolor: '#f1f3fe',
+            borderRadius: 2,
+            boxShadow: 4,
+            p: { xs: 2, sm: 2 },
+          },
+        }}
+      >
+        <Typography
+          variant="subtitle2"
+          sx={{
+            borderBottom: '1px solid #e0e0e0',
+            pb: 1,
+            color: 'text.secondary',
           }}
         >
-          <Typography
-            variant="subtitle2"
-            sx={{
-              borderBottom: '1px solid #e0e0e0',
-              pb: 1,
-              color: 'text.secondary',
-            }}
-          >
-            Filter by Category
-          </Typography>
+          Filter by Category
+        </Typography>
 
-          <FormControl component="fieldset" sx={{ mt: 2 }}>
-            <RadioGroup
-              name="category"
-              value={selectedCategories[0] || ''}
-              onChange={(e) => {
-                const value = e.target.value;
-                if (selectedCategories.includes(value)) {
-                  setSelectedCategories([]);
-                  setSortBy('createdAt');
-                  setSortOrder('desc');
-                  setSearch('');
-                } else {
-                  setSelectedCategories([value]);
+        <Box mt={1}>
+          <FormGroup>
+            {categoryOptions.map((option) => (
+              <FormControlLabel
+                key={option.value}
+                control={
+                  <Checkbox
+                    checked={selectedCategories.includes(option.value)}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setSelectedCategories(
+                        checked
+                          ? [...selectedCategories, option.value]
+                          : selectedCategories.filter((cat) => cat !== option.value)
+                      );
+                    }}
+                  />
                 }
+                label={option.label}
+              />
+            ))}
+          </FormGroup>
+        </Box>
+
+        <Typography
+          variant="subtitle2"
+          sx={{
+            borderBottom: '1px solid #e0e0e0',
+            pb: 1,
+            mt: 2,
+            color: 'text.secondary',
+          }}
+        >
+          Filter by Committee
+        </Typography>
+
+        <Box mt={1}>
+          <FormGroup>
+            {committeeOptions.map((option) => (
+              <FormControlLabel
+                key={option.value}
+                control={
+                  <Checkbox
+                    checked={selectedCommittees.includes(option.value)}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setSelectedCommittees(
+                        checked
+                          ? [...selectedCommittees, option.value]
+                          : selectedCommittees.filter((com) => com !== option.value)
+                      );
+                    }}
+                  />
+                }
+                label={option.label}
+              />
+            ))}
+          </FormGroup>
+        </Box>
+
+        {(selectedCategories.length > 0 || selectedCommittees.length > 0) && (
+          <Box display="flex" justifyContent="flex-end" mt={2}>
+            <Button
+              variant="contained"
+              size="small"
+              sx={{
+                borderRadius: '9999px',
+                backgroundColor: '#1f2937',
+                textTransform: 'none',
+                '&:hover': { backgroundColor: '#1f2937' },
+              }}
+              onClick={() => {
+                setSelectedCategories([]);
+                setSelectedCommittees([]);
+                setSortBy('updatedAt');
+                setSortOrder('desc');
+                setSearch('');
               }}
             >
-              {categoryOptions.map((option) => (
-                <FormControlLabel
-                  key={option.value}
-                  value={option.value}
-                  control={<Radio color="primary" />}
-                  label={option.label}
-                  sx={{
-                    alignItems: 'center',
-                    mb: 1,
-                    ml: 0,
-                    '.MuiFormControlLabel-label': {
-                      fontSize: '0.95rem',
-                    },
-                    '.MuiRadio-root': {
-                      padding: '4px',
-                      marginRight: '8px',
-                    },
-                  }}
-                />
-              ))}
-            </RadioGroup>
-          </FormControl>
-
-          {selectedCategories.length > 0 && (
-            <Box display="flex" justifyContent="flex-end" mt={2}>
-              <Button
-                variant="contained"
-                size="small"
-                sx={{
-                  borderRadius: '9999px',
-                  backgroundColor: '#002e9f',
-                  textTransform: 'none',
-                  '&:hover': { backgroundColor: '#001c6f' },
-                }}
-                onClick={() => {
-                  setSelectedCategories([]);
-                  setSortBy('createdAt');
-                  setSortOrder('desc');
-                  setSearch('');
-                }}
-              >
-                Reset filters
-              </Button>
-            </Box>
-          )}
-        </Paper>
-      )}
-    </Box>
+              Reset filters
+            </Button>
+          </Box>
+        )}
+      </Popover>
+    </>
   );
 };
 

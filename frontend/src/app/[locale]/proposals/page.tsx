@@ -1,5 +1,5 @@
 'use client';
-
+import { useSearchParams } from 'next/navigation';
 import React, { useState } from 'react';
 import ProposalCard from '@/components/molecules/ProposalCard';
 import ProposalCardSkeleton from '@/components/1694.io/ProposalCardSkeleton';
@@ -8,27 +8,21 @@ import ProposalSearch from '@/components/atoms/ProposalSearch';
 import RecordsNotFound from '@/components/atoms/RecordsNotFound';
 import ProposalMetrics from '@/components/atoms/ProposalMetrics';
 import { ProposalDownloadButton } from '@/components/molecules/ProposalDownloadButton';
-import { useProposalFilters } from '@/hooks/useProposalFilters';
 import { useGetActionsProposalsQuery } from '@/hooks/useGetActionsProposalsQuery';
+import { useDebounce } from 'use-debounce';
 
 function ProposalsPage() {
-  const {
-    currentPage,
-    search,
-    setSearch,
-    sortBy,
-    setSortBy,
-    sortOrder,
-    setSortOrder,
-    showFilter,
-    setShowFilter,
-    showSort,
-    setShowSort,
-    selectedCategories,
-    setSelectedCategories,
-  } = useProposalFilters();
-
+  const [search, setSearch] = useState('');
+  const [sortBy, setSortBy] = useState('updatedAt');
+  const [debouncedSearch] = useDebounce(search, 300);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [showFilter, setShowFilter] = useState(false);
+  const [showSort, setShowSort] = useState(false);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedCommittees, setSelectedCommittees] = useState<string[]>([]);
   const [pageSize] = useState(12);
+  const searchParams = useSearchParams();
+  const currentPage = Number(searchParams.get('page')) || 1;
 
   const {
     actionsProposals: allFilteredProposals,
@@ -36,8 +30,9 @@ function ProposalsPage() {
   } = useGetActionsProposalsQuery(
     1,
     10000,
-    search,
-    selectedCategories.join(','),
+    debouncedSearch,
+    selectedCategories,
+    selectedCommittees,
     sortBy,
     sortOrder
   );
@@ -48,14 +43,12 @@ function ProposalsPage() {
   } = useGetActionsProposalsQuery(
     currentPage,
     pageSize,
-    search,
-    selectedCategories.join(','),
+    debouncedSearch,
+    selectedCategories,
+    selectedCommittees,
     sortBy,
     sortOrder
   );
-
-  const totalPages = paginatedProposals?.meta?.pagination?.pageCount || 1;
-  const totalItems = paginatedProposals?.meta?.pagination?.total || 0;
   const proposalsData = paginatedProposals?.data || [];
 
   return (
@@ -72,20 +65,22 @@ function ProposalsPage() {
 
       <section className="relative mb-6 rounded-full py-2 w-full max-w-7xl mx-auto lg:flex lg:flex-nowrap lg:items-center gap-4 justify-between">
         <div className="w-full lg:w-[45%]">
-          <ProposalMetrics search={search} categories={selectedCategories}/>
+          <ProposalMetrics search={debouncedSearch} categories={selectedCategories} committees={selectedCommittees} />
         </div>
 
         <div className="w-full lg:w-[55%] flex justify-end">
           <div className="w-full">
             <ProposalSearch
-                search={search}
-                setSearch={setSearch}
-                showFilter={showFilter}
-                setShowFilter={setShowFilter}
+              search={search}
+              setSearch={setSearch}
+              showFilter={showFilter}
+              setShowFilter={setShowFilter}
               showSort={showSort}
               setShowSort={setShowSort}
               selectedCategories={selectedCategories}
               setSelectedCategories={setSelectedCategories}
+              selectedCommittees={selectedCommittees}
+              setSelectedCommittees={setSelectedCommittees}
               sortBy={sortBy}
               setSortBy={setSortBy}
               sortOrder={sortOrder}
@@ -97,8 +92,9 @@ function ProposalsPage() {
       <section className="w-full max-w-7xl mx-auto flex justify-end mb-4">
         <ProposalDownloadButton
           proposals={allFilteredProposals?.data || []}
-          searchQuery={search}
+          searchQuery={debouncedSearch}
           categoryFilter={selectedCategories}
+          committeeFilter={selectedCommittees}
         />
       </section>
       <section>
@@ -108,15 +104,15 @@ function ProposalsPage() {
           <ul className="grid grid-cols-1 gap-6 py-6 xl:grid-cols-2 2xl:grid-cols-3">
             {isPaginatedLoading
               ? Array.from({ length: pageSize }).map((_, index) => (
-                  <li key={index}>
-                    <ProposalCardSkeleton />
-                  </li>
-                ))
+                <li key={index}>
+                  <ProposalCardSkeleton />
+                </li>
+              ))
               : proposalsData.map((proposal, index) => (
-                  <li key={index}>
-                    <ProposalCard proposal={proposal} />
-                  </li>
-                ))}
+                <li key={index}>
+                  <ProposalCard proposal={proposal} />
+                </li>
+              ))}
           </ul>
         )}
 
@@ -124,8 +120,8 @@ function ProposalsPage() {
           <div className="mt-8">
             <Pagination
               currentPage={currentPage}
-              totalPages={totalPages}
-              totalItems={totalItems}
+              totalPages={paginatedProposals?.last_page || 1}
+              totalItems={paginatedProposals?.total || 0}
               dataType="proposals"
             />
           </div>

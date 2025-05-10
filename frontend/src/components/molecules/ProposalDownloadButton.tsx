@@ -7,12 +7,14 @@ interface ProposalDownloadButtonProps {
   proposals: any[];
   searchQuery?: string;
   categoryFilter?: string | string[];
+  committeeFilter?: string | string[];
 }
 
 export function ProposalDownloadButton({
   proposals,
   searchQuery,
   categoryFilter,
+  committeeFilter,
 }: ProposalDownloadButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
 
@@ -24,6 +26,7 @@ export function ProposalDownloadButton({
       'Title',
       'Author',
       'Budget Category',
+      'Committee Name',
       'Budget Requested ( ₳ )',
       'Comments Count',
       'Funded Proposals',
@@ -41,21 +44,19 @@ export function ProposalDownloadButton({
     };
 
     const rows = data.map((proposal) => {
-      const proposalDetail = proposal?.attributes?.bd_proposal_detail?.data?.attributes;
-      const psapbData = proposal?.attributes?.bd_psapb?.data?.attributes;
-      const costingData = proposal?.attributes?.bd_costing?.data?.attributes;
-      const creator = proposal?.attributes?.creator?.data?.attributes;
-      const furtherInfo = proposal?.attributes?.bd_further_information?.data?.attributes;
-      const username = creator?.govtool_username || 'anonymous';
-      const metrics = proposal?.metrics || {};
+      const {
+        govToolProposalId,
+        proposalName,
+        govToolUserName,
+        budgetCat,
+        committeeName,
+        adaAmount,
+        commentsCount,
+        updatedAt,
+        metrics = {},
+      } = proposal;
 
-      let links = '';
-      if (furtherInfo?.proposal_links?.data) {
-        links = furtherInfo.proposal_links.data
-          .map(link => link.attributes?.url)
-          .filter(Boolean)
-          .join(' | ');
-      }
+      const username = govToolUserName || 'anonymous';
 
       const catalystLink =
         username !== 'anonymous' && Number(metrics.proposals) > 0
@@ -63,18 +64,19 @@ export function ProposalDownloadButton({
           : '';
 
       return [
-        escapeCSV(proposal.id),
-        escapeCSV(proposalDetail?.proposal_name || 'Untitled Proposal'),
+        escapeCSV(govToolProposalId),
+        escapeCSV(proposalName || 'Untitled Proposal'),
         escapeCSV(username),
-        escapeCSV(psapbData?.type_name?.data?.attributes?.type_name || 'Unspecified'),
-        escapeCSV(costingData?.ada_amount || '0'),
-        escapeCSV(proposal?.attributes?.prop_comments_number ?? 0),
+        escapeCSV(budgetCat || 'Unspecified'),
+        escapeCSV(committeeName || 'Unspecified'),
+        escapeCSV(adaAmount || '0'),
+        escapeCSV(commentsCount ?? 0),
         escapeCSV(metrics.funded_proposals || ''),
         escapeCSV(metrics.proposals || ''),
         escapeCSV(metrics.completed_proposals || ''),
         escapeCSV(metrics.outstanding_proposals || ''),
         escapeCSV(catalystLink),
-        escapeCSV(proposal?.attributes?.createdAt || ''),
+        escapeCSV(updatedAt || ''),
       ];
     });
 
@@ -86,8 +88,7 @@ export function ProposalDownloadButton({
     try {
       const enrichedProposals = await Promise.all(
         proposals.map(async (proposal) => {
-          const creator = proposal?.attributes?.creator?.data?.attributes;
-          const username = creator?.govtool_username;
+          const username = proposal.govToolUserName;
 
           if (username && username !== 'anonymous') {
             try {
@@ -117,6 +118,12 @@ export function ProposalDownloadButton({
           ? categoryFilter.join('-')
           : categoryFilter;
         filename += `_${categories}`;
+      }
+      if (committeeFilter) {
+        const committees = Array.isArray(committeeFilter)
+          ? committeeFilter.join('-')
+          : committeeFilter;
+        filename += `_${committees}`;
       }
       filename += `_${new Date().toISOString().split('T')[0]}.csv`;
 

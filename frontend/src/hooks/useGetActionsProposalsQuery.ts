@@ -6,7 +6,8 @@ export const useGetActionsProposalsQuery = (
   page = 1,
   pageSize = 12,
   search = '',
-  category = '',
+  category: string[] = [],
+  committee: string[] = [],
   sortBy = 'createdAt',
   sortOrder = 'desc'
 ) => {
@@ -17,6 +18,7 @@ export const useGetActionsProposalsQuery = (
       pageSize,
       search,
       category,
+      committee,
       sortBy,
       sortOrder,
     ],
@@ -26,6 +28,7 @@ export const useGetActionsProposalsQuery = (
         pageSize,
         search,
         category,
+        committee,
         sortBy,
         sortOrder
       ),

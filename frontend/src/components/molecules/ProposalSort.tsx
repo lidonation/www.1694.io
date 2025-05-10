@@ -1,16 +1,16 @@
 'use client';
-import React, { useRef, useEffect } from 'react';
-import SortIcon from '@mui/icons-material/SwapVert';
+import React, { useRef } from 'react';
 import {
+  Box,
   IconButton,
-  Paper,
+  Typography,
   Radio,
   Button,
   FormControl,
   FormControlLabel,
   RadioGroup,
-  Typography,
-  Box,
+  Divider,
+  Popover,
 } from '@mui/material';
 
 interface ProposalSortProps {
@@ -32,172 +32,145 @@ const ProposalSort: React.FC<ProposalSortProps> = ({
   sortOrder,
   setSortOrder,
 }) => {
-  const sortRef = useRef<HTMLDivElement>(null);
-  const sortButtonRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        showSort &&
-        sortRef.current &&
-        !sortRef.current.contains(event.target as Node) &&
-        sortButtonRef.current &&
-        !sortButtonRef.current.contains(event.target as Node)
-      ) {
-        setShowSort(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [showSort]);
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
 
   return (
-    <Box position="relative">
+    <>
       <IconButton
-        ref={sortButtonRef}
+        ref={buttonRef}
+        color="primary"
+        sx={{ width: 40, height: 40 }}
         onClick={() => {
           setShowSort((prev) => !prev);
           setShowFilter(false);
         }}
-        color="primary"
-        sx={{ width: 40, height: 40 }}
+        aria-label="Sort"
       >
-        <img
-          src="/svgs/arrows-sort.svg"
-          className="mt-1 h-5 w-5"
-          alt="Arrows Sort"
-        />
+        <img src="/svgs/arrows-sort.svg" className="mt-1 h-5 w-5" alt="Sort" />
       </IconButton>
 
-      {showSort && (
-        <Paper
-          ref={sortRef}
-          elevation={4}
-          sx={{
-            position: 'absolute',
-            left: 0,
-            top: '100%',
+      <Popover
+        open={showSort}
+        anchorEl={buttonRef.current}
+        onClose={() => setShowSort(false)}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'left',
+        }}
+        PaperProps={{
+          sx: {
             mt: 1,
-            width: 300,
+            width: { xs: '90vw', sm: 300 },
             bgcolor: '#f1f3fe',
-            p: 2,
-            zIndex: 50,
+            borderRadius: 2,
+            boxShadow: 4,
+            p: { xs: 2, sm: 2 },
+          },
+        }}
+      >
+        <Typography
+          variant="subtitle2"
+          sx={{
+            borderBottom: '1px solid #e0e0e0',
+            pb: 1,
+            color: 'text.secondary',
           }}
         >
-          <Typography
-            variant="subtitle2"
-            sx={{ pb: 1, borderBottom: '1px solid #ccc' }}
-          >
-            Sort Proposals by:
-          </Typography>
+          Sort Proposals by
+        </Typography>
 
-          <Box mt={2}>
-            <FormControl component="fieldset">
-              <RadioGroup
-                value={
-                  sortBy === 'alphabetical'
-                    ? 'alphabetical'
-                    : sortBy === 'lastModified'
-                      ? 'lastModified'
-                      : ''
-                }
-                onChange={(e) => {
-                  const value = e.target.value;
-                  setSortBy(value);
-                  setSortOrder(value === 'alphabetical' ? 'asc' : 'desc');
-                }}
-              >
-                <FormControlLabel
-                  value="alphabetical"
-                  control={<Radio />}
-                  label="Alphabetical"
-                />
-                <FormControlLabel
-                  value="lastModified"
-                  control={<Radio />}
-                  label="Last Modified"
-                />
-              </RadioGroup>
-            </FormControl>
+        <Box mt={1}>
+          <FormControl fullWidth>
+            <RadioGroup
+              value={sortBy}
+              onChange={(e) => {
+                const value = e.target.value;
+                setSortBy(value);
+                setSortOrder(value === 'alphabetical' ? 'asc' : 'desc');
+              }}
+            >
+              <FormControlLabel value="alphabetical" control={<Radio />} label="Alphabetical" />
+              <FormControlLabel value="lastModified" control={<Radio />} label="Last Modified" />
+            </RadioGroup>
+          </FormControl>
+        </Box>
+
+        <Typography
+          variant="subtitle2"
+          sx={{
+            borderBottom: '1px solid #e0e0e0',
+            pb: 1,
+            mt: 2,
+            color: 'text.secondary',
+          }}
+        >
+          Budget
+        </Typography>
+
+        <Box mt={1}>
+          <FormControl fullWidth>
+            <RadioGroup
+              value={sortBy === 'budget' ? sortOrder : ''}
+              onChange={(e) => {
+                setSortBy('budget');
+                setSortOrder(e.target.value as 'asc' | 'desc');
+              }}
+            >
+              <FormControlLabel value="desc" control={<Radio />} label="Highest to Lowest" />
+              <FormControlLabel value="asc" control={<Radio />} label="Lowest to Highest" />
+            </RadioGroup>
+          </FormControl>
+        </Box>
+
+        <Typography
+          variant="subtitle2"
+          sx={{
+            borderBottom: '1px solid #e0e0e0',
+            pb: 1,
+            mt: 2,
+            color: 'text.secondary',
+          }}
+        >
+          Conversation Rate
+        </Typography>
+
+        <Box mt={1}>
+          <FormControl fullWidth>
+            <RadioGroup
+              value={sortBy === 'conversationRate' ? sortOrder : ''}
+              onChange={(e) => {
+                setSortBy('conversationRate');
+                setSortOrder(e.target.value as 'asc' | 'desc');
+              }}
+            >
+              <FormControlLabel value="desc" control={<Radio />} label="Highest to Lowest" />
+              <FormControlLabel value="asc" control={<Radio />} label="Lowest to Highest" />
+            </RadioGroup>
+          </FormControl>
+        </Box>
+
+        {(sortBy !== 'updatedAt' || sortOrder !== 'desc') && (
+          <Box display="flex" justifyContent="flex-end" mt={2}>
+            <Button
+              variant="contained"
+              size="small"
+              sx={{
+                borderRadius: '9999px',
+                backgroundColor: '#1f2937',
+                textTransform: 'none',
+                '&:hover': { backgroundColor: '#1f2937' },
+              }}
+              onClick={() => {
+                setSortBy('updatedAt');
+                setSortOrder('desc');
+              }}
+            >
+              Reset sorting
+            </Button>
           </Box>
-
-          <Box mt={2}>
-            <Typography variant="body2" fontWeight="medium">
-              Budget
-            </Typography>
-            <FormControl component="fieldset" sx={{ pl: 1 }}>
-              <RadioGroup
-                value={sortBy === 'budget' ? sortOrder : ''}
-                onChange={(e) => {
-                  setSortBy('budget');
-                  setSortOrder(e.target.value as 'asc' | 'desc');
-                }}
-              >
-                <FormControlLabel
-                  value="desc"
-                  control={<Radio />}
-                  label="Highest to Lowest"
-                />
-                <FormControlLabel
-                  value="asc"
-                  control={<Radio />}
-                  label="Lowest to Highest"
-                />
-              </RadioGroup>
-            </FormControl>
-          </Box>
-
-          <Box mt={2}>
-            <Typography variant="body2" fontWeight="medium">
-              Conversion Rate
-            </Typography>
-            <FormControl component="fieldset" sx={{ pl: 1 }}>
-              <RadioGroup
-                value={sortBy === 'conversionRate' ? sortOrder : ''}
-                onChange={(e) => {
-                  setSortBy('conversionRate');
-                  setSortOrder(e.target.value as 'asc' | 'desc');
-                }}
-              >
-                <FormControlLabel
-                  value="desc"
-                  control={<Radio />}
-                  label="Highest to Lowest"
-                />
-                <FormControlLabel
-                  value="asc"
-                  control={<Radio />}
-                  label="Lowest to Highest"
-                />
-              </RadioGroup>
-            </FormControl>
-          </Box>
-
-          {(sortBy !== 'createdAt' || sortOrder !== 'desc') && (
-            <Box display="flex" justifyContent="flex-end" pt={2}>
-              <Button
-                variant="contained"
-                onClick={() => {
-                  setSortBy('createdAt');
-                  setSortOrder('desc');
-                }}
-                sx={{
-                  bgcolor: '#002e9f',
-                  '&:hover': { bgcolor: '#001e70' },
-                  borderRadius: '999px',
-                  textTransform: 'none',
-                }}
-              >
-                Reset sorting
-              </Button>
-            </Box>
-          )}
-        </Paper>
-      )}
-    </Box>
+        )}
+      </Popover>
+    </>
   );
 };
 
