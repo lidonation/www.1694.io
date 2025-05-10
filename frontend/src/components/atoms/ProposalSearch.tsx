@@ -2,7 +2,7 @@
 import React, { useEffect, useRef } from 'react';
 import ProposalFilter from '../molecules/ProposalFilter';
 import ProposalSort from '../molecules/ProposalSort';
-import { Box, InputBase, IconButton, Paper } from '@mui/material';
+import { Box, InputBase, IconButton } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
 
@@ -15,6 +15,8 @@ interface ProposalSearchProps {
   setShowSort: (value: boolean) => void;
   selectedCategories: string[];
   setSelectedCategories: (value: string[]) => void;
+  selectedCommittees: string[];
+  setSelectedCommittees: (value: string[]) => void;
   sortBy: string;
   setSortBy: (value: string) => void;
   sortOrder: 'asc' | 'desc';
@@ -30,6 +32,8 @@ const ProposalSearch: React.FC<ProposalSearchProps> = ({
   setShowSort,
   selectedCategories,
   setSelectedCategories,
+  selectedCommittees,
+  setSelectedCommittees,
   sortBy,
   setSortBy,
   sortOrder,
@@ -41,12 +45,42 @@ const ProposalSearch: React.FC<ProposalSearchProps> = ({
     if (inputRef.current) {
       inputRef.current.focus();
     }
-  }, [search]);
+    const handleBlur = () => {
+      setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.focus();
+        }
+      }, 0);
+    };
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        inputRef.current &&
+        !inputRef.current.contains(event.target as Node)
+      ) {
+        setTimeout(() => {
+          inputRef.current.focus();
+        }, 0);
+      }
+    };
+    const inputElement = inputRef.current;
+    if (inputElement) {
+      inputElement.addEventListener('blur', handleBlur);
+    }
+    document.addEventListener('click', handleClickOutside);
+    return () => {
+      if (inputElement) {
+        inputElement.removeEventListener('blur', handleBlur);
+      }
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, []);
 
   const handleClear = () => {
     setSearch('');
     setTimeout(() => {
-      inputRef.current?.focus();
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
     }, 0);
   };
 
@@ -93,6 +127,8 @@ const ProposalSearch: React.FC<ProposalSearchProps> = ({
         setShowSort={setShowSort}
         selectedCategories={selectedCategories}
         setSelectedCategories={setSelectedCategories}
+        selectedCommittees={selectedCommittees}
+        setSelectedCommittees={setSelectedCommittees}
         setSortBy={setSortBy}
         setSortOrder={setSortOrder}
         setSearch={setSearch}

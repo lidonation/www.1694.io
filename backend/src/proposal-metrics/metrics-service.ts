@@ -13,12 +13,13 @@ export class MetricsService {
   private readonly METRICS_URL =
     this.configService.get<string>('METRICS_BASE_URL');
 
-  async getProposalMetrics(search?: string, category?: string): Promise<any> {
+  async getProposalMetrics(search?: string, category?: string, committee?: string): Promise<any> {
     try {
       let url = `${this.METRICS_URL}/cardano/budget-proposals/metrics`;
       const queryParams = {
         s: search,
         category,
+        committee,
       };
 
       for (const param in queryParams) {
@@ -65,7 +66,7 @@ export class MetricsService {
               'Error fetching catalyst participation:',
               error?.response?.data || error,
             );
-            return of({ data: null});
+            return of({ data: null });
           }),
         ),
       );
