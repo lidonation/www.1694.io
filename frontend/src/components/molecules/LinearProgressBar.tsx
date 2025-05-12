@@ -65,10 +65,10 @@ const LinearProgressBar = ({
         />
 
         <Box className="absolute inset-0 flex items-center justify-between px-4">
-          <p className="flex items-center gap-3 text-sm font-semibold text-slate-100">
+          <p className="flex items-center gap-3 text-sm font-semibold text-primary-200">
             {primaryLabel}: {primaryValue} ({primaryPercentage}%)
           </p>
-          <p className="flex items-center gap-3 text-sm font-semibold text-slate-100">
+          <p className="flex items-center gap-3 text-sm font-semibold text-primary-200">
             {secondaryLabel}: {secondaryValue} ({secondaryPercentage}%)
           </p>
         </Box>

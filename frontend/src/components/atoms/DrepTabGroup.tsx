@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 
 type TabItem = {
   id: string;
@@ -9,7 +9,6 @@ type TabItem = {
 };
 
 const DrepTabGroup = ({ drepId }: { drepId: string }) => {
-  const router = useRouter();
   const pathname = usePathname();
 
   const tabs: TabItem[] = [
@@ -29,18 +28,14 @@ const DrepTabGroup = ({ drepId }: { drepId: string }) => {
         : pathname.includes(tab.path),
     )?.id || 'profile';
 
-  const handleTabClick = (path: string) => {
-    router.push(path);
-  };
-
   return (
-    <div className="flex items-center overflow-x-auto">
+    <div className="flex w-full items-center justify-start overflow-x-auto lg:justify-center">
       {tabs.map((tab) => (
         <Link
           key={tab.id}
           href={tab.path}
-          onClick={() => handleTabClick(tab.path)}
           prefetch={true}
+          scroll={false}
           className={`px-16 py-4 transition-colors duration-200 focus:outline-none
             ${
               activeTab === tab.id

@@ -82,24 +82,23 @@ export class DrepController {
   @Get(':voterId/activity')
   async getDrepActivity(
     @Param('voterId') voterId: string,
-    @Query('stakeKeys') stakeKeys?: StakeKeys,
+    @Query('stakeKey') stakeKey?: string,
+    @Query('stakeKeyBech32') stakeKeyBech32?: string,
     @Query('startTimeCursor') startTimeCursor?: number,
     @Query('endTimeCursor') endTimeCursor?: number,
     @Query('filterValues') filterValues?: string[] | undefined,
   ) {
-    const drep = await this.drepService.getVoltaireDRepViaVoterID(voterId);
     let delegation: Delegation = null;
-
-    const { stakeKey, stakeKeyBech32 } = stakeKeys || {};
+    const dRep = await this.drepService.getVoltaireDRepViaVoterID(voterId);
 
     if (stakeKey) {
       delegation =
         await this.voterService.getAdaHolderCurrentDelegation(stakeKey);
     }
-
+    
     const drepTimeline = await lastValueFrom(
       this.drepService.getDrepTimeline({
-        drep,
+        dRep,
         voterId,
         stakeKeyBech32,
         delegation,

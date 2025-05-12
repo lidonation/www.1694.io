@@ -212,6 +212,7 @@ export const dRepPhraseProcessor = (phrase: string) => {
     return phrase;
   }
 };
+
 export const dRepPhraseProcessorLegacy = (phrase: string) => {
   let drepIDPhrase = phrase;
 

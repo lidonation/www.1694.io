@@ -1,7 +1,6 @@
 import { QUERY_KEYS } from '@/constants/queryKeys';
 import { useQuery } from 'react-query';
 import { getDRepTimeline } from '@/services/requests/getDRepTimeline';
-import { StakeKeys } from '../../types/commonTypes';
 import { useEffect, useRef, useState } from 'react';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { convertDrepPhraseToCIP105, formatNumberTimeToReadable } from '@/lib';
@@ -13,10 +12,17 @@ export const useGetDRepTimelineQuery = (
 ) => {
   const [timeLineData, setTimeLineData] = useState([]);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
-  const { wallet:{stakeKey, stakeKeyBech32} } = useWallet();
+  const {
+    wallet: { stakeKey, stakeKeyBech32 },
+  } = useWallet();
   const { addWarningAlert } = useGlobalNotifications();
-  const stakeKeys: StakeKeys = { stakeKey, stakeKeyBech32 };
-  const prevFilterValuesRef = useRef<string[] | undefined>(filterValues);
+
+  const queryParamsRef = useRef({
+    filterValues,
+    stakeKey,
+    stakeKeyBech32,
+    idOrVoterId,
+  });
 
   const [queryEndTime, setQueryEndTime] = useState(() => Date.now());
   const [queryStartTime, setQueryStartTime] = useState(
@@ -27,19 +33,37 @@ export const useGetDRepTimelineQuery = (
   const [timelineStartTime, setTimelineStartTime] = useState(queryStartTime);
 
   useEffect(() => {
-    const prevFilterValues = prevFilterValuesRef.current;
-    const filtersHaveChanged =
-      JSON.stringify(prevFilterValues) !== JSON.stringify(filterValues);
+    const prevQueryParams = queryParamsRef.current;
 
-    if (filtersHaveChanged) {
+    const paramsHaveChanged =
+      JSON.stringify(prevQueryParams.filterValues) !==
+        JSON.stringify(filterValues) ||
+      prevQueryParams.stakeKey !== stakeKey ||
+      prevQueryParams.stakeKeyBech32 !== stakeKeyBech32 ||
+      JSON.stringify(prevQueryParams.idOrVoterId) !==
+        JSON.stringify(idOrVoterId);
+
+    if (paramsHaveChanged) {
       setTimeLineData([]);
       setIsInitialLoad(true);
       setTimelineEndTime(queryEndTime);
       setTimelineStartTime(queryStartTime);
     }
 
-    prevFilterValuesRef.current = filterValues;
-  }, [filterValues]);
+    queryParamsRef.current = {
+      filterValues,
+      stakeKey,
+      stakeKeyBech32,
+      idOrVoterId,
+    };
+  }, [
+    filterValues,
+    stakeKey,
+    stakeKeyBech32,
+    idOrVoterId,
+    queryEndTime,
+    queryStartTime,
+  ]);
 
   const { isLoading } = useQuery({
     queryKey: [
@@ -48,13 +72,15 @@ export const useGetDRepTimelineQuery = (
       queryEndTime,
       queryStartTime,
       filterValues,
-      stakeKeys,
+      stakeKey,
+      stakeKeyBech32,
     ],
     queryFn: async () => {
       const cip105Id = convertDrepPhraseToCIP105(idOrVoterId as string);
       return await getDRepTimeline(
         cip105Id,
-        stakeKeys,
+        stakeKey,
+        stakeKeyBech32,
         queryEndTime,
         queryStartTime,
         filterValues,
@@ -74,10 +100,13 @@ export const useGetDRepTimelineQuery = (
         setIsInitialLoad(false);
         return;
       }
+
       setTimeLineData((prevData) => {
         if (prevData.length < 1) {
           setIsInitialLoad(false);
+          return newData;
         }
+
         const isNewer =
           newData?.[newData.length - 1]?.timestamp > prevData?.[0]?.timestamp;
         if (isNewer) {
