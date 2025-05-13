@@ -49,9 +49,10 @@ export class ActionsProposalsService {
       }
 
       const url = `${this.CX_BASE_URL}/cardano/budget-proposals`;
+      const sanitizedSearch = search ? search.replace(/'/g, "''") : '';
 
       const params: any = {
-        s: search,
+        s: sanitizedSearch,
         page,
         limit: pageSize,
         sortBy: backendSortField,

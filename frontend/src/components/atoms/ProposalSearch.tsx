@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import ProposalFilter from '../molecules/ProposalFilter';
 import ProposalSort from '../molecules/ProposalSort';
 import { Box, InputBase, IconButton } from '@mui/material';
@@ -41,47 +41,11 @@ const ProposalSearch: React.FC<ProposalSearchProps> = ({
 }) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  useEffect(() => {
+  const handleClear = () => {
+    setSearch('');
     if (inputRef.current) {
       inputRef.current.focus();
     }
-    const handleBlur = () => {
-      setTimeout(() => {
-        if (inputRef.current) {
-          inputRef.current.focus();
-        }
-      }, 0);
-    };
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        inputRef.current &&
-        !inputRef.current.contains(event.target as Node)
-      ) {
-        setTimeout(() => {
-          inputRef.current.focus();
-        }, 0);
-      }
-    };
-    const inputElement = inputRef.current;
-    if (inputElement) {
-      inputElement.addEventListener('blur', handleBlur);
-    }
-    document.addEventListener('click', handleClickOutside);
-    return () => {
-      if (inputElement) {
-        inputElement.removeEventListener('blur', handleBlur);
-      }
-      document.removeEventListener('click', handleClickOutside);
-    };
-  }, []);
-
-  const handleClear = () => {
-    setSearch('');
-    setTimeout(() => {
-      if (inputRef.current) {
-        inputRef.current.focus();
-      }
-    }, 0);
   };
 
   return (
@@ -109,7 +73,6 @@ const ProposalSearch: React.FC<ProposalSearchProps> = ({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-
         {search && (
           <IconButton
             onClick={handleClear}
