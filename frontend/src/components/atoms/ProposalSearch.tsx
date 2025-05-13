@@ -1,8 +1,8 @@
 'use client';
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import ProposalFilter from '../molecules/ProposalFilter';
 import ProposalSort from '../molecules/ProposalSort';
-import { Box, InputBase, IconButton, Paper } from '@mui/material';
+import { Box, InputBase, IconButton } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
 
@@ -15,6 +15,8 @@ interface ProposalSearchProps {
   setShowSort: (value: boolean) => void;
   selectedCategories: string[];
   setSelectedCategories: (value: string[]) => void;
+  selectedCommittees: string[];
+  setSelectedCommittees: (value: string[]) => void;
   sortBy: string;
   setSortBy: (value: string) => void;
   sortOrder: 'asc' | 'desc';
@@ -30,6 +32,8 @@ const ProposalSearch: React.FC<ProposalSearchProps> = ({
   setShowSort,
   selectedCategories,
   setSelectedCategories,
+  selectedCommittees,
+  setSelectedCommittees,
   sortBy,
   setSortBy,
   sortOrder,
@@ -37,17 +41,11 @@ const ProposalSearch: React.FC<ProposalSearchProps> = ({
 }) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  useEffect(() => {
+  const handleClear = () => {
+    setSearch('');
     if (inputRef.current) {
       inputRef.current.focus();
     }
-  }, [search]);
-
-  const handleClear = () => {
-    setSearch('');
-    setTimeout(() => {
-      inputRef.current?.focus();
-    }, 0);
   };
 
   return (
@@ -75,7 +73,6 @@ const ProposalSearch: React.FC<ProposalSearchProps> = ({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-
         {search && (
           <IconButton
             onClick={handleClear}
@@ -93,6 +90,8 @@ const ProposalSearch: React.FC<ProposalSearchProps> = ({
         setShowSort={setShowSort}
         selectedCategories={selectedCategories}
         setSelectedCategories={setSelectedCategories}
+        selectedCommittees={selectedCommittees}
+        setSelectedCommittees={setSelectedCommittees}
         setSortBy={setSortBy}
         setSortOrder={setSortOrder}
         setSearch={setSearch}

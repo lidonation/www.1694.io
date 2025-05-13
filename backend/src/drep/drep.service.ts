@@ -377,13 +377,15 @@ export class DrepService {
     ).pipe(map((data) => data[0] || null));
   }
 
-  private getFilters(filterValues?: string[]): TimelineFilters {
+  private getFilters(filterValues?: string[] | undefined): TimelineFilters {
+    const showAll = !filterValues || filterValues?.length === 0;
+
     return {
-      includeVotingActivity: !filterValues || filterValues.includes('va'),
-      includeDelegations: !filterValues || filterValues.includes('d'),
-      includeNotes: !filterValues || filterValues.includes('n'),
-      includeClaimedProfile: !filterValues || filterValues.includes('cp'),
-      includeRegistration: !filterValues || filterValues.includes('r'),
+      includeVotingActivity: showAll || filterValues.includes('va'),
+      includeDelegations: showAll || filterValues.includes('d'),
+      includeNotes: showAll || filterValues.includes('n'),
+      includeClaimedProfile: true,
+      includeRegistration: true,
     };
   }
 
@@ -475,7 +477,7 @@ export class DrepService {
   }
 
   getDrepTimeline({
-    drep,
+    dRep,
     voterId,
     stakeKeyBech32,
     delegation,
@@ -488,7 +490,7 @@ export class DrepService {
       beforeDate,
       tillDate,
     );
-    const drepId = drep?.drep_id;
+    const drepId = dRep?.drep_id;
 
     // Setting up observables for parallel data fetching
     const queries: Record<string, Observable<any>> = {
@@ -568,12 +570,12 @@ export class DrepService {
         if (
           filters.includeClaimedProfile &&
           drepId &&
-          drep?.drep_createdAt &&
-          this.isWithinTimeRange(drep.drep_createdAt, startingTime, endingTime)
+          dRep?.drep_createdAt &&
+          this.isWithinTimeRange(dRep.drep_createdAt, startingTime, endingTime)
         ) {
           timelineEntries.push({
             type: 'claimed_profile',
-            timestamp: drep.drep_createdAt,
+            timestamp: dRep.drep_createdAt,
             claimingId: drepId,
             claimedDRepId: voterId,
           });

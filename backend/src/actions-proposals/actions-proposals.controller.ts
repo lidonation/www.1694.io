@@ -13,30 +13,25 @@ import { ActionsProposalsService } from './actions-proposals.service';
 export class ActionsProposalsController {
   constructor(
     private readonly actionsProposalsService: ActionsProposalsService,
-  ) {}
-
+  ) { }
   @Get('')
   findAll(
     @Query('page') page: number = 1,
     @Query('pageSize') pageSize: number = 12,
-    @Query('search') search?: string,
+    @Query('s') search: string = '',
     @Query('sortBy') sortBy?: string,
     @Query('sortOrder') sortOrder: 'asc' | 'desc' = 'asc',
-    @Query('category') category?: string | string[],
+    @Query('category') category?: string,
+    @Query('committee') committee?: string,
   ) {
-    const normalizedCategory = category
-      ? Array.isArray(category)
-        ? category.join(',')
-        : category
-      : '';
-
     return this.actionsProposalsService.findAll({
       page,
       pageSize,
       search,
       sortBy,
       sortOrder,
-      category: normalizedCategory,
+      category: category ? category.split(',') : [],
+      committee: committee ? committee.split(',') : [],
     });
   }
 

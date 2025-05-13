@@ -9,9 +9,9 @@ const NewNotePostForm = ({ register, control, errors, isLoading, isDisabled }) =
   return (
     <div className="mt-3 flex flex-col gap-3">
       <PostInput
-        inputName={'Note Title'}
+        inputName={'Title'}
         id={'postTitle'}
-        placeholder={'Note Title'}
+        placeholder={'Title'}
         registerValue={register}
         errors={errors}
         dataTestId={'post-title-input'}

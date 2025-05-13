@@ -39,13 +39,11 @@ export default function DRepTimeLIneFilters() {
     { label: 'Voting Activity', value: 'va' },
     { label: 'Delegations', value: 'd' },
     { label: 'Notes', value: 'n' },
-    // { label: 'Claimed Profile Stats', value: 'cp' },
-    // { label: 'Registration', value: 'r' },
   ];
 
   const handleCheckboxChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { value, checked } = event.target;
-    const currentFilters = params.get('category')?.split('-') || [];
+    const currentFilters = params.get('category')?.split(',') || [];
 
     if (checked) {
       if (!currentFilters.includes(value)) {
@@ -59,7 +57,7 @@ export default function DRepTimeLIneFilters() {
     }
 
     if (currentFilters.length > 0) {
-      params.set('category', currentFilters.join('-'));
+      params.set('category', currentFilters.join(','));
     } else {
       params.delete('category');
     }
@@ -72,7 +70,7 @@ export default function DRepTimeLIneFilters() {
     replace(`${pathName}?${params.toString()}`);
   };
 
-  const currentFilters = params.get('category')?.split('-') || [];
+  const currentFilters = params.get('category')?.split(',') || [];
   const isFiltering = currentFilters.length > 0;
 
   return (

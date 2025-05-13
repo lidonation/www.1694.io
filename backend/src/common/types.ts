@@ -7,6 +7,11 @@ export type Delegation = {
   drep_raw: string | null;
   drep_view: string | null;
   encode: string | null;
+  drep_hash_id: string | null;
+  tx_hash: string | null;
+  has_script: boolean | null;
+  stake_address_id: string | null;
+  voting_power: string | null;
 } | null;
 
 export enum MetadataStandard {
@@ -180,7 +185,7 @@ export type ClaimedProfile = {
 };
 
 export interface DRepTimelineParams {
-  drep: any;
+  dRep: any;
   voterId: string;
   stakeKeyBech32?: string;
   delegation?: Delegation;
