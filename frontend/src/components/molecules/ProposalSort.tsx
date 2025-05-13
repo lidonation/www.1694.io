@@ -73,6 +73,7 @@ const ProposalSort: React.FC<ProposalSortProps> = ({
           sx={{
             borderBottom: '1px solid #e0e0e0',
             color: 'text.secondary',
+            pb: 1,
           }}
         >
           Sort Proposals by
@@ -99,6 +100,7 @@ const ProposalSort: React.FC<ProposalSortProps> = ({
           sx={{
             borderTop: '1px solid #e0e0e0',
             color: 'text.secondary',
+            pt: 1,
           }}
         >
           Budget
@@ -124,6 +126,7 @@ const ProposalSort: React.FC<ProposalSortProps> = ({
           sx={{
             borderTop: '1px solid #e0e0e0',
             color: 'text.secondary',
+            pt: 1,
           }}
         >
           Conversation Rate

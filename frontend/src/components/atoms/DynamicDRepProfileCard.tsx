@@ -336,8 +336,8 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
                 )}
                 primaryLabel="Voted"
                 secondaryLabel="Not Voted"
-                primaryColor="#FFFFFF"
-                secondaryColor="#1f2937"
+                primaryColor="#4caf50"
+                secondaryColor="#f44336"
                 isLoading={isParticipationDataLoading}
                 dataAvailability={!!participationData}
               />
