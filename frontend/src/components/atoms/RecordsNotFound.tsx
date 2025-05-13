@@ -1,69 +1,21 @@
-import {
-    Card,
-    CardContent,
-    CardActions,
-    Box,
-    Typography,
-    Button,
-  } from '@mui/material';
-  import React from 'react';
-  
-  interface RecordsNotFoundProps {
-    message?: string;
-    actionText?: string;
-    onActionClick?: () => void;
-    height?: string | number;
-  }
-  
-  const RecordsNotFound: React.FC<RecordsNotFoundProps> = ({
-    message = 'No records found.',
-    actionText,
-    onActionClick,
-    height = '60vh',
-  }) => {
-    return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        height={height}
-        px={2}
-      >
-        <Card
-          sx={{
-            borderRadius: 4,
-            boxShadow: 1,
-            maxWidth: 500,
-            width: '100%',
-            textAlign: 'center',
-          }}
-        >
-          <CardContent>
-            <Typography variant="h6" color="text.secondary" gutterBottom>
-              {message}
-            </Typography>
-          </CardContent>
-  
-          {actionText && onActionClick && (
-            <CardActions sx={{ justifyContent: 'center', pb: 2 }}>
-              <Button
-                onClick={onActionClick}
-                variant="contained"
-                sx={{
-                  borderRadius: '9999px',
-                  textTransform: 'none',
-                  backgroundColor: '#002e9f',
-                  '&:hover': { backgroundColor: '#001c6f' },
-                }}
-              >
-                {actionText}
-              </Button>
-            </CardActions>
-          )}
-        </Card>
-      </Box>
-    );
-  };
-  
-  export default RecordsNotFound;
-  
+import React from 'react';
+import DatabaseNullIcon from '../atoms/svgs/DatabaseNullIcon';
+
+type RecordsNotFoundProps = {
+  message?: string;
+};
+
+function RecordsNotFound({ message }: RecordsNotFoundProps) {
+  return (
+    <div className="flex flex-col items-center justify-center py-12">
+      <div className="flex w-full max-w-md flex-col items-center rounded-lg border-2 border-dashed border-gray-300 p-12 hover:border-gray-400">
+        <DatabaseNullIcon width={60} height={50} />
+        <span className="mt-2 block text-sm font-semibold text-gray-500">
+          {message || 'No records found.'}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+export default RecordsNotFound;

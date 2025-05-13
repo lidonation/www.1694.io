@@ -72,14 +72,13 @@ const ProposalSort: React.FC<ProposalSortProps> = ({
           variant="subtitle2"
           sx={{
             borderBottom: '1px solid #e0e0e0',
-            pb: 1,
             color: 'text.secondary',
           }}
         >
           Sort Proposals by
         </Typography>
 
-        <Box mt={1}>
+        <Box>
           <FormControl fullWidth>
             <RadioGroup
               value={sortBy}
@@ -98,16 +97,14 @@ const ProposalSort: React.FC<ProposalSortProps> = ({
         <Typography
           variant="subtitle2"
           sx={{
-            borderBottom: '1px solid #e0e0e0',
-            pb: 1,
-            mt: 2,
+            borderTop: '1px solid #e0e0e0',
             color: 'text.secondary',
           }}
         >
           Budget
         </Typography>
 
-        <Box mt={1}>
+        <Box >
           <FormControl fullWidth>
             <RadioGroup
               value={sortBy === 'budget' ? sortOrder : ''}
@@ -125,16 +122,14 @@ const ProposalSort: React.FC<ProposalSortProps> = ({
         <Typography
           variant="subtitle2"
           sx={{
-            borderBottom: '1px solid #e0e0e0',
-            pb: 1,
-            mt: 2,
+            borderTop: '1px solid #e0e0e0',
             color: 'text.secondary',
           }}
         >
           Conversation Rate
         </Typography>
 
-        <Box mt={1}>
+        <Box>
           <FormControl fullWidth>
             <RadioGroup
               value={sortBy === 'conversationRate' ? sortOrder : ''}
