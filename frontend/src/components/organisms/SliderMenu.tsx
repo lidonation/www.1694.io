@@ -100,6 +100,18 @@ export const SliderMenu = ({ isOpen, handleClose }: SliderMenuProps) => {
                 </Link>
               </Grid>
               <Grid item>
+                <Link
+                  href={'/proposals'}
+                  className={`${
+                    !!activeLink && activeLink.includes('proposals')
+                      ? 'text-orange-500'
+                      : 'text-gray-800'
+                  }`}
+                >
+                  Proposals
+                </Link>
+              </Grid>
+              <Grid item>
                 <DRepMenu />
               </Grid>
               <Grid item>

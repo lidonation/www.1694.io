@@ -23,10 +23,9 @@ export class VoterService {
     let delegationHistory;
     switch (true) {
       case voterIdentity.includes('drep'):
-        voterData = await this.cexplorerService.manager.query(
-          getDrepAddrData,
-          [voterIdentity],
-        );
+        voterData = await this.cexplorerService.manager.query(getDrepAddrData, [
+          voterIdentity,
+        ]);
         delegationHistory = await this.cexplorerService.manager.query(
           getVoterDelegationHistory,
           [voterData[0].stake_address],
@@ -61,12 +60,21 @@ export class VoterService {
         }
       : null;
   }
-  async getAdaHolderCurrentDelegation(stakeKey: string): Promise<Delegation> {
+  async getAdaHolderCurrentDelegation(
+    stakeKey: string,
+  ): Promise<Delegation> {
+    if (!stakeKey) return null;
+
     const delegation = await this.cexplorerService.manager.query(
       getCurrentDelegationQuery,
       [stakeKey],
     );
-    return delegation[0];
+
+    if (!!delegation[0]) {
+      return delegation[0];
+    } else {
+      return null;
+    }
   }
 
   async getGovActions(

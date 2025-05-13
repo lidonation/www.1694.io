@@ -13,7 +13,10 @@ import _ from 'lodash';
 import { useGetDRepTimelineQuery } from '@/hooks/useGetDRepTimelineQuery';
 import DRepTimelineLoader from '../Loaders/DRepTimelineLoader';
 import ReloadIcon from '../atoms/svgs/ReloadIcon';
-import { formatNumberTimeToReadable } from '@/lib';
+import {
+  convertDrepPhraseToCIP105Legacy,
+  formatNumberTimeToReadable,
+} from '@/lib';
 import { Box, Fade, Grow } from '@mui/material';
 import DRepTimeLIneFilters from './DRepTimeLineFilters';
 import DatabaseNullIcon from '../atoms/svgs/DatabaseNullIcon';
@@ -21,7 +24,7 @@ import { useScreenDimension } from '@/hooks';
 import Typography from '@mui/material/Typography';
 import { useWallet } from '@/context/globalContext';
 
-const DrepTimeline = ({ drep }: { drep: any }) => {
+const DRepTimeline = ({ drep }: { drep: any }) => {
   const { drepid } = useParams();
   const [filterValues, setFilterValues] = useState<string[]>(null);
   const {
@@ -35,16 +38,23 @@ const DrepTimeline = ({ drep }: { drep: any }) => {
     timelineStartTime,
     setTimelineStartTime,
   } = useGetDRepTimelineQuery(drepid, filterValues);
-  
+
   const [isAtLatestPoint, setIsAtLatestPoint] = useState(false);
   const [isAtOldestPoint, setIsAtOldestPoint] = useState(false);
-  
+
   const [isLoadingNewerData, setIsLoadingNewerData] = useState(false);
   const [isLoadingOlderData, setIsLoadingOlderData] = useState(false);
+
+  const {
+    latestEpoch,
+    firstEpoch,
+    user: { dRepProfilesClaimed },
+  } = useWallet();
   
-  const {latestEpoch, firstEpoch, user:{dRepProfilesClaimed} } = useWallet();
   const isOwner = dRepProfilesClaimed?.some(
-    (drep) => drep.claimedDRepBech32 === drepid.toString(),
+    (drep) =>
+      drep.claimedDRepBech32 ===
+      convertDrepPhraseToCIP105Legacy(drepid.toString()),
   );
   const searchParams = useSearchParams();
   const pathName = usePathname();
@@ -73,7 +83,7 @@ const DrepTimeline = ({ drep }: { drep: any }) => {
     if (searchParams) {
       if (params.get('category')) {
         const itemFilters = params.get('category');
-        const activeItems = itemFilters.split('-');
+        const activeItems = itemFilters.split(',');
         setFilterValues(activeItems);
       } else {
         setFilterValues(undefined);
@@ -118,7 +128,7 @@ const DrepTimeline = ({ drep }: { drep: any }) => {
     setIsLoadingOlderData(true);
     const newEndTime = timelineStartTime - 1 * 24 * 60 * 60 * 1000;
 
-    const newStartTime = newEndTime - 5 * 24 * 60 * 60 * 1000;
+    const newStartTime = newEndTime - 3 * 24 * 60 * 60 * 1000;
 
     setQueryEndTime(newEndTime);
     setQueryStartTime(newStartTime);
@@ -128,10 +138,9 @@ const DrepTimeline = ({ drep }: { drep: any }) => {
   };
 
   const loadNewerData = () => {
-    const sixDays = 6 * 24 * 60 * 60 * 1000;
     const currentTime = Date.now();
 
-    if (timelineEndTime + sixDays > currentTime) {
+    if (timelineEndTime >= currentTime) {
       setIsAtLatestPoint(true);
       return;
     }
@@ -140,7 +149,7 @@ const DrepTimeline = ({ drep }: { drep: any }) => {
     const newStartTime = timelineEndTime + 1 * 24 * 60 * 60 * 1000;
 
     const newEndTime = Math.min(
-      newStartTime + 5 * 24 * 60 * 60 * 1000,
+      newStartTime + 3 * 24 * 60 * 60 * 1000,
       currentTime,
     );
 
@@ -254,7 +263,10 @@ const DrepTimeline = ({ drep }: { drep: any }) => {
               ))}
 
             {DRepActivity && DRepActivity.length > 0 && (
-              <DrepTimelineWaterfall activity={DRepActivity} drepId={drepid as string} />
+              <DrepTimelineWaterfall
+                activity={DRepActivity}
+                drepId={drepid as string}
+              />
             )}
 
             {isLoadingOlderData && (
@@ -269,19 +281,23 @@ const DrepTimeline = ({ drep }: { drep: any }) => {
               </Grow>
             )}
 
-            <div className="flex w-full flex-col items-center gap-2">
-              <div className="flex flex-col items-center">
-                <p className="text-sm">
+            <Box className="flex w-full flex-col items-center gap-2">
+              <Box className="flex flex-col items-center">
+                <Typography
+                  variant="body1"
+                  paragraph={true}
+                  className="text-sm"
+                >
                   Showing results from{' '}
                   <span className="font-semibold">{startTimeFormatted}</span> to{' '}
                   <span className="font-semibold">{endTimeFormatted}</span>
-                </p>
+                </Typography>
                 {isAtOldestPoint && DRepActivity.length > 0 && (
                   <p className="text-gray-500">You're all caught up!</p>
                 )}
-              </div>
+              </Box>
               {!isAtOldestPoint && (
-                <div
+                <Box
                   className="flex cursor-pointer items-center gap-2 rounded border px-2 py-1 hover:bg-gray-200"
                   onClick={loadMoreData}
                 >
@@ -289,9 +305,9 @@ const DrepTimeline = ({ drep }: { drep: any }) => {
                   <p className="text-base font-medium text-orange-500 ">
                     Load Older
                   </p>
-                </div>
+                </Box>
               )}
-            </div>
+            </Box>
           </div>
         </Fade>
       )}
@@ -299,4 +315,4 @@ const DrepTimeline = ({ drep }: { drep: any }) => {
   );
 };
 
-export default memo(DrepTimeline);
+export default memo(DRepTimeline);

@@ -1,10 +1,10 @@
 'use client';
-import DrepTimeline from '@/components/molecules/DrepTimeline';
 import { useGetSingleDRepQuery } from '@/hooks/useGetSingleDRepQuery';
 import { Box } from '@mui/material';
 import { useParams } from 'next/navigation';
 import React, { Suspense } from 'react';
 import Loading from '../loading';
+import DRepTimeline from '@/components/molecules/DrepTimeline';
 
 function page() {
   const { drepid } = useParams();
@@ -17,7 +17,7 @@ function page() {
   return (
     <Box className="min-h-screen bg-white p-5">
       <Suspense>
-        <DrepTimeline drep={dRep} />
+        <DRepTimeline drep={dRep} />
       </Suspense>
     </Box>
   );

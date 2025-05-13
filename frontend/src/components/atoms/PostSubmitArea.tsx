@@ -21,13 +21,16 @@ const PostSubmitArea = ({
   noteCreatedAt,
   isDisabled,
 }: PostSubmitAreaProps) => {
-  const {wallet:{dRepIdBech32}} =useWallet();
+  const {
+    wallet: { dRepIdBech32 },
+  } = useWallet();
   const [bgColor, setBgColor] = useState('transparent');
   const TEN_MINUTES = 10 * 60 * 1000;
 
   const router = useRouter();
 
-  const isRecentlyCreated = new Date().getTime() - new Date(noteCreatedAt).getTime() <= TEN_MINUTES;
+  const isRecentlyCreated =
+    new Date().getTime() - new Date(noteCreatedAt).getTime() <= TEN_MINUTES;
 
   useEffect(() => {
     if (isRecentlyCreated) {
@@ -66,7 +69,8 @@ const PostSubmitArea = ({
           className="duration-3000 transition-all ease-linear"
         >
           <Link
-            href={`/dreps/${dRepIdBech32}`}
+            href={`/dreps/${dRepIdBech32}/timeline`}
+            prefetch={true}
             className="text-center text-sm font-medium leading-4 text-blue-800"
           >
             View In Timeline
