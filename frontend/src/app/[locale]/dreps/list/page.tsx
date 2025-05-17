@@ -3,6 +3,7 @@ import DRepsMetrics from '@/components/atoms/DRepsMetrics';
 import DRepTableSearch from '@/components/atoms/DRepTableSearch';
 import BreadCrumbs from '@/components/molecules/BreadCrumbs';
 import DRepsTable from '@/components/molecules/DRepsTable';
+import DRepFilterChips from '@/components/atoms/DRepFilterChips';
 import React from 'react';
 
 type PageProps = {
@@ -45,8 +46,11 @@ const page = ({ searchParams }: PageProps) => {
           <h2 className="text-7xl font-black">Available DReps</h2>
         </section>
         <section className="mb-5 flex flex-col gap-4 lg:flex-row lg:justify-between">
-          <DRepsMetrics />
+          <DRepsMetrics />   
           <DRepTableSearch />
+        </section>
+        <section className="mb-5">
+        <DRepFilterChips />
         </section>
 
         <section className="rounded-md bg-white p-5 shadow">
