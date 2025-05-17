@@ -52,13 +52,10 @@ function ProposalCard({ proposal }: { proposal: any }) {
   const { poll } = useGetActionProposalPollQuery(proposal?.govToolProposalId);
   const { wallet } = useWallet();
 
-  const title = proposal?.proposalName || 'Untitled Proposal';
-  const budgetCategory = proposal?.budgetCat || 'Unspecified';
   const budgetRequested = Number(proposal?.adaAmount) || 0;
   const formattedBudget = new Intl.NumberFormat('en-US').format(budgetRequested);
   const proposalBenefit = proposal?.proposalBenefit || 'No benefit info';
   const username = proposal?.govToolUserName || 'anonymous';
-  const commentsCount = proposal?.commentsCount || 0;
   const { data: proposalMetrics } = useUserParticipationQuery(username);
 
   const proposedDate = proposal?.updatedAt
@@ -98,7 +95,7 @@ function ProposalCard({ proposal }: { proposal: any }) {
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'flex-start',
-            gap: 2,
+            gap: 1,
             height: '100%',
           }}
         >
@@ -116,7 +113,7 @@ function ProposalCard({ proposal }: { proposal: any }) {
                   display="block"
                   style={{ textDecoration: 'none', color: 'inherit' }}
                 >
-                  {title}
+                  {proposal?.proposalName || 'Untitled Proposal'}
                 </Typography>
               </Link>
               <Typography
@@ -157,7 +154,7 @@ function ProposalCard({ proposal }: { proposal: any }) {
                 variant="body2"
                 color="text.secondary"
               >
-                {budgetCategory}
+                {proposal?.budgetCat || 'Unspecified'}
               </Typography>
             </Box>
             <Box className="flex justify-end mr-2">
@@ -166,6 +163,22 @@ function ProposalCard({ proposal }: { proposal: any }) {
               )}
             </Box>
           </Box>
+          <Box>
+              <Typography
+                component="p"
+                variant="subtitle2"
+                fontWeight="semi-bold"
+              >
+                Committee
+              </Typography>
+              <Typography
+                component="p"
+                variant="body2"
+                color="text.secondary"
+              >
+                {proposal?.committeeName || 'Unspecified'}
+              </Typography>
+            </Box>
 
           <Box>
             <Typography
@@ -331,7 +344,7 @@ function ProposalCard({ proposal }: { proposal: any }) {
           <Tooltip title="Comments">
             <span>
               <IconButton size="small" disabled>
-                <StyledBadge badgeContent={commentsCount}>
+                <StyledBadge badgeContent={proposal?.commentsCount || 0}>
                   <ChatIcon fontSize="small" />
                 </StyledBadge>
               </IconButton>

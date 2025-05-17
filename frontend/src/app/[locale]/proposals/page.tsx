@@ -12,17 +12,20 @@ import { useGetActionsProposalsQuery } from '@/hooks/useGetActionsProposalsQuery
 import { useDebounce } from 'use-debounce';
 
 function ProposalsPage() {
-  const [search, setSearch] = useState('');
-  const [sortBy, setSortBy] = useState('updatedAt');
-  const [debouncedSearch] = useDebounce(search, 300);
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const searchParams = useSearchParams();
+  const [search, setSearch] = useState(searchParams.get('search') || '');
   const [showFilter, setShowFilter] = useState(false);
   const [showSort, setShowSort] = useState(false);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [selectedCommittees, setSelectedCommittees] = useState<string[]>([]);
   const [pageSize] = useState(12);
-  const searchParams = useSearchParams();
   const currentPage = Number(searchParams.get('page')) || 1;
+  const [debouncedSearch] = useDebounce(search, 300);
+
+  const categories = searchParams.get('categories')?.split(',').filter(Boolean) || [];
+  const committees = searchParams.get('committees')?.split(',').filter(Boolean) || [];
+  const sortBy = searchParams.get('sort') || 'updatedAt';
+  const sortOrder = ['asc', 'desc'].includes(searchParams.get('order') || '')
+    ? (searchParams.get('order') as 'asc' | 'desc')
+    : 'desc';
 
   const {
     actionsProposals: allFilteredProposals,
@@ -31,8 +34,8 @@ function ProposalsPage() {
     1,
     10000,
     debouncedSearch,
-    selectedCategories,
-    selectedCommittees,
+    categories,
+    committees,
     sortBy,
     sortOrder
   );
@@ -44,8 +47,8 @@ function ProposalsPage() {
     currentPage,
     pageSize,
     debouncedSearch,
-    selectedCategories,
-    selectedCommittees,
+    categories,
+    committees,
     sortBy,
     sortOrder
   );
@@ -55,7 +58,7 @@ function ProposalsPage() {
     <div className="base_container min-h-screen py-10">
       <section className="mb-4">
         <h2 className="text-7xl font-black">Budget Proposals</h2>
-        <div className='py-3 pr-16 lg:pr-56'>
+        <div className="py-3 pr-16 lg:pr-56">
           <p>
             Cardano 2025 budget proposals. Your comments and responses to polls
             here will also be published back to gov.tools and other interfaces.
@@ -65,7 +68,7 @@ function ProposalsPage() {
 
       <section className="relative mb-6 rounded-full py-2 w-full max-w-7xl mx-auto lg:flex lg:flex-nowrap lg:items-center gap-4 justify-between">
         <div className="w-full lg:w-[45%]">
-          <ProposalMetrics search={debouncedSearch} categories={selectedCategories} committees={selectedCommittees} />
+          <ProposalMetrics search={debouncedSearch} categories={categories} committees={committees} />
         </div>
 
         <div className="w-full lg:w-[55%] flex justify-end">
@@ -77,14 +80,6 @@ function ProposalsPage() {
               setShowFilter={setShowFilter}
               showSort={showSort}
               setShowSort={setShowSort}
-              selectedCategories={selectedCategories}
-              setSelectedCategories={setSelectedCategories}
-              selectedCommittees={selectedCommittees}
-              setSelectedCommittees={setSelectedCommittees}
-              sortBy={sortBy}
-              setSortBy={setSortBy}
-              sortOrder={sortOrder}
-              setSortOrder={setSortOrder}
             />
           </div>
         </div>
@@ -93,8 +88,8 @@ function ProposalsPage() {
         <ProposalDownloadButton
           proposals={allFilteredProposals?.data || []}
           searchQuery={debouncedSearch}
-          categoryFilter={selectedCategories}
-          committeeFilter={selectedCommittees}
+          categoryFilter={categories}
+          committeeFilter={committees}
         />
       </section>
       <section>

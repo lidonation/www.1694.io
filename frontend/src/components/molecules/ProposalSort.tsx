@@ -9,30 +9,70 @@ import {
   FormControl,
   FormControlLabel,
   RadioGroup,
-  Divider,
   Popover,
 } from '@mui/material';
+import { useRouter, useSearchParams } from 'next/navigation';
+import DotIndicator from '@/components/atoms/DotIndicator';
 
 interface ProposalSortProps {
   showSort: boolean;
   setShowSort: React.Dispatch<React.SetStateAction<boolean>>;
-  setShowFilter: (value: boolean) => void;
-  sortBy: string;
-  setSortBy: (value: string) => void;
-  sortOrder: 'asc' | 'desc';
-  setSortOrder: (value: 'asc' | 'desc') => void;
 }
+
+type SortOption = {
+  value: string;
+  label: string;
+  defaultOrder?: 'asc' | 'desc';
+};
+
+const sortOptions: SortOption[] = [
+  { value: 'alphabetical', label: 'Alphabetical', defaultOrder: 'asc' },
+  { value: 'lastModified', label: 'Last Modified', defaultOrder: 'desc' },
+];
+
+const orderableSorts: SortOption[] = [
+  { value: 'budget', label: 'Budget' },
+  { value: 'conversationRate', label: 'Conversation Rate' },
+];
+
+const DEFAULT_ORDER: 'asc' | 'desc' = 'desc';
 
 const ProposalSort: React.FC<ProposalSortProps> = ({
   showSort,
   setShowSort,
-  setShowFilter,
-  sortBy,
-  setSortBy,
-  sortOrder,
-  setSortOrder,
 }) => {
   const buttonRef = useRef<HTMLButtonElement | null>(null);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const params = new URLSearchParams(searchParams.toString());
+
+  const sortBy = searchParams.get('sort') || 'updatedAt';
+  const sortOrder = (searchParams.get('order') as 'asc' | 'desc') || DEFAULT_ORDER;
+
+  const hasActiveSort = sortBy !== 'updatedAt' || sortOrder !== DEFAULT_ORDER;
+
+  const updateSortParams = (sort: string, order: 'asc' | 'desc') => {
+    params.set('sort', sort);
+    params.set('order', order);
+    params.set('page', '1');
+    router.push(`?${params.toString()}`);
+  };
+
+  const handleSortChange = (value: string) => {
+    const option = sortOptions.find((opt) => opt.value === value);
+    updateSortParams(value, option?.defaultOrder || 'desc');
+  };
+
+  const handleSortOrderChange = (sort: string, order: 'asc' | 'desc') => {
+    updateSortParams(sort, order);
+  };
+
+  const handleResetSort = () => {
+    params.delete('sort');
+    params.delete('order');
+    params.set('page', '1');
+    router.push(`?${params.toString()}`);
+  };
 
   return (
     <>
@@ -40,13 +80,11 @@ const ProposalSort: React.FC<ProposalSortProps> = ({
         ref={buttonRef}
         color="primary"
         sx={{ width: 40, height: 40 }}
-        onClick={() => {
-          setShowSort((prev) => !prev);
-          setShowFilter(false);
-        }}
+        onClick={() => setShowSort((prev) => !prev)}
         aria-label="Sort"
       >
         <img src="/svgs/arrows-sort.svg" className="mt-1 h-5 w-5" alt="Sort" />
+        {hasActiveSort && <DotIndicator />}
       </IconButton>
 
       <Popover
@@ -83,71 +121,45 @@ const ProposalSort: React.FC<ProposalSortProps> = ({
           <FormControl fullWidth>
             <RadioGroup
               value={sortBy}
-              onChange={(e) => {
-                const value = e.target.value;
-                setSortBy(value);
-                setSortOrder(value === 'alphabetical' ? 'asc' : 'desc');
-              }}
-            >
-              <FormControlLabel value="alphabetical" control={<Radio />} label="Alphabetical" />
-              <FormControlLabel value="lastModified" control={<Radio />} label="Last Modified" />
+              onChange={(e) => handleSortChange(e.target.value)}>
+
+              {sortOptions.map((option) => (
+                <FormControlLabel
+                  key={option.value}
+                  value={option.value}
+                  control={<Radio />}
+                  label={option.label}
+                />
+              ))}
             </RadioGroup>
           </FormControl>
         </Box>
 
-        <Typography
-          variant="subtitle2"
-          sx={{
-            borderTop: '1px solid #e0e0e0',
-            color: 'text.secondary',
-            pt: 1,
-          }}
-        >
-          Budget
-        </Typography>
-
-        <Box >
-          <FormControl fullWidth>
-            <RadioGroup
-              value={sortBy === 'budget' ? sortOrder : ''}
-              onChange={(e) => {
-                setSortBy('budget');
-                setSortOrder(e.target.value as 'asc' | 'desc');
+        {orderableSorts.map((sort) => (
+          <Box key={sort.value}>
+            <Typography
+              variant="subtitle2"
+              sx={{
+                borderTop: '1px solid #e0e0e0',
+                color: 'text.secondary',
+                pt: 1,
               }}
             >
-              <FormControlLabel value="desc" control={<Radio />} label="Highest to Lowest" />
-              <FormControlLabel value="asc" control={<Radio />} label="Lowest to Highest" />
-            </RadioGroup>
-          </FormControl>
-        </Box>
+              {sort.label}
+            </Typography>
+            <FormControl fullWidth>
+              <RadioGroup
+                value={sortBy === sort.value ? sortOrder : ''}
+                onChange={(e) => handleSortOrderChange(sort.value, e.target.value as 'asc' | 'desc')}
+              >
+                <FormControlLabel value="desc" control={<Radio />} label="Highest to Lowest" />
+                <FormControlLabel value="asc" control={<Radio />} label="Lowest to Highest" />
+              </RadioGroup>
+            </FormControl>
+          </Box>
+        ))}
 
-        <Typography
-          variant="subtitle2"
-          sx={{
-            borderTop: '1px solid #e0e0e0',
-            color: 'text.secondary',
-            pt: 1,
-          }}
-        >
-          Conversation Rate
-        </Typography>
-
-        <Box>
-          <FormControl fullWidth>
-            <RadioGroup
-              value={sortBy === 'conversationRate' ? sortOrder : ''}
-              onChange={(e) => {
-                setSortBy('conversationRate');
-                setSortOrder(e.target.value as 'asc' | 'desc');
-              }}
-            >
-              <FormControlLabel value="desc" control={<Radio />} label="Highest to Lowest" />
-              <FormControlLabel value="asc" control={<Radio />} label="Lowest to Highest" />
-            </RadioGroup>
-          </FormControl>
-        </Box>
-
-        {(sortBy !== 'updatedAt' || sortOrder !== 'desc') && (
+        {hasActiveSort && (
           <Box display="flex" justifyContent="flex-end" mt={2}>
             <Button
               variant="contained"
@@ -158,10 +170,7 @@ const ProposalSort: React.FC<ProposalSortProps> = ({
                 textTransform: 'none',
                 '&:hover': { backgroundColor: '#1f2937' },
               }}
-              onClick={() => {
-                setSortBy('updatedAt');
-                setSortOrder('desc');
-              }}
+              onClick={handleResetSort}
             >
               Reset sorting
             </Button>

@@ -7,10 +7,10 @@ type RecordsNotFoundProps = {
 
 function RecordsNotFound({ message }: RecordsNotFoundProps) {
   return (
-    <div className="flex flex-col items-center justify-center py-12">
-      <div className="flex w-full max-w-md flex-col items-center rounded-lg border-2 border-dashed border-gray-300 p-12 hover:border-gray-400">
+    <div className="w-full rounded-xl bg-white p-6 shadow-sm">
+      <div className="w-full rounded-md border-2 border-dashed border-gray-300 px-4 py-12 flex flex-col items-center justify-center">
         <DatabaseNullIcon width={60} height={50} />
-        <span className="mt-2 block text-sm font-semibold text-gray-500">
+        <span className="mt-2 text-sm font-medium text-gray-500">
           {message || 'No records found.'}
         </span>
       </div>

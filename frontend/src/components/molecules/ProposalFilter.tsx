@@ -1,5 +1,6 @@
 'use client';
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Box,
   IconButton,
@@ -10,6 +11,7 @@ import {
   Button,
   Popover,
 } from '@mui/material';
+import DotIndicator from '@/components/atoms/DotIndicator';
 
 type FilterOption = {
   label: string;
@@ -19,14 +21,6 @@ type FilterOption = {
 interface ProposalFilterProps {
   showFilter: boolean;
   setShowFilter: React.Dispatch<React.SetStateAction<boolean>>;
-  setShowSort: (value: boolean) => void;
-  selectedCategories: string[];
-  setSelectedCategories: (value: string[]) => void;
-  selectedCommittees: string[];
-  setSelectedCommittees: (value: string[]) => void;
-  setSortBy: (value: string) => void;
-  setSortOrder: (value: 'asc' | 'desc') => void;
-  setSearch: (value: string) => void;
 }
 
 const categoryOptions: FilterOption[] = [
@@ -54,16 +48,47 @@ const committeeOptions: FilterOption[] = [
 const ProposalFilter: React.FC<ProposalFilterProps> = ({
   showFilter,
   setShowFilter,
-  setShowSort,
-  selectedCategories,
-  setSelectedCategories,
-  selectedCommittees,
-  setSelectedCommittees,
-  setSortBy,
-  setSortOrder,
-  setSearch,
 }) => {
   const buttonRef = useRef<HTMLButtonElement | null>(null);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const params = new URLSearchParams(searchParams.toString());
+
+  const categories = searchParams.get('categories')?.split(',').filter(Boolean) || [];
+  const committees = searchParams.get('committees')?.split(',').filter(Boolean) || [];
+
+  const hasActiveFilters = categories.length > 0 || committees.length > 0;
+
+  const updateFilterParams = (key: string, values: string[]) => {
+    if (values.length > 0) {
+      params.set(key, values.join(','));
+    } else {
+      params.delete(key);
+    }
+    params.set('page', '1');
+    router.push(`?${params.toString()}`);
+  };
+
+  const handleCategoryChange = (value: string, checked: boolean) => {
+    const newCategories = checked
+      ? [...categories, value]
+      : categories.filter((category) => category !== value);
+    updateFilterParams('categories', newCategories);
+  };
+
+  const handleCommitteeChange = (value: string, checked: boolean) => {
+    const newCommittees = checked
+      ? [...committees, value]
+      : committees.filter((committee) => committee !== value);
+    updateFilterParams('committees', newCommittees);
+  };
+
+  const handleResetFilters = () => {
+    params.delete('categories');
+    params.delete('committees');
+    params.set('page', '1');
+    router.push(`?${params.toString()}`);
+  };
 
   return (
     <>
@@ -71,13 +96,11 @@ const ProposalFilter: React.FC<ProposalFilterProps> = ({
         ref={buttonRef}
         color="primary"
         sx={{ width: 40, height: 40 }}
-        onClick={() => {
-          setShowFilter((prev) => !prev);
-          setShowSort(false);
-        }}
+        onClick={() => setShowFilter((prev) => !prev)}
         aria-label="Filter"
       >
-        <img src="/svgs/filter.svg" className="mt-1 h-5 w-5" alt="Filter Sort" />
+        <img src="/svgs/filter.svg" className="mt-1 h-5 w-5" alt="Filter" />
+        {hasActiveFilters && <DotIndicator />}
       </IconButton>
 
       <Popover
@@ -117,15 +140,10 @@ const ProposalFilter: React.FC<ProposalFilterProps> = ({
                 key={option.value}
                 control={
                   <Checkbox
-                    checked={selectedCategories.includes(option.value)}
-                    onChange={(e) => {
-                      const checked = e.target.checked;
-                      setSelectedCategories(
-                        checked
-                          ? [...selectedCategories, option.value]
-                          : selectedCategories.filter((cat) => cat !== option.value)
-                      );
-                    }}
+                    checked={categories.includes(option.value)}
+                    onChange={(e) =>
+                      handleCategoryChange(option.value, e.target.checked)
+                    }
                   />
                 }
                 label={option.label}
@@ -153,15 +171,10 @@ const ProposalFilter: React.FC<ProposalFilterProps> = ({
                 key={option.value}
                 control={
                   <Checkbox
-                    checked={selectedCommittees.includes(option.value)}
-                    onChange={(e) => {
-                      const checked = e.target.checked;
-                      setSelectedCommittees(
-                        checked
-                          ? [...selectedCommittees, option.value]
-                          : selectedCommittees.filter((com) => com !== option.value)
-                      );
-                    }}
+                    checked={committees.includes(option.value)}
+                    onChange={(e) =>
+                      handleCommitteeChange(option.value, e.target.checked)
+                    }
                   />
                 }
                 label={option.label}
@@ -170,7 +183,7 @@ const ProposalFilter: React.FC<ProposalFilterProps> = ({
           </FormGroup>
         </Box>
 
-        {(selectedCategories.length > 0 || selectedCommittees.length > 0) && (
+        {hasActiveFilters && (
           <Box display="flex" justifyContent="flex-end" mt={2}>
             <Button
               variant="contained"
@@ -181,13 +194,7 @@ const ProposalFilter: React.FC<ProposalFilterProps> = ({
                 textTransform: 'none',
                 '&:hover': { backgroundColor: '#1f2937' },
               }}
-              onClick={() => {
-                setSelectedCategories([]);
-                setSelectedCommittees([]);
-                setSortBy('updatedAt');
-                setSortOrder('desc');
-                setSearch('');
-              }}
+              onClick={handleResetFilters}
             >
               Reset filters
             </Button>
