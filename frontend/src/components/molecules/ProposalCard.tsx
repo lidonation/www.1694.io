@@ -37,14 +37,6 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
   },
 }));
 
-const TruncatedText = styled(Typography)(({ theme }) => ({
-  display: '-webkit-box',
-  WebkitLineClamp: 3,
-  WebkitBoxOrient: 'vertical',
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-}));
-
 function ProposalCard({ proposal }: { proposal: any }) {
   const [shareAnchorEl, setShareAnchorEl] = useState(null);
   const [disableShare, setDisableShare] = useState(false);
@@ -66,15 +58,15 @@ function ProposalCard({ proposal }: { proposal: any }) {
   const handleShareClose = () => setShareAnchorEl(null);
   const disableShareClick = () => {
     setDisableShare(true);
-    setTimeout(() => setDisableShare(false), 2000);
+    handleShareClose();
+    setTimeout(() => {
+      setDisableShare(false);
+    }, 2000);
   };
-
   function copyToClipboard(value) {
     navigator.clipboard.writeText(value);
   }
-  useEffect(() => {
-  }, [proposalBenefit]);
-
+  const proposalUrl = `${window.location.origin}/proposals/${proposal?.govToolProposalId}`;
   return (
     <Card
       sx={{
@@ -164,21 +156,21 @@ function ProposalCard({ proposal }: { proposal: any }) {
             </Box>
           </Box>
           <Box>
-              <Typography
-                component="p"
-                variant="subtitle2"
-                fontWeight="semi-bold"
-              >
-                Committee
-              </Typography>
-              <Typography
-                component="p"
-                variant="body2"
-                color="text.secondary"
-              >
-                {proposal?.committeeName || 'Unspecified'}
-              </Typography>
-            </Box>
+            <Typography
+              component="p"
+              variant="subtitle2"
+              fontWeight="semi-bold"
+            >
+              Committee
+            </Typography>
+            <Typography
+              component="p"
+              variant="body2"
+              color="text.secondary"
+            >
+              {proposal?.committeeName || 'Unspecified'}
+            </Typography>
+          </Box>
 
           <Box>
             <Typography
@@ -375,10 +367,18 @@ function ProposalCard({ proposal }: { proposal: any }) {
             size="small"
             color="primary"
             onClick={() => {
-              copyToClipboard(window.location.href);
+              copyToClipboard(proposalUrl);
               disableShareClick();
             }}
             disabled={disableShare}
+            sx={{
+              borderRadius: '50%',
+              padding: '6px',
+              '&:hover': {
+                borderRadius: 1,
+                backgroundColor: '#007bff',
+              },
+            }}
           >
             <LinkIcon />
           </IconButton>

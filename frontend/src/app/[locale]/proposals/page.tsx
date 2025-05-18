@@ -7,6 +7,7 @@ import Pagination from '@/components/molecules/Pagination';
 import ProposalSearch from '@/components/atoms/ProposalSearch';
 import RecordsNotFound from '@/components/atoms/RecordsNotFound';
 import ProposalMetrics from '@/components/atoms/ProposalMetrics';
+import ProposalsFilterChips from '@/components/atoms/ProposalsFilterChips';
 import { ProposalDownloadButton } from '@/components/molecules/ProposalDownloadButton';
 import { useGetActionsProposalsQuery } from '@/hooks/useGetActionsProposalsQuery';
 import { useDebounce } from 'use-debounce';
@@ -84,13 +85,18 @@ function ProposalsPage() {
           </div>
         </div>
       </section>
-      <section className="w-full max-w-7xl mx-auto flex justify-end mb-4">
-        <ProposalDownloadButton
-          proposals={allFilteredProposals?.data || []}
-          searchQuery={debouncedSearch}
-          categoryFilter={categories}
-          committeeFilter={committees}
-        />
+      <section className="w-full max-w-7xl mx-auto flex justify-between items-start flex-wrap gap-2 mb-4">
+        <div className="flex-1 min-w-[200px]">
+          <ProposalsFilterChips />
+        </div>
+        <div className="flex-shrink-0">
+          <ProposalDownloadButton
+            proposals={allFilteredProposals?.data || []}
+            searchQuery={debouncedSearch}
+            categoryFilter={categories}
+            committeeFilter={committees}
+          />
+        </div>
       </section>
       <section>
         {!isPaginatedLoading && proposalsData.length === 0 ? (
