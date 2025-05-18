@@ -1,9 +1,8 @@
 import MarkdownParser from '@/components/atoms/MarkdownParser';
-import { urls } from '@/constants';
+import { ViewExternalGovAction } from '@/components/atoms/ViewExternalGovAction';
 import { useGetProposalMetadataByHashQuery } from '@/hooks/useGetProposalMetadataByHash';
 import { formatIsoTime } from '@/lib';
 import { Box } from '@mui/material';
-import Link from 'next/link';
 import { useState, useRef, useEffect } from 'react';
 
 export const GovActionVoteCard = ({ action }) => {
@@ -41,15 +40,21 @@ export const GovActionVoteCard = ({ action }) => {
 
   return (
     <tr className="transition-colors hover:bg-gray-50">
-      <td className="hidden whitespace-nowrap px-4 py-4 text-sm font-medium text-gray-800 md:table-cell">
-        {formatIsoTime(action?.time_voted) || '-'}
+      <td className="hidden whitespace-nowrap px-4 py-4 md:table-cell">
+        <p className="mb-1 block text-sm font-medium text-gray-800">
+          {formatIsoTime(action?.time_voted) || '-'}
+        </p>
+        <ViewExternalGovAction actionId={action?.gov_action_proposal_id} />
       </td>
 
       <td className="px-3 py-3 md:px-4 md:py-4">
         <Box className="space-y-2">
-          <p className="block text-sm font-medium text-gray-800 md:hidden">
-            {formatIsoTime(action?.time_voted) || '-'}
-          </p>
+          <Box className="block md:hidden">
+            <p className="mb-1 block text-sm font-medium text-gray-800">
+              {formatIsoTime(action?.time_voted) || '-'}
+            </p>
+            <ViewExternalGovAction actionId={action?.gov_action_proposal_id} />
+          </Box>
 
           <Box className="flex flex-col md:flex-row md:items-center md:justify-between md:gap-2">
             <Box className="min-w-0 flex-1">
@@ -94,26 +99,6 @@ export const GovActionVoteCard = ({ action }) => {
               </Box>
             </Box>
           )}
-
-          <Box className="flex flex-col gap-1">
-            <p className="text-sm">View Action on:</p>
-            <Box className="flex flex-row gap-2">
-              <Link
-                href={`${urls.govToolUrl}/governance_actions/${action?.gov_action_proposal_id}#0`}
-                target="_blank"
-                className="text-sm text-primary-300 hover:font-bold"
-              >
-                Govtool
-              </Link>
-              <Link
-                href={`${urls.adaStatUrl}/governances/${action?.gov_action_proposal_id}00`}
-                target="_blank"
-                className="text-sm text-primary-300 hover:font-bold"
-              >
-                ADASTAT
-              </Link>
-            </Box>
-          </Box>
         </Box>
       </td>
 

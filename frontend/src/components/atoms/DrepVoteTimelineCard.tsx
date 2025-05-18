@@ -1,5 +1,3 @@
-import { urls } from '@/constants';
-import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
 import { Box } from '@mui/material';
 import CopyToClipboard from './CopyToClipboard';
@@ -12,6 +10,7 @@ import {
 } from '../molecules/VoteRationaleModal';
 import { GovAction } from '../../../types/api';
 import { useWallet } from '@/context/globalContext';
+import { ViewExternalGovAction } from '@/components/atoms/ViewExternalGovAction';
 
 interface DrepVoteTimelineCardProps {
   item: DrepVote | GovAction;
@@ -235,26 +234,7 @@ const DrepVoteTimelineCard = ({
           </Box>
 
           {renderRationaleButton()}
-
-          <Box className="flex flex-col gap-1">
-            <p className="text-sm">View Action on:</p>
-            <Box className="flex flex-row gap-2">
-              <Link
-                href={`${urls.govToolUrl}/governance_actions/${item?.gov_action_proposal_id}#0`}
-                target="_blank"
-                className="text-sm text-blue-800 hover:font-bold"
-              >
-                Govtool
-              </Link>
-              <Link
-                href={`${urls.adaStatUrl}/governances/${item?.gov_action_proposal_id}00`}
-                target="_blank"
-                className="text-sm text-blue-800 hover:font-bold"
-              >
-                ADASTAT
-              </Link>
-            </Box>
-          </Box>
+          <ViewExternalGovAction actionId={item?.gov_action_proposal_id} />
         </Box>
       </Box>
     </Box>
