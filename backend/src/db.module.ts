@@ -21,7 +21,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         extra: {
           charset: 'utf8mb4_unicode_ci',
         },
-        migrationsRun: true,
+        migrationsRun: process.env.NODE_ENV !== 'development',
         logging: true,
       }),
     }),

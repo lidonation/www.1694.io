@@ -11,23 +11,90 @@ import { AuthMethod } from '../../types/auth';
 import { setUpPdfJwt } from '@/lib/pdfJwtHelper';
 import { ModalType, useModals, useWallet } from '@/context/globalContext';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
+import { useOAuth } from '@/hooks/useOAuth';
+import { getOAuthProvider } from '@/services/requests/oAuthQueries';
+import {
+  ExternalOAuthMetadata,
+  GovToolsJwtPayload,
+  OAuthProviderType,
+} from '@/models/oauth';
 
 export const usePdfTokenManager = () => {
-  const { signMessage } = useWallet();
+  const {
+    signMessage,
+    wallet: { stakeKeyBech32 },
+    user: { externalLogins },
+  } = useWallet();
   const { openModal } = useModals();
   const { addSuccessAlert, addWarningAlert, addErrorAlert } =
     useGlobalNotifications();
+  const { createOAuth, updateOAuth, handleCheckOAuthProvider } = useOAuth();
+
+  const storeJwtInOAuth = async (
+    jwt: string,
+    stakeKeyBech32: string,
+    expiresAt?: Date,
+    metadata?: ExternalOAuthMetadata[OAuthProviderType.GOVTOOLS],
+  ) => {
+    try {
+      await createOAuth({
+        provider: OAuthProviderType.GOVTOOLS,
+        accessToken: jwt,
+        stakeKeyBech32,
+        expiresAt,
+        metadata,
+      });
+      addSuccessAlert('Gov.tools token saved for future use.');
+      return true;
+    } catch (error) {
+      addErrorAlert('Failed to save gov.tools token:', error);
+      return false;
+    }
+  };
+
+  const updateJwtInOAuth = async (
+    jwt: string,
+    stakeKeyBech32: string,
+    providerId: number,
+    expiresAt?: Date,
+  ) => {
+    try {
+      await updateOAuth(
+        {
+          accessToken: jwt,
+          expiresAt,
+        },
+        providerId,
+        stakeKeyBech32,
+      );
+      return true;
+    } catch (error) {
+      addErrorAlert('Failed to update gov.tools token:', error);
+      return false;
+    }
+  };
 
   const validateAndRefreshToken = async () => {
-    const jwt = getDataFromSession('pdfUserJwt');
+    let jwt = getDataFromSession('pdfUserJwt');
 
     if (!jwt) {
-      return { tokenExists: false };
+      // No token found in session
+      if (externalLogins?.[OAuthProviderType.GOVTOOLS]?.jwt) {
+        // User has an external login, but no session token
+        saveDataInSession(
+          'pdfUserJwt',
+          externalLogins[OAuthProviderType.GOVTOOLS].jwt,
+        );
+        jwt = externalLogins[OAuthProviderType.GOVTOOLS].jwt;
+      } else {
+        // No token found in session or external login
+        return { tokenExists: false };
+      }
     }
 
     // Token exists, check if it's expired or about to expire
     try {
-      const decodedJwt = decodeJWT();
+      const decodedJwt = decodeJWT() as GovToolsJwtPayload;
       if (decodedJwt) {
         const expDate = new Date(decodedJwt?.exp * 1000);
         const now = new Date();
@@ -37,6 +104,27 @@ export const usePdfTokenManager = () => {
           try {
             const refreshedTokens = await getRefreshToken();
             saveDataInSession('pdfUserJwt', refreshedTokens.jwt);
+
+            if (stakeKeyBech32) {
+              const providerId = await getOAuthProviderId(
+                stakeKeyBech32,
+                OAuthProviderType.GOVTOOLS,
+              );
+              if (providerId) {
+                const decodedRefreshToken = decodeJWT(
+                  refreshedTokens.jwt,
+                ) as GovToolsJwtPayload;
+                await updateJwtInOAuth(
+                  refreshedTokens.jwt,
+                  stakeKeyBech32,
+                  providerId,
+                  decodedRefreshToken.exp
+                    ? new Date(decodedRefreshToken.exp * 1000)
+                    : undefined,
+                );
+              }
+            }
+
             return { tokenExists: true, tokenRefreshed: true };
           } catch (refreshError) {
             addErrorAlert('Error refreshing token:', refreshError);
@@ -47,6 +135,7 @@ export const usePdfTokenManager = () => {
       }
       return { tokenExists: true };
     } catch (error) {
+      console.error('Error decoding JWT:', error);
       addErrorAlert('Error decoding JWT:', error);
       deleteDataFromSession('pdfUserJwt');
       return { tokenExists: false, decodeFailed: true };
@@ -75,8 +164,8 @@ export const usePdfTokenManager = () => {
           {
             type: 'stake',
             value: stakeKey,
-          }
-        ]
+          },
+        ],
       );
 
       const userResponse = await loginUserToPdf({
@@ -117,8 +206,8 @@ export const usePdfTokenManager = () => {
               {
                 type: 'drep',
                 value: dRepId,
-              }
-            ]
+              },
+            ],
           );
 
           const drepResponse = await loginUserToPdf({
@@ -132,11 +221,76 @@ export const usePdfTokenManager = () => {
 
           await setUpPdfJwt(drepResponse);
           addSuccessAlert('DRep verification passed.');
+
+          if (stakeKeyBech32) {
+            //check if user has an existing provider(gave consent for saving the token)
+            const decodedToken = decodeJWT(
+              drepResponse.jwt,
+            ) as GovToolsJwtPayload;
+            const { hasProvider } = await handleCheckOAuthProvider(
+              stakeKeyBech32,
+              OAuthProviderType.GOVTOOLS,
+            );
+            if (!hasProvider) {
+              openModal(ModalType.SAVE_JWT, {
+                jwt: drepResponse.jwt,
+                stakeKeyBech32,
+                expiresAt: decodedToken.exp
+                  ? new Date(decodedToken.exp * 1000)
+                  : undefined,
+                metadata: {
+                  keyType: 'drep',
+                },
+              });
+            } else {
+              storeJwtInOAuth(
+                drepResponse.jwt,
+                stakeKeyBech32,
+                decodedToken.exp
+                  ? new Date(decodedToken.exp * 1000)
+                  : undefined,
+                {
+                  keyType: 'drep',
+                },
+              );
+            }
+          }
         } catch (error) {
           addErrorAlert('DRep verification failed:', error);
           deleteDataFromSession('pdfUserJwt');
           addErrorAlert('DRep verification failed. Please try again.');
           return { loginFailed: true };
+        }
+      } else {
+        if (stakeKeyBech32) {
+          const decodedToken = decodeJWT(
+            userResponse.jwt,
+          ) as GovToolsJwtPayload;
+          const { hasProvider } = await handleCheckOAuthProvider(
+            stakeKeyBech32,
+            OAuthProviderType.GOVTOOLS,
+          );
+          if (!hasProvider) {
+            openModal(ModalType.SAVE_JWT, {
+              jwt: userResponse.jwt,
+              stakeKeyBech32,
+              expiresAt: decodedToken.exp
+                ? new Date(decodedToken.exp * 1000)
+                : undefined,
+              metadata: {
+                keyType: 'stake',
+              },
+            });
+          } else {
+            storeJwtInOAuth(
+              userResponse.jwt,
+              stakeKeyBech32,
+              decodedToken.exp ? new Date(decodedToken.exp * 1000) : undefined,
+              {
+                keyType: 'drep',
+              },
+            );
+          }
         }
       }
 
@@ -169,9 +323,24 @@ export const usePdfTokenManager = () => {
     return { loginSuccess: true };
   };
 
+  const getOAuthProviderId = async (
+    stakeKeyBech32: string,
+    provider: OAuthProviderType,
+  ) => {
+    try {
+      const providerData = await getOAuthProvider({ stakeKeyBech32, provider });
+      return providerData?.id || null;
+    } catch (error) {
+      console.error('Failed to get OAuth provider ID:', error);
+      return null;
+    }
+  };
+
   return {
     validateAndRefreshToken,
     performFullLogin,
     ensureAuthenticated,
+    storeJwtInOAuth,
+    updateJwtInOAuth,
   };
 };

@@ -360,14 +360,13 @@ export const pollTransaction = async (txHash: string) => {
   return false;
 };
 
-export function decodeJWT() {
-  const jwt = getDataFromSession('pdfUserJwt');
+export function decodeJWT(jwt?: string) {
+  let jwtToDecode = jwt || getDataFromSession('pdfUserJwt');
 
-  if (!jwt) {
+  if (!jwtToDecode) {
     return null;
   }
-
-  const payload = jwt?.split('.')[1];
+  const payload = jwtToDecode?.split('.')[1];
   const decoded = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
   return JSON.parse(decoded);
 }

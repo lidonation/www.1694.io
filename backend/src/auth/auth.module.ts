@@ -9,7 +9,8 @@ import jwtConstants from './jwtConstants';
     JwtModule.register({
       global: true,
       secret:jwtConstants.secret
-    })
+    }),
+    
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtService]

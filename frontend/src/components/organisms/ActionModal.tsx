@@ -1,11 +1,13 @@
-import { Box, Typography } from '@mui/material';
+import { Box, CircularProgress, Typography } from '@mui/material';
 import { ModalContents, ModalHeader, ModalWrapper } from '../atoms';
 import Button from '../atoms/Button';
 
-interface ActionButton {
+export interface ActionButton {
   handleClick: () => void;
   className?: string;
   label: string;
+  disabled?: boolean;
+  loading?: boolean;
 }
 
 export interface ActionModalProps {
@@ -28,19 +30,32 @@ export function ActionModal({
   hideCloseButton,
 }: ActionModalProps) {
   const renderIconsOnSeverity = () => {
+    let iconSrc = '/img/info-circle.png';
     switch (severity) {
       case 'success':
-        return <img src="/img/success.png" />;
+        iconSrc = '/svgs/success.svg';
+        break;
       case 'error':
-        return <img src="/img/warning.png" />;
+        iconSrc = '/svgs/alert-circle.svg';
+        break;
       case 'warning':
-        return <img src="/img/warning.png" />;
+        iconSrc = '/img/warning.png';
+        break;
       case 'info':
-        return <img src="/img/info-circle.png" />;
+        iconSrc = '/img/info-circle.png';
+        break;
+      default:
+        iconSrc = '/img/info-circle.png';
+        break;
     }
+    return <img src={iconSrc} alt="Severity Icon" className="h-16 w-16" />;
   };
   return (
-    <ModalWrapper dataTestId="action-modal" onClose={handleClose} hideCloseButton={hideCloseButton}>
+    <ModalWrapper
+      dataTestId="action-modal"
+      onClose={handleClose}
+      hideCloseButton={hideCloseButton}
+    >
       <ModalHeader
         sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
       >
@@ -71,8 +86,13 @@ export function ActionModal({
                 key={index}
                 className={button.className}
                 handleClick={button.handleClick}
+                disabled={button?.disabled}
               >
-                {button.label}
+                {button?.loading ? (
+                  <CircularProgress size={20} />
+                ) : (
+                  button.label
+                )}
               </Button>
             ))}
           </Box>

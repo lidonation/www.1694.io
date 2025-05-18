@@ -37,7 +37,7 @@ export abstract class SoftDeletableBaseEntity extends Model {
  * Abstract base entity with common fields for primary key, creation, update timestamps, soft-delete, and more.
  */
 export abstract class BaseEntity extends SoftDeletableBaseEntity {
-  // Primary key of UUID type
+  // Primary key of int type
   @PrimaryGeneratedColumn()
   id?: number;
 
