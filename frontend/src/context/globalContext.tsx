@@ -99,7 +99,7 @@ interface WalletState {
 
 interface UserInfo {
   signatureData: Partial<{
-    currentSignatureId: number;
+    currentSignatureId: string;
   }>; //TODO: define the type
   dRepProfilesClaimed: ClaimedProfile[] | null;
   drepMetadata: {
