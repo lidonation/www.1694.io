@@ -163,6 +163,17 @@ export class DrepController {
     );
   }
 
+  @Get(':voterId/gov-actions-votes')
+  getDRepGovActionsVotes(
+    @Param('voterId') voterId: string,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe)
+    page: number,
+    @Query('perPage', new DefaultValuePipe(6), ParseIntPipe)
+    perPage: number,
+  ) {
+    return this.drepService.getDRepVotedGovActions(voterId, page, perPage);
+  }
+
   @Get(':stakeKey/profile-data')
   getVoterProfileData(@Param('stakeKey') stakeKey: string) {
     return this.drepService.getVoterProfileData(stakeKey);

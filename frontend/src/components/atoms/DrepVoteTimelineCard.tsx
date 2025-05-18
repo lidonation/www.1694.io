@@ -57,20 +57,21 @@ const DrepVoteTimelineCard = ({
   const isExpired =
     item?.expiration_epoch && latestEpoch > item?.expiration_epoch;
   const tag = item?.description?.tag as string;
-  const { Proposal, isProposalFetching } = useGetProposalMetadataByHashQuery({
-    hashQueryString: item?.gov_action_proposal_id,
-    isRequired: !Boolean(title),
-  });
+  const { proposalMetadata, isProposalMetadataFetching } =
+    useGetProposalMetadataByHashQuery({
+      hashQueryString: item?.gov_action_proposal_id,
+      isRequired: !Boolean(title),
+    });
 
   useEffect(() => {
     if (title) {
       setGovActionName(title);
       return;
     }
-    if (!isProposalFetching) {
-      setGovActionName(Proposal?.body?.title);
+    if (!isProposalMetadataFetching) {
+      setGovActionName(proposalMetadata?.body?.title);
     }
-  }, [govActionName, Proposal, isProposalFetching]);
+  }, [govActionName, proposalMetadata, isProposalMetadataFetching]);
 
   let actionDetais: { imgSrc: string; actionName: string } = {
     imgSrc: '/svgs/exchange.svg',
@@ -241,14 +242,14 @@ const DrepVoteTimelineCard = ({
               <Link
                 href={`${urls.govToolUrl}/governance_actions/${item?.gov_action_proposal_id}#0`}
                 target="_blank"
-                className="text-sm text-blue-800"
+                className="text-sm text-blue-800 hover:font-bold"
               >
                 Govtool
               </Link>
               <Link
                 href={`${urls.adaStatUrl}/governances/${item?.gov_action_proposal_id}00`}
                 target="_blank"
-                className="text-sm text-blue-800"
+                className="text-sm text-blue-800 hover:font-bold"
               >
                 ADASTAT
               </Link>

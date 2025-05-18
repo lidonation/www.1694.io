@@ -371,3 +371,29 @@ export function decodeJWT() {
   const decoded = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
   return JSON.parse(decoded);
 }
+
+export const formatIsoTime = (timestamp: string): string => {
+  try {
+    const date = new Date(timestamp);
+
+    if (isNaN(date.getTime())) {
+      throw new Error('Invalid date');
+    }
+
+    const formatted = date.toLocaleString('en-CA', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    });
+
+    return formatted.replace(/\s?(a\.m\.|p\.m\.)/i, (match) =>
+      match.includes('a.m.') ? ' AM' : ' PM',
+    );
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return timestamp;
+  }
+};
