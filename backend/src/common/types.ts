@@ -153,7 +153,7 @@ export type DRepDelegatorsHistoryRecord = {
   delegation_epoch: number;
   tx_hash: string;
   type: 'delegation';
-  total_stake: string; 
+  total_stake: string;
   added_power: boolean;
 };
 
@@ -189,15 +189,22 @@ export interface DRepTimelineParams {
   voterId: string;
   stakeKeyBech32?: string;
   delegation?: Delegation;
-  beforeDate?: number;
-  tillDate?: number;
+  startTimeCursor?: number;
+  endTimeCursor?: number;
   filterValues?: string[];
 }
 export interface TimelineEntry {
   type: string;
   timestamp: string | Date;
   [key: string]: any;
-}  
+}
+
+export interface TimelineResponse {
+  appliedStartTime: number;
+  appliedEndTime: number;
+  entries: TimelineEntry[];
+}
+
 export interface TimelineFilters {
   includeVotingActivity: boolean;
   includeDelegations: boolean;
@@ -205,7 +212,6 @@ export interface TimelineFilters {
   includeClaimedProfile: boolean;
   includeRegistration: boolean;
 }
-
 
 export type Metrics = {
   totalRegisteredDReps: number;

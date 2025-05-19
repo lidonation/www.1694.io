@@ -39,6 +39,7 @@ import {
   MetadataValidationStatus,
   TimelineEntry,
   TimelineFilters,
+  TimelineResponse,
   ValidateMetadataResult,
   VoterNoteResponse,
   VotingActivityHistory,
@@ -371,7 +372,7 @@ export class DrepService {
     return drepCexplorer[0];
   }
 
-  getDrepDateofRegistration(
+  getDrepDateOfRegistration(
     drepVoterId: string,
   ): Observable<DRepRegistrationData | null> {
     return from(
@@ -449,13 +450,15 @@ export class DrepService {
   }
 
   private getTimeRange(
-    beforeDate?: number,
-    tillDate?: number,
+    startTimeCursor?: number,
+    endTimeCursor?: number,
   ): { startingTime: Date; endingTime: Date } {
-    const startingTime = beforeDate ? new Date(Number(beforeDate)) : new Date();
-    const endingTime = tillDate
-      ? new Date(Number(tillDate))
-      : new Date(startingTime.getTime() - 432000000); // 5 days ago
+    const endingTime = endTimeCursor
+      ? new Date(Number(endTimeCursor))
+      : new Date();
+    const startingTime = startTimeCursor
+      ? new Date(Number(startTimeCursor))
+      : new Date(endingTime.getTime() - 432000000); // 5 days ago
     return { startingTime, endingTime };
   }
 
@@ -477,7 +480,119 @@ export class DrepService {
     endTime: Date,
   ): boolean {
     const time = new Date(timestamp).getTime();
-    return startTime.getTime() > time && endTime.getTime() < time;
+    return startTime.getTime() < time && endTime.getTime() > time;
+  }
+
+  getDrepTimelineWithMinItems({
+    dRep,
+    voterId,
+    stakeKeyBech32,
+    delegation,
+    endTimeCursor,
+    startTimeCursor,
+    filterValues,
+    minItems = 10,
+    recursionDepth = 0,
+    maxRecursionDepth = 3,
+    loadDirection = 'older',
+  }): Observable<TimelineResponse> {
+    const endTime = Number(endTimeCursor) || Date.now();
+    const startTime = Number(startTimeCursor) || Date.now();
+
+    return this.getDrepTimeline({
+      dRep,
+      voterId,
+      stakeKeyBech32,
+      delegation,
+      startTimeCursor: startTime,
+      endTimeCursor: endTime,
+      filterValues,
+    }).pipe(
+      switchMap((timelineEntries) => {
+        if (
+          timelineEntries.length >= minItems ||
+          recursionDepth >= maxRecursionDepth
+        ) {
+          return of({
+            appliedStartTime: startTime,
+            appliedEndTime: endTime,
+            entries: timelineEntries,
+          });
+        }
+
+        let newStartDate: number, newEndDate: number;
+        const timeExtension =
+          2 * 24 * 60 * 60 * 1000 * Math.pow(2, recursionDepth);
+
+        if (loadDirection === 'older') {
+          newEndDate = startTime - 1 * 24 * 60 * 60 * 1000;
+          newStartDate = newEndDate - timeExtension;
+        } else {
+          // For 'newer' direction
+          const currentTime = Date.now();
+          newStartDate = endTime + 1 * 24 * 60 * 60 * 1000;
+
+          if (newStartDate >= currentTime) {
+            return of({
+              appliedStartTime: startTime,
+              appliedEndTime: endTime,
+              entries: timelineEntries,
+            });
+          }
+          newEndDate = Math.min(newStartDate + timeExtension, currentTime);
+        }
+
+        return this.getDrepTimelineWithMinItems({
+          dRep,
+          voterId,
+          stakeKeyBech32,
+          delegation,
+          startTimeCursor: newStartDate,
+          endTimeCursor: newEndDate,
+          filterValues,
+          minItems: minItems - timelineEntries.length,
+          recursionDepth: recursionDepth + 1,
+          maxRecursionDepth,
+          loadDirection,
+        }).pipe(
+          map((newResult) => {
+            const allEntries = [...timelineEntries, ...newResult.entries];
+
+            const uniqueEntries = Array.from(
+              new Map(
+                allEntries.map((entry) => [
+                  `${new Date(entry.timestamp).getTime()}-${entry.type}`,
+                  entry,
+                ]),
+              ).values(),
+            );
+
+            uniqueEntries.sort((a, b) => {
+              return (
+                new Date(b.timestamp).getTime() -
+                new Date(a.timestamp).getTime()
+              );
+            });
+
+            return {
+              appliedStartTime: Number(
+                loadDirection === 'older'
+                  ? newResult.appliedStartTime
+                  : startTime,
+              ),
+              appliedEndTime: Number(
+                loadDirection === 'newer' ? newResult.appliedEndTime : endTime,
+              ),
+              entries: uniqueEntries,
+            };
+          }),
+        );
+      }),
+      catchError((error) => {
+        console.error('Error in recursive timeline fetching:', error);
+        throw new Error('Failed to fetch DRep timeline data recursively');
+      }),
+    );
   }
 
   getDrepTimeline({
@@ -485,14 +600,14 @@ export class DrepService {
     voterId,
     stakeKeyBech32,
     delegation,
-    beforeDate,
-    tillDate,
+    startTimeCursor,
+    endTimeCursor,
     filterValues,
   }: DRepTimelineParams): Observable<TimelineEntry[]> {
     const filters = this.getFilters(filterValues);
     const { startingTime, endingTime } = this.getTimeRange(
-      beforeDate,
-      tillDate,
+      startTimeCursor,
+      endTimeCursor,
     );
     const drepId = dRep?.drep_id;
 
@@ -500,7 +615,7 @@ export class DrepService {
     const queries: Record<string, Observable<any>> = {
       epochs: this.getEpochs(startingTime, endingTime),
       regData: filters.includeRegistration
-        ? this.getDrepDateofRegistration(voterId)
+        ? this.getDrepDateOfRegistration(voterId)
         : of(null),
       votingHistory: filters.includeVotingActivity
         ? this.getDrepVotingActivity(voterId, startingTime, endingTime)
@@ -628,23 +743,24 @@ export class DrepService {
   }
 
   getEpochs(
-    beforeDate: Date,
-    tillDate: Date,
+    startingTime: Date,
+    endingTime: Date,
   ): Observable<EpochActivityResponse[]> {
     const query = `
       SELECT start_time, end_time, no
       FROM epoch
-      WHERE epoch.start_time::DATE
-      BETWEEN $2::DATE AND $1::DATE
+      WHERE epoch.start_time::DATE BETWEEN $1::DATE AND $2::DATE
+      ORDER BY start_time DESC
     `;
 
     return from(
-      this.cexplorerService.manager.query(query, [beforeDate, tillDate]),
+      this.cexplorerService.manager.query(query, [startingTime, endingTime]),
     ).pipe(
       map((epochs) =>
         epochs.map((epoch) => ({
           ...epoch,
           type: 'epoch',
+          timestamp: epoch.start_time,
         })),
       ),
     );
@@ -652,14 +768,14 @@ export class DrepService {
 
   getDrepVotingActivity(
     drepVoterId: string,
-    beforeDate: Date,
-    tillDate: Date,
+    startingTime: Date,
+    endingTime: Date,
   ): Observable<VotingActivityHistory[]> {
     return from(
       this.cexplorerService.manager.query(getDrepVotingActivityQuery, [
         drepVoterId,
-        beforeDate,
-        tillDate,
+        startingTime,
+        endingTime,
       ]),
     ).pipe(
       map((data) => data.map((item) => ({ ...item, type: 'voting_activity' }))),
@@ -668,8 +784,8 @@ export class DrepService {
 
   getDRepNotes(
     drepId: number,
-    beforeDate: Date,
-    tillDate: Date,
+    startingTime: Date,
+    endingTime: Date,
     stakeKeyBech32?: string,
     delegation?: any,
   ): Observable<VoterNoteResponse> {
@@ -680,10 +796,10 @@ export class DrepService {
       .leftJoin('drep.signatures', 'signature')
       .where('note.drep = :drepId', { drepId })
       .andWhere(
-        'note."createdAt"::DATE BETWEEN :tillDate::DATE AND :beforeDate::DATE',
+        'note."createdAt"::DATE BETWEEN :startingTime::DATE AND :endingTime::DATE',
         {
-          beforeDate,
-          tillDate,
+          startingTime,
+          endingTime,
         },
       );
 
@@ -1027,8 +1143,8 @@ export class DrepService {
 
   getDrepDelegators(
     drepVoterId: string,
-    beforeDate: Date,
-    tillDate: Date,
+    startingTime: Date,
+    endingTime: Date,
   ): Observable<DRepDelegatorsHistoryResponse> {
     const drepHashQuery = `
       SELECT id, view FROM drep_hash WHERE view = $1
@@ -1056,7 +1172,7 @@ export class DrepService {
             return from(
               this.cexplorerService.manager.query(
                 getDRepDelegatorsHistory(addrIds),
-                [drepHashId, drepVoterId, beforeDate, tillDate],
+                [drepHashId, drepVoterId, startingTime, endingTime],
               ),
             );
           }),
