@@ -7,6 +7,7 @@ import Pagination from '@/components/molecules/Pagination';
 import ProposalSearch from '@/components/atoms/ProposalSearch';
 import RecordsNotFound from '@/components/atoms/RecordsNotFound';
 import ProposalMetrics from '@/components/atoms/ProposalMetrics';
+import ProposalsFilterChips from '@/components/atoms/ProposalsFilterChips';
 import { ProposalDownloadButton } from '@/components/molecules/ProposalDownloadButton';
 import { useGetActionsProposalsQuery } from '@/hooks/useGetActionsProposalsQuery';
 import { useDebounce } from 'use-debounce';
@@ -66,12 +67,11 @@ function ProposalsPage() {
         </div>
       </section>
 
-      <section className="relative mb-6 rounded-full py-2 w-full max-w-7xl mx-auto lg:flex lg:flex-nowrap lg:items-center gap-4 justify-between">
+      <section className="relative mb-5 rounded-full py-2 w-full max-w-7xl mx-auto lg:flex lg:flex-nowrap lg:items-center gap-4 justify-between">
         <div className="w-full lg:w-[45%]">
           <ProposalMetrics search={debouncedSearch} categories={categories} committees={committees} />
         </div>
-
-        <div className="w-full lg:w-[55%] flex justify-end">
+        <div className="w-full lg:w-[55%] flex justify-end mb-5">
           <div className="w-full">
             <ProposalSearch
               search={search}
@@ -84,32 +84,41 @@ function ProposalsPage() {
           </div>
         </div>
       </section>
-      <section className="w-full max-w-7xl mx-auto flex justify-end mb-4">
-        <ProposalDownloadButton
-          proposals={allFilteredProposals?.data || []}
-          searchQuery={debouncedSearch}
-          categoryFilter={categories}
-          committeeFilter={committees}
-        />
-      </section>
-      <section>
-        {!isPaginatedLoading && proposalsData.length === 0 ? (
-          <RecordsNotFound message="No proposals match your criteria." />
-        ) : (
-          <ul className="grid grid-cols-1 gap-6 py-6 xl:grid-cols-2 2xl:grid-cols-3">
-            {isPaginatedLoading
-              ? Array.from({ length: pageSize }).map((_, index) => (
-                <li key={index}>
-                  <ProposalCardSkeleton />
-                </li>
-              ))
-              : proposalsData.map((proposal, index) => (
-                <li key={index}>
-                  <ProposalCard proposal={proposal} />
-                </li>
-              ))}
-          </ul>
-        )}
+      <section className="w-full max-w-7xl mx-auto mb-2 flex flex-col gap-1.5">
+        <div className="w-full flex justify-between items-start gap-4">
+          <div className="flex-1 overflow-x-auto">
+            <div className="flex flex-wrap gap-2 min-w-[fit-content]">
+              <ProposalsFilterChips />
+            </div>
+          </div>
+          <div className="flex-shrink-0 pt-[10px]">
+            <ProposalDownloadButton
+              proposals={allFilteredProposals?.data || []}
+              searchQuery={debouncedSearch}
+              categoryFilter={categories}
+              committeeFilter={committees}
+            />
+          </div>
+        </div>
+        <div>
+          {!isPaginatedLoading && proposalsData.length === 0 ? (
+            <RecordsNotFound message="No proposals match your criteria." />
+          ) : (
+            <ul className="grid grid-cols-1 gap-6 pt-1 pb-2 xl:grid-cols-2 2xl:grid-cols-3">
+              {isPaginatedLoading
+                ? Array.from({ length: pageSize }).map((_, index) => (
+                  <li key={index}>
+                    <ProposalCardSkeleton />
+                  </li>
+                ))
+                : proposalsData.map((proposal, index) => (
+                  <li key={index}>
+                    <ProposalCard proposal={proposal} />
+                  </li>
+                ))}
+            </ul>
+          )}
+        </div>
 
         {!isPaginatedLoading && proposalsData.length > 0 && (
           <div className="mt-8">
