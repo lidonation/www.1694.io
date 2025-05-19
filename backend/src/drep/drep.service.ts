@@ -69,6 +69,10 @@ import { Signature } from 'src/entities/signatures.entity';
 import { MiscellaneousService } from 'src/miscellaneous/miscellaneous.service';
 import { getCurrentDelegationQuery } from 'src/queries/currentDelegation';
 import { getDRepParticipationQuery } from 'src/queries/drepParticipation';
+import {
+  getDRepVotedGovActionsCountQuery,
+  getDRepVotedGovActionsQuery,
+} from 'src/queries/drepVotes';
 
 @Injectable()
 export class DrepService {
@@ -1238,5 +1242,33 @@ export class DrepService {
     );
 
     return participation?.[0] || null;
+  }
+
+  async getDRepVotedGovActions(
+    voterId: string,
+    currentPage: number,
+    itemsPerPage: number,
+  ) {
+    const offset = (currentPage - 1) * itemsPerPage;
+    const govActions = await this.cexplorerService.manager.query(
+      getDRepVotedGovActionsQuery(itemsPerPage, offset),
+      [voterId],
+    );
+
+    const totalResults = await this.cexplorerService.manager.query(
+      getDRepVotedGovActionsCountQuery,
+      [voterId],
+    );
+
+    const totalItems = parseInt(totalResults[0]?.total, 10);
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+    return {
+      data: govActions,
+      totalItems,
+      currentPage,
+      itemsPerPage,
+      totalPages,
+    };
   }
 }

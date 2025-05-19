@@ -45,12 +45,32 @@ const MarkdownParser = ({ text }: MarkdownParserProps) => {
     return null;
   }
 
+  const isSimpleText = (str: string): boolean => {
+    const trimmed = str.trim();
+    return (
+      trimmed.length <= 5 ||
+      (/^[a-zA-Z0-9\s\-_.]+$/.test(trimmed) &&
+        !trimmed.includes('\n') &&
+        !trimmed.includes('*') &&
+        !trimmed.includes('#') &&
+        !trimmed.includes('['))
+    );
+  };
+
+  if (isSimpleText(text)) {
+    return (
+      <Typography component="span" sx={{ lineHeight: 1.65 }}>
+        {text}
+      </Typography>
+    );
+  }
+
   const components: Components = {
     h1: ({ children }) => (
       <Typography
         variant="h1"
         component="h1"
-        sx={{ fontWeight: 400, fontSize: '2rem' }}
+        sx={{ fontWeight: 400, fontSize: '1.2rem' }}
       >
         {children}
       </Typography>
@@ -59,7 +79,7 @@ const MarkdownParser = ({ text }: MarkdownParserProps) => {
       <Typography
         variant="h2"
         component="h2"
-        sx={{ fontWeight: 400, fontSize: '1.75rem' }}
+        sx={{ fontWeight: 400, fontSize: '1.05rem' }}
       >
         {children}
       </Typography>
@@ -68,7 +88,7 @@ const MarkdownParser = ({ text }: MarkdownParserProps) => {
       <Typography
         variant="h3"
         component="h3"
-        sx={{ fontWeight: 400, fontSize: '1.5rem' }}
+        sx={{ fontWeight: 400, fontSize: '0.9rem' }}
       >
         {children}
       </Typography>
@@ -77,7 +97,7 @@ const MarkdownParser = ({ text }: MarkdownParserProps) => {
       <Typography
         variant="h4"
         component="h4"
-        sx={{ fontWeight: 400, fontSize: '1.25rem' }}
+        sx={{ fontWeight: 400, fontSize: '0.75rem' }}
       >
         {children}
       </Typography>
@@ -86,7 +106,7 @@ const MarkdownParser = ({ text }: MarkdownParserProps) => {
       <Typography
         variant="h5"
         component="h5"
-        sx={{ fontWeight: 400, fontSize: '1.1rem' }}
+        sx={{ fontWeight: 400, fontSize: '0.65rem' }}
       >
         {children}
       </Typography>
@@ -95,7 +115,7 @@ const MarkdownParser = ({ text }: MarkdownParserProps) => {
       <Typography
         variant="h6"
         component="h6"
-        sx={{ fontWeight: 400, fontSize: '1rem' }}
+        sx={{ fontWeight: 400, fontSize: '0.65rem' }}
       >
         {children}
       </Typography>

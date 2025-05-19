@@ -1,5 +1,3 @@
-import { urls } from '@/constants';
-import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
 import { Box } from '@mui/material';
 import CopyToClipboard from './CopyToClipboard';
@@ -12,6 +10,7 @@ import {
 } from '../molecules/VoteRationaleModal';
 import { GovAction } from '../../../types/api';
 import { useWallet } from '@/context/globalContext';
+import { ViewExternalGovAction } from '@/components/atoms/ViewExternalGovAction';
 
 interface DrepVoteTimelineCardProps {
   item: DrepVote | GovAction;
@@ -57,20 +56,21 @@ const DrepVoteTimelineCard = ({
   const isExpired =
     item?.expiration_epoch && latestEpoch > item?.expiration_epoch;
   const tag = item?.description?.tag as string;
-  const { Proposal, isProposalFetching } = useGetProposalMetadataByHashQuery({
-    hashQueryString: item?.gov_action_proposal_id,
-    isRequired: !Boolean(title),
-  });
+  const { proposalMetadata, isProposalMetadataFetching } =
+    useGetProposalMetadataByHashQuery({
+      hashQueryString: item?.gov_action_proposal_id,
+      isRequired: !Boolean(title),
+    });
 
   useEffect(() => {
     if (title) {
       setGovActionName(title);
       return;
     }
-    if (!isProposalFetching) {
-      setGovActionName(Proposal?.body?.title);
+    if (!isProposalMetadataFetching) {
+      setGovActionName(proposalMetadata?.body?.title);
     }
-  }, [govActionName, Proposal, isProposalFetching]);
+  }, [govActionName, proposalMetadata, isProposalMetadataFetching]);
 
   let actionDetais: { imgSrc: string; actionName: string } = {
     imgSrc: '/svgs/exchange.svg',
@@ -234,26 +234,7 @@ const DrepVoteTimelineCard = ({
           </Box>
 
           {renderRationaleButton()}
-
-          <Box className="flex flex-col gap-1">
-            <p className="text-sm">View Action on:</p>
-            <Box className="flex flex-row gap-2">
-              <Link
-                href={`${urls.govToolUrl}/governance_actions/${item?.gov_action_proposal_id}#0`}
-                target="_blank"
-                className="text-sm text-blue-800"
-              >
-                Govtool
-              </Link>
-              <Link
-                href={`${urls.adaStatUrl}/governances/${item?.gov_action_proposal_id}00`}
-                target="_blank"
-                className="text-sm text-blue-800"
-              >
-                ADASTAT
-              </Link>
-            </Box>
-          </Box>
+          <ViewExternalGovAction actionId={item?.gov_action_proposal_id} />
         </Box>
       </Box>
     </Box>

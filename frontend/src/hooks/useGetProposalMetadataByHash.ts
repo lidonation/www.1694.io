@@ -16,9 +16,9 @@ export const useGetProposalMetadataByHashQuery = ({
   });
 
   return {
-    Proposal: data,
-    isProposalLoading: isLoading,
-    isProposalFetching: isFetching,
-    proposalFetchError: error as any,
+    proposalMetadata: data,
+    isProposalMetadataLoading: isLoading,
+    isProposalMetadataFetching: isFetching,
+    proposalMetadataFetchError: error as any,
   };
 };
