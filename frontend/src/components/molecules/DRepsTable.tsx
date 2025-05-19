@@ -23,7 +23,6 @@ import Pagination from './Pagination';
 import CopyToClipBoard from '../atoms/svgs/CopyToClipBoardIcon';
 import ArrowDownIcon from '../atoms/svgs/ArrowDownIcon';
 import ArrowUpIcon from '../atoms/svgs/ArrowUpIcon';
-import DatabaseNullIcon from '../atoms/svgs/DatabaseNullIcon';
 import CrossIcon from '../atoms/svgs/CrossIcon';
 import Typography from '@mui/material/Typography';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
@@ -32,6 +31,7 @@ import ClaimProfileButton from '../atoms/ClaimProfileButton';
 import { useGetAdaHolderCurrentDelegationQuery } from '@/hooks/useGetAdaHolderCurrentDelegationQuery';
 import { useWallet } from '@/context/globalContext';
 import DRepLogo from './DRepLogo';
+import RecordsNotFound from '../atoms/RecordsNotFound';
 
 type DRepsTableProps = {
   query?: string;
@@ -335,14 +335,7 @@ const DRepsTable = ({
             <tr>
               <td colSpan={10} className="px-4 py-6 text-center">
                 {!isError && (
-                  <div className="flex flex-col items-center justify-center">
-                    <div className="flex w-full flex-col items-center rounded-lg border-2 border-dashed border-gray-300 p-12 hover:border-gray-400">
-                      <DatabaseNullIcon width={60} height={50} />
-                      <span className="mt-2 block text-sm font-semibold text-gray-500">
-                        No DReps to show for now...
-                      </span>
-                    </div>
-                  </div>
+                  <RecordsNotFound message="No DReps to show for now..." />
                 )}
                 {isError && (
                   <div className="mx-auto">

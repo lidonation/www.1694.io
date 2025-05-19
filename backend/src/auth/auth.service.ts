@@ -7,7 +7,12 @@ import * as cbor from 'cbor';
 import jwtConstants from './jwtConstants';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
-import { VerifyDRepSignatureDto } from './auth.dto';
+import {
+  CreateOAuthDto,
+  UpdateOAuthDto,
+  VerifyDRepSignatureDto,
+} from './auth.dto';
+import { OAuth, OAuthProviderType } from 'src/entities/oauth.entity';
 
 type Payload = {
   drepId?: string;
@@ -84,7 +89,8 @@ export class AuthService {
         });
       if (existingSig) {
         let updatedSig = existingSig;
-        if (!existingSig.drep) { //update the signature with the drepId
+        if (!existingSig.drep) {
+          //update the signature with the drepId
           updatedSig = await this.voltaireService
             .getRepository('Signature')
             .update(existingSig.id, signatureDto);
@@ -586,9 +592,10 @@ export class AuthService {
     }
   }
 
-  async verifySignatureFromLoginFile(signatures: Omit<VerifyDRepSignatureDto, 'address'>['signatures']) {
+  async verifySignatureFromLoginFile(
+    signatures: Omit<VerifyDRepSignatureDto, 'address'>['signatures'],
+  ) {
     try {
-
       // Validate COSE_Key presence and format
       let COSE_Key_cbor_hex = signatures?.vkey;
       if (typeof COSE_Key_cbor_hex === 'undefined') {
@@ -825,5 +832,104 @@ export class AuthService {
         HttpStatus.BAD_REQUEST,
       );
     }
+  }
+
+  async addOAuthProvider(addOAuthPayload: CreateOAuthDto) {
+    try {
+      const oAuthRepo = this.voltaireService.getRepository<OAuth>(OAuth);
+      const existingOAuth = await oAuthRepo.findOne({
+        where: {
+          provider: addOAuthPayload.provider,
+          stakeKeyBech32: addOAuthPayload.stakeKeyBech32,
+        },
+      });
+      if (existingOAuth) {
+        //be idempotent and update the existing one
+        const updatedOAuth = oAuthRepo.merge(existingOAuth, addOAuthPayload);
+        await oAuthRepo.save(updatedOAuth);
+        return {
+          id: updatedOAuth.id,
+          provider: updatedOAuth.provider,
+        };
+      }
+      const newOAuth = oAuthRepo.create(addOAuthPayload);
+      const savedOAuth = await oAuthRepo.save(newOAuth);
+      return {
+        id: savedOAuth.id,
+        provider: savedOAuth.provider,
+      };
+    } catch (error) {
+      console.error('Error adding OAuth provider:', error);
+      throw new HttpException(
+        error.message || 'Error adding OAuth provider',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async getOAuthProvidersByStakeKeyBech32(stakeKeyBech32: string) {
+    const oAuthRepo = this.voltaireService.getRepository<OAuth>(OAuth);
+    const oAuthProviders = await oAuthRepo.find({
+      where: { stakeKeyBech32 },
+    });
+    return oAuthProviders;
+  }
+
+  async getOAuthProviderCheck(
+    stakeKeyBech32: string,
+    provider: OAuthProviderType,
+  ) {
+    const oAuthRepo = this.voltaireService.getRepository<OAuth>(OAuth);
+    const oAuthProvider = await oAuthRepo.findOne({
+      where: { stakeKeyBech32, provider },
+    });
+    return {
+      hasProvider: !!oAuthProvider,
+    };
+  }
+
+  async getOAuthProviderBy(
+    provider: OAuthProviderType,
+    stakeKeyBech32: string,
+  ) {
+    const oAuthRepo = this.voltaireService.getRepository<OAuth>(OAuth);
+    const oAuthProvider = await oAuthRepo.findOne({
+      where: { provider, stakeKeyBech32 },
+    });
+    if (!oAuthProvider) {
+      throw new HttpException('OAuth provider not found', HttpStatus.NOT_FOUND);
+    }
+    return oAuthProvider;
+  }
+
+  async updateOAuthProvider(updateOAuthPayload: UpdateOAuthDto) {
+    const oAuthRepo = this.voltaireService.getRepository<OAuth>(OAuth);
+    const existingOAuth = await oAuthRepo.findOne({
+      where: { stakeKeyBech32: updateOAuthPayload.stakeKeyBech32 },
+    });
+    if (!existingOAuth) {
+      throw new HttpException('OAuth provider not found', HttpStatus.NOT_FOUND);
+    }
+    const updatedOAuth = oAuthRepo.merge(existingOAuth, updateOAuthPayload);
+    await oAuthRepo.save(updatedOAuth);
+    return updatedOAuth;
+  }
+
+  async deleteOAuthProvider(stakeKeyBech32: string, providerId: number) {
+    const oAuthRepo = this.voltaireService.getRepository<OAuth>(OAuth);
+    if (!stakeKeyBech32 || !providerId) {
+      throw new HttpException(
+        'Signature ID and Provider ID are required',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const existingOAuth = await oAuthRepo.findOne({
+      where: { stakeKeyBech32, id: providerId },
+    });
+    if (!existingOAuth) {
+      throw new HttpException('OAuth provider not found', HttpStatus.NOT_FOUND);
+    }
+    await oAuthRepo.remove(existingOAuth);
+    return { message: 'OAuth provider deleted successfully' };
   }
 }

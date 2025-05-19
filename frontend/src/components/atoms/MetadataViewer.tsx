@@ -3,7 +3,7 @@ import { parseURL } from '@/lib/helpers';
 import { Typography } from '@mui/material';
 import Link from 'next/link';
 import React from 'react';
-import DatabaseNullIcon from './svgs/DatabaseNullIcon';
+import RecordsNotFound from './RecordsNotFound';
 
 type MetadataViewerProps = {
   isMetadataLoading: boolean;
@@ -32,26 +32,16 @@ const MetadataViewer = ({
 
     if (metadataError) {
       return (
-        <div className="mt-3 flex flex-col items-center justify-center">
-          <div className="flex w-full flex-col items-center rounded-lg border-2 border-dashed border-gray-300 p-12 hover:border-gray-400">
-            <DatabaseNullIcon width={60} height={50} />
-            <span className="mt-2 block text-sm font-semibold text-gray-500">
-              {metadataError}
-            </span>
-          </div>
+        <div className="mt-3">
+          <RecordsNotFound message={metadataError} />
         </div>
       );
     }
 
     if (!metadata || !metadata.body) {
       return (
-        <div className="mt-3 flex flex-col items-center justify-center">
-          <div className="flex w-full flex-col items-center rounded-lg border-2 border-dashed border-gray-300 p-12 hover:border-gray-400">
-            <DatabaseNullIcon width={60} height={50} />
-            <span className="mt-2 block text-sm font-semibold text-gray-500">
-              No metadata found
-            </span>
-          </div>
+        <div className="mt-3">
+          <RecordsNotFound message=" No metadata found" />
         </div>
       );
     }

@@ -5,6 +5,7 @@ import ProposalSort from '../molecules/ProposalSort';
 import { Box, InputBase, IconButton } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 interface ProposalSearchProps {
   search: string;
@@ -13,14 +14,6 @@ interface ProposalSearchProps {
   setShowFilter: (value: boolean) => void;
   showSort: boolean;
   setShowSort: (value: boolean) => void;
-  selectedCategories: string[];
-  setSelectedCategories: (value: string[]) => void;
-  selectedCommittees: string[];
-  setSelectedCommittees: (value: string[]) => void;
-  sortBy: string;
-  setSortBy: (value: string) => void;
-  sortOrder: 'asc' | 'desc';
-  setSortOrder: (value: 'asc' | 'desc') => void;
 }
 
 const ProposalSearch: React.FC<ProposalSearchProps> = ({
@@ -30,19 +23,32 @@ const ProposalSearch: React.FC<ProposalSearchProps> = ({
   setShowFilter,
   showSort,
   setShowSort,
-  selectedCategories,
-  setSelectedCategories,
-  selectedCommittees,
-  setSelectedCommittees,
-  sortBy,
-  setSortBy,
-  sortOrder,
-  setSortOrder,
 }) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const params = new URLSearchParams(searchParams.toString());
+
+  const updateSearchParam = (value: string) => {
+    if (value) {
+      params.set('search', value);
+    } else {
+      params.delete('search');
+    }
+    params.set('page', '1');
+    router.push(`?${params.toString()}`);
+  };
+
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(event.target.value);
+    updateSearchParam(event.target.value);
+  };
 
   const handleClear = () => {
     setSearch('');
+    params.delete('search');
+    params.set('page', '1');
+    router.push(`?${params.toString()}`);
     if (inputRef.current) {
       inputRef.current.focus();
     }
@@ -71,7 +77,7 @@ const ProposalSearch: React.FC<ProposalSearchProps> = ({
           placeholder="Search..."
           inputProps={{ 'aria-label': 'search proposals' }}
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={handleInputChange}
         />
         {search && (
           <IconButton
@@ -87,24 +93,11 @@ const ProposalSearch: React.FC<ProposalSearchProps> = ({
       <ProposalFilter
         showFilter={showFilter}
         setShowFilter={setShowFilter}
-        setShowSort={setShowSort}
-        selectedCategories={selectedCategories}
-        setSelectedCategories={setSelectedCategories}
-        selectedCommittees={selectedCommittees}
-        setSelectedCommittees={setSelectedCommittees}
-        setSortBy={setSortBy}
-        setSortOrder={setSortOrder}
-        setSearch={setSearch}
       />
 
       <ProposalSort
         showSort={showSort}
         setShowSort={setShowSort}
-        setShowFilter={setShowFilter}
-        sortBy={sortBy}
-        setSortBy={setSortBy}
-        sortOrder={sortOrder}
-        setSortOrder={setSortOrder}
       />
     </Box>
   );

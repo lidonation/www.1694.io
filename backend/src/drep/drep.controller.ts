@@ -84,9 +84,13 @@ export class DrepController {
     @Param('voterId') voterId: string,
     @Query('stakeKey') stakeKey?: string,
     @Query('stakeKeyBech32') stakeKeyBech32?: string,
-    @Query('startTimeCursor') startTimeCursor?: number,
     @Query('endTimeCursor') endTimeCursor?: number,
+    @Query('startTimeCursor') startTimeCursor?: number,
     @Query('filterValues') filterValues?: string[] | undefined,
+    @Query('minItems') minItems: number = 10,
+    @Query('recursionDepth') recursionDepth: number = 0,
+    @Query('maxRecursionDepth') maxRecursionDepth: number = 3,
+    @Query('loadDirection') loadDirection: string = 'older',
   ) {
     let delegation: Delegation = null;
     const dRep = await this.drepService.getVoltaireDRepViaVoterID(voterId);
@@ -95,16 +99,20 @@ export class DrepController {
       delegation =
         await this.voterService.getAdaHolderCurrentDelegation(stakeKey);
     }
-    
+
     const drepTimeline = await lastValueFrom(
-      this.drepService.getDrepTimeline({
+      this.drepService.getDrepTimelineWithMinItems({
         dRep,
         voterId,
         stakeKeyBech32,
         delegation,
-        beforeDate: startTimeCursor,
-        tillDate: endTimeCursor,
+        endTimeCursor,
+        startTimeCursor,
         filterValues,
+        minItems,
+        recursionDepth,
+        maxRecursionDepth,
+        loadDirection,
       }),
     );
 
@@ -161,6 +169,17 @@ export class DrepController {
       sort,
       order,
     );
+  }
+
+  @Get(':voterId/gov-actions-votes')
+  getDRepGovActionsVotes(
+    @Param('voterId') voterId: string,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe)
+    page: number,
+    @Query('perPage', new DefaultValuePipe(6), ParseIntPipe)
+    perPage: number,
+  ) {
+    return this.drepService.getDRepVotedGovActions(voterId, page, perPage);
   }
 
   @Get(':stakeKey/profile-data')

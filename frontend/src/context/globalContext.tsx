@@ -70,6 +70,9 @@ import { usePathname } from 'next/navigation';
 import { useGetVoterClaimedProfilesQuery } from '@/hooks/useGetVoterClaimedProfilesQuery';
 import { ClaimedProfile, SingleDRep } from '../../types/api';
 import { getSingleDRepViaVoterId } from '@/services/requests/getSingleDrepViaVoterId';
+import SaveJwtModal from '@/components/molecules/SaveJwtTokenModal';
+import { ExternalOAuthMetadata, OAuthProviderType } from '@/models/oauth';
+import { useOAuth } from '@/hooks/useOAuth';
 
 export type StepStatus = 'success' | 'active' | 'pending' | 'update';
 
@@ -119,6 +122,13 @@ interface UserInfo {
     [ProfileWorkflowStepKey.SIGNATURES]: StepStatus;
     [ProfileWorkflowStepKey.SOCIALS]: StepStatus;
     currentRegistrationStep: number;
+  }>;
+  externalLogins: Partial<{
+    [OAuthProviderType.GOVTOOLS]: {
+      jwt: string;
+      expiresAt: Date;
+      metadata: ExternalOAuthMetadata[OAuthProviderType.GOVTOOLS];
+    };
   }>;
 }
 
@@ -193,6 +203,7 @@ export enum ModalType {
   DREP_ERROR = 'drepError',
   ACTION = 'action',
   TRANSACTION = 'transaction',
+  SAVE_JWT = 'saveJwt',
 }
 
 export type ModalProps = {
@@ -210,6 +221,13 @@ export type ModalProps = {
   };
   [ModalType.ACTION]: ActionModalProps;
   [ModalType.TRANSACTION]: TxnModalState;
+  [ModalType.SAVE_JWT]: {
+    jwt: string;
+    stakeKeyBech32: string;
+    expiresAt?: Date;
+    metadata?: ExternalOAuthMetadata[OAuthProviderType.GOVTOOLS];
+    hideCloseButton?: boolean;
+  };
 };
 
 interface ModalContextState {
@@ -235,6 +253,15 @@ interface ModalContextState {
   actionModal: {
     isOpen: boolean;
     props: ActionModalProps | null;
+  };
+
+  saveJwtModal: {
+    isOpen: boolean;
+    jwt: string | null;
+    stakeKeyBech32: string | null;
+    expiresAt?: Date;
+    metadata?: ExternalOAuthMetadata[OAuthProviderType.GOVTOOLS] | null;
+    hideCloseButton: boolean;
   };
 
   txnModal: Partial<TransactionHandler>;
@@ -288,6 +315,14 @@ const defaultModalState: ModalContextState = {
       disableSigning: false,
     },
   },
+  saveJwtModal: {
+    isOpen: false,
+    jwt: null,
+    stakeKeyBech32: null,
+    expiresAt: undefined,
+    metadata: null,
+    hideCloseButton: false,
+  },
 };
 
 type GlobalContextType = ModalContextType & WalletContextType;
@@ -323,6 +358,13 @@ export const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
       [ProfileWorkflowStepKey.SIGNATURES]: 'pending',
       [ProfileWorkflowStepKey.SOCIALS]: 'pending',
       [ProfileWorkflowStepKey.REVIEW]: 'pending',
+    },
+    externalLogins: {
+      [OAuthProviderType.GOVTOOLS]: {
+        jwt: null,
+        expiresAt: undefined,
+        metadata: null,
+      },
     },
   } as UserInfo);
   const drepIdBeingClaimedRef = useRef<string | null>(null);
@@ -364,6 +406,8 @@ export const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
     walletApi,
     walletBeingConnected,
   } = useAuth();
+
+  const { oAuthProviders } = useOAuth(walletRef.current?.stakeKeyBech32);
 
   const updateTxnModalState = useCallback(
     (options: Partial<TransactionHandler>) => {
@@ -499,6 +543,32 @@ export const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
       }));
     }
   }, [claimedProfiles, isClaimedProfilesLoading]);
+
+  useEffect(() => {
+    if (oAuthProviders && oAuthProviders.length > 0) {
+      oAuthProviders.forEach((provider) => {
+        switch (provider.provider) {
+          case OAuthProviderType.GOVTOOLS:
+            if (provider.accessToken) {
+              setUser((prevUser) => ({
+                ...prevUser,
+                externalLogins: {
+                  ...prevUser.externalLogins,
+                  [OAuthProviderType.GOVTOOLS]: {
+                    jwt: provider.accessToken,
+                    expiresAt: provider.expiresAt,
+                    metadata: provider.metadata,
+                  },
+                },
+              }));
+            }
+            break;
+          default:
+            break;
+        }
+      });
+    }
+  }, [oAuthProviders]);
 
   /**
    * Connect wallet using a specific method
@@ -1117,6 +1187,21 @@ export const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
             };
           }
 
+          case ModalType.SAVE_JWT: {
+            const saveJwtProps = props as ModalProps[ModalType.SAVE_JWT];
+            return {
+              ...prev,
+              saveJwtModal: {
+                isOpen: true,
+                jwt: saveJwtProps?.jwt || null,
+                stakeKeyBech32: saveJwtProps?.stakeKeyBech32 || null,
+                expiresAt: saveJwtProps?.expiresAt,
+                metadata: saveJwtProps?.metadata || null,
+                hideCloseButton: saveJwtProps?.hideCloseButton || false,
+              },
+            };
+          }
+
           default:
             return prev;
         }
@@ -1181,6 +1266,15 @@ export const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
                 ...prev.txnModal,
                 isOpen: false,
               },
+            },
+          };
+
+        case ModalType.SAVE_JWT:
+          return {
+            ...prev,
+            saveJwtModal: {
+              ...prev.saveJwtModal,
+              isOpen: false,
             },
           };
 
@@ -1291,6 +1385,17 @@ export const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
           />
         </div>
       )}
+
+      {modalState.saveJwtModal.isOpen &&
+        modalState.saveJwtModal.jwt &&
+        modalState.saveJwtModal.stakeKeyBech32 && (
+          <div className="blur-container fixed left-0 top-0 z-50 flex h-screen w-full items-center justify-center">
+            <SaveJwtModal
+              {...modalState.saveJwtModal}
+              onClose={() => closeModal(ModalType.SAVE_JWT)}
+            />
+          </div>
+        )}
 
       {modalState.txnModal.txnModalState.isOpen && (
         <CardanoTxModal

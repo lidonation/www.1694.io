@@ -5,6 +5,6 @@ export class Synctime {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ nullable:true})
   lastSyncTime: string;
 }

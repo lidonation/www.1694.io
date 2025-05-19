@@ -5,13 +5,16 @@ import { useEffect, useRef, useState } from 'react';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { convertDrepPhraseToCIP105, formatNumberTimeToReadable } from '@/lib';
 import { useWallet } from '@/context/globalContext';
+import { useRouter } from 'next/navigation';
 
 export const useGetDRepTimelineQuery = (
   idOrVoterId: string | string[] | undefined,
   filterValues?: string[] | undefined,
+  minItems: number = 10,
 ) => {
   const [timeLineData, setTimeLineData] = useState([]);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const router = useRouter();
   const {
     wallet: { stakeKey, stakeKeyBech32 },
   } = useWallet();
@@ -24,13 +27,29 @@ export const useGetDRepTimelineQuery = (
     idOrVoterId,
   });
 
-  const [queryEndTime, setQueryEndTime] = useState(() => Date.now());
+  const now = Date.now();
+  const [queryEndTime, setQueryEndTime] = useState(now);
   const [queryStartTime, setQueryStartTime] = useState(
-    () => queryEndTime - 3 * 24 * 60 * 60 * 1000,
+    now - 3 * 24 * 60 * 60 * 1000,
   );
 
   const [timelineEndTime, setTimelineEndTime] = useState(queryEndTime);
   const [timelineStartTime, setTimelineStartTime] = useState(queryStartTime);
+  const [loadDirection, setLoadDirection] = useState('older');
+
+  const updateUrlParams = (newStart?: number, newEnd?: number) => {
+    const searchParams = new URLSearchParams(window.location.search);
+
+    if (newStart !== undefined) {
+      searchParams.set('start', newStart.toString());
+    }
+    if (newEnd !== undefined) {
+      searchParams.set('end', newEnd.toString());
+    }
+
+    const newUrl = `${window.location.pathname}?${searchParams.toString()}`;
+    router.push(newUrl, { scroll: false });
+  };
 
   useEffect(() => {
     const prevQueryParams = queryParamsRef.current;
@@ -74,6 +93,8 @@ export const useGetDRepTimelineQuery = (
       filterValues,
       stakeKey,
       stakeKeyBech32,
+      minItems,
+      loadDirection,
     ],
     queryFn: async () => {
       const cip105Id = convertDrepPhraseToCIP105(idOrVoterId as string);
@@ -84,6 +105,8 @@ export const useGetDRepTimelineQuery = (
         queryEndTime,
         queryStartTime,
         filterValues,
+        minItems,
+        loadDirection,
       );
     },
     enabled:
@@ -93,7 +116,7 @@ export const useGetDRepTimelineQuery = (
       filterValues !== null,
     refetchOnWindowFocus: false,
     onSuccess: (newData) => {
-      if (newData.length === 0) {
+      if (newData?.entries?.length === 0) {
         addWarningAlert(
           `No results found for period between ${formatNumberTimeToReadable(queryStartTime)} and ${formatNumberTimeToReadable(queryEndTime)}`,
         );
@@ -104,17 +127,26 @@ export const useGetDRepTimelineQuery = (
       setTimeLineData((prevData) => {
         if (prevData.length < 1) {
           setIsInitialLoad(false);
-          return newData;
+          return newData?.entries;
         }
 
         const isNewer =
-          newData?.[newData.length - 1]?.timestamp > prevData?.[0]?.timestamp;
+          newData?.entries?.[newData?.entries?.length - 1]?.timestamp >
+          prevData?.[0]?.timestamp;
         if (isNewer) {
-          return [...newData, ...prevData];
+          return [...newData?.entries, ...prevData];
         } else {
-          return [...prevData, ...newData];
+          return [...prevData, ...newData?.entries];
         }
       });
+
+      if (loadDirection === 'older') {
+        setTimelineStartTime(newData?.appliedStartTime);
+        updateUrlParams(newData?.appliedStartTime, undefined);
+      } else if (loadDirection === 'newer') {
+        setTimelineEndTime(newData?.appliedEndTime);
+        updateUrlParams(undefined, newData?.appliedEndTime);
+      }
     },
   });
 
@@ -130,5 +162,6 @@ export const useGetDRepTimelineQuery = (
     setTimelineEndTime,
     timelineStartTime,
     setTimelineStartTime,
+    setLoadDirection,
   };
 };

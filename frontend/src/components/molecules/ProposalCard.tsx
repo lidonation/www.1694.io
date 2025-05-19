@@ -37,14 +37,6 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
   },
 }));
 
-const TruncatedText = styled(Typography)(({ theme }) => ({
-  display: '-webkit-box',
-  WebkitLineClamp: 3,
-  WebkitBoxOrient: 'vertical',
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-}));
-
 function ProposalCard({ proposal }: { proposal: any }) {
   const [shareAnchorEl, setShareAnchorEl] = useState(null);
   const [disableShare, setDisableShare] = useState(false);
@@ -52,13 +44,10 @@ function ProposalCard({ proposal }: { proposal: any }) {
   const { poll } = useGetActionProposalPollQuery(proposal?.govToolProposalId);
   const { wallet } = useWallet();
 
-  const title = proposal?.proposalName || 'Untitled Proposal';
-  const budgetCategory = proposal?.budgetCat || 'Unspecified';
   const budgetRequested = Number(proposal?.adaAmount) || 0;
   const formattedBudget = new Intl.NumberFormat('en-US').format(budgetRequested);
   const proposalBenefit = proposal?.proposalBenefit || 'No benefit info';
   const username = proposal?.govToolUserName || 'anonymous';
-  const commentsCount = proposal?.commentsCount || 0;
   const { data: proposalMetrics } = useUserParticipationQuery(username);
 
   const proposedDate = proposal?.updatedAt
@@ -69,15 +58,15 @@ function ProposalCard({ proposal }: { proposal: any }) {
   const handleShareClose = () => setShareAnchorEl(null);
   const disableShareClick = () => {
     setDisableShare(true);
-    setTimeout(() => setDisableShare(false), 2000);
+    handleShareClose();
+    setTimeout(() => {
+      setDisableShare(false);
+    }, 2000);
   };
-
   function copyToClipboard(value) {
     navigator.clipboard.writeText(value);
   }
-  useEffect(() => {
-  }, [proposalBenefit]);
-
+  const proposalUrl = `${window.location.origin}/proposals/${proposal?.govToolProposalId}`;
   return (
     <Card
       sx={{
@@ -98,7 +87,7 @@ function ProposalCard({ proposal }: { proposal: any }) {
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'flex-start',
-            gap: 2,
+            gap: 1,
             height: '100%',
           }}
         >
@@ -116,7 +105,7 @@ function ProposalCard({ proposal }: { proposal: any }) {
                   display="block"
                   style={{ textDecoration: 'none', color: 'inherit' }}
                 >
-                  {title}
+                  {proposal?.proposalName || 'Untitled Proposal'}
                 </Typography>
               </Link>
               <Typography
@@ -157,7 +146,7 @@ function ProposalCard({ proposal }: { proposal: any }) {
                 variant="body2"
                 color="text.secondary"
               >
-                {budgetCategory}
+                {proposal?.budgetCat || 'Unspecified'}
               </Typography>
             </Box>
             <Box className="flex justify-end mr-2">
@@ -165,6 +154,22 @@ function ProposalCard({ proposal }: { proposal: any }) {
                 <ProposalVotesBadge pollId={poll.data[0].id} dRepId={wallet.dRepId} />
               )}
             </Box>
+          </Box>
+          <Box>
+            <Typography
+              component="p"
+              variant="subtitle2"
+              fontWeight="semi-bold"
+            >
+              Committee
+            </Typography>
+            <Typography
+              component="p"
+              variant="body2"
+              color="text.secondary"
+            >
+              {proposal?.committeeName || 'Unspecified'}
+            </Typography>
           </Box>
 
           <Box>
@@ -331,7 +336,7 @@ function ProposalCard({ proposal }: { proposal: any }) {
           <Tooltip title="Comments">
             <span>
               <IconButton size="small" disabled>
-                <StyledBadge badgeContent={commentsCount}>
+                <StyledBadge badgeContent={proposal?.commentsCount || 0}>
                   <ChatIcon fontSize="small" />
                 </StyledBadge>
               </IconButton>
@@ -352,27 +357,42 @@ function ProposalCard({ proposal }: { proposal: any }) {
         onClose={handleShareClose}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        sx={{ mt: 1 }}
+        sx={{
+          mt: 1,
+          '& .MuiPaper-root': {
+            backgroundColor: '#fefefe',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+            borderRadius: 2,
+            border: '1px solid #e0e0e0',
+          },
+        }}
       >
-        <Stack spacing={1} px={2} py={1}>
+        <Stack spacing={1} px={1} py={0.5}>
           <Typography component="div" variant="subtitle2">
             Share Link
           </Typography>
           <IconButton
             size="small"
-            color="primary"
             onClick={() => {
-              copyToClipboard(window.location.href);
+              copyToClipboard(proposalUrl);
               disableShareClick();
             }}
             disabled={disableShare}
+            sx={{
+              borderRadius: '100px',
+              padding: '6px',
+              backgroundColor: 'transparent',
+              '&:hover': {
+                backgroundColor: 'rgba(25, 118, 210, 0.08)',
+              },
+            }}
           >
             <LinkIcon />
           </IconButton>
           <Typography
-            component="span"
-            variant="caption"
-            color="text.secondary"
+          component="span"
+          variant="caption"
+          color="text.secondary"
           >
             {disableShare ? 'Link copied!' : 'Copy proposal link'}
           </Typography>

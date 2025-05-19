@@ -22,7 +22,7 @@ const ProposalMetrics = ({ search = '', categories = [], committees = [] }: { se
 
 
     return (
-        <div className="proposal_metrics w-full mb-3 divide-y divide-gray-200">
+        <div className="proposal_metrics w-auto mb-3 divide-y divide-gray-200">
             <div className="grid grid-cols-3 divide-x divide-gray-200">
                 <div className="p-1">
                     <MetricsCard
