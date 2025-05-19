@@ -21,8 +21,10 @@ function ProposalsPage() {
   const currentPage = Number(searchParams.get('page')) || 1;
   const [debouncedSearch] = useDebounce(search, 300);
 
-  const categories = searchParams.get('categories')?.split(',').filter(Boolean) || [];
-  const committees = searchParams.get('committees')?.split(',').filter(Boolean) || [];
+  const categories =
+    searchParams.get('categories')?.split(',').filter(Boolean) || [];
+  const committees =
+    searchParams.get('committees')?.split(',').filter(Boolean) || [];
   const sortBy = searchParams.get('sort') || 'updatedAt';
   const sortOrder = ['asc', 'desc'].includes(searchParams.get('order') || '')
     ? (searchParams.get('order') as 'asc' | 'desc')
@@ -38,7 +40,7 @@ function ProposalsPage() {
     categories,
     committees,
     sortBy,
-    sortOrder
+    sortOrder,
   );
 
   const {
@@ -51,7 +53,7 @@ function ProposalsPage() {
     categories,
     committees,
     sortBy,
-    sortOrder
+    sortOrder,
   );
   const proposalsData = paginatedProposals?.data || [];
 
@@ -67,31 +69,27 @@ function ProposalsPage() {
         </div>
       </section>
 
-      <section className="relative mb-5 rounded-full py-2 w-full max-w-7xl mx-auto lg:flex lg:flex-nowrap lg:items-center gap-4 justify-between">
-        <div className="w-full lg:w-[45%]">
-          <ProposalMetrics search={debouncedSearch} categories={categories} committees={committees} />
-        </div>
-        <div className="w-full lg:w-[55%] flex justify-end mb-5">
-          <div className="w-full">
-            <ProposalSearch
-              search={search}
-              setSearch={setSearch}
-              showFilter={showFilter}
-              setShowFilter={setShowFilter}
-              showSort={showSort}
-              setShowSort={setShowSort}
-            />
-          </div>
-        </div>
+      <section className="mb-5 flex w-full flex-col gap-4 py-2 lg:flex-row lg:flex-nowrap lg:items-center lg:justify-between">
+        <ProposalMetrics
+          search={debouncedSearch}
+          categories={categories}
+          committees={committees}
+        />
+        <ProposalSearch
+          search={search}
+          setSearch={setSearch}
+          showFilter={showFilter}
+          setShowFilter={setShowFilter}
+          showSort={showSort}
+          setShowSort={setShowSort}
+        />
       </section>
-      <section className="w-full max-w-7xl mx-auto mb-2 flex flex-col gap-1.5">
-        <div className="w-full flex justify-between items-start gap-4">
-          <div className="flex-1 overflow-x-auto">
-            <div className="flex flex-wrap gap-2 min-w-[fit-content]">
-              <ProposalsFilterChips />
-            </div>
+      <section className="mx-auto mb-2 flex w-full flex-col">
+        <div className="flex w-full flex-col justify-between gap-4 py-2 lg:flex-row lg:items-center">
+          <div className="w-auto flex-wrap gap-2 overflow-x-auto py-2">
+            <ProposalsFilterChips />
           </div>
-          <div className="flex-shrink-0 pt-[10px]">
+          <div className="flex-shrink-0 py-2">
             <ProposalDownloadButton
               proposals={allFilteredProposals?.data || []}
               searchQuery={debouncedSearch}
@@ -104,18 +102,18 @@ function ProposalsPage() {
           {!isPaginatedLoading && proposalsData.length === 0 ? (
             <RecordsNotFound message="No proposals match your criteria." />
           ) : (
-            <ul className="grid grid-cols-1 gap-6 pt-1 pb-2 xl:grid-cols-2 2xl:grid-cols-3">
+            <ul className="grid grid-cols-1 gap-6 pb-2 pt-1 xl:grid-cols-2 2xl:grid-cols-3">
               {isPaginatedLoading
                 ? Array.from({ length: pageSize }).map((_, index) => (
-                  <li key={index}>
-                    <ProposalCardSkeleton />
-                  </li>
-                ))
+                    <li key={index}>
+                      <ProposalCardSkeleton />
+                    </li>
+                  ))
                 : proposalsData.map((proposal, index) => (
-                  <li key={index}>
-                    <ProposalCard proposal={proposal} />
-                  </li>
-                ))}
+                    <li key={index}>
+                      <ProposalCard proposal={proposal} />
+                    </li>
+                  ))}
             </ul>
           )}
         </div>

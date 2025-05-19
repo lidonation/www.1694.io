@@ -45,12 +45,12 @@ const page = ({ searchParams }: PageProps) => {
         <section className="mb-12">
           <h2 className="text-7xl font-black">Available DReps</h2>
         </section>
-        <section className="mb-5 flex flex-col gap-4 lg:flex-row lg:justify-between">
-          <DRepsMetrics />   
+        <section className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <DRepsMetrics />
           <DRepTableSearch />
         </section>
         <section className="mb-5">
-        <DRepFilterChips />
+          <DRepFilterChips />
         </section>
 
         <section className="rounded-md bg-white p-5 shadow">

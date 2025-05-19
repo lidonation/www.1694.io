@@ -21,8 +21,10 @@ const formatWord = (word: string): string =>
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(' ');
 
-const ChipContainer: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className="flex items-center bg-black text-white rounded-full px-2 py-1 w-fit">
+const ChipContainer: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => (
+  <div className="flex w-fit items-center rounded-full bg-gray-800 pl-2 text-white">
     {children}
   </div>
 );
@@ -34,7 +36,7 @@ const FilterChip: React.FC<{
   <Chip
     label={label}
     onDelete={onDelete}
-    className="!bg-transparent !text-white !text-sm"
+    className="!bg-transparent !text-sm !text-white"
     sx={{
       '& .MuiChip-deleteIcon': {
         color: '#fff',
@@ -58,8 +60,8 @@ export default function ProposalsFilterChips() {
     } else if (value) {
       const values = params.get(key)?.split(',') || [];
       const updatedValues = values.filter((v) => v !== value);
-      updatedValues.length > 0 
-        ? params.set(key, updatedValues.join(',')) 
+      updatedValues.length > 0
+        ? params.set(key, updatedValues.join(','))
         : params.delete(key);
     } else {
       params.delete(key);
@@ -72,7 +74,7 @@ export default function ProposalsFilterChips() {
   const renderSortChip = () => {
     const sort = searchParams.get('sort');
     const order = searchParams.get('order');
-    
+
     if (!sort) return null;
 
     return (
@@ -111,9 +113,5 @@ export default function ProposalsFilterChips() {
     }).filter(Boolean);
   };
 
-  return (
-    <Box className="my-4 flex flex-wrap gap-2">
-      {renderFilterChips()}
-    </Box>
-  );
+  return <Box className="flex flex-wrap gap-2">{renderFilterChips()}</Box>;
 }

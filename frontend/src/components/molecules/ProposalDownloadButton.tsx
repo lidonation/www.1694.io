@@ -1,7 +1,7 @@
 import { Button } from '@mui/material';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import { useState } from 'react';
-import axiosInstance from "@/services/axiosInstance";
+import axiosInstance from '@/services/axiosInstance';
 
 interface ProposalDownloadButtonProps {
   proposals: any[];
@@ -80,7 +80,9 @@ export function ProposalDownloadButton({
       ];
     });
 
-    return [headers.join(','), ...rows.map(row => row.join(','))].join('\r\n');
+    return [headers.join(','), ...rows.map((row) => row.join(','))].join(
+      '\r\n',
+    );
   };
 
   const handleDownload = async () => {
@@ -92,7 +94,9 @@ export function ProposalDownloadButton({
 
           if (username && username !== 'anonymous') {
             try {
-              const res = await axiosInstance.get(`/metrics/catalyst-proposals/${username}`);
+              const res = await axiosInstance.get(
+                `/metrics/catalyst-proposals/${username}`,
+              );
               return { ...proposal, metrics: res.data };
             } catch (err) {
               console.warn(`Failed to fetch metrics for ${username}`);
@@ -100,7 +104,7 @@ export function ProposalDownloadButton({
           }
 
           return proposal;
-        })
+        }),
       );
 
       const csvData = convertToCSV(enrichedProposals);
@@ -147,6 +151,7 @@ export function ProposalDownloadButton({
       color="primary"
       startIcon={<FileDownloadIcon />}
       onClick={handleDownload}
+      className="w-fit"
       disabled={isLoading || !proposals || proposals.length === 0}
     >
       {isLoading ? 'Preparing Download...' : 'Download Proposals (CSV)'}

@@ -40,11 +40,13 @@ export const GovActionVoteCard = ({ action }) => {
 
   return (
     <tr className="transition-colors hover:bg-gray-50">
-      <td className="hidden whitespace-nowrap px-4 py-4 md:table-cell">
-        <p className="mb-1 block text-sm font-medium text-gray-800">
-          {formatIsoTime(action?.time_voted) || '-'}
-        </p>
-        <ViewExternalGovAction actionId={action?.gov_action_proposal_id} />
+      <td className="hidden whitespace-nowrap px-4 py-3 md:table-cell">
+        <div className="flex h-full flex-col gap-2">
+          <p className="mb-1 block text-sm font-medium text-gray-800">
+            {formatIsoTime(action?.time_voted) || '-'}
+          </p>
+          <ViewExternalGovAction actionId={action?.gov_action_proposal_id} />
+        </div>
       </td>
 
       <td className="px-3 py-3 md:px-4 md:py-4">
@@ -58,7 +60,7 @@ export const GovActionVoteCard = ({ action }) => {
 
           <Box className="flex flex-col md:flex-row md:items-center md:justify-between md:gap-2">
             <Box className="min-w-0 flex-1">
-              <h3 className="mb-1 text-base font-medium text-primary-300 md:truncate">
+              <h3 className="mb-1 text-base font-bold text-gray-800 md:truncate">
                 {title || '-'}
               </h3>
               <p className="mb-1 text-sm text-gray-500 md:mb-1">
