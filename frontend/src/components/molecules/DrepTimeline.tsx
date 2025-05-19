@@ -37,7 +37,8 @@ const DRepTimeline = ({ drep }: { drep: any }) => {
     setTimelineEndTime,
     timelineStartTime,
     setTimelineStartTime,
-  } = useGetDRepTimelineQuery(drepid, filterValues);
+    setLoadDirection,
+  } = useGetDRepTimelineQuery(drepid, filterValues, 10);
 
   const [isAtLatestPoint, setIsAtLatestPoint] = useState(false);
   const [isAtOldestPoint, setIsAtOldestPoint] = useState(false);
@@ -50,7 +51,7 @@ const DRepTimeline = ({ drep }: { drep: any }) => {
     firstEpoch,
     user: { dRepProfilesClaimed },
   } = useWallet();
-  
+
   const isOwner = dRepProfilesClaimed?.some(
     (drep) =>
       drep.claimedDRepBech32 ===
@@ -99,8 +100,10 @@ const DRepTimeline = ({ drep }: { drep: any }) => {
   }, [isDRepActivityLoading]);
 
   useEffect(() => {
-    if (DRepActivity.length > 0) {
+    if (DRepActivity?.length > 0) {
       const epochs = DRepActivity.filter((item) => item.type === 'epoch');
+
+      if (epochs.length === 0) return;
 
       const timelineLatestEpoch = epochs.reduce((latest, current) => {
         return new Date(current.timestamp) > new Date(latest.timestamp)
@@ -126,6 +129,7 @@ const DRepTimeline = ({ drep }: { drep: any }) => {
 
   const loadMoreData = () => {
     setIsLoadingOlderData(true);
+    setLoadDirection('older');
     const newEndTime = timelineStartTime - 1 * 24 * 60 * 60 * 1000;
 
     const newStartTime = newEndTime - 3 * 24 * 60 * 60 * 1000;
@@ -145,6 +149,7 @@ const DRepTimeline = ({ drep }: { drep: any }) => {
       return;
     }
     setIsLoadingNewerData(true);
+    setLoadDirection('newer');
 
     const newStartTime = timelineEndTime + 1 * 24 * 60 * 60 * 1000;
 

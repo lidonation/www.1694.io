@@ -1,19 +1,23 @@
-import { StakeKeys } from '../../../types/commonTypes';
+import { formatNumberTimeToReadable } from '@/lib';
 import axiosInstance from '../axiosInstance';
 
 export const getDRepTimeline = async (
   idOrVoterId: string,
   stakeKey?: string,
   stakeKeyBech32?: string,
-  startTimeCursor?: number,
-  endTimeCursor?: number,
+  endTime?: number,
+  startTime?: number,
   filterValues?: string[] | undefined,
+  minItems?: number,
+  loadDirection?: string,
 ) => {
   const params: Record<string, any> = {
     stakeKey: stakeKey,
     stakeKeyBech32: stakeKeyBech32,
-    startTimeCursor: startTimeCursor,
-    endTimeCursor: endTimeCursor,
+    endTimeCursor: endTime,
+    startTimeCursor: startTime,
+    minItems: minItems,
+    loadDirection,
   };
 
   if (filterValues && filterValues.length > 0) {
