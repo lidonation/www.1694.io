@@ -30,7 +30,11 @@ status:
 
 .PHONY: migrate
 migrate:
-	docker-compose exec backend yarn run migrate
+	docker-compose exec backend yarn run migrate:up
+
+.PHONY: migrate-revert
+migrate-revert:
+	docker-compose exec backend yarn run migrate:down
 
 .PHONY: watch
 watch:

@@ -47,3 +47,18 @@ export enum AuthMethod {
   COLD_WALLET = 'cold_wallet',
   LOGIN_FILE = 'login_file',
 }
+
+
+export type LoginPayload = {
+  expiry: number;
+  drepId?: string;
+  voterId?: string;
+  drep_bech32: string;
+  stakeKey: string;
+  signatures: {
+    signature: string;
+    key: string;
+    type: 'drep' | 'signer'
+  }[];
+};
+

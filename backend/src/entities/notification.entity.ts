@@ -37,6 +37,6 @@ export class Notification extends BaseImmutableEntity {
   @Column({ default: false })
   isPersistent: boolean;
 
-  @Column()
+  @Column({nullable: true})
   recipient: string;
 }
