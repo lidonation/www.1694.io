@@ -357,35 +357,42 @@ function ProposalCard({ proposal }: { proposal: any }) {
         onClose={handleShareClose}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        sx={{ mt: 1 }}
+        sx={{
+          mt: 1,
+          '& .MuiPaper-root': {
+            backgroundColor: '#fefefe',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+            borderRadius: 2,
+            border: '1px solid #e0e0e0',
+          },
+        }}
       >
-        <Stack spacing={1} px={2} py={1}>
+        <Stack spacing={1} px={1} py={0.5}>
           <Typography component="div" variant="subtitle2">
             Share Link
           </Typography>
           <IconButton
             size="small"
-            color="primary"
             onClick={() => {
               copyToClipboard(proposalUrl);
               disableShareClick();
             }}
             disabled={disableShare}
             sx={{
-              borderRadius: '50%',
+              borderRadius: '100px',
               padding: '6px',
+              backgroundColor: 'transparent',
               '&:hover': {
-                borderRadius: 1,
-                backgroundColor: '#007bff',
+                backgroundColor: 'rgba(25, 118, 210, 0.08)',
               },
             }}
           >
             <LinkIcon />
           </IconButton>
           <Typography
-            component="span"
-            variant="caption"
-            color="text.secondary"
+          component="span"
+          variant="caption"
+          color="text.secondary"
           >
             {disableShare ? 'Link copied!' : 'Copy proposal link'}
           </Typography>
