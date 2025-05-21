@@ -15,7 +15,7 @@ import ListSort from '../molecules/ListSort';
 import CopyToClipBoardIcon from './svgs/CopyToClipBoardIcon';
 import ArrowDownIcon from './svgs/ArrowDownIcon';
 import ArrowUpIcon from './svgs/ArrowUpIcon';
-import { useGetDRepDelegatorsQuery } from '@/hooks/useGetDRepDelegatorsQuery';
+import { useGetDRepDelegatorsQuery } from '@/hooks/useGetDRepDelegators';
 import RecordsNotFound from './RecordsNotFound';
 
 const ViewProfileAction = ({ toStakeKey }: { toStakeKey: string }) => {
