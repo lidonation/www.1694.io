@@ -3,13 +3,21 @@
 import React from 'react';
 import { Chip, Box } from '@mui/material';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import {
+  PROPOSAL_FILTERS_LS_KEY,
+  PROPOSAL_SORT_LS_KEY,
+  setItemToLocalStorage,
+  removeItemFromLocalStorage,
+} from '@/lib/localStorage';
 
-type FilterKey = {
+type FilterKey = 'categories' | 'committees' | 'sort' | 'order';
+
+type FilterKeyConfig = {
   key: string;
   label: string;
 };
 
-const FILTER_KEYS: FilterKey[] = [
+const FILTER_KEYS: FilterKeyConfig[] = [
   { key: 'categories', label: 'Category' },
   { key: 'committees', label: 'Committee' },
   { key: 'sort', label: 'Sort' },
@@ -47,34 +55,44 @@ const FilterChip: React.FC<{
 );
 
 export default function ProposalsFilterChips() {
-  const searchParams = useSearchParams();
+  const router = useRouter();
   const pathname = usePathname();
-  const { replace } = useRouter();
+  const searchParams = useSearchParams();
 
-  const removeFilter = (key: string, value?: string) => {
+  const removeFilter = (key: FilterKey, value?: string) => {
     const params = new URLSearchParams(searchParams.toString());
-
+  
     if (key === 'sort' || key === 'order') {
       params.delete('sort');
       params.delete('order');
+      removeItemFromLocalStorage(PROPOSAL_SORT_LS_KEY);
     } else if (value) {
       const values = params.get(key)?.split(',') || [];
       const updatedValues = values.filter((v) => v !== value);
       updatedValues.length > 0
         ? params.set(key, updatedValues.join(','))
         : params.delete(key);
-    } else {
-      params.delete(key);
     }
-
+  
+    const updatedFilters: Record<string, string[]> = {
+      categories: params.get('categories')?.split(',').filter(Boolean) || [],
+      committees: params.get('committees')?.split(',').filter(Boolean) || [],
+    };
+  
     params.set('page', '1');
-    replace(`${pathname}?${params.toString()}`);
+    router.replace(`${pathname}?${params.toString()}`);
+  
+    if (updatedFilters.categories.length > 0 || updatedFilters.committees.length > 0) {
+      setItemToLocalStorage(PROPOSAL_FILTERS_LS_KEY, updatedFilters);
+    } else {
+      removeItemFromLocalStorage(PROPOSAL_FILTERS_LS_KEY);
+    }
   };
-
+  
   const renderSortChip = () => {
     const sort = searchParams.get('sort');
     const order = searchParams.get('order');
-
+    
     if (!sort) return null;
 
     return (
@@ -88,30 +106,27 @@ export default function ProposalsFilterChips() {
     );
   };
 
-  const renderFilterChips = () => {
-    return FILTER_KEYS.flatMap(({ key, label }) => {
+  const renderFilterChips = () =>
+    FILTER_KEYS.flatMap(({ key, label }) => {
       if (key === 'sort') return [renderSortChip()];
 
       const value = searchParams.get(key);
       if (!value) return [];
 
-      const values = value.split(',');
-      if (values.length === 0) return [];
-
-      return (
+      const values = value.split(',').filter(Boolean);
+      return values.length > 0 ? (
         <ChipContainer key={key}>
           <span className="text-sm font-semibold">{label}:</span>
           {values.map((v) => (
             <FilterChip
               key={`${key}-${v}`}
               label={formatWord(v)}
-              onDelete={() => removeFilter(key, v)}
+              onDelete={() => removeFilter(key as FilterKey, v)}
             />
           ))}
         </ChipContainer>
-      );
+      ) : [];
     }).filter(Boolean);
-  };
-
+    
   return <Box className="flex flex-wrap gap-2">{renderFilterChips()}</Box>;
 }

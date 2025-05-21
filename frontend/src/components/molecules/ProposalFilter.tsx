@@ -1,5 +1,5 @@
 'use client';
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Box,
@@ -12,6 +12,7 @@ import {
   Popover,
 } from '@mui/material';
 import DotIndicator from '@/components/atoms/DotIndicator';
+import { PROPOSAL_FILTERS_LS_KEY } from '@/lib/localStorage';
 
 type FilterOption = {
   label: string;
@@ -56,8 +57,15 @@ const ProposalFilter: React.FC<ProposalFilterProps> = ({
 
   const categories = searchParams.get('categories')?.split(',').filter(Boolean) || [];
   const committees = searchParams.get('committees')?.split(',').filter(Boolean) || [];
-
+  
   const hasActiveFilters = categories.length > 0 || committees.length > 0;
+
+  const saveToLocalStorage = (categories: string[], committees: string[]) => {
+    localStorage.setItem(
+      PROPOSAL_FILTERS_LS_KEY,
+      JSON.stringify({ categories, committees })
+    );
+  };
 
   const updateFilterParams = (key: string, values: string[]) => {
     if (values.length > 0) {
@@ -67,6 +75,7 @@ const ProposalFilter: React.FC<ProposalFilterProps> = ({
     }
     params.set('page', '1');
     router.push(`?${params.toString()}`);
+    saveToLocalStorage(key === 'categories' ? values : categories, key === 'committees' ? values : committees);
   };
 
   const handleCategoryChange = (value: string, checked: boolean) => {
@@ -88,8 +97,26 @@ const ProposalFilter: React.FC<ProposalFilterProps> = ({
     params.delete('committees');
     params.set('page', '1');
     router.push(`?${params.toString()}`);
+    localStorage.removeItem(PROPOSAL_FILTERS_LS_KEY);
   };
 
+  useEffect(() => {
+    const stored = localStorage.getItem(PROPOSAL_FILTERS_LS_KEY);
+    if (!stored) return;
+  
+    const { categories = [], committees = [] } = JSON.parse(stored);
+  
+    const shouldApplyCategories = !searchParams.has('categories') && categories.length;
+    const shouldApplyCommittees = !searchParams.has('committees') && committees.length;
+  
+    if (shouldApplyCategories || shouldApplyCommittees) {
+      if (shouldApplyCategories) params.set('categories', categories.join(','));
+      if (shouldApplyCommittees) params.set('committees', committees.join(','));
+      params.set('page', '1');
+      router.push(`?${params.toString()}`);
+    }
+  }, []);
+  
   return (
     <>
       <IconButton
