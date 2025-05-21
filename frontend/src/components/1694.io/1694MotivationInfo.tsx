@@ -2,15 +2,15 @@ import React from 'react';
 
 const CIPMotivationInfo = () => {
   return (
-    <div className="rounded-t-3xl bg-blue-800">
+    <div className="bg-blue-800">
       <div className="base_container text-white">
-        <div className="py-20 text-5xl lg:text-6xl font-bold text-violet-50">
+        <div className="py-20 text-5xl font-bold text-violet-50 lg:text-6xl">
           <p>Motivation:</p>
           <p>why is this CIP necessary?</p>
         </div>
         <div className="py-10">
-          <div className="mb-7 flex flex-col items-center justify-center lg:flex-row gap-10">
-            <div className="flex lg:w-[30%] items-center justify-center">
+          <div className="mb-7 flex flex-col items-center justify-center gap-10 lg:flex-row">
+            <div className="flex items-center justify-center lg:w-[30%]">
               <img src="/img/whiteboard.png" alt="Whiteboard" />
             </div>
             <section className="lg:w-[70%]">
@@ -44,8 +44,8 @@ const CIPMotivationInfo = () => {
           </div>
         </div>
         <div className="py-10">
-          <div className="mb-7 flex flex-col items-center justify-center lg:flex-row gap-10">
-            <div className="flex lg:w-[30%] items-center justify-center">
+          <div className="mb-7 flex flex-col items-center justify-center gap-10 lg:flex-row">
+            <div className="flex items-center justify-center lg:w-[30%]">
               <img src="/img/windmills.png" alt="Windmills" />
             </div>
             <section className="lg:w-[70%]">
@@ -80,12 +80,25 @@ const CIPMotivationInfo = () => {
                 </p>
                 <ul className="ml-5 flex list-disc flex-col gap-2">
                   <li>
-                    Protocol parameter updates use <a href='https://github.com/input-output-hk/cardano-ledger/blob/8884d921c8c3c6e216a659fca46caf729282058b/eras/babbage/test-suite/cddl-files/babbage.cddl#L56' target='_blank' className='underline'>transaction field nº6</a> of the
-                    transaction body.
+                    Protocol parameter updates use{' '}
+                    <a
+                      href="https://github.com/input-output-hk/cardano-ledger/blob/8884d921c8c3c6e216a659fca46caf729282058b/eras/babbage/test-suite/cddl-files/babbage.cddl#L56"
+                      target="_blank"
+                      className="underline"
+                    >
+                      transaction field nº6
+                    </a>{' '}
+                    of the transaction body.
                   </li>
                   <li>
-                    Movements of the treasury and the reserves use <a href='https://github.com/input-output-hk/cardano-ledger/blob/8884d921c8c3c6e216a659fca46caf729282058b/eras/babbage/test-suite/cddl-files/babbage.cddl#L180' target='_blank' className='underline'>Move
-                    Instantaneous Rewards (abbrev. MIR) certificates.</a>
+                    Movements of the treasury and the reserves use{' '}
+                    <a
+                      href="https://github.com/input-output-hk/cardano-ledger/blob/8884d921c8c3c6e216a659fca46caf729282058b/eras/babbage/test-suite/cddl-files/babbage.cddl#L180"
+                      target="_blank"
+                      className="underline"
+                    >
+                      Move Instantaneous Rewards (abbrev. MIR) certificates.
+                    </a>
                   </li>
                 </ul>
                 <p>
@@ -100,8 +113,8 @@ const CIPMotivationInfo = () => {
           </div>
         </div>
         <div className="py-10">
-          <div className="mb-7 flex flex-col items-center justify-center lg:flex-row gap-10">
-            <div className="flex lg:w-[30%] items-center justify-center">
+          <div className="mb-7 flex flex-col items-center justify-center gap-10 lg:flex-row">
+            <div className="flex items-center justify-center lg:w-[30%]">
               <img src="/img/interface.png" alt="Interface" />
             </div>
             <section className="lg:w-[70%]">
@@ -121,8 +134,8 @@ const CIPMotivationInfo = () => {
           </div>
         </div>
         <div className="py-10">
-          <div className="mb-7 flex flex-col items-center justify-center lg:flex-row gap-10">
-            <div className="flex lg:w-[30%] items-center justify-center">
+          <div className="mb-7 flex flex-col items-center justify-center gap-10 lg:flex-row">
+            <div className="flex items-center justify-center lg:w-[30%]">
               <img src="/img/user-selecting.png" alt="User-selecting" />
             </div>
             <section className="lg:w-[70%]">
@@ -173,7 +186,7 @@ const CIPMotivationInfo = () => {
         </div>
         <div className="py-10">
           <p className="mb-4 text-4xl font-bold">Out of Scope</p>
-          <div className="flex flex-col gap-5 lg:grid grid-cols-3 lg:gap-20 py-5">
+          <div className="flex grid-cols-3 flex-col gap-5 py-5 lg:grid lg:gap-20">
             <div className="col-span-1 flex flex-col gap-2">
               <p className="mb-3 text-xl font-bold">
                 The contents of the constitution
@@ -209,7 +222,7 @@ const CIPMotivationInfo = () => {
               </div>
             </div>
             <div className="col-span-1 flex flex-col justify-around">
-              <div className='flex flex-col gap-1'>
+              <div className="flex flex-col gap-1">
                 <p className="mb-3 text-xl font-bold">
                   The membership of the constitutional committee
                 </p>

@@ -25,10 +25,12 @@ const Page = () => {
     async function fetchMarkdown() {
       try {
         const [cipResult, commentsResult] = await Promise.allSettled([
-          fetch('https://raw.githubusercontent.com/cardano-foundation/CIPs/master/CIP-1694/README.md')
-            .then(res => res.text()),
-          fetch('https://api.github.com/repos/cardano-foundation/CIPs/issues/380/comments')
-            .then(res => res.json())
+          fetch(
+            'https://raw.githubusercontent.com/cardano-foundation/CIPs/master/CIP-1694/README.md',
+          ).then((res) => res.text()),
+          fetch(
+            'https://api.github.com/repos/cardano-foundation/CIPs/issues/380/comments',
+          ).then((res) => res.json()),
         ]);
 
         if (cipResult.status === 'fulfilled') {
@@ -36,7 +38,9 @@ const Page = () => {
         }
 
         if (commentsResult.status === 'fulfilled') {
-          setComments(Array.isArray(commentsResult.value) ? commentsResult.value : []);
+          setComments(
+            Array.isArray(commentsResult.value) ? commentsResult.value : [],
+          );
         }
       } catch (error) {
         console.error('Error fetching Markdown:', error);
@@ -47,7 +51,7 @@ const Page = () => {
   }, []);
 
   return (
-    <div className="bg-[url(/img/1694-asset-1.png)] bg-auto bg-right-top bg-no-repeat">
+    <div className="w-full bg-[url(/img/1694-asset-1.png)] bg-auto bg-right-top bg-no-repeat">
       <Background>
         <Header />
         {/* Disabled till further notice */}

@@ -3,6 +3,7 @@ import React from 'react';
 interface HotLinksProps {
   seethrough?: boolean;
 }
+
 const HotLinks = ({ seethrough }: HotLinksProps) => {
   const links = [
     {
@@ -102,21 +103,20 @@ const HotLinks = ({ seethrough }: HotLinksProps) => {
       link: '#definitions-relating-to-voting-stake',
     },
   ];
+
   return (
     <div
-      className={`my-5 bg-white ${seethrough ? 'bg-opacity-50' : ''}  w-screen`}
+      className={`my-5 bg-white ${seethrough ? 'bg-opacity-50' : ''} w-full overflow-hidden`}
     >
-      <div
-        className={`flex w-full flex-row flex-wrap items-center justify-center gap-3 p-8`}
-      >
+      <div className="flex w-full flex-row flex-wrap items-center justify-center gap-3 p-4 md:p-8">
         {links
           .sort((a, b) => a.title.localeCompare(b.title))
           .map((item) => (
             <div
               key={item.title}
-              className="flex w-fit items-center justify-center rounded-2xl bg-blue-100 px-2 py-1"
+              className="flex items-center justify-center rounded-2xl bg-blue-100 px-2 py-1"
             >
-              <a href={item.link} className="text-nowrap text-sm text-black">
+              <a href={item.link} className="text-center w-fit text-sm text-black">
                 {item.title}
               </a>
             </div>
