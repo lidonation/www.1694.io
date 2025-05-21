@@ -2,7 +2,7 @@ import { QUERY_KEYS } from '@/constants/queryKeys';
 import { useQuery } from 'react-query';
 import { Delegators } from '../../types/api';
 import { convertDrepPhraseToCIP105 } from '@/lib';
-import { getDRepDelegators } from '@/services/requests/getDRepDelegators';
+import { getDRepDelegators } from '@/services/requests/getDRepDelegatorsList';
 
 export const useGetDRepDelegatorsQuery = (
   voterId: string,
