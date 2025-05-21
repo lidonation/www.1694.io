@@ -20,8 +20,13 @@ export const getDRepDelegatorsHistory = (addrIds: number[]) => {
           COALESCE((
             SELECT SUM(txo.value)
             FROM tx_out txo
-            LEFT JOIN tx_in txi ON txo.tx_id = txi.tx_out_id AND txo.index = txi.tx_out_index
-            WHERE txi.tx_out_id IS NULL AND txo.stake_address_id = sa.id
+            WHERE txo.stake_address_id = sa.id
+            AND NOT EXISTS (
+                SELECT 1
+                FROM tx_in txi
+                WHERE txi.tx_out_id = txo.tx_id
+                AND txi.tx_out_index = txo.index
+            )
           ), 0)
           + COALESCE((
             SELECT SUM(amount) FROM reward WHERE addr_id = sa.id AND type <> 'refund'

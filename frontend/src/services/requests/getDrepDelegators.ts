@@ -1,6 +1,6 @@
 import axiosInstance from '../axiosInstance';
 
-export const getDrepDelegators = async (
+export const getDRepDelegators = async (
   voterId: string,
   page?: number,
   perPage?: number,

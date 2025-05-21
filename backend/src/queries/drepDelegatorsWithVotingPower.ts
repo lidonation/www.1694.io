@@ -1,84 +1,56 @@
 export const getDrepDelegatorsWithVotingPowerQuery = (
   itemsPerPage: number,
   offset?: number,
-  orderByClause?: string
+  orderByClause?: string,
 ) => `
-    WITH latest_delegations AS (
-        SELECT delegation_vote.addr_id, MAX(block.time) AS latest_time
-        FROM drep_hash
-        JOIN delegation_vote ON delegation_vote.drep_hash_id = drep_hash.id
-        JOIN stake_address ON delegation_vote.addr_id = stake_address.id
-        JOIN tx ON delegation_vote.tx_id = tx.id
-        JOIN block ON tx.block_id = block.id
-        WHERE drep_hash.view = $1
-        GROUP BY delegation_vote.addr_id
+    WITH latest_delegation_votes AS (
+        SELECT dv.addr_id,
+               MAX(dv.tx_id) AS latest_tx_id
+        FROM delegation_vote dv
+        GROUP BY dv.addr_id
+    ),
+    current_delegators AS (
+        SELECT sa.id,
+               sa.view AS stake_address,
+               b.epoch_no AS delegation_epoch
+        FROM latest_delegation_votes ldv
+        JOIN delegation_vote dv ON ldv.addr_id = dv.addr_id AND ldv.latest_tx_id = dv.tx_id
+        JOIN stake_address sa ON dv.addr_id = sa.id
+        JOIN drep_hash dh ON dv.drep_hash_id = dh.id
+        JOIN tx ON dv.tx_id = tx.id
+        JOIN block b ON tx.block_id = b.id
+        WHERE dh.view = $1
     )
-    SELECT sa.view AS stake_address,
-       b.epoch_no AS delegation_epoch,
-       COALESCE(SUM(txo.value), 0) AS voting_power
-    FROM drep_hash AS dh
-    JOIN delegation_vote AS dv ON dh.id = dv.drep_hash_id
-    JOIN stake_address sa ON dv.addr_id = sa.id
-    JOIN tx ON dv.tx_id = tx.id
-    JOIN block b ON tx.block_id = b.id
-    JOIN latest_delegations ld ON dv.addr_id = ld.addr_id
-    AND b.time = ld.latest_time
-JOIN tx_out txo ON sa.id = txo.stake_address_id
-LEFT JOIN tx_in txi ON txo.tx_id = txi.tx_out_id AND txo.index = txi.tx_out_index
-WHERE txi.tx_out_id IS NULL
-GROUP BY sa.view,
-         b.epoch_no
-${orderByClause}
-LIMIT ${itemsPerPage}
-OFFSET ${offset};
+    SELECT 
+        cd.stake_address,
+        cd.delegation_epoch,
+        COALESCE((
+            SELECT SUM(txo.value)
+            FROM tx_out txo
+            WHERE txo.stake_address_id = cd.id
+            AND NOT EXISTS (
+                SELECT 1
+                FROM tx_in txi
+                WHERE txi.tx_out_id = txo.tx_id
+                AND txi.tx_out_index = txo.index
+            )
+        ), 0) AS voting_power
+    FROM current_delegators cd
+    ${orderByClause}
+    LIMIT ${itemsPerPage}
+    OFFSET ${offset};
 `;
 
-export const getDrepDelegatorsQuery = `
-    WITH latest_delegations AS (
-        SELECT delegation_vote.addr_id, MAX(block.time) AS latest_time
-        FROM drep_hash
-        JOIN delegation_vote ON delegation_vote.drep_hash_id = drep_hash.id
-        JOIN stake_address ON delegation_vote.addr_id = stake_address.id
-        JOIN tx ON delegation_vote.tx_id = tx.id
-        JOIN block ON tx.block_id = block.id
-        WHERE drep_hash.view = $1
-        GROUP BY delegation_vote.addr_id
-    )
-    SELECT sa.view AS stake_address,
-        b.epoch_no AS delegation_epoch,
-        COALESCE(SUM(txo.value), 0) AS voting_power
-    FROM drep_hash AS dh
-    JOIN delegation_vote AS dv ON dh.id = dv.drep_hash_id
-    JOIN stake_address sa ON dv.addr_id = sa.id
-    JOIN tx ON dv.tx_id = tx.id
-    JOIN block b ON tx.block_id = b.id
-    JOIN latest_delegations ld ON dv.addr_id = ld.addr_id
-        AND b.time = ld.latest_time
-    JOIN tx_out txo ON sa.id = txo.stake_address_id
-LEFT JOIN tx_in txi ON txo.tx_id = txi.tx_out_id AND txo.index = txi.tx_out_index
-WHERE txi.tx_out_id IS NULL
-GROUP BY sa.view,
-         b.epoch_no
-  `;
-  
-
 export const getDrepDelegatorsCountQuery = () => `
-    WITH latest_delegations AS (
-        SELECT delegation_vote.addr_id, MAX(block.time) AS latest_time
-        FROM drep_hash
-        JOIN delegation_vote ON delegation_vote.drep_hash_id = drep_hash.id
-        JOIN stake_address ON delegation_vote.addr_id = stake_address.id
-        JOIN tx ON delegation_vote.tx_id = tx.id
-        JOIN block ON tx.block_id = block.id
-        WHERE drep_hash.view = $1
-        GROUP BY delegation_vote.addr_id
+    WITH latest_delegation_votes AS (
+        SELECT dv.addr_id,
+               MAX(dv.tx_id) AS latest_tx_id
+        FROM delegation_vote dv
+        GROUP BY dv.addr_id
     )
-    SELECT COUNT(DISTINCT sa.id) AS total
-    FROM drep_hash AS dh
-           JOIN delegation_vote AS dv ON dh.id = dv.drep_hash_id
-           JOIN stake_address sa ON dv.addr_id = sa.id
-           JOIN tx ON dv.tx_id = tx.id
-           JOIN block b ON tx.block_id = b.id
-           JOIN latest_delegations ld ON dv.addr_id = ld.addr_id
-    AND b.time = ld.latest_time
+    SELECT COUNT(*) AS total
+    FROM latest_delegation_votes ldv
+    JOIN delegation_vote dv ON ldv.addr_id = dv.addr_id AND ldv.latest_tx_id = dv.tx_id
+    JOIN drep_hash dh ON dv.drep_hash_id = dh.id
+    WHERE dh.view = $1
 `;

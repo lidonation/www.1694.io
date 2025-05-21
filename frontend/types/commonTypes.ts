@@ -113,3 +113,15 @@ export type SubmitMetadataType = 'drepUpdate' | 'voteUpdate';
 export type SubmitMetadataExtra = {
   [K in SubmitMetadataType]?: MappedOutSubmitMetadataExtra[K];
 };
+
+export interface RationaleDataNormal {
+  comment: string;
+}
+export interface RationaleDataJsonLd {
+  comment: {
+    '@type': string;
+    '@value': string;
+  };
+}
+
+export type RationaleDataVariants = RationaleDataNormal | RationaleDataJsonLd;

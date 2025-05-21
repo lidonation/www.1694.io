@@ -7,9 +7,7 @@ import {
   lovelaceToAda,
 } from '@/lib';
 import React, { useEffect, useState } from 'react';
-import HoverText from './HoverText';
-import { useGetDrepDelegators } from '@/hooks/useGetDrepDelegatorsQuery';
-import { Box, IconButton, Skeleton, Tooltip } from '@mui/material';
+import { Box, IconButton, Skeleton, Tooltip, Typography } from '@mui/material';
 import Pagination from '../molecules/Pagination';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -17,6 +15,8 @@ import ListSort from '../molecules/ListSort';
 import CopyToClipBoardIcon from './svgs/CopyToClipBoardIcon';
 import ArrowDownIcon from './svgs/ArrowDownIcon';
 import ArrowUpIcon from './svgs/ArrowUpIcon';
+import { useGetDRepDelegatorsQuery } from '@/hooks/useGetDRepDelegatorsQuery';
+import RecordsNotFound from './RecordsNotFound';
 
 const ViewProfileAction = ({ toStakeKey }: { toStakeKey: string }) => {
   return (
@@ -29,7 +29,7 @@ const ViewProfileAction = ({ toStakeKey }: { toStakeKey: string }) => {
   );
 };
 
-const DrepDelegatorslist = ({ voterId }: { voterId: string }) => {
+const DRepDelegators = ({ voterId }: { voterId: string }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [sort, setSort] = useState(undefined);
   const [order, setOrder] = useState(undefined);
@@ -42,7 +42,7 @@ const DrepDelegatorslist = ({ voterId }: { voterId: string }) => {
     setOrder(searchParams.get('order') || null);
   }, [searchParams]);
 
-  const { Delegators, isDelegatorsLoading } = useGetDrepDelegators(
+  const { Delegators, isDelegatorsLoading } = useGetDRepDelegatorsQuery(
     voterId,
     currentPage,
     null,
@@ -51,39 +51,43 @@ const DrepDelegatorslist = ({ voterId }: { voterId: string }) => {
   );
 
   return (
-    <div className="flex flex-col overflow-x-auto">
-      <div className="mb-4 flex items-center">
+    <Box className="flex w-full flex-col bg-white p-5">
+      <Box className="flex w-full items-center justify-between pr-2">
         <p className="text-3xl font-bold">Delegators</p>
-        <div className="flex w-full justify-end">
-          <ListSort
-            tableType="Delegators"
-            sortOptions={[
-              {
-                category: 'Voting Power',
-                options: [
-                  { label: 'Highest to Lowest', value: 'power-desc' },
-                  { label: 'Lowest to Highest', value: 'power-asc' },
-                ],
-              },
-              {
-                category: 'Epoch',
-                options: [
-                  { label: 'Highest to Lowest', value: 'epoch-desc' },
-                  { label: 'Lowest to Highest', value: 'epoch-asc' },
-                ],
-              },
-            ]}
-          />
-        </div>
-      </div>
-      <div className="overflow-x-auto rounded">
-        <table className="w-full text-left rtl:text-right">
+        <ListSort
+          tableType="Delegators"
+          sortOptions={[
+            {
+              category: 'Voting Power',
+              options: [
+                { label: 'Highest to Lowest', value: 'power-desc' },
+                { label: 'Lowest to Highest', value: 'power-asc' },
+              ],
+            },
+            {
+              category: 'Epoch',
+              options: [
+                { label: 'Highest to Lowest', value: 'epoch-desc' },
+                { label: 'Lowest to Highest', value: 'epoch-asc' },
+              ],
+            },
+          ]}
+        />
+      </Box>
+      <Box className="my-5 overflow-x-auto rounded-md border border-gray-200 bg-white shadow-sm">
+        <table className="min-w-full divide-y divide-gray-200 text-left rtl:text-right">
           <thead className="mb-2 whitespace-nowrap bg-gray-50 text-xl">
             <tr>
-              <th scope="col" className="px-6 py-3">
+              <th
+                scope="col"
+                className="px-4 py-3 text-sm font-semibold text-gray-900"
+              >
                 Stake Address
               </th>
-              <th scope="col" className="px-6 py-3">
+              <th
+                scope="col"
+                className="px-4 py-3 text-sm font-semibold text-gray-900"
+              >
                 <div className="flex items-center">
                   <span>Voting Power</span>
                   {sort === 'power' &&
@@ -96,7 +100,10 @@ const DrepDelegatorslist = ({ voterId }: { voterId: string }) => {
                     ))}
                 </div>
               </th>
-              <th scope="col" className="px-6 py-3">
+              <th
+                scope="col"
+                className="px-4 py-3 text-sm font-semibold text-gray-900"
+              >
                 <div className="flex items-center">
                   <span>Epoch</span>
                   {sort === 'epoch' &&
@@ -109,18 +116,28 @@ const DrepDelegatorslist = ({ voterId }: { voterId: string }) => {
                     ))}
                 </div>
               </th>
-              <th scope="col" className="py-3 pl-6">
+              <th
+                scope="col"
+                className="py-3 pl-4 text-sm font-semibold text-gray-900"
+              >
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-gray-200 bg-white">
             {isDelegatorsLoading && (
               <tr>
-                <td colSpan={24}>
+                <td colSpan={24} className="px-4 py-3">
                   {Array.from({ length: 24 }).map((_, index) => (
                     <Skeleton height={60} key={index} />
                   ))}
+                </td>
+              </tr>
+            )}
+            {!isDelegatorsLoading && !Delegators?.data && (
+              <tr>
+                <td colSpan={4} className="p-8 text-center text-gray-500">
+                  <RecordsNotFound message="No Delegators found for this DRep." />
                 </td>
               </tr>
             )}
@@ -129,9 +146,9 @@ const DrepDelegatorslist = ({ voterId }: { voterId: string }) => {
               Delegators?.data.map((delegator) => (
                 <tr
                   key={delegator.stakeAddress}
-                  className="text-nowrap border-b-2 bg-white hover:bg-gray-50"
+                  className="w-full text-nowrap bg-white transition-all hover:bg-gray-50"
                 >
-                  <td className="px-6 py-4 font-medium">
+                  <td className="px-4 py-3 font-medium">
                     <div className="group flex items-center">
                       <Link
                         prefetch={false}
@@ -150,43 +167,46 @@ const DrepDelegatorslist = ({ voterId }: { voterId: string }) => {
                       <div className="invisible group-hover:visible">
                         <Tooltip title="Copy stake address">
                           <span>
-                          <IconButton
-                            size="small"
-                            onClick={() =>
-                              handleCopyText(delegator?.stakeAddress)
-                            }
-                          >
-                            <CopyToClipBoardIcon width={17} height={17} />
-                          </IconButton>
-                          </span>  
+                            <IconButton
+                              size="small"
+                              onClick={() =>
+                                handleCopyText(delegator?.stakeAddress)
+                              }
+                            >
+                              <CopyToClipBoardIcon width={17} height={17} />
+                            </IconButton>
+                          </span>
                         </Tooltip>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
-                    <HoverText
-                      shortText={formattedAda(delegator?.votingPower, 2)}
-                      longText={formatAsCurrency(
+                  <td className="flex w-full flex-nowrap items-center justify-start px-4 py-3">
+                    <Tooltip
+                      title={`₳ ${formatAsCurrency(
                         lovelaceToAda(delegator?.votingPower),
-                      )}
-                    />
+                      )}`}
+                    >
+                      <Typography>
+                        ₳ {formattedAda(delegator?.votingPower, 2)}
+                      </Typography>
+                    </Tooltip>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-3">
                     {' '}
                     <p> {delegator?.delegationEpoch}</p>
                   </td>
-                  <td className="min-w-44 py-4 pl-6">
+                  <td className="min-w-44 py-3 pl-4">
                     <ViewProfileAction toStakeKey={delegator.stakeAddress} />
                   </td>
                 </tr>
               ))}
           </tbody>
         </table>
-      </div>
+      </Box>
       {!isDelegatorsLoading &&
         Delegators?.data &&
         Delegators?.data.length > 0 && (
-          <Box className="mt-6 flex justify-end">
+          <Box className="flex justify-end">
             <Pagination
               currentPage={Delegators.currentPage}
               totalPages={Delegators.totalPages}
@@ -195,8 +215,8 @@ const DrepDelegatorslist = ({ voterId }: { voterId: string }) => {
             />
           </Box>
         )}
-    </div>
+    </Box>
   );
 };
 
-export default DrepDelegatorslist;
+export default DRepDelegators;
