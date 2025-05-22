@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import VoterWalletStats from './VoterWalletStats';
 import VoterDelegationHistory from './VoterDelegationHistory';
 import { useParams } from 'next/navigation';
@@ -17,9 +17,14 @@ const convertAddressToBech32 = (address: string) => {
 
 const VoterDashboard = () => {
   const { voterId } = useParams();
-  const { voterData, isVoterDataLoading } = useVoterDataByIdentityQuery(
-    convertAddressToBech32(voterId as string),
-  );
+
+  const convertedVoterId = useMemo(() => {
+    return convertAddressToBech32(voterId as string);
+  }, [voterId]);
+
+  const { voterData, isVoterDataLoading } =
+    useVoterDataByIdentityQuery(convertedVoterId);
+
   return (
     <div className="flex min-h-screen w-full flex-col gap-3 bg-white py-4">
       <VoterWalletStats

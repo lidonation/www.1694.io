@@ -1,7 +1,7 @@
 import { useGetVoterGovActionsQuery } from '@/hooks/useGetVoterGovActions';
 import { Box, Paper, Typography } from '@mui/material';
 import { useParams, useSearchParams } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import DrepVoteTimelineCard, {
   UniformCardWrapper,
 } from '../atoms/DrepVoteTimelineCard';
@@ -37,11 +37,12 @@ const VoterImpact = () => {
       return Address.from_bytes(Buffer.from(address, 'hex') as any).to_bech32();
   };
 
+  const convertedVoterId = useMemo(() => {
+    return convertAddressToBech32(voterId as string);
+  }, [voterId]);
+
   const { voterGovActions, isVoterGovActionsLoading } =
-    useGetVoterGovActionsQuery(
-      convertAddressToBech32(voterId as string),
-      currentPage,
-    );
+    useGetVoterGovActionsQuery(convertedVoterId, currentPage);
 
   useEffect(() => {
     const fetchOwnership = async () => {
@@ -72,7 +73,12 @@ const VoterImpact = () => {
     };
 
     fetchOwnership();
-  }, [voterGovActions?.data, dRepIdBech32]);
+  }, [
+    voterGovActions?.data,
+    dRepIdBech32,
+    ownershipCache,
+    dRepProfilesClaimed,
+  ]);
 
   return (
     <Box className="flex flex-col gap-6">
