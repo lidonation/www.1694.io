@@ -18,7 +18,6 @@ import { useScreenDimension } from '@/hooks';
 import { Box, IconButton, Skeleton, Tooltip } from '@mui/material';
 import Button from '../atoms/Button';
 import Link from 'next/link';
-import HoverText from '../atoms/HoverText';
 import Pagination from './Pagination';
 import CopyToClipBoard from '../atoms/svgs/CopyToClipBoardIcon';
 import ArrowDownIcon from '../atoms/svgs/ArrowDownIcon';
@@ -285,12 +284,17 @@ const DRepsTable = ({
                   </Box>
                 </td>
 
-                <td className="max-w-11 overflow-auto px-4 py-2">
+                <td className="overflow-auto px-4 py-2">
                   {drep.voting_power !== null ? (
-                    <HoverText
-                      shortText={shortNumber(drep.voting_power, 2)}
-                      longText={formatAsCurrency(drep.voting_power)}
-                    />
+                    <Box className="flex w-full flex-nowrap items-center justify-start">
+                      <Tooltip
+                        title={`₳ ${formatAsCurrency(drep.voting_power)}`}
+                      >
+                        <Typography>
+                          ₳ {shortNumber(drep.voting_power, 2)}
+                        </Typography>
+                      </Tooltip>
+                    </Box>
                   ) : (
                     <p>-</p>
                   )}
@@ -299,9 +303,9 @@ const DRepsTable = ({
                 <td className="overflow-auto px-2 py-2">
                   {drep.live_stake !== null ? (
                     <Box className="flex w-full flex-row flex-nowrap items-center justify-start gap-1.5">
-                      <Tooltip title={formatAsCurrency(drep.live_stake)}>
+                      <Tooltip title={`₳ ${formatAsCurrency(drep.live_stake)}`}>
                         <Typography>
-                          {shortNumber(drep.live_stake, 2)}
+                          ₳ {shortNumber(drep.live_stake, 2)}
                         </Typography>
                       </Tooltip>
                       {drep.voting_power > 0.0 && (

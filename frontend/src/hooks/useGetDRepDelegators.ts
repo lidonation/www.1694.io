@@ -1,10 +1,10 @@
 import { QUERY_KEYS } from '@/constants/queryKeys';
 import { useQuery } from 'react-query';
 import { Delegators } from '../../types/api';
-import { getDrepDelegators } from '@/services/requests/getDrepDelegators';
 import { convertDrepPhraseToCIP105 } from '@/lib';
+import { getDRepDelegators } from '@/services/requests/getDRepDelegatorsList';
 
-export const useGetDrepDelegators = (
+export const useGetDRepDelegatorsQuery = (
   voterId: string,
   page?: number,
   perPage?: number,
@@ -15,7 +15,7 @@ export const useGetDrepDelegators = (
     queryKey: [QUERY_KEYS.getDrepDelegators, voterId, page, sort, order],
     queryFn: async () => {
       const cip105Id = convertDrepPhraseToCIP105(voterId);
-      return await getDrepDelegators(cip105Id, page, perPage, sort, order);
+      return await getDRepDelegators(cip105Id, page, perPage, sort, order);
     },
     enabled: !!voterId,
     refetchOnWindowFocus: false,

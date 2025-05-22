@@ -14,20 +14,8 @@ import SubmitMetadataModal from '../atoms/SubmitMetadataModal';
 import { getJSONLDFromData } from '@/lib/metadataProcessor';
 import { CIP_100 } from '@/lib/drepActions/jsonContext';
 import { createDRepVoteContext } from '@/lib/drepActions/voteContext';
-import { VoteMetadata } from '../../../types/commonTypes';
+import { RationaleDataVariants, VoteMetadata } from '../../../types/commonTypes';
 import { parseContent } from '@/lib';
-
-interface RationaleDataNormal {
-  comment: string;
-}
-interface RationaleDataJsonLd {
-  comment: {
-    '@type': string;
-    '@value': string;
-  };
-}
-
-type RationaleDataVariants = RationaleDataNormal | RationaleDataJsonLd;
 
 export interface VoteRationaleModalProps {
   mode: 'view' | 'edit';

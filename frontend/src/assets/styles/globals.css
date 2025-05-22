@@ -11,10 +11,10 @@ body {
 }
 
 .base_container {
-  @apply mx-auto max-w-sm sm:max-w-md md:max-w-xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl;
+  @apply mx-auto max-w-sm sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl;
 }
 .form_container {
-  @apply mx-auto w-full sm:max-w-md md:max-w-xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl;
+  @apply mx-auto w-full sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl;
 }
 .inner_container {
   @apply w-full text-sm;
