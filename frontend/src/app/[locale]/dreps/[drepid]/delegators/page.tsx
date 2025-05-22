@@ -1,5 +1,5 @@
 'use client';
-import DrepProfileMetrics from '@/components/molecules/DrepProfileMetrics';
+import DRepDelegators from '@/components/atoms/DRepDelegators';
 import { Box } from '@mui/material';
 import { useParams } from 'next/navigation';
 
@@ -7,7 +7,7 @@ const page = () => {
   const { drepid } = useParams();
   return (
     <Box className="min-h-screen">
-      <DrepProfileMetrics voterId={drepid.toString()} />
+      <DRepDelegators voterId={drepid.toString()} />
     </Box>
   );
 };

@@ -29,7 +29,6 @@ const VoterDelegationHistory: React.FC<VoterDelegationHistoryProps> = ({
   isVoterDataLoading,
 }) => {
   const delegationHistory = voterData?.delegationHistory || [];
-  const [hoveredRow, setHoveredRow] = useState<number | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const { isMobile, screenWidth } = useScreenDimension();
 
@@ -98,8 +97,6 @@ const VoterDelegationHistory: React.FC<VoterDelegationHistoryProps> = ({
             {delegationHistory.map((item: any, index: number) => (
               <TableRow
                 key={index}
-                onMouseEnter={() => setHoveredRow(index)}
-                onMouseLeave={() => setHoveredRow(null)}
                 sx={{
                   backgroundColor:
                     index === 0 ? 'rgba(255, 193, 157, 0.25)' : 'transparent',
@@ -133,9 +130,7 @@ const VoterDelegationHistory: React.FC<VoterDelegationHistoryProps> = ({
                     </Typography>
                     <Box
                       sx={{
-                        position: 'relative',
                         right: 0,
-                        display: hoveredRow === index ? 'flex' : 'none',
                         alignItems: 'center',
                       }}
                     >
@@ -161,7 +156,6 @@ const VoterDelegationHistory: React.FC<VoterDelegationHistoryProps> = ({
                             sx={{
                               ml: 1,
                               p: 0,
-                              position: 'absolute',
                             }}
                           >
                             <CopyToClipBoardIcon width={18} height={18} />

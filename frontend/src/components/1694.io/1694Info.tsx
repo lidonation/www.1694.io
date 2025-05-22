@@ -1,6 +1,4 @@
 import React from 'react';
-import DrepInfoCardRow from '../molecules/DrepInfoCardRow';
-import BecomeADrepCard from '../molecules/BecomeADrepCard';
 import BecomeADRepButton from './BecomeADRepButton';
 
 const CIPInfo = () => {
@@ -9,7 +7,7 @@ const CIPInfo = () => {
       <div className="flex items-center justify-center shrink-0">
         <img src="/img/1694-asset-2.png" alt="Asset 2" width={'80%'} />
       </div>
-      <div className="base_container flex flex-col gap-10 text-sm">
+      <div className="base_container flex flex-col gap-5 text-base font-light text-gray-800">
         <p className="text-3xl lg:text-7xl font-bold leading-[68px] text-zinc-800">
           Abstract
         </p>

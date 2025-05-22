@@ -7,7 +7,7 @@ export const ConnectedWalletCard = () => {
   const {
     wallet: { stakeKeyBech32, balance },
   } = useWallet();
-  const { isMobile } = useScreenDimension();
+  const { isMobile, screenWidth } = useScreenDimension();
   return (
     <Box
       display="flex"
@@ -17,7 +17,7 @@ export const ConnectedWalletCard = () => {
       className="divide-x-2 divide-white text-white"
     >
       <Box alignItems="center" display="flex" className="px-1">
-        {!isMobile ? (
+        {screenWidth >= 1024 ? (
           <Typography
             fontSize="0.75rem"
             fontWeight={300}
@@ -50,7 +50,7 @@ export const ConnectedWalletCard = () => {
         )}
       </Box>
       <Box alignItems="center" display="flex" className="px-1">
-        {!isMobile && (
+        {screenWidth >= 1024 && (
           <Typography
             fontWeight={300}
             fontSize="0.75rem"

@@ -5,7 +5,7 @@ import Separator from './Separator';
 const CIPSpecifications = () => {
   return (
     <div className="flex flex-col items-center justify-center bg-gradient-to-b from-[#E9EFFF] to-[#FFFFFF]">
-      <div className="mx-auto flex max-w-xs flex-col items-center justify-center py-10 text-sm sm:max-w-lg lg:max-w-4xl">
+      <div className="base_container mx-auto flex flex-col items-center justify-center py-10 text-sm">
         <div className="w-full">
           <p className="text-start text-4xl font-bold text-zinc-800 lg:text-6xl">
             Specification
@@ -130,15 +130,16 @@ const CIPSpecifications = () => {
           </p>
           <p>
             Unlike the Shelley governance design, the size of the constitutional
-            committee is not fixed and can be any nonnegative number.It may be changed whenever a new committee is elected ("Update committee"). Likewise, the committee threshold (the
-            fraction of committee Yes votes that are required to ratify
-            governance actions) is not fixed and can also be varied by the
-            governance action. This gives a great deal of flexibility to the
-            composition of the committee. In particular, it is possible to elect
-            an empty committee if the community wishes to abolish the
-            constitutional committee entirely. Note that this is different from
-            a state of no-confidence and still constitutes a governance system
-            capable of enacting proposals.
+            committee is not fixed and can be any nonnegative number.It may be
+            changed whenever a new committee is elected ("Update committee").
+            Likewise, the committee threshold (the fraction of committee Yes
+            votes that are required to ratify governance actions) is not fixed
+            and can also be varied by the governance action. This gives a great
+            deal of flexibility to the composition of the committee. In
+            particular, it is possible to elect an empty committee if the
+            community wishes to abolish the constitutional committee entirely.
+            Note that this is different from a state of no-confidence and still
+            constitutes a governance system capable of enacting proposals.
           </p>
           <p>
             There will be a new protocol parameter for the minimal size of the
@@ -182,7 +183,10 @@ const CIPSpecifications = () => {
           </p>
         </div>
         <Separator />
-        <div id='guardrails-script' className="my-5 flex w-full flex-col items-start justify-center gap-5">
+        <div
+          id="guardrails-script"
+          className="my-5 flex w-full flex-col items-start justify-center gap-5"
+        >
           <p className="text-2xl font-bold">Guardrails Script</p>
           <p>
             While the constitution is an informal, off-chain document, there
@@ -190,7 +194,8 @@ const CIPSpecifications = () => {
             This script acts to supplement the constitutional committee by
             restricting some proposal types. For example, if the community
             wishes to have some hard rules for the treasury that cannot be
-            violated, a script that enforces these these rules can be voted in as the guardrails script.
+            violated, a script that enforces these these rules can be voted in
+            as the guardrails script.
           </p>
           <p>
             The guardrails script applies only to protocol parameter update and

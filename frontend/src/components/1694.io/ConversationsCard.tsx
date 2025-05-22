@@ -31,12 +31,13 @@ const ConversationsCard = ({ conversations }: ConversationsCardProps) => {
 
   return (
     <div className="base_container py-20">
-      <p className="text-4xl font-bold text-zinc-800 lg:text-6xl">
+      <p className="text-4xl font-bold text-zinc-800 lg:text-6xl mb-2">
         Conversations
       </p>
-      <div className="flex grid-cols-3 flex-col gap-6 lg:grid lg:gap-4">
+      <div className="flex w-full grid-cols-3 flex-col gap-6 lg:grid lg:gap-4">
         {/* Only the first six for now. */}
-        {conversations && conversations.length > 0 &&
+        {conversations &&
+          conversations.length > 0 &&
           conversations.slice(0, 6).map((item, index) => (
             <div
               key={item.id}
@@ -50,7 +51,7 @@ const ConversationsCard = ({ conversations }: ConversationsCardProps) => {
                 ></Avatar>
                 <p className="text-2xl font-bold">{item.user.login}</p>
               </div>
-              <p>{item.body}</p>
+              <p className="break-words">{item.body}</p>
               <div>
                 <p>{parseTimestamp(item.created_at)}</p>
                 <a href={item.html_url} className="font-semibold underline">

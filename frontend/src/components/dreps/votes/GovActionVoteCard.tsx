@@ -1,13 +1,17 @@
 import MarkdownParser from '@/components/atoms/MarkdownParser';
 import { ViewExternalGovAction } from '@/components/atoms/ViewExternalGovAction';
 import { useGetProposalMetadataByHashQuery } from '@/hooks/useGetProposalMetadataByHash';
-import { formatIsoTime } from '@/lib';
-import { Box } from '@mui/material';
+import { formatIsoTime, parseContent } from '@/lib';
+import { Alert, Box } from '@mui/material';
 import { useState, useRef, useEffect } from 'react';
+import { RationaleDataVariants } from '../../../../types/commonTypes';
+import { useGetExternalMetadata } from '@/hooks/useGetExternalMetadata';
 
 export const GovActionVoteCard = ({ action }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isShowMoreVisible, setIsShowMoreVisible] = useState(false);
+  const [rationaleData, setRationaleData] =
+    useState<RationaleDataVariants | null>(null);
   const rationaleRef = useRef(null);
 
   const { proposalMetadata } = useGetProposalMetadataByHashQuery({
@@ -15,31 +19,37 @@ export const GovActionVoteCard = ({ action }) => {
     isRequired: !Boolean(action?.title),
   });
 
+  const { metadata, isMetadataLoading, metadataError } = useGetExternalMetadata(
+    action?.vote_rationale,
+    true,
+  );
+
   const title =
     action?.metadata?.body?.title ||
     action?.title ||
     proposalMetadata?.body?.title ||
     '-';
 
-  const rationale =
-    action?.metadata?.body?.rationale ||
-    action?.rationale ||
-    proposalMetadata?.body?.rationale ||
-    '-';
+  useEffect(() => {
+    setRationaleData(null);
+    if (metadata) {
+      setRationaleData(metadata.body);
+    }
+  }, [metadata]);
 
   useEffect(() => {
     if (rationaleRef.current) {
       const element = rationaleRef.current;
       setIsShowMoreVisible(element.scrollHeight > element.clientHeight);
     }
-  }, [rationale]);
+  }, [rationaleData]);
 
   const toggleRationale = () => {
     setIsExpanded(!isExpanded);
   };
 
   return (
-    <tr className="transition-colors hover:bg-gray-50">
+    <tr className="transition-all hover:bg-gray-50">
       <td className="hidden whitespace-nowrap px-4 py-3 md:table-cell">
         <div className="flex h-full flex-col gap-2">
           <p className="mb-1 block text-sm font-medium text-gray-800">
@@ -72,7 +82,7 @@ export const GovActionVoteCard = ({ action }) => {
             </Box>
           </Box>
 
-          {!!rationale && (
+          {!isMetadataLoading && !metadataError && (
             <Box>
               <p className="mb-1 text-sm font-medium text-gray-500">
                 Rationale:
@@ -84,7 +94,15 @@ export const GovActionVoteCard = ({ action }) => {
                     !isExpanded ? 'line-clamp-2' : ''
                   }`}
                 >
-                  <MarkdownParser text={rationale} />
+                  <MarkdownParser
+                    text={
+                      rationaleData &&
+                      typeof rationaleData?.comment === 'string'
+                        ? parseContent(rationaleData?.comment)
+                        : parseContent(rationaleData?.comment?.['@value']) ||
+                          'Not provided.'
+                    }
+                  />
                 </Box>
                 {isShowMoreVisible && (
                   <button
@@ -100,6 +118,11 @@ export const GovActionVoteCard = ({ action }) => {
                 )}
               </Box>
             </Box>
+          )}
+          {metadataError && (
+            <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
+              {metadataError || 'Failed to load vote rationale data.'}
+            </Alert>
           )}
         </Box>
       </td>

@@ -11,10 +11,12 @@ import '@fontsource/poppins';
 import { ThemeProvider } from '@mui/material';
 import theme from '@/assets/theme';
 import PageBanner from '@/components/atoms/PageBanner';
+
 const poppins = Poppins({
-  weight: '400',
-  style: 'normal',
-  subsets: ['devanagari'],
+  weight: ['400'],
+  style: ['normal'],
+  subsets: ['latin'],
+  display: 'swap',
 });
 
 export function generateStaticParams() {

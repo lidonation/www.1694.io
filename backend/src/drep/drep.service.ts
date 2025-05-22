@@ -953,16 +953,16 @@ export class DrepService {
 
     const sortColumns = {
       power: 'voting_power',
-      epoch: 'epoch_no',
+      epoch: 'delegation_epoch',
     };
 
-    const sortColumn = sortColumns[sort] || null;
-    const sortOrder = order?.toUpperCase();
+    const sortColumn = sort ? sortColumns[sort] : 'delegation_epoch';
+    const sortOrder = order?.toUpperCase() || 'DESC';
 
     const orderByClause =
       sortColumn && ['ASC', 'DESC'].includes(sortOrder)
         ? `ORDER BY ${sortColumn} ${sortOrder} NULLS ${sortOrder === 'DESC' ? 'LAST' : 'FIRST'}`
-        : '';
+        : 'ORDER BY delegation_epoch DESC NULLS LAST';
 
     const delegatorsWithVotingPower = await this.cexplorerService.manager.query(
       getDrepDelegatorsWithVotingPowerQuery(

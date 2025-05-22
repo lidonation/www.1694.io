@@ -1,11 +1,12 @@
 'use client';
-import { Poppins, Roboto } from 'next/font/google';
+import { Poppins } from 'next/font/google';
 import { createTheme } from '@mui/material/styles';
 
 const poppins = Poppins({
   weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
   style: ['normal', 'italic'],
-  subsets: ['devanagari'],
+  subsets: ['latin'],
+  display: 'swap',
 });
 
 const theme = createTheme({
