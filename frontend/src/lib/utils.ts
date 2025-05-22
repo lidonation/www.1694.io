@@ -10,6 +10,7 @@ import { formHexToBech32, fromBech32ToHex, isCip105 } from './getDrepId';
 import getEpochParams from '@/services/requests/getEpochParams';
 import { setItemToLocalStorage } from './localStorage';
 import { checkTxExists } from '@/services/requests/checkTxExists';
+import { Address } from '@emurgo/cardano-serialization-lib-asmjs';
 
 export const sumTestExample = (a, b) => {
   return a + b;
@@ -395,4 +396,13 @@ export const formatIsoTime = (timestamp: string): string => {
     console.error('Error formatting date:', error);
     return timestamp;
   }
+};
+
+export const convertAddressToBech32 = (address: string) => {
+  if (address.includes('addr') || address.includes('stake')) {
+    return address;
+  } else if (address.includes('drep')) {
+    return convertDrepPhraseToCIP105(address)
+  } else
+    return Address.from_bytes(Buffer.from(address, 'hex') as any).to_bech32();
 };

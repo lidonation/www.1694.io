@@ -1,12 +1,156 @@
 'use client';
-import VoterImpact from '@/components/voters/VoterImpact';
-import React from 'react';
+import DrepVoteTimelineCard, {
+  UniformCardWrapper,
+} from '@/components/atoms/DrepVoteTimelineCard';
+import GovActionLoader from '@/components/Loaders/GovActionLoader';
+import Pagination from '@/components/molecules/Pagination';
+import { useWallet } from '@/context/globalContext';
+import { useGetVoterGovActionsQuery } from '@/hooks/useGetVoterGovActions';
+import { convertAddressToBech32 } from '@/lib';
+import { Box, Paper, Typography } from '@mui/material';
+import { useParams, useSearchParams } from 'next/navigation';
+import React, { useEffect, useMemo, useState } from 'react';
 
 const page = () => {
+  const { voterId } = useParams();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [ownershipCache, setOwnershipCache] = useState<Record<string, boolean>>(
+    {},
+  );
+  const {
+    wallet: { dRepIdBech32 },
+    user: { dRepProfilesClaimed },
+  } = useWallet();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    setCurrentPage(Number(searchParams.get('page') || 1));
+  }, [searchParams]);
+
+  const convertedVoterId = useMemo(() => {
+    return convertAddressToBech32(voterId as string);
+  }, [voterId]);
+
+  const { voterGovActions, isVoterGovActionsLoading } =
+    useGetVoterGovActionsQuery(convertedVoterId, currentPage);
+
+  useEffect(() => {
+    const fetchOwnership = async () => {
+      if (!voterGovActions?.data?.length) return;
+
+      const uniqueViews = Array.from(
+        new Set(voterGovActions.data.map((action) => action.view)),
+      );
+
+      const newCache: Record<string, boolean> = { ...ownershipCache };
+
+      const viewsToCheck = uniqueViews.filter(
+        (view) => ownershipCache[view] === undefined,
+      );
+
+      for (const view of viewsToCheck) {
+        const isOwner = dRepProfilesClaimed.some(
+          (profile) =>
+            profile.voterDRepBech32 == dRepIdBech32 &&
+            profile.claimedDRepBech32 == view,
+        );
+        newCache[view] = isOwner;
+      }
+
+      if (viewsToCheck.length > 0) {
+        setOwnershipCache(newCache);
+      }
+    };
+
+    fetchOwnership();
+  }, [
+    voterGovActions?.data,
+    dRepIdBech32,
+    ownershipCache,
+    dRepProfilesClaimed,
+  ]);
+
   return (
     <div className="min-h-screen">
       <div className="flex flex-col gap-3 bg-white px-6 py-4">
-        <VoterImpact />
+        <Box className="flex flex-col gap-6">
+          <Typography variant="h4" fontWeight="bold">
+            Your DReps' Governance Contributions{' '}
+          </Typography>
+          <Typography className="px-2 leading-relaxed">
+            This page displays all governance actions that have been voted on by
+            DReps (Delegate Representatives) you have delegated to. It includes
+            votes from DReps you've directly delegated to, as well as any
+            predefined DRep options you may have selected. This comprehensive
+            view helps you stay informed about how your chosen representatives
+            are participating in the decision-making process.
+          </Typography>
+          {isVoterGovActionsLoading && (
+            <ul
+              role="list"
+              className="grid grid-cols-1 gap-6 border-t border-green-400 py-6 lg:grid-cols-2 xl:grid-cols-3"
+            >
+              {Array.from({ length: 6 }).map((_, index) => (
+                <li key={index}>
+                  <GovActionLoader />
+                </li>
+              ))}
+            </ul>
+          )}
+          {!isVoterGovActionsLoading && !voterGovActions?.data?.length && (
+            <Box sx={{ py: 3 }}>
+              <Paper
+                elevation={2}
+                sx={{
+                  p: 3,
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  height: 200,
+                }}
+              >
+                <Typography variant="body1" color="text.secondary">
+                  Your DRep(s) have not yet voted on governance actions.
+                </Typography>
+              </Paper>
+            </Box>
+          )}
+          {!isVoterGovActionsLoading && voterGovActions?.data.length > 0 && (
+            <ul
+              role="list"
+              className="grid grid-cols-1 gap-6 border-t border-green-400 py-6 lg:grid-cols-2 xl:grid-cols-3"
+              style={{
+                display: 'grid',
+                gridAutoRows: '1fr',
+              }}
+            >
+              {voterGovActions &&
+                voterGovActions?.data.length > 0 &&
+                voterGovActions?.data.map((action) => (
+                  <li key={action?.vote_tx_hash} style={{ height: '100%' }}>
+                    <UniformCardWrapper>
+                      <DrepVoteTimelineCard
+                        item={action}
+                        isVoteOwner={ownershipCache[action.view] || false}
+                      />
+                    </UniformCardWrapper>
+                  </li>
+                ))}
+            </ul>
+          )}
+          {!isVoterGovActionsLoading &&
+            voterGovActions?.data &&
+            voterGovActions?.data.length > 0 && (
+              <Box className="flex justify-end">
+                <Pagination
+                  currentPage={voterGovActions.currentPage}
+                  totalPages={voterGovActions.totalPages}
+                  totalItems={voterGovActions.totalItems}
+                  dataType="Governance Actions"
+                />
+              </Box>
+            )}
+        </Box>
       </div>
     </div>
   );

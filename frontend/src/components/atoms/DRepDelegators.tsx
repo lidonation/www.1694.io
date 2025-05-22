@@ -134,7 +134,7 @@ const DRepDelegators = ({ voterId }: { voterId: string }) => {
                 </td>
               </tr>
             )}
-            {!isDelegatorsLoading && !Delegators?.data && (
+            {!isDelegatorsLoading && !Delegators?.data?.length && (
               <tr>
                 <td colSpan={4} className="p-8 text-center text-gray-500">
                   <RecordsNotFound message="No Delegators found for this DRep." />
