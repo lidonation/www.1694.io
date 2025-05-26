@@ -55,6 +55,31 @@ export function shortNumber(value: number, decimals: number = 0) {
         : Math.abs(Number(value));
 }
 
+export function shortNumberWithAnnotation(value: number, decimals: number = 2) {
+  switch (true) {
+    case Math.abs(Number(value)) >= 1.0e9:
+      return {
+        numValue: Number((Math.abs(Number(value)) / 1.0e9).toFixed(decimals)),
+        annotation: 'B',
+      };
+    case Math.abs(Number(value)) >= 1.0e6:
+      return {
+        numValue: Number((Math.abs(Number(value)) / 1.0e6).toFixed(decimals)),
+        annotation: 'M',
+      };
+    case Math.abs(Number(value)) >= 1.0e3:
+      return {
+        numValue: Number((Math.abs(Number(value)) / 1.0e3).toFixed(decimals)),
+        annotation: 'K',
+      };
+    default:
+      return {
+        numValue: Math.abs(Number(value)),
+        annotation: '',
+      };
+  }
+}
+
 export function lovelaceToAda(lovelace: number) {
   // convert lovelace to ada, assuming 1 lovelace = 1000000 ada
   const divisibility = 1000000;

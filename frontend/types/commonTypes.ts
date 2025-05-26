@@ -103,6 +103,7 @@ export type VoteMetadata = {
   voterId: string;
   voteTxHash: string;
   voteTxIndex: number;
+  isOwner: boolean;
 };
 
 export type MappedOutSubmitMetadataExtra = {

@@ -15,6 +15,7 @@ import { getItemFromIndexedDB } from '@/lib/indexedDb';
 import { postAddMetadataAttachment } from '@/services/requests/postAddMetadataAttachment';
 import { useWallet } from '@/context/globalContext';
 import { AuthMethod } from '../../../types/auth';
+import { getRelatedPaymentAddrFromStakeAddr } from '@/services/requests/getRelatedPaymentAddrFromStakeAddr';
 interface SubmitMetadataModalProps {
   onClose: () => void;
   onSuccessfulSubmit: (resultHash?: string) => void;
@@ -37,10 +38,12 @@ const SubmitMetadataModal = ({
     activeWallet,
     user: {
       dRepClaimInfo: {
+        isCurrentlyClaiming,
         isCurrentOwnerOfDRepToClaim,
         dRepIDToClaimBech32,
         dRepEntityToClaim,
       },
+      dRepProfilesClaimed
     },
     wallet: { addressBech32 },
     buildDRepUpdateCert,
@@ -54,6 +57,27 @@ const SubmitMetadataModal = ({
   const { addErrorAlert, addSuccessAlert } = useGlobalNotifications();
   const [metadataUrl, setMetadataUrl] = useState('');
   const [isSubmittingToIPFS, setIsSubmittingToIPFS] = useState(false);
+  const [isDirectOwner, setIsDirectOwner] = useState(false);
+
+  useEffect(() => {
+    switch (true) {
+      case isCurrentlyClaiming === 'yes':
+        setIsDirectOwner(isCurrentOwnerOfDRepToClaim && activeWallet === AuthMethod.HOT_WALLET);
+        break;
+      case !!extraData?.voteUpdate:
+        setIsDirectOwner(extraData.voteUpdate.isOwner && activeWallet === AuthMethod.HOT_WALLET);
+        break;
+      default:
+        setIsDirectOwner(activeWallet === AuthMethod.HOT_WALLET);
+        break;
+    }
+  }
+  , [
+    isCurrentlyClaiming,
+    activeWallet,
+    isCurrentOwnerOfDRepToClaim
+  ]);
+
 
   useEffect(() => {
     const initiateMetadata = async () => {
@@ -142,22 +166,34 @@ const SubmitMetadataModal = ({
     }
   };
 
-  const getAddressToDeriveUtxosFrom = () => {
-    switch (true) {
-      //claiming own drep via login file
-      case isCurrentOwnerOfDRepToClaim &&
-        activeWallet !== AuthMethod.HOT_WALLET:
-        return addressBech32;
-      //assumed to claim drep via hot wallet or login file
-      case !isCurrentOwnerOfDRepToClaim &&
-        activeWallet === AuthMethod.HOT_WALLET:
-      case !isCurrentOwnerOfDRepToClaim &&
-        activeWallet === AuthMethod.LOGIN_FILE:
-        return dRepEntityToClaim?.reg_address;
-      default:
-        //use address from state
-        return null;
-    }
+  const getAddressToDeriveUtxosFrom = async () => {
+    if (isCurrentlyClaiming === 'yes'){
+      switch (true) {
+        //claiming own drep via login file
+        case isCurrentOwnerOfDRepToClaim &&
+          activeWallet !== AuthMethod.HOT_WALLET:
+          return addressBech32;
+        //assumed to claim drep via hot wallet or login file
+        case !isCurrentOwnerOfDRepToClaim &&
+          activeWallet === AuthMethod.HOT_WALLET:
+        case !isCurrentOwnerOfDRepToClaim &&
+          activeWallet === AuthMethod.LOGIN_FILE:
+          return dRepEntityToClaim?.reg_address;
+        default:
+          //use address from state
+          return null;
+      }
+
+    }else if (extraData?.voteUpdate) {
+      const relatedStakeAddr = dRepProfilesClaimed.find(
+        (profile) =>
+          profile.claimedDRepBech32 === extraData.voteUpdate.voterId,
+      )?.voterStakeKey;
+      const relatedAddresses = await getRelatedPaymentAddrFromStakeAddr(
+          relatedStakeAddr,
+        );
+      return relatedAddresses?.[0]
+      }
   };
 
   const postSaveMetadata = async () => {
@@ -207,9 +243,9 @@ const SubmitMetadataModal = ({
         'submitMetadataTxn',
         actionCert,
         {
-          disableSigning: !isCurrentOwnerOfDRepToClaim || activeWallet === AuthMethod.LOGIN_FILE,
+          disableSigning: !isDirectOwner,
           disableDownload: activeWallet === AuthMethod.HOT_WALLET,
-          deriveUtxosFrom: getAddressToDeriveUtxosFrom(),
+          deriveUtxosFrom: await getAddressToDeriveUtxosFrom(),
         },
       );
       onSuccessfulSubmit(res.resultHash);

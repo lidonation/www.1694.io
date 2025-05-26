@@ -139,14 +139,13 @@ export class MiscellaneousService {
       `https://gateway.pinata.cloud/ipfs/${hash}`,
     ];
 
-    const requests = gateways.map(
-      (url) =>
-        this.httpService.axiosRef
-          .get(url, {
-            responseType: 'stream',
-            timeout: 3000,
-          })
-          .catch((e) => e),
+    const requests = gateways.map((url) =>
+      this.httpService.axiosRef
+        .get(url, {
+          responseType: 'stream',
+          timeout: 3000,
+        })
+        .catch((e) => e),
     );
 
     const responses = await Promise.all(requests);
@@ -227,9 +226,9 @@ export class MiscellaneousService {
       const requests = gatewayUrls.map((gatewayUrl) =>
         firstValueFrom(
           this.httpService.get(gatewayUrl, { timeout: 3000 }).pipe(
-            catchError(() => {
-              return new Promise((_, reject) =>
-                reject(new Error(`Failed to fetch from ${gatewayUrl}`)),
+            catchError((error) => {
+              throw new Error(
+                `Failed to fetch from ${gatewayUrl}: ${error.message}`,
               );
             }),
           ),
@@ -237,26 +236,24 @@ export class MiscellaneousService {
       );
 
       try {
-        const response = await Promise.race(requests);
-        return response;
+        const results = await Promise.allSettled(requests);
+
+        const firstSuccess = results.find(
+          (result) => result.status === 'fulfilled',
+        );
+
+        if (firstSuccess && firstSuccess.status === 'fulfilled') {
+          return firstSuccess.value.data;
+        }
+
+        const errors = results
+          .filter((result) => result.status === 'rejected')
+          .map((result) => (result as PromiseRejectedResult).reason.message);
+
+        throw new Error(`All IPFS gateways failed: ${errors.join(', ')}`);
       } catch (error) {
         throw new Error('All IPFS gateways failed');
       }
-    }
-
-    // Regular fetch for non-IPFS URLs
-    try {
-      const { data } = await firstValueFrom(
-        this.httpService.get(url, { timeout: 30000 }).pipe(
-          catchError(() => {
-            throw new Error('Metadata URL not reachable!');
-          }),
-        ),
-      );
-      return data;
-    } catch (error) {
-      console.error('Error fetching from URL:', error.message);
-      throw error;
     }
   }
 

@@ -35,13 +35,13 @@ function page() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="hidden w-48 px-4 py-3 text-left text-sm font-semibold text-gray-900 md:table-cell">
+                <th className="hidden w-48 px-4 py-3 text-left text-base font-semibold text-gray-900 md:table-cell">
                   Date
                 </th>
-                <th className="px-3 py-3 text-left text-sm font-semibold text-gray-900 md:px-4">
+                <th className="px-3 py-3 text-left text-base font-semibold text-gray-900 md:px-4">
                   Governance Action
                 </th>
-                <th className="w-20 px-3 py-3 text-right text-sm font-semibold text-gray-900 md:w-32 md:px-4">
+                <th className="w-20 px-3 py-3 text-right text-base font-semibold text-gray-900 md:w-32 md:px-4">
                   Vote
                 </th>
               </tr>
