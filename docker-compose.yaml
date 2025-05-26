@@ -1,28 +1,30 @@
 version: "3.9"
 services:
   backend:
-    container_name: backend # Name of the backend container
-    build: # Build configuration for the backend
-      context: ./backend # Directory containing Dockerfile
+    container_name: backend
+    build:
+      context: ./backend
       dockerfile: Dockerfile.dev
-    image: io-1694:latest # Use the latest io-1694 image
-    restart: unless-stopped # Always restart unless explicitly stopped
-    environment: # Environment variables for configuration
+    image: io-1694:latest
+    restart: unless-stopped
+    environment:
       HOST: 0.0.0.0
       PORT: 8000
-      DATABASE_HOST: web_db # Link to the database service by name
+      DATABASE_HOST: web_db
+      DATABASE_PORT: 5432
       DATABASE_NAME: 1694
       DATABASE_USERNAME: voltaire
       DATABASE_PASSWORD: postgres
-      NODE_ENV: development # Set node environment to development
-    volumes: # Mount points for persistent data and source code
+      NODE_ENV: development
+    volumes:
       - "./backend:/app"
     ports:
-      - "8000:8000" # Expose port 8080 to the host
+      - "8000:8000"
     networks:
-      - io-1694 # Connect to the 'io-1694' network
+      - io-1694
     depends_on:
-      - web_db # Depends on the database service
+      web_db:
+        condition: service_healthy
 
   dbsync_db:
     image: postgres:17.4-alpine3.21
@@ -41,10 +43,8 @@ services:
       - dbsync-db-data:/var/lib/postgresql/data
     restart: on-failure
     networks:
-      - io-1694 # Connect to the 'io-1694' network
+      - io-1694
     healthcheck:
-      # Use pg_isready to check postgres is running. Substitute different
-      # user `postgres` if you've setup differently to config/pgpass-mainnet
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
       timeout: 5s
@@ -57,40 +57,48 @@ services:
         max-file: "10"
 
   web_db:
-    container_name: voltaire_db # Name of the database container
-    platform: linux/amd64 # Specify the platform (important for ARM64 architectures)
+    container_name: voltaire_db
+    platform: linux/amd64
     image: bitnami/postgresql:15.4.0-debian-11-r30
     restart: unless-stopped
     ports:
-      - "5434:5432" # Expose port 5432 to the host
-    environment: # PostgreSQL user, password, and database name
+      - "5434:5432"
+    environment:
       POSTGRESQL_USERNAME: voltaire
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_POSTGRES_PASSWORD: postgres_password
+      POSTGRESQL_PASSWORD: postgres
       POSTGRESQL_DATABASE: 1694
       POSTGRES_LOGGING: true
+      # Add these for consistency
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: voltaire
+      POSTGRES_DB: 1694
     volumes:
-      - db-data:/var/lib/postgresql/data/ # Persistent storage for the database
+      - db-data:/bitnami/postgresql
     networks:
-      - io-1694 # Connect to the 'io-1694' network
+      - io-1694
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U voltaire -d 1694"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   frontend:
-    container_name: frontend # Name of the frontend container
-    build: # Build configuration for the frontend
+    container_name: frontend
+    build:
       context: ./frontend
       dockerfile: Dockerfile.dev
     restart: unless-stopped
     env_file:
       - ./frontend/.env
     ports:
-      - 3000:3000 # Expose port 3000 to the host
+      - 3000:3000
     networks:
       - io-1694
     volumes:
       - ./frontend:/app
       - /app/.next
     depends_on:
-      - backend # Depends on the backend service
+      - backend
     environment:
     - WATCHPACK_POLLING=true
     - CHOKIDAR_USEPOLLING=true
@@ -124,7 +132,7 @@ services:
       timeout: 10s
       retries: 3
     networks:
-      - io-1694 # Connect to the 'io-1694' network
+      - io-1694
 
   cardano-db-sync:
     image: ghcr.io/intersectmbo/cardano-db-sync:13.6.0.5
@@ -138,7 +146,6 @@ services:
       - RESTORE_RECREATE_DB=N
       - EXTRA_DB_SYNC_ARGS=${EXTRA_DB_SYNC_ARGS:-}
     depends_on:
-      # Depend on both services to be healthy before starting.
       cardano-node:
         condition: service_healthy
       dbsync_db:
@@ -154,7 +161,7 @@ services:
       - ./cardanonode/config/network/${CARDANO_NETWORK:-preview}/genesis:/genesis
     restart: on-failure
     networks:
-      - io-1694 # Connect to the 'io-1694' network
+      - io-1694
     logging:
       driver: "json-file"
       options:
@@ -167,7 +174,7 @@ services:
     ports:
       - 8080:8080
     networks:
-      - io-1694 # Connect to the 'io-1694' network
+      - io-1694
 
   # cypress:
   #   image: cypress/included:cypress-13.13.1-node-20.15.1-chrome-126.0.6478.126-1-ff-128.0-edge-126.0.2592.102-1

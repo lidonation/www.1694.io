@@ -80,13 +80,13 @@ const DRepDelegators = ({ voterId }: { voterId: string }) => {
             <tr>
               <th
                 scope="col"
-                className="px-4 py-3 text-sm font-semibold text-gray-900"
+                className="px-4 py-3 text-base font-semibold text-gray-900"
               >
                 Stake Address
               </th>
               <th
                 scope="col"
-                className="px-4 py-3 text-sm font-semibold text-gray-900"
+                className="px-4 py-3 text-base font-semibold text-gray-900"
               >
                 <div className="flex items-center">
                   <span>Voting Power</span>
@@ -102,7 +102,7 @@ const DRepDelegators = ({ voterId }: { voterId: string }) => {
               </th>
               <th
                 scope="col"
-                className="px-4 py-3 text-sm font-semibold text-gray-900"
+                className="px-4 py-3 text-base font-semibold text-gray-900"
               >
                 <div className="flex items-center">
                   <span>Epoch</span>
@@ -118,7 +118,7 @@ const DRepDelegators = ({ voterId }: { voterId: string }) => {
               </th>
               <th
                 scope="col"
-                className="py-3 pl-4 text-sm font-semibold text-gray-900"
+                className="py-3 pl-4 text-base font-semibold text-gray-900"
               >
                 Actions
               </th>

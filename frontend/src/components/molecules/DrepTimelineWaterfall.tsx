@@ -15,6 +15,7 @@ import { ProfileClaimedChip } from './ProfileClaimedChip';
 import DrepDelegatorCard from '../atoms/DrepDelegatorCard';
 import { TimelineItem as DRepTimelineItem } from '../../../types/timeline';
 import { useWallet } from '@/context/globalContext';
+import { convertDrepPhraseToCIP105Legacy } from '@/lib';
 
 const DrepTimelineWaterfall = ({
   activity = [],
@@ -24,9 +25,13 @@ const DrepTimelineWaterfall = ({
   drepId: string;
 }) => {
   const { isMobile, screenWidth } = useScreenDimension();
-  const { wallet:{stakeKeyBech32, isConnected}, user:{dRepProfilesClaimed} } = useWallet();
+  const {
+    wallet: { stakeKeyBech32, isConnected },
+    user: { dRepProfilesClaimed },
+  } = useWallet();
   const isOwner = dRepProfilesClaimed?.some(
-    (drep) => drep.claimedDRepBech32 === drepId,
+    (drep) =>
+      drep.claimedDRepBech32 === convertDrepPhraseToCIP105Legacy(drepId),
   );
 
   return (
@@ -132,10 +137,7 @@ const DrepTimelineWaterfall = ({
                   />
                 </TimelineSeparator>
                 <TimelineContent>
-                  <DrepVoteTimelineCard
-                    item={item}
-                    isVoteOwner={isOwner}
-                  />
+                  <DrepVoteTimelineCard item={item} isVoteOwner={isOwner} />
                 </TimelineContent>
               </TimelineItem>
             )}

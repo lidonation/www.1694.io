@@ -6,6 +6,11 @@ import { Alert, Box } from '@mui/material';
 import { useState, useRef, useEffect } from 'react';
 import { RationaleDataVariants } from '../../../../types/commonTypes';
 import { useGetExternalMetadata } from '@/hooks/useGetExternalMetadata';
+import {
+  CheckCircleOutline,
+  HighlightOff,
+  RemoveCircleOutline,
+} from '@mui/icons-material';
 
 export const GovActionVoteCard = ({ action }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -143,10 +148,17 @@ const VoteBadge = ({ vote }: { vote: string }) => {
         : 'bg-gray-200 text-zinc-800';
 
   return (
-    <span
-      className={`inline-block rounded-full px-2 py-1 text-xs font-medium ${colorClasses}`}
+    <Box
+      className={`flex w-fit items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${colorClasses}`}
     >
-      {vote}
-    </span>
+      {vote === 'Yes' ? (
+        <CheckCircleOutline sx={{ fontSize: 17 }} />
+      ) : vote === 'No' ? (
+        <HighlightOff sx={{ fontSize: 17 }} />
+      ) : (
+        <RemoveCircleOutline sx={{ fontSize: 17 }} />
+      )}
+      <span>{vote}</span>
+    </Box>
   );
 };

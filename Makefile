@@ -94,3 +94,10 @@ image-build-frontend:
 	-f ./frontend/Dockerfile.dev \
 	-t frontend \
 	./frontend/.
+
+.PHONY: image-build-backend
+image-build-backend:
+	docker build \
+	-f ./backend/Dockerfile.dev \
+	-t backend \
+	./backend/.

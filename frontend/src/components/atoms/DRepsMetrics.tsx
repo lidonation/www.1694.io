@@ -21,7 +21,7 @@ const DRepsMetrics = () => {
 
   return (
     <TableContainer className="drep_metrics" style={{ width: 'auto', overflowX: 'visible' }}>
-      <table className="w-full">
+      <table className="w-auto">
         <tbody>
           <tr className="flex">
             <MetricCard

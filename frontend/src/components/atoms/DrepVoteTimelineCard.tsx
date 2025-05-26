@@ -37,6 +37,7 @@ const VoteStatusChip = ({ date, vote }: { date: string; vote: string }) => {
     </div>
   );
 };
+
 const DrepVoteTimelineCard = ({
   item,
   isVoteOwner,
@@ -55,7 +56,7 @@ const DrepVoteTimelineCard = ({
   const isEnacted = item?.enacted_epoch && latestEpoch > item?.enacted_epoch;
   const isExpired =
     item?.expiration_epoch && latestEpoch > item?.expiration_epoch;
-  const tag = item?.description?.tag as string;
+  const tag = item?.description?.tag || (item?.type as string);
   const { proposalMetadata, isProposalMetadataFetching } =
     useGetProposalMetadataByHashQuery({
       hashQueryString: item?.gov_action_proposal_id,
@@ -82,6 +83,12 @@ const DrepVoteTimelineCard = ({
       actionDetais = {
         imgSrc: '/svgs/exchange.svg',
         actionName: 'Protocol Parameter Changes',
+      };
+      break;
+    case tag?.toLowerCase().includes('noconfidence'):
+      actionDetais = {
+        imgSrc: '/svgs/info-circle.svg',
+        actionName: 'No Confidence',
       };
       break;
     case tag?.toLowerCase().includes('infoaction'):
@@ -161,6 +168,7 @@ const DrepVoteTimelineCard = ({
                   voteTxHash: item?.gov_action_proposal_id,
                   voteTxIndex: Number(item?.gov_action_proposal_index) || 0,
                   voterId: item?.view,
+                  isOwner: isVoteOwner,
                 },
               })
             }

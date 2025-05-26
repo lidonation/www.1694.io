@@ -1,36 +1,11 @@
+import { shortNumberWithAnnotation } from '@/lib';
 import { Skeleton } from '@mui/material';
 import dynamic from 'next/dynamic';
-
 const Odometer = dynamic(() => import('react-odometerjs'), {
   ssr: false,
 });
-
 import 'odometer/themes/odometer-theme-default.css';
 import { useEffect, useState } from 'react';
-function shortNumber(value: number, decimals: number = 2) {
-  switch (true) {
-    case Math.abs(Number(value)) >= 1.0e9:
-      return {
-        numValue: Number((Math.abs(Number(value)) / 1.0e9).toFixed(decimals)),
-        annotation: 'B',
-      };
-    case Math.abs(Number(value)) >= 1.0e6:
-      return {
-        numValue: Number((Math.abs(Number(value)) / 1.0e6).toFixed(decimals)),
-        annotation: 'M',
-      };
-    case Math.abs(Number(value)) >= 1.0e3:
-      return {
-        numValue: Number((Math.abs(Number(value)) / 1.0e3).toFixed(decimals)),
-        annotation: 'K',
-      };
-    default:
-      return {
-        numValue: Math.abs(Number(value)),
-        annotation: '',
-      };
-  }
-}
 
 const AnimatedOdometer = ({
   value,
@@ -38,7 +13,7 @@ const AnimatedOdometer = ({
   width = 80,
   height = 40,
   className = '',
-  isLoading = false, // Add isLoading prop
+  isLoading = false,
 }) => {
   const [isClientLoaded, setIsClientLoaded] = useState(false);
   const [displayValue, setDisplayValue] = useState(0);
@@ -54,28 +29,28 @@ const AnimatedOdometer = ({
 
   return (
     <div className={`relative ${className}`}>
-      {(!isClientLoaded || isLoading) ? ( // Show skeleton while loading OR client mounting
+      {!isClientLoaded || isLoading ? (
         <Skeleton
           variant="rectangular"
           width={width}
           height={height}
           animation="wave"
-          style={{ 
+          style={{
             borderRadius: '4px',
-            margin: '0'
+            margin: '0',
           }}
         />
       ) : (
-        <div className='flex items-center'>
+        <div className="flex items-center">
           <Odometer
-            value={shortNumber(displayValue).numValue}
+            value={shortNumberWithAnnotation(displayValue).numValue}
             width={width}
             height={height}
             format="(ddd).dd"
             duration={duration}
           />
-          <p className='self-center'>
-            {shortNumber(displayValue).annotation}
+          <p className="self-center">
+            {shortNumberWithAnnotation(displayValue).annotation}
           </p>
         </div>
       )}
