@@ -1,3 +1,4 @@
+import { Box } from '@mui/material';
 import React from 'react';
 interface StatusProps {
   status:
@@ -71,11 +72,12 @@ const StatusChip = ({ status }: StatusProps) => {
   }
 
   return (
-    <div
+    <Box
+      component="span"
       className={`text-nowrap rounded-full px-2 py-1 text-center text-xs font-normal  ${statusClass}`}
     >
       {status}
-    </div>
+    </Box>
   );
 };
 
