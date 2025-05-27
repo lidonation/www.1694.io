@@ -64,6 +64,13 @@ const DRepTableSearch = () => {
                 { label: 'Lowest to Highest', value: 'delegators-asc' },
               ],
             },
+            {
+              category: 'Governance Votes',
+              options: [
+                { label: 'Highest to Lowest', value: 'votes-desc' },
+                { label: 'Lowest to Highest', value: 'votes-asc' },
+              ],
+            },
           ]}
         />
       </Box>

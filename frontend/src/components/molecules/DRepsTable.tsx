@@ -251,8 +251,10 @@ const DRepsTable = ({
                             )}`}
                             prefetch={false}
                           >
-                            <span className="inline-block overflow-hidden text-ellipsis rounded-xl border border-black px-1.5 py-0.5 text-xs font-black text-black">
-                              {drep.given_name}
+                            <span className="inline-block rounded-xl border border-black px-1.5 py-0.5 text-xs font-black text-black">
+                              {drep.given_name.length > 25
+                                ? `${drep.given_name.slice(0, 25)}...`
+                                : drep.given_name}
                             </span>
                           </Link>
                         </Tooltip>
@@ -274,6 +276,14 @@ const DRepsTable = ({
                           </button>
                         </span>
                       </Tooltip>
+
+                      {drep.governance_vote_count && (
+                        <Tooltip title="Governance votes">
+                          <span className="inline-block text-nowrap rounded-full border border-blue-200 bg-blue-50 px-1.5 py-0.5 text-center text-xs font-normal text-black">
+                            Votes: {drep.governance_vote_count}
+                          </span>
+                        </Tooltip>
+                      )}
                     </Box>
 
                     <Box className="w-30 flex flex-row gap-1 overflow-hidden text-ellipsis">

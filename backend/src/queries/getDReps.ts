@@ -39,6 +39,14 @@ export const getAllDRepsQuery = (
       FROM drep_registration dr
           JOIN tx ON tx.id = dr.tx_id
           JOIN block ON block.id = tx.block_id
+          ),
+          DRepVoteCounts AS (
+            SELECT 
+                drep_voter,
+                COUNT(DISTINCT gov_action_proposal_id) AS governance_vote_count
+            FROM voting_procedure 
+            WHERE voter_role = 'DRep'
+            GROUP BY drep_voter
           )
   
       SELECT
@@ -57,7 +65,8 @@ export const getAllDRepsQuery = (
           off_chain_vote_drep_data.given_name,
           off_chain_vote_drep_data.image_url,
           COALESCE(dd.vote_count, 0) AS delegation_vote_count,
-          COALESCE(dd.live_stake, null) AS live_stake
+          COALESCE(dd.live_stake, null) AS live_stake,
+          COALESCE(dvc.governance_vote_count, 0) AS governance_vote_count
       FROM drep_hash dh
                LEFT JOIN DRepRegistrationData AS dr_voting_anchor
                          ON dr_voting_anchor.drep_hash_id = dh.id AND dr_voting_anchor.newest_register_rn = 1
@@ -89,6 +98,7 @@ export const getAllDRepsQuery = (
                LEFT JOIN block AS block_first_register
                          ON block_first_register.id = tx_first_register.block_id
                LEFT JOIN drepdelegationsummary dd ON dd.drep_hash_id = dh.id
+               LEFT JOIN DRepVoteCounts dvc ON dvc.drep_voter = dh.id
       WHERE 1=1 ${chainStatusCondition} ${sanitizedSearchCondition} ${campaignStatusCondition} ${typeCondition}
       GROUP BY
           dh.raw,
@@ -105,13 +115,14 @@ export const getAllDRepsQuery = (
           off_chain_vote_drep_data.given_name,
           off_chain_vote_drep_data.image_url,
           dd.vote_count,
-          dd.live_stake
+          dd.live_stake,
+          dvc.governance_vote_count
   
           ${orderByClause}
           LIMIT ${itemsPerPage}
       OFFSET ${offset}
   `;
-  
+
 export const getTotalResultsQuery = (
   sanitizedSearchCondition: string,
   campaignStatusCondition: string,

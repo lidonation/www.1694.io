@@ -15,6 +15,7 @@ import {
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
+import remarkBreaks from 'remark-breaks';
 import 'katex/dist/katex.min.css';
 import { Components } from 'react-markdown';
 
@@ -57,10 +58,12 @@ const MarkdownParser = ({ text }: MarkdownParserProps) => {
     );
   };
 
-  if (isSimpleText(text)) {
+  const cleanText = text.replace(/<br\s*\/?>/gi, '\n');
+
+  if (isSimpleText(cleanText)) {
     return (
       <Typography component="span" sx={{ lineHeight: 1.65 }}>
-        {text}
+        {cleanText}
       </Typography>
     );
   }
@@ -267,15 +270,18 @@ const MarkdownParser = ({ text }: MarkdownParserProps) => {
       </TableCell>
     ),
     td: ({ children }) => <TableCell>{children}</TableCell>,
+
+    br: () => <br />,
   };
 
   return (
     <ReactMarkdown
       components={components}
+      remarkPlugins={[remarkBreaks]}
       // remarkPlugins={[remarkMath]}
       // rehypePlugins={[rehypeKatex]}
     >
-      {text?.toString()}
+      {cleanText?.toString()}
     </ReactMarkdown>
   );
 };

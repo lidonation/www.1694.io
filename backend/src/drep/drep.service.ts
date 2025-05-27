@@ -107,6 +107,7 @@ export class DrepService {
         voting_power: 'voting_power',
         live_stake: 'live_stake',
         delegators: 'delegation_vote_count',
+        votes: 'governance_vote_count',
       }[sort] || null;
 
     const sortOrder = !!order ? order.toUpperCase() : null;
@@ -229,6 +230,7 @@ export class DrepService {
         'delegation_vote_count',
         'live_stake',
         'voting_power',
+        'governance_vote_count',
       ];
       const validSortOrders = ['ASC', 'DESC'];
 
@@ -243,6 +245,7 @@ export class DrepService {
         }
       }
     }
+    
     const drepList = await this.cexplorerService.manager.query(
       getAllDRepsQuery(
         sanitizedSearchCondition,
@@ -254,6 +257,7 @@ export class DrepService {
         typeCondition,
       ),
     );
+
     const totalResults = await this.cexplorerService.manager.query(
       getTotalResultsQuery(
         sanitizedSearchCondition,
@@ -281,6 +285,7 @@ export class DrepService {
       totalItems: parseInt(totalResults[0].total, 10),
     };
   }
+
   async getAllDRepsVoltaire() {
     return await this.voltaireService
       .getRepository('Drep')

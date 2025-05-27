@@ -14,8 +14,12 @@ import SubmitMetadataModal from '../atoms/SubmitMetadataModal';
 import { getJSONLDFromData } from '@/lib/metadataProcessor';
 import { CIP_100 } from '@/lib/drepActions/jsonContext';
 import { createDRepVoteContext } from '@/lib/drepActions/voteContext';
-import { RationaleDataVariants, VoteMetadata } from '../../../types/commonTypes';
+import {
+  RationaleDataVariants,
+  VoteMetadata,
+} from '../../../types/commonTypes';
 import { parseContent } from '@/lib';
+import MarkdownParser from '../atoms/MarkdownParser';
 
 export interface VoteRationaleModalProps {
   mode: 'view' | 'edit';
@@ -176,21 +180,13 @@ export function VoteRationaleModal({
             maxHeight: 250,
           }}
         >
-          <Typography
-            variant="body1"
-            dangerouslySetInnerHTML={{
-              __html:
-                rationaleData && typeof rationaleData?.comment === 'string'
-                  ? parseContent(rationaleData?.comment)
-                  : parseContent(rationaleData?.comment?.['@value']) ||
-                    'No rationale provided',
-            }}
-            sx={{
-              mb: 3,
-              color: 'text.primary',
-              lineHeight: 1.6,
-              fontWeight: 'normal',
-            }}
+          <MarkdownParser
+            text={
+              rationaleData && typeof rationaleData?.comment === 'string'
+                ? parseContent(rationaleData?.comment)
+                : parseContent(rationaleData?.comment?.['@value']) ||
+                  'Not provided.'
+            }
           />
         </Box>
         <Typography
