@@ -16,6 +16,8 @@ services:
       DATABASE_USERNAME: voltaire
       DATABASE_PASSWORD: postgres
       NODE_ENV: development
+      REDIS_HOST: 1694-redis
+      REDIS_PORT: 6379
     volumes:
       - "./backend:/app"
     ports:
@@ -25,6 +27,60 @@ services:
     depends_on:
       web_db:
         condition: service_healthy
+  queue-backend:
+    container_name: queue-backend
+    build:
+      context: ./queue-backend
+      dockerfile: Dockerfile.dev
+    image: io-1694-queue:latest
+    restart: unless-stopped
+    environment:
+      HOST: 0.0.0.0
+      PORT: 9999
+      NODE_ENV: development
+      REDIS_HOST: 1694-redis
+      REDIS_PORT: 6379
+    volumes:
+      - "./queue-backend:/app"
+    ports:
+      - "9999:9999"
+    networks:
+      - io-1694
+    depends_on:
+      backend:
+        condition: service_healthy
+      1694-redis:
+        condition: service_healthy
+
+  1694-redis: 
+    image: redis:7.2-alpine
+    container_name: 1694-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - io-1694
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: redis-commander
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      - REDIS_HOSTS=local:1694-redis:6379
+      - REDIS_PASSWORD=
+    networks:
+      - io-1694
+    depends_on:
+      - 1694-redis
 
   dbsync_db:
     image: postgres:17.4-alpine3.21
@@ -200,6 +256,7 @@ volumes:
   dbsync-db-data:
   node-db:
   node-ipc:
+  redis-data:
 
 secrets:
   postgres_db:

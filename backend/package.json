@@ -28,6 +28,7 @@
   "dependencies": {
     "@emurgo/cardano-serialization-lib-nodejs": "^14.1.1",
     "@nestjs/axios": "^4.0.0",
+    "@nestjs/bullmq": "^11.0.2",
     "@nestjs/common": "^11.0.10",
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.10",
@@ -40,6 +41,7 @@
     "axios": "^1.7.9",
     "bech32": "^2.0.0",
     "blakejs": "^1.2.1",
+    "bullmq": "^5.53.0",
     "cbor": "^10.0.3",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",

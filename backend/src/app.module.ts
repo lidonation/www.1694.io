@@ -16,6 +16,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { BlockfrostModule } from './blockfrost/blockfrost.module';
 import { ActionsProposalsModule } from './actions-proposals/actions-proposals.module';
 import { MetricsModule } from './proposal-metrics/metrics-module';
+import { QueueModule } from './queue/queue.module';
 
 @Module({
   imports: [
@@ -37,7 +38,8 @@ import { MetricsModule } from './proposal-metrics/metrics-module';
     NotificationsModule,
     BlockfrostModule,
     ActionsProposalsModule,
-    MetricsModule
+    MetricsModule,
+    QueueModule
   ],
   controllers: [],
   providers: [AuthService],
