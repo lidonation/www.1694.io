@@ -2,6 +2,10 @@
 backend-install:
 	docker-compose run --rm backend yarn install
 
+.PHONY: queue-backend-install
+queue-backend-install:
+	docker-compose run --rm queue-backend yarn install
+
 .PHONY: frontend-install
 frontend-install:
 	docker-compose run --rm frontend yarn install
