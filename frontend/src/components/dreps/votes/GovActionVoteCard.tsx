@@ -64,6 +64,10 @@ export const GovActionVoteCard = ({ action }) => {
         </div>
       </td>
 
+      <td className="px-3 py-3 text-right align-top md:px-4 md:py-4 md:align-middle">
+        <VoteBadge vote={action.vote} />
+      </td>
+
       <td className="px-3 py-3 md:px-4 md:py-4">
         <Box className="space-y-2">
           <Box className="block md:hidden">
@@ -75,7 +79,7 @@ export const GovActionVoteCard = ({ action }) => {
 
           <Box className="flex flex-col md:flex-row md:items-center md:justify-between md:gap-2">
             <Box className="min-w-0 flex-1">
-              <h3 className="mb-1 text-base font-bold text-gray-800 md:truncate">
+              <h3 className="mb-1 text-base font-bold text-gray-800 break-words">
                 {title || '-'}
               </h3>
               <p className="mb-1 text-sm text-gray-500 md:mb-1">
@@ -95,7 +99,7 @@ export const GovActionVoteCard = ({ action }) => {
               <Box className="relative">
                 <Box
                   ref={rationaleRef}
-                  className={`whitespace-pre-wrap text-sm leading-relaxed text-gray-600 ${
+                  className={`whitespace-pre-wrap text-sm break-words leading-relaxed text-gray-600 ${
                     !isExpanded ? 'line-clamp-2' : ''
                   }`}
                 >
@@ -130,10 +134,6 @@ export const GovActionVoteCard = ({ action }) => {
             </Alert>
           )}
         </Box>
-      </td>
-
-      <td className="px-3 py-3 text-right align-top md:px-4 md:py-4 md:align-middle">
-        <VoteBadge vote={action.vote} />
       </td>
     </tr>
   );

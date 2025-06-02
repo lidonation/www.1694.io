@@ -112,8 +112,13 @@ GovActions AS (
         DelegatedDReps ddr ON dh.view = ddr.drep_id
     LEFT JOIN 
         Vote_rationale vr ON vr.drep_voter = vp.drep_voter AND vr.gov_action_proposal_id = vp.gov_action_proposal_id
+),
+OrderedGovActions AS (
+    SELECT DISTINCT ON (gov_action_proposal_id) * FROM GovActions
+    ORDER BY gov_action_proposal_id, time_voted DESC
 )
-SELECT * FROM GovActions
+SELECT *
+FROM OrderedGovActions
 ORDER BY time_voted DESC
 LIMIT ${itemsPerPage}
 OFFSET ${offset}
@@ -188,7 +193,7 @@ WITH DelegatedDReps AS (
         `
     }
 )
-SELECT COUNT(*) AS total
+SELECT COUNT(DISTINCT vp.gov_action_proposal_id) AS total
 FROM 
     voting_procedure vp
 JOIN 

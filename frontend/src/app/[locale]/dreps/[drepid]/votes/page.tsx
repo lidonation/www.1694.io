@@ -38,11 +38,11 @@ function page() {
                 <th className="hidden w-48 px-4 py-3 text-left text-base font-semibold text-gray-900 md:table-cell">
                   Date
                 </th>
+                <th className="w-20 px-3 py-3 text-left text-base font-semibold text-gray-900 md:w-32 md:px-4">
+                  Vote
+                </th>
                 <th className="px-3 py-3 text-left text-base font-semibold text-gray-900 md:px-4">
                   Governance Action
-                </th>
-                <th className="w-20 px-3 py-3 text-right text-base font-semibold text-gray-900 md:w-32 md:px-4">
-                  Vote
                 </th>
               </tr>
             </thead>

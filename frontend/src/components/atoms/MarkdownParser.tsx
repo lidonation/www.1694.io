@@ -62,7 +62,7 @@ const MarkdownParser = ({ text }: MarkdownParserProps) => {
 
   if (isSimpleText(cleanText)) {
     return (
-      <Typography component="span" sx={{ lineHeight: 1.65 }}>
+      <Typography component="p" sx={{ lineHeight: 1.65, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
         {cleanText}
       </Typography>
     );
@@ -126,7 +126,7 @@ const MarkdownParser = ({ text }: MarkdownParserProps) => {
 
     // Paragraphs
     p: ({ children }) => (
-      <Typography component="p" sx={{ lineHeight: 1.65 }}>
+      <Typography component="p" sx={{ lineHeight: 1.65, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
         {children}
       </Typography>
     ),
