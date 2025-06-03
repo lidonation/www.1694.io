@@ -17,12 +17,22 @@ import { BlockfrostModule } from './blockfrost/blockfrost.module';
 import { ActionsProposalsModule } from './actions-proposals/actions-proposals.module';
 import { MetricsModule } from './proposal-metrics/metrics-module';
 import { QueueModule } from './queue/queue.module';
+import { ReactionsService } from './reactions/reactions.service';
+import { AttachmentService } from './attachment/attachment.service';
+import { CommentsService } from './comments/comments.service';
+import { HttpModule } from '@nestjs/axios';
+import { BlockfrostService } from './blockfrost/blockfrost.service';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env', '.env.development', '.env.production'],
+    }),
+    HttpModule.register({
+      timeout: 60000,
+      maxRedirects: 5,
+      global: true,
     }),
     DrepModule,
     DbModule,
@@ -42,6 +52,6 @@ import { QueueModule } from './queue/queue.module';
     QueueModule
   ],
   controllers: [],
-  providers: [AuthService],
+  providers: [AuthService, ReactionsService, AttachmentService, CommentsService, BlockfrostService],
 })
 export class AppModule {}

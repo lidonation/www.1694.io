@@ -174,7 +174,7 @@ const DRepsTable = ({
                             : drep?.view.replace('drep_', '')}
                         </p>
                       </Link>
-                    ) : drep?.drep_id ? (
+                    ) :  (
                       <Button
                         size="extraSmall"
                         className="w-fit"
@@ -188,16 +188,7 @@ const DRepsTable = ({
                           ? 'View'
                           : 'Delegate'}
                       </Button>
-                    ) : (
-                      <div className="flex items-center gap-4">
-                        <ClaimProfileButton
-                          drepToBeClaimed={drep?.view}
-                          label="Claim"
-                          size="extraSmall"
-                          width={4}
-                        />
-                      </div>
-                    )}
+                    ) }
 
                     {drep?.type !== 'voting_option' && (
                       <Box className="flex flex-nowrap items-center">

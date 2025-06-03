@@ -9,6 +9,7 @@ import React, {
 import { authService, AuthenticationService } from '../auth/authService';
 import { AuthMethod, AccountInfo } from '../../types/auth';
 import { CardanoApiWallet } from '@/models/wallet';
+import { postAutoClaimProfile } from '@/services/requests/postAutoClaimProfile';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -32,7 +33,7 @@ const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   accountInfo: null,
   walletApi: undefined,
-  walletBeingConnected:null,
+  walletBeingConnected: null,
   isAuthenticating: false,
   authError: null,
   activeProvider: null,
@@ -53,8 +54,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
   service = authService,
 }) => {
   const hasReconnected = useRef(false);
-  const [walletBeingConnected, setWalletBeingConnected] =
-    useState<string | null>(null);
+  const [walletBeingConnected, setWalletBeingConnected] = useState<
+    string | null
+  >(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [accountInfo, setAccountInfo] = useState<AccountInfo | null>(null);
   const [isAuthenticating, setIsAuthenticating] = useState<boolean>(false);
@@ -89,6 +91,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
           hasReconnected.current = true;
           if (result.walletApi) {
             setWalletApi(result.walletApi);
+          }
+          if (result.accountInfo.loginCredentials) {
+            await autoClaimProfile(
+              result.accountInfo.stakeKeyBech32,
+              result.accountInfo.loginCredentials.signature,
+              result.accountInfo.loginCredentials.key,
+            );
           }
         }
       } catch (error) {
@@ -129,6 +138,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
           setWalletApi(result.walletApi);
         }
         setWalletBeingConnected(null);
+        //atempt to auto-claim profile if applicable
+        if (result.accountInfo.loginCredentials) {
+          await autoClaimProfile(
+            result.accountInfo.stakeKeyBech32,
+            result.accountInfo.loginCredentials.signature,
+            result.accountInfo.loginCredentials.key,
+          );
+        }
         return {
           success: true,
           error: null,
@@ -160,6 +177,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
       };
     } finally {
       setIsAuthenticating(false);
+    }
+  };
+
+  const autoClaimProfile = async (
+    stakeKey: string,
+    signature: string,
+    signatureKey: string,
+  ) => {
+    try {
+      const result = await postAutoClaimProfile({
+        stakeKey,
+        signature,
+        signatureKey,
+      });
+      if (result.success) {
+        return { success: true };
+      } else {
+        return { success: false, error: result.error || 'Auto claim failed' };
+      }
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      return { success: false, error: errorMessage };
     }
   };
 

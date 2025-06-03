@@ -4,9 +4,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { Queues } from './queue.types';
 import { ConfigService } from '@nestjs/config';
 import { DEFAULT_ATTEMPTS, MAX_COMPLETED_JOB_AGE, MAX_COMPLETED_JOBS, MAX_FAILED_JOB_AGE, MAX_FAILED_JOBS } from './queue.constants';
-import { QueueController } from './queue.controller';
 import { DRepClaimQueueEvents } from './listeners/queue.events';
-
 
 @Global()
 @Module({
@@ -33,9 +31,9 @@ import { DRepClaimQueueEvents } from './listeners/queue.events';
     }),
     BullModule.registerQueue({
       name: Queues.DREP_CLAIM
-    }),
+    })
   ],
-  controllers: [QueueController],
+  controllers: [],
   providers: [QueueService, DRepClaimQueueEvents],
   exports: [QueueService],
 })

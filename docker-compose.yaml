@@ -47,10 +47,10 @@ services:
     networks:
       - io-1694
     depends_on:
-      backend:
-        condition: service_healthy
       1694-redis:
         condition: service_healthy
+      backend:
+        condition: service_started
 
   1694-redis: 
     image: redis:7.2-alpine
@@ -68,20 +68,6 @@ services:
       timeout: 5s
       retries: 5
   
-  redis-commander:
-    image: rediscommander/redis-commander:latest
-    container_name: redis-commander
-    restart: unless-stopped
-    ports:
-      - "8081:8081"
-    environment:
-      - REDIS_HOSTS=local:1694-redis:6379
-      - REDIS_PASSWORD=
-    networks:
-      - io-1694
-    depends_on:
-      - 1694-redis
-
   dbsync_db:
     image: postgres:17.4-alpine3.21
     environment:
@@ -124,7 +110,6 @@ services:
       POSTGRESQL_PASSWORD: postgres
       POSTGRESQL_DATABASE: 1694
       POSTGRES_LOGGING: true
-      # Add these for consistency
       POSTGRES_PASSWORD: postgres
       POSTGRES_USER: voltaire
       POSTGRES_DB: 1694
