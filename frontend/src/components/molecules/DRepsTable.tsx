@@ -26,7 +26,6 @@ import CrossIcon from '../atoms/svgs/CrossIcon';
 import Typography from '@mui/material/Typography';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { useDelegateTodRep } from '@/hooks/useDelegateToDRep';
-import ClaimProfileButton from '../atoms/ClaimProfileButton';
 import { useGetAdaHolderCurrentDelegationQuery } from '@/hooks/useGetAdaHolderCurrentDelegationQuery';
 import { useWallet } from '@/context/globalContext';
 import DRepLogo from './DRepLogo';
@@ -162,7 +161,7 @@ const DRepsTable = ({
                     ) && <DRepLogo drepView={drep?.view} />}
 
                     {drep?.type === 'voting_option' ||
-                    drep?.type === 'scripted' ? (
+                    drep?.type === 'scripted' && (
                       <Link
                         className="flex items-center gap-4"
                         href={`/dreps/${drep?.view}`}
@@ -174,21 +173,7 @@ const DRepsTable = ({
                             : drep?.view.replace('drep_', '')}
                         </p>
                       </Link>
-                    ) :  (
-                      <Button
-                        size="extraSmall"
-                        className="w-fit"
-                        handleClick={() => handleViewOrDelegate(drep)}
-                        disabled={!!isDelegating}
-                      >
-                        {compareDRepIDs(
-                          drep?.view,
-                          currentDelegation?.drep_view,
-                        )
-                          ? 'View'
-                          : 'Delegate'}
-                      </Button>
-                    ) }
+                    )}
 
                     {drep?.type !== 'voting_option' && (
                       <Box className="flex flex-nowrap items-center">
