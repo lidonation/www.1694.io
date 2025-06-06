@@ -113,7 +113,31 @@ services:
           $DEPLOYMENT_NAME-dbsync-db \
           bitnami/postgresql
 
+.redis: &redis_template
+  image: "${CI_TEMPLATE_REGISTRY_HOST}/gitlab-org/cluster-integration/auto-deploy-image:${AUTO_DEPLOY_IMAGE_VERSION}"
+  retry: 0
+  script:
+    - auto-deploy download_chart
+    - |
+      helm repo add bitnami https://charts.bitnami.com/bitnami
+      helm repo update
 
+      echo "install redis"
+      helm upgrade --install \
+          --timeout 300s \
+          --wait \
+          --atomic \
+          --namespace="$KUBE_NAMESPACE" \
+          --create-namespace \
+          -f ./chart/values.redis.yaml \
+          --set global.redis.password="$REDIS_PASSWORD" \
+          --set auth.password="$REDIS_PASSWORD" \
+          --set master.persistence.enabled="true" \
+          redis \
+          bitnami/redis
+    - auto-deploy persist_environment_url
+  artifacts:
+    paths: [environment_url.txt]
 
 build_frontend:
   stage: build
@@ -161,6 +185,33 @@ build_backend:
   rules:
     - if: '$DEPLOY_WEBSITE == "true"'
 
+build_queue_backend:
+  stage: build
+  image: docker:24.0.2-git
+  retry: 1
+  script:
+    - *setup
+    - |
+      set -xev
+      
+      cp $ENV_FILE backend/.env.production
+      cat $ENV_FILE_BACKEND > backend/.env.production
+      cat $ENV_FILE_FRONTEND > frontend/.env.production
+      cat $ENV_FILE_QUEUE > backend/.env.queue
+      
+      cp backend/.env.queue ./chart/backend_env
+            
+      docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+      echo "Building Dockerfile with tags $CI_APPLICATION_REPOSITORY/1694.io-queue-backend:$CI_APPLICATION_TAG and $CI_APPLICATION_REPOSITORY/www.1694.io-queue-backend:latest ..."
+      
+      docker build --network host -f queue_backend/Dockerfile \
+        -t "$CI_APPLICATION_REPOSITORY/1694.io-queue-backend:$CI_APPLICATION_TAG" \
+        -t "$CI_APPLICATION_REPOSITORY/1694.io-queue-backend:latest" .
+      docker push "$CI_APPLICATION_REPOSITORY/1694.io-queue-backend:$CI_APPLICATION_TAG"
+      docker push "$CI_APPLICATION_REPOSITORY/1694.io-queue-backend:latest"
+  rules:
+    - if: '$DEPLOY_WEBSITE == "true"'
+
 .deploy_postgres_web: &deploy_postgres_web
   <<: *deploy_template
   script:
@@ -188,6 +239,16 @@ postgres-dbsync-preview:
   needs: []
   environment:
     name: preview
+
+redis_preview:
+  <<: *redis_template
+  stage: preview
+  environment:
+    name: preview
+    url: https://$CI_PROJECT_PATH_SLUG.$AUTO_DEVOPS_DOMAIN
+  rules:
+    - if: '$DEPLOY_INFRA == "true"'
+      when: manual
 
 app-preview:
   image: "${CI_TEMPLATE_REGISTRY_HOST}/gitlab-org/cluster-integration/auto-deploy-image:${AUTO_DEPLOY_IMAGE_VERSION}"
@@ -265,6 +326,17 @@ postgres-dbsync-production:
   needs:
     - job: postgres-dbsync-preview
 
+redis_production:
+  <<: *redis_template
+  stage: production
+  environment:
+    name: production
+  needs:
+    - job: redis_preview
+  rules:
+    - if: '$DEPLOY_INFRA == "true"'
+      when: manual
+
 production:
   stage: production
   image: "${CI_TEMPLATE_REGISTRY_HOST}/gitlab-org/cluster-integration/auto-deploy-image:${AUTO_DEPLOY_IMAGE_VERSION}"
@@ -335,3 +407,5 @@ ui-chrome-tests:
       - ${PWD}/frontend/cypress/videos/**/*.mp4
       - ${PWD}/frontend/cypress/screenshots/**/*.png
     expire_in: 1 day
+
+
