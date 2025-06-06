@@ -204,7 +204,7 @@ build_queue_backend:
       docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
       echo "Building Dockerfile with tags $CI_APPLICATION_REPOSITORY/1694.io-queue-backend:$CI_APPLICATION_TAG and $CI_APPLICATION_REPOSITORY/www.1694.io-queue-backend:latest ..."
       
-      docker build --network host -f queue_backend/Dockerfile \
+      docker build --network host -f queue-backend/Dockerfile \
         -t "$CI_APPLICATION_REPOSITORY/1694.io-queue-backend:$CI_APPLICATION_TAG" \
         -t "$CI_APPLICATION_REPOSITORY/1694.io-queue-backend:latest" .
       docker push "$CI_APPLICATION_REPOSITORY/1694.io-queue-backend:$CI_APPLICATION_TAG"
