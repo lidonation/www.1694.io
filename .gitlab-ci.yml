@@ -272,6 +272,11 @@ app-preview:
       cat $ENV_FILE_FRONTEND > frontend/.env.production
       cp frontend/.env.production ./chart/frontend_env
       cp $ENV_FILE_FRONTEND ./chart/frontend_env
+
+      cp $ENV_FILE backend-queue/.env.production
+      cat $ENV_FILE_QUEUE > backend-queue/.env.production
+      cp frontend/.env.production ./chart/frontend_env
+      cp $ENV_FILE_QUEUE ./chart/queue_env
       
       kubectl delete secret 1694-registry-deploy-token --ignore-not-found --namespace="$KUBE_NAMESPACE"
       
@@ -293,6 +298,7 @@ app-preview:
         --set image.tag=$CI_APPLICATION_TAG \
         --set backend.replicaCount=1 \
         --set frontend.replicaCount=1 \
+        --set queue.replicaCount=1 \
         --set secrets.NEXT_PUBLIC_GOOGLE_API="$NEXT_PUBLIC_GOOGLE_API" \
         --set ingress.hosts[0]="$AUTO_DEVOPS_WEB_DOMAIN" \
         --set namespace=$KUBE_NAMESPACE \
@@ -304,6 +310,7 @@ app-preview:
   needs:
     - job: build_frontend
     - job: build_backend
+    - job: build_queue_backend
   environment:
     name: preview
   rules:
