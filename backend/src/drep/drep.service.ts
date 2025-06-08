@@ -1423,6 +1423,7 @@ export class DrepService {
         voterId: dRep.signatures[0].voterId,
       };
     }
+    
     this.queueService.addToQueue<DRepClaimJobData>(
       Queues.DREP_CLAIM,
       {

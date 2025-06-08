@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: "{{ $.Chart.Name }}-queue-backend"
-  namespace: {{ .Values.namespace }}
+  namespace: { { .Values.namespace } }
   labels:
     app: "nestjs"
     service: "{{ .Values.queue.labels.service }}"
@@ -11,7 +11,7 @@ spec:
     matchLabels:
       app: "nestjs"
       service: "{{ .Values.queue.labels.service }}"
-  replicas: {{ .Values.queue.replicaCount }}
+  replicas: { { .Values.queue.replicaCount } }
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -24,11 +24,11 @@ spec:
         service: "{{ .Values.queue.labels.service }}"
     spec:
       imagePullSecrets:
-        - name: {{ .Values.image.pullSecret }}
+        - name: { { .Values.image.pullSecret } }
       containers:
         - name: app
           image: "{{ .Values.queue.image.repository }}:{{ .Values.image.tag }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          imagePullPolicy: { { .Values.image.pullPolicy } }
           envFrom:
             - secretRef:
                 name: "{{ $.Chart.Name }}-global-secrets"
@@ -38,18 +38,6 @@ spec:
                 name: "{{ $.Chart.Name }}-backend-secrets"
             - secretRef:
                 name: "{{ $.Chart.Name }}-queue-secrets"
-          livenessProbe:
-            httpGet:
-              path: /healthz/live
-              port: 8000
-            initialDelaySeconds: 5
-            periodSeconds: 10
-          readinessProbe:
-            httpGet:
-              path: /healthz/ready
-              port: 8000
-            initialDelaySeconds: 1
-            periodSeconds: 10
           resources:
             limits:
               memory: 8192Mi
@@ -59,7 +47,7 @@ spec:
               memory: 256Mi
           ports:
             - name: queue
-              containerPort: 8000
+              containerPort: 9999
               protocol: TCP
           volumeMounts:
             - name: node-ipc
@@ -74,11 +62,12 @@ spec:
               value: "30111"
             - name: SOCAT_TIMEOUT
               value: "3600"
-          command: [
-            "sh",
-            "-c",
-            "socat UNIX-LISTEN:/ipc/node.socket,fork TCP:${CARDANO_NODE_SOCKET_TCP_HOST}:${CARDANO_NODE_SOCKET_TCP_PORT},ignoreeof"
-          ]
+          command:
+            [
+              "sh",
+              "-c",
+              "socat UNIX-LISTEN:/ipc/node.socket,fork TCP:${CARDANO_NODE_SOCKET_TCP_HOST}:${CARDANO_NODE_SOCKET_TCP_PORT},ignoreeof",
+            ]
           volumeMounts:
             - mountPath: /ipc
               name: node-ipc
