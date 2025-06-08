@@ -269,8 +269,8 @@ app-preview:
       cp frontend/.env.production ./chart/frontend_env
       cp $ENV_FILE_FRONTEND ./chart/frontend_env
 
-      cp $ENV_FILE backend-queue/.env.production
-      cat $ENV_FILE_QUEUE > backend-queue/.env.production
+      cp $ENV_FILE queue-backend/.env.production
+      cat $ENV_FILE_QUEUE > queue-backend/.env.production
       cp frontend/.env.production ./chart/frontend_env
       cp $ENV_FILE_QUEUE ./chart/queue_env
 
@@ -363,7 +363,9 @@ production:
       cp frontend/.env.production ./chart/frontend_env
       cp $ENV_FILE_FRONTEND ./chart/frontend_env
 
-      cat $ENV_FILE_QUEUE > ./chart/queue_env
+      cp $ENV_FILE queue-backend/.env.production
+      cat $ENV_FILE_QUEUE > queue-backend/.env.production
+      cp $ENV_FILE_QUEUE ./chart/queue_env
 
       helm upgrade $DEPLOYMENT_NAME ./chart --install \
         -f ./chart/values.yaml \
