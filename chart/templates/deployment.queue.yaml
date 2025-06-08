@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: "{{ $.Chart.Name }}-queue-backend"
-  namespace: { { .Values.namespace } }
+  namespace: {{ .Values.namespace }}
   labels:
     app: "nestjs"
     service: "{{ .Values.queue.labels.service }}"
@@ -11,7 +11,7 @@ spec:
     matchLabels:
       app: "nestjs"
       service: "{{ .Values.queue.labels.service }}"
-  replicas: { { .Values.queue.replicaCount } }
+  replicas: {{ .Values.queue.replicaCount }}
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -24,11 +24,18 @@ spec:
         service: "{{ .Values.queue.labels.service }}"
     spec:
       imagePullSecrets:
-        - name: { { .Values.image.pullSecret } }
+        - name: {{ .Values.image.pullSecret }}
       containers:
         - name: app
           image: "{{ .Values.queue.image.repository }}:{{ .Values.image.tag }}"
-          imagePullPolicy: { { .Values.image.pullPolicy } }
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: PORT
+              value: "9999"
+            - name: HOST
+              value: "0.0.0.0"
+            - name: NODE_ENV
+              value: "production"
           envFrom:
             - secretRef:
                 name: "{{ $.Chart.Name }}-global-secrets"
@@ -38,6 +45,16 @@ spec:
                 name: "{{ $.Chart.Name }}-backend-secrets"
             - secretRef:
                 name: "{{ $.Chart.Name }}-queue-secrets"
+          livenessProbe:
+            tcpSocket:
+              port: 9999
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            tcpSocket:
+              port: 9999
+            initialDelaySeconds: 10
+            periodSeconds: 10
           resources:
             limits:
               memory: 8192Mi
