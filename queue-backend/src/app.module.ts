@@ -28,6 +28,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         connection: {
           host: configService.get<string>('REDIS_HOST') || 'localhost',
           port: configService.get<number>('REDIS_PORT') || 6379,
+          password: configService.get<string>('REDIS_PASSWORD')
         },
         defaultJobOptions: {
           removeOnComplete: {

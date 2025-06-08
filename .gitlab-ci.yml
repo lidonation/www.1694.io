@@ -193,8 +193,8 @@ build_queue_backend:
     - |
       set -xev
 
-      cp $ENV_FILE backend/.env.production
-      cat $ENV_FILE_BACKEND > backend/.env.production
+      cp $ENV_FILE queue-backend/.env.production
+      cat $ENV_FILE_BACKEND > queue-backend/.env.production
       cat $ENV_FILE_QUEUE > ./chart/queue_env
             
       docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
