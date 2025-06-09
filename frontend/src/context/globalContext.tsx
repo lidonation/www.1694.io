@@ -1390,9 +1390,9 @@ export const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
         </div>
       )}
 
-      {!modalState.saveJwtModal.isOpen &&
-        !modalState.saveJwtModal.jwt &&
-        !modalState.saveJwtModal.stakeKeyBech32 && (
+      {modalState.saveJwtModal.isOpen &&
+        modalState.saveJwtModal.jwt &&
+        modalState.saveJwtModal.stakeKeyBech32 && (
           <div className="blur-container fixed left-0 top-0 z-50 flex h-screen w-full items-center justify-center">
             <SaveJwtModal
               {...modalState.saveJwtModal}
