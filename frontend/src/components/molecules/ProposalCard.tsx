@@ -27,6 +27,7 @@ import { useUserParticipationQuery } from '@/hooks/useUserCatalystParticipationQ
 import { useGetActionProposalPollQuery } from '@/hooks/useGetActionProposalPollQuery';
 import ProposalVotesBadge from './proposalVotesBadge';
 import { useWallet } from '@/context/globalContext';
+import CopyToClipboard from '@/components/atoms/CopyToClipboard';
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
   '& .MuiBadge-badge': {
@@ -54,18 +55,8 @@ function ProposalCard({ proposal }: { proposal: any }) {
     ? format(new Date(proposal.updatedAt), 'dd MMM yyyy')
     : 'Unknown date';
 
-  const handleShareClick = (event) => setShareAnchorEl(event.currentTarget);
-  const handleShareClose = () => setShareAnchorEl(null);
-  const disableShareClick = () => {
-    setDisableShare(true);
-    handleShareClose();
-    setTimeout(() => {
-      setDisableShare(false);
-    }, 2000);
-  };
-  function copyToClipboard(value) {
-    navigator.clipboard.writeText(value);
-  }
+    const handleShareClick = (event) => setShareAnchorEl(event.currentTarget);
+    const handleShareClose = () => setShareAnchorEl(null);
   const proposalUrl = `${window.location.origin}/proposals/${proposal?.govToolProposalId}`;
   return (
     <Card
@@ -371,28 +362,36 @@ function ProposalCard({ proposal }: { proposal: any }) {
           <Typography component="div" variant="subtitle2">
             Share Link
           </Typography>
-          <IconButton
-            size="small"
-            onClick={() => {
-              copyToClipboard(proposalUrl);
-              disableShareClick();
-            }}
-            disabled={disableShare}
-            sx={{
-              borderRadius: '100px',
-              padding: '6px',
-              backgroundColor: 'transparent',
-              '&:hover': {
-                backgroundColor: 'rgba(25, 118, 210, 0.08)',
-              },
-            }}
-          >
-            <LinkIcon />
-          </IconButton>
+
+          <div className="flex justify-center items-center">
+            <CopyToClipboard
+              text={proposalUrl}
+              className="items-center"
+              truncate={true}
+              textStyles="sr-only"
+            >
+              <IconButton
+                size="small"
+                disabled={disableShare}
+                sx={{
+                  borderRadius: '100px',
+                  padding: '6px',
+                  backgroundColor: 'transparent',
+                  '&:hover': {
+                    backgroundColor: 'rgba(25, 118, 210, 0.08)',
+                  },
+                }}
+                onClick={handleShareClose}
+              >
+                <LinkIcon />
+              </IconButton>
+            </CopyToClipboard>
+          </div>
           <Typography
-          component="span"
-          variant="caption"
-          color="text.secondary"
+            component="span"
+            variant="caption"
+            color="text.secondary"
+            className="text-center"
           >
             {disableShare ? 'Link copied!' : 'Copy proposal link'}
           </Typography>

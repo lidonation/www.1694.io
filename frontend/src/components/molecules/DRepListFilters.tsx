@@ -13,6 +13,12 @@ import {
   RadioGroup,
   Switch,
 } from '@mui/material';
+import {
+  DREP_FILTERS_LS_KEY,
+  getItemFromLocalStorage,
+  setItemToLocalStorage,
+  removeItemFromLocalStorage,
+} from '@/lib/localStorage';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Button from '../atoms/Button';
 import DotIcon from '../atoms/svgs/DotIcon';
@@ -20,20 +26,39 @@ import DotIcon from '../atoms/svgs/DotIcon';
 export default function DRepListFilters() {
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const [isFiltering, setIsFiltering] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
 
   const searchParams = useSearchParams();
   const pathName = usePathname();
   const { replace } = useRouter();
+  const params = new URLSearchParams(searchParams.toString());
 
-  useEffect(() => {
-    const value = filtersValue([
-      'on_chain',
-      'campaign',
-      'type',
-      'include_retired',
-    ]);
-    if (value) setIsFiltering(true);
-  }, []);
+  const FILTER_KEYS = ['on_chain', 'campaign', 'type', 'include_retired'];
+
+  const getFiltersFromSearchParams = () =>
+    Object.fromEntries(
+      FILTER_KEYS.map((key) => [key, searchParams.get(key) || ''])
+    );
+
+    useEffect(() => {
+      const filters = getFiltersFromSearchParams();
+      const hasActiveFilters = Object.values(filters).some(Boolean);
+    
+      if (!hasActiveFilters) {
+        const savedFilters = getItemFromLocalStorage(DREP_FILTERS_LS_KEY);
+        if (savedFilters) {
+          FILTER_KEYS.forEach((key) => {
+            if (savedFilters[key]) {
+              params.set(key, savedFilters[key]);
+            }
+          });
+          replace(`${pathName}?${params.toString()}`);
+        }
+      }
+    
+      setIsFiltering(hasActiveFilters);
+      setIsInitializing(false);
+    }, [searchParams.toString()]);
 
   const handleChange = (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -44,17 +69,31 @@ export default function DRepListFilters() {
   };
 
   const updateFilters = (filter: string, value: string) => {
-    const params = new URLSearchParams(searchParams.toString());
-
     if (filter && value) {
       params.set(filter, value);
       params.set('page', '1');
     } else {
       params.delete(filter);
     }
+  
+    const updatedFilters = FILTER_KEYS.reduce((acc, key) => {
+      const filterKeyValue = key === filter ? value : searchParams.get(key);
+      if (filterKeyValue) acc[key] = filterKeyValue;
+      return acc;
+    }, {} as Record<string, string>);
+  
+    setItemToLocalStorage(DREP_FILTERS_LS_KEY, updatedFilters);
+  
     setIsFiltering(true);
     replace(`${pathName}?${params.toString()}`);
   };
+
+  const resetFilters = (filters: string[]) => {
+    filters.forEach((filter) => params.delete(filter));
+    removeItemFromLocalStorage(DREP_FILTERS_LS_KEY);
+    replace(`${pathName}?${params.toString()}`);
+  };
+  const getFilterValue = (key: string) => searchParams.get(key) || '';
 
   const handleShow = (event: MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -64,32 +103,10 @@ export default function DRepListFilters() {
     setAnchorEl(null);
   };
 
-  const filtersValue = (filters?: string[]) => {
-    for (const filter of filters) {
-      const value = searchParams.get(filter)?.toString();
-      if (value) {
-        return value;
-      }
-    }
-    return null;
-  };
-
-  const resetFilters = (filters?: string[]) => {
-    const params = new URLSearchParams(searchParams.toString());
-    for (const filter of filters) {
-      const value = searchParams.get(filter)?.toString();
-      if (value) {
-        params.delete(filter);
-      }
-    }
-    setIsFiltering(false);
-    replace(`${pathName}?${params.toString()}`);
-  };
-
   const open = Boolean(anchorEl);
   const id = open ? 'filters-popover' : undefined;
 
-  return (
+  return !isInitializing ? (
     <Box>
       <Box
         component="button"
@@ -105,7 +122,7 @@ export default function DRepListFilters() {
           />
         </IconButton>
 
-        <Grow in={isFiltering}>
+          <Grow in={isFiltering}>
           <div className="absolute right-0 top-0">
             <DotIcon color="#f97316" width={17} height={17} />
           </div>
@@ -141,7 +158,7 @@ export default function DRepListFilters() {
               </span>
               <RadioGroup
                 name="drep-on-chain-status"
-                value={filtersValue(['on_chain'])}
+                value={getFilterValue('on_chain')}
                 onChange={(e) => {
                   handleChange(e, 'on_chain');
                 }}
@@ -183,7 +200,7 @@ export default function DRepListFilters() {
               </span>
               <RadioGroup
                 name="drep-campaign-status"
-                value={filtersValue(['campaign'])}
+                value={getFilterValue('campaign')}
                 onChange={(e) => {
                   handleChange(e, 'campaign');
                 }}
@@ -225,7 +242,7 @@ export default function DRepListFilters() {
               </span>
               <RadioGroup
                 name="drep-types"
-                value={filtersValue(['type'])}
+                value={getFilterValue('type')}
                 onChange={(e) => {
                   handleChange(e, 'type');
                 }}
@@ -253,17 +270,21 @@ export default function DRepListFilters() {
                 value="include_retired"
                 control={
                   <Switch
-                    checked={filtersValue(['include_retired']) === 'true'}
-                    onChange={(e) => {
+                    checked={getFilterValue('include_retired') === 'true'}
+                    onChange={(e) =>
                       updateFilters(
                         'include_retired',
                         e.target.checked ? 'true' : '',
-                      );
-                    }}
+                      )
+                    }
                     name="include_retired"
                   />
                 }
-                label={`${filtersValue(['include_retired']) === 'true' ? 'Including' : 'Excluding'} Retired DReps`}
+                label={
+                  getFilterValue('include_retired') === 'true'
+                    ? 'Including Retired DReps'
+                    : 'Excluding Retired DReps'
+                }
               />
             </FormControl>
           </Box>
@@ -275,13 +296,7 @@ export default function DRepListFilters() {
                 }}
                 size="extraSmall"
                 handleClick={() =>
-                  resetFilters([
-                    'on_chain',
-                    'campaign',
-                    'type',
-                    'include_retired',
-                  ])
-                }
+                  resetFilters(FILTER_KEYS)}
               >
                 <span>Reset</span>
               </Button>
@@ -290,5 +305,5 @@ export default function DRepListFilters() {
         </Box>
       </Popover>
     </Box>
-  );
+  ) : null;
 }

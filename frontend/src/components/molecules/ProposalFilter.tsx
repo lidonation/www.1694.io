@@ -1,5 +1,5 @@
 'use client';
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Box,
@@ -12,6 +12,7 @@ import {
   Popover,
 } from '@mui/material';
 import DotIndicator from '@/components/atoms/DotIndicator';
+import { PROPOSAL_FILTERS_LS_KEY, getItemFromLocalStorage, setItemToLocalStorage } from '@/lib/localStorage';
 
 type FilterOption = {
   label: string;
@@ -56,40 +57,63 @@ const ProposalFilter: React.FC<ProposalFilterProps> = ({
 
   const categories = searchParams.get('categories')?.split(',').filter(Boolean) || [];
   const committees = searchParams.get('committees')?.split(',').filter(Boolean) || [];
-
+  
   const hasActiveFilters = categories.length > 0 || committees.length > 0;
 
-  const updateFilterParams = (key: string, values: string[]) => {
-    if (values.length > 0) {
-      params.set(key, values.join(','));
-    } else {
-      params.delete(key);
-    }
+  const updateFilterParams = (key: 'categories' | 'committees', values: string[]) => {
+    const newFilters = {
+      categories: key === 'categories' ? values : categories,
+      committees: key === 'committees' ? values : committees,
+    };
+  
+    ['categories', 'committees'].forEach((k) => {
+      const filterKey = k as 'categories' | 'committees';
+      newFilters[filterKey].length
+        ? params.set(filterKey, newFilters[filterKey].join(','))
+        : params.delete(filterKey);
+    });
+  
     params.set('page', '1');
     router.push(`?${params.toString()}`);
+  
+    setItemToLocalStorage(PROPOSAL_FILTERS_LS_KEY, newFilters);
   };
-
-  const handleCategoryChange = (value: string, checked: boolean) => {
-    const newCategories = checked
-      ? [...categories, value]
-      : categories.filter((category) => category !== value);
-    updateFilterParams('categories', newCategories);
-  };
-
-  const handleCommitteeChange = (value: string, checked: boolean) => {
-    const newCommittees = checked
-      ? [...committees, value]
-      : committees.filter((committee) => committee !== value);
-    updateFilterParams('committees', newCommittees);
-  };
-
+  
+  const handleCategoryChange = (value: string, checked: boolean) =>
+    updateFilterParams(
+      'categories',
+      checked ? [...categories, value] : categories.filter((c) => c !== value)
+    );
+  
+  const handleCommitteeChange = (value: string, checked: boolean) =>
+    updateFilterParams(
+      'committees',
+      checked ? [...committees, value] : committees.filter((c) => c !== value)
+    );
+  
   const handleResetFilters = () => {
-    params.delete('categories');
-    params.delete('committees');
+    ['categories', 'committees'].forEach((key) => params.delete(key));
     params.set('page', '1');
     router.push(`?${params.toString()}`);
+    localStorage.removeItem(PROPOSAL_FILTERS_LS_KEY);
   };
-
+  
+  useEffect(() => {
+    const stored = getItemFromLocalStorage(PROPOSAL_FILTERS_LS_KEY);
+    if (!stored) return;
+  
+    const { categories: storedCategories = [], committees: storedCommittees = [] } = stored;
+  
+    const needsApply = (!searchParams.has('categories') && storedCategories.length) || (!searchParams.has('committees') && storedCommittees.length);
+  
+    if (needsApply) {
+      if (!searchParams.has('categories')) params.set('categories', storedCategories.join(','));
+      if (!searchParams.has('committees')) params.set('committees', storedCommittees.join(','));
+      params.set('page', '1');
+      router.push(`?${params.toString()}`);
+    }
+  }, [searchParams]);
+  
   return (
     <>
       <IconButton
