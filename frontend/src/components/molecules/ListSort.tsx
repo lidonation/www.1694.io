@@ -12,6 +12,12 @@ import {
   Radio,
   RadioGroup,
 } from '@mui/material';
+import {
+  DREP_SORT_LS_KEY,
+  getItemFromLocalStorage,
+  setItemToLocalStorage,
+  removeItemFromLocalStorage,
+} from '@/lib/localStorage';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Button from '../atoms/Button';
 import DotIcon from '../atoms/svgs/DotIcon';
@@ -29,20 +35,42 @@ type ListSortProps = {
 export default function ListSort({ tableType, sortOptions }: ListSortProps) {
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const [isFiltering, setIsFiltering] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
 
   const searchParams = useSearchParams();
   const pathName = usePathname();
   const { replace } = useRouter();
+  const params = new URLSearchParams(searchParams.toString());
+  const sort = searchParams.get('sort');
+  const order = searchParams.get('order');
 
   useEffect(() => {
-    const value = sortValue();
-    if (value) setIsFiltering(true);
+    if (!sort && !order) {
+      const savedSort = getItemFromLocalStorage(DREP_SORT_LS_KEY);
+      if (savedSort?.sort && savedSort?.order) {
+        params.set('sort', savedSort.sort);
+        params.set('order', savedSort.order);
+        replace(`${pathName}?${params.toString()}`);
+      }
+    }
+
+    setIsFiltering(!!sortValue());
+    setIsInitializing(false);
   }, []);
+
+  useEffect(() => {
+    if (isInitializing) return;
+    (sort && order)
+      ? setItemToLocalStorage(DREP_SORT_LS_KEY, { sort, order })
+      : removeItemFromLocalStorage(DREP_SORT_LS_KEY);
+  }, [sort, order, isInitializing]);
+
+  useEffect(() => {
+    setIsFiltering(!!sortValue());
+  }, [searchParams]);
 
   const setSorts = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
-    const params = new URLSearchParams(searchParams.toString());
-
     if (value) {
       const [sort, order] = value.split('-');
       params.set('sort', sort);
@@ -76,7 +104,6 @@ export default function ListSort({ tableType, sortOptions }: ListSortProps) {
   };
 
   const resetSort = () => {
-    const params = new URLSearchParams(searchParams.toString());
     params.delete('sort');
     params.delete('order');
     setIsFiltering(false);

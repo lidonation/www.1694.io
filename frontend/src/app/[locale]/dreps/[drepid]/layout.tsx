@@ -1,14 +1,16 @@
 'use client';
 import DRepProfileBar from '@/components/atoms/DrepProfileBar';
 import DrepTabGroup from '@/components/atoms/DrepTabGroup';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Box, Grow } from '@mui/material';
 import { useGetSingleDRepQuery } from '@/hooks/useGetSingleDRepQuery';
-import { useParams } from 'next/navigation';
+import { usePathname, useRouter, useParams } from 'next/navigation';
+import { useLocale } from 'next-intl';
 import NotFound from './not-found';
 import BreadCrumbs from '@/components/molecules/BreadCrumbs';
 import { useWallet } from '@/context/globalContext';
 import { convertDrepPhraseToCIP105Legacy } from '@/lib';
+import { DREP_LAST_TAB_LS_KEY, getItemFromLocalStorage, setItemToLocalStorage } from '@/lib/localStorage';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const {
@@ -16,6 +18,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   } = useWallet();
   const [isOpen, setIsOpen] = useState(false);
   const { drepid } = useParams();
+  const pathname = usePathname();
+  const router = useRouter();
+  const locale = useLocale();
   const { dRep, isDRepLoading, fetchError } = useGetSingleDRepQuery(
     drepid.toString(),
   );
@@ -26,6 +31,41 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   );
 
   const currentUserIsDrepOwner = dRep?.drep_id && isOwner;
+
+  useEffect(() => {
+    if (!pathname || !drepid || !locale) {
+      return;
+    }  
+    const cleanedPathname = pathname.replace(/\/+$/, '').toLowerCase();
+    const cleanDrepId = Array.isArray(drepid)
+      ? drepid[0].toLowerCase()
+      : drepid.toString().toLowerCase();
+    const expectedDrepRootPath = `/${locale}/dreps/${cleanDrepId}`;
+    let isRedirected = false;
+
+    if (cleanedPathname === expectedDrepRootPath && !isRedirected) {
+      const lastVisitedTab = getItemFromLocalStorage(DREP_LAST_TAB_LS_KEY);
+      const validTabs = ['timeline', 'votes', 'delegators'];
+
+      if (lastVisitedTab && validTabs.includes(lastVisitedTab)) {
+        const targetPath = `/${locale}/dreps/${cleanDrepId}/${lastVisitedTab}`;
+        isRedirected = true;
+        setTimeout(() => {
+          try {
+            router.replace(targetPath, { scroll: false });
+          } catch (error) {
+            router.push(targetPath, { scroll: false });
+          }
+        }, 100); 
+      } else {
+        setItemToLocalStorage(DREP_LAST_TAB_LS_KEY, 'profile');
+      }
+    }
+
+    return () => {
+      isRedirected = false; 
+    };
+  }, [pathname, drepid, locale]);
 
   if (!isDRepLoading && fetchError?.response?.status === 404) {
     return (
@@ -42,15 +82,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         crumbs={[
           {
             label: 'DReps',
-            href: `/dreps`,
+            href: `/${locale}/dreps`,
           },
           {
             label: 'DReps List',
-            href: `/dreps/list`,
+            href: `/${locale}/dreps/list`,
           },
           {
             label: `DRep (${drepid})`,
-            href: `/dreps/${drepid}`,
+            href: `/${locale}/dreps/${drepid}`,
           },
         ]}
       />

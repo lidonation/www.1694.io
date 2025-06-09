@@ -3,6 +3,13 @@
 import React from 'react';
 import { Box, Chip } from '@mui/material';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import {
+  getItemFromLocalStorage,
+  setItemToLocalStorage,
+  removeItemFromLocalStorage,
+  DREP_FILTERS_LS_KEY,
+  DREP_SORT_LS_KEY,
+} from '@/lib/localStorage';
 
 const filters = [
   { label: 'On-chain', key: 'on_chain' },
@@ -63,7 +70,34 @@ export default function DRepFilterChips() {
     } else {
       params.delete(key);
     }
-    params.set('page', '1'); 
+    params.set('page', '1');
+
+    // Handle filter
+    const filtersStored = getItemFromLocalStorage(DREP_FILTERS_LS_KEY);
+    if (filtersStored) {
+      if (key !== 'sort' && key !== 'order') {
+        delete filtersStored[key];
+        if (Object.keys(filtersStored).length > 0) {
+          setItemToLocalStorage(DREP_FILTERS_LS_KEY, filtersStored);
+        } else {
+          removeItemFromLocalStorage(DREP_FILTERS_LS_KEY);
+        }
+      }
+    }
+
+    // Handle sort
+    if (key === 'sort' || key === 'order') {
+      const sortStored = getItemFromLocalStorage(DREP_SORT_LS_KEY);
+      if (sortStored) {
+        delete sortStored['sort'];
+        delete sortStored['order'];
+        if (Object.keys(sortStored).length > 0) {
+          setItemToLocalStorage(DREP_SORT_LS_KEY, sortStored);
+        } else {
+          removeItemFromLocalStorage(DREP_SORT_LS_KEY);
+        }
+      }
+    }
     replace(`${path}?${params.toString()}`);
   };
 

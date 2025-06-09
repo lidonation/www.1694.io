@@ -3,6 +3,11 @@ export const LOGIN_FILE_LS_KEY = 'login_file_data';
 export const ACTIVE_PROVIDER_LS_KEY = 'active_provider';
 export const DREP_CLAIM_LS_KEY = 'drep_claim_data';
 export const DREP_ID_CLAIM_LS_KEY = 'drep_id_claim_data';
+export const DREP_FILTERS_LS_KEY = 'drep_filters';
+export const DREP_SORT_LS_KEY = 'drep_sort';
+export const DREP_LAST_TAB_LS_KEY = 'drep_last_tab';
+export const PROPOSAL_FILTERS_LS_KEY = 'proposal_filters';
+export const PROPOSAL_SORT_LS_KEY = 'proposal_sort';
 
 export function getItemFromLocalStorage(key: string) {
   const item = window.localStorage.getItem(key);
