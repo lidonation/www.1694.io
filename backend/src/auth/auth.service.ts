@@ -13,6 +13,7 @@ import {
   VerifyDRepSignatureDto,
 } from './auth.dto';
 import { OAuth, OAuthProviderType } from 'src/entities/oauth.entity';
+import { GovtoolsOAuthProvider } from './providers/govtools-oauth.provider';
 
 type Payload = {
   drepId?: string;
@@ -29,6 +30,7 @@ export class AuthService {
     private jwtService: JwtService,
     @InjectDataSource('default')
     private voltaireService: DataSource,
+    private readonly govtoolsOAuthProvider: GovtoolsOAuthProvider,
   ) {}
 
   private regExpHex = /^[0-9a-fA-F]+$/;
@@ -899,7 +901,62 @@ export class AuthService {
     if (!oAuthProvider) {
       throw new HttpException('OAuth provider not found', HttpStatus.NOT_FOUND);
     }
-    return oAuthProvider;
+    return {
+      id: oAuthProvider.id,
+      provider: oAuthProvider.provider,
+      stakeKeyBech32: oAuthProvider.stakeKeyBech32,
+      accessToken: oAuthProvider.accessToken,
+      createdAt: oAuthProvider.createdAt,
+      updatedAt: oAuthProvider.updatedAt,
+    };
+  }
+
+  async refreshOAuthProvider({
+    stakeKeyBech32,
+    provider,
+  }: {
+    stakeKeyBech32: string;
+    provider: OAuthProviderType;
+  }) {
+    if (!stakeKeyBech32 || !provider) {
+      throw new HttpException(
+        'Stake Key Bech32 and Provider are required',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const oAuthRepo = this.voltaireService.getRepository<OAuth>(OAuth);
+    const oAuthProvider = await oAuthRepo.findOne({
+      where: { stakeKeyBech32, provider },
+    });
+    if (!oAuthProvider) {
+      throw new HttpException('OAuth provider not found', HttpStatus.NOT_FOUND);
+    }
+    switch (provider) {
+      case OAuthProviderType.GOVTOOLS: {
+        const refreshedCreds = await this.govtoolsOAuthProvider.refreshToken({
+          jwt: oAuthProvider.accessToken,
+          refreshToken: oAuthProvider.refreshToken,
+        });
+        const updatedOAuth = oAuthRepo.merge(oAuthProvider, {
+          accessToken: refreshedCreds.jwt,
+          refreshToken: refreshedCreds.refreshToken,
+        });
+        await oAuthRepo.save(updatedOAuth);
+        return {
+          id: updatedOAuth.id,
+          provider: updatedOAuth.provider,
+          stakeKeyBech32: updatedOAuth.stakeKeyBech32,
+          accessToken: updatedOAuth.accessToken,
+          createdAt: updatedOAuth.createdAt,
+          updatedAt: updatedOAuth.updatedAt,
+        };
+      }
+      default:
+        throw new HttpException(
+          'Unsupported OAuth provider',
+          HttpStatus.BAD_REQUEST,
+        );
+    }
   }
 
   async updateOAuthProvider(updateOAuthPayload: UpdateOAuthDto) {
@@ -912,7 +969,14 @@ export class AuthService {
     }
     const updatedOAuth = oAuthRepo.merge(existingOAuth, updateOAuthPayload);
     await oAuthRepo.save(updatedOAuth);
-    return updatedOAuth;
+    return {
+      id: updatedOAuth.id,
+      provider: updatedOAuth.provider,
+      stakeKeyBech32: updatedOAuth.stakeKeyBech32,
+      accessToken: updatedOAuth.accessToken,
+      createdAt: updatedOAuth.createdAt,
+      updatedAt: updatedOAuth.updatedAt,
+    }
   }
 
   async deleteOAuthProvider(stakeKeyBech32: string, providerId: number) {

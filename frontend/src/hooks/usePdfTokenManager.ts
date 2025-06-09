@@ -28,11 +28,12 @@ export const usePdfTokenManager = () => {
   const { openModal } = useModals();
   const { addSuccessAlert, addWarningAlert, addErrorAlert } =
     useGlobalNotifications();
-  const { createOAuth, updateOAuth, handleCheckOAuthProvider } = useOAuth();
+  const { createOAuth, updateOAuth, handleRefreshOAuth } = useOAuth();
 
   const storeJwtInOAuth = async (
     jwt: string,
     stakeKeyBech32: string,
+    refreshToken?: string,
     expiresAt?: Date,
     metadata?: ExternalOAuthMetadata[OAuthProviderType.GOVTOOLS],
   ) => {
@@ -40,6 +41,7 @@ export const usePdfTokenManager = () => {
       await createOAuth({
         provider: OAuthProviderType.GOVTOOLS,
         accessToken: jwt,
+        refreshToken,
         stakeKeyBech32,
         expiresAt,
         metadata,
@@ -52,30 +54,9 @@ export const usePdfTokenManager = () => {
     }
   };
 
-  const updateJwtInOAuth = async (
-    jwt: string,
-    stakeKeyBech32: string,
-    providerId: number,
-    expiresAt?: Date,
-  ) => {
-    try {
-      await updateOAuth(
-        {
-          accessToken: jwt,
-          expiresAt,
-        },
-        providerId,
-        stakeKeyBech32,
-      );
-      return true;
-    } catch (error) {
-      addErrorAlert('Failed to update gov.tools token:', error);
-      return false;
-    }
-  };
-
   const validateAndRefreshToken = async () => {
     let jwt = getDataFromSession('pdfUserJwt');
+    let refreshToken = getDataFromSession('pdfUserRefreshToken');
 
     if (!jwt) {
       // No token found in session
@@ -102,29 +83,29 @@ export const usePdfTokenManager = () => {
         // Check if token is expired or will expire in less than 5 minutes
         if (expDate <= now || expDate.getTime() - now.getTime() <= 300000) {
           try {
-            const refreshedTokens = await getRefreshToken();
-            saveDataInSession('pdfUserJwt', refreshedTokens.jwt);
-
-            if (stakeKeyBech32) {
-              const providerId = await getOAuthProviderId(
+            let refreshedTokens = { jwt: '', refreshToken: '' };
+            if (!externalLogins?.[OAuthProviderType.GOVTOOLS]?.jwt) {
+              // If no external login, refresh token using the session token
+              refreshedTokens = await getRefreshToken({ jwt, refreshToken });
+            } else {
+              const res = await handleRefreshOAuth(
                 stakeKeyBech32,
                 OAuthProviderType.GOVTOOLS,
               );
-              if (providerId) {
-                const decodedRefreshToken = decodeJWT(
-                  refreshedTokens.jwt,
-                ) as GovToolsJwtPayload;
-                await updateJwtInOAuth(
-                  refreshedTokens.jwt,
-                  stakeKeyBech32,
-                  providerId,
-                  decodedRefreshToken.exp
-                    ? new Date(decodedRefreshToken.exp * 1000)
-                    : undefined,
-                );
+              if (res?.accessToken) {
+                refreshedTokens = {
+                  jwt: res.accessToken,
+                  refreshToken: '',
+                };
               }
             }
-
+            saveDataInSession('pdfUserJwt', refreshedTokens.jwt);
+            if (refreshedTokens?.refreshToken) {
+              saveDataInSession(
+                'pdfUserRefreshToken',
+                refreshedTokens.refreshToken,
+              );
+            }
             return { tokenExists: true, tokenRefreshed: true };
           } catch (refreshError) {
             addErrorAlert('Error refreshing token:', refreshError);
@@ -227,13 +208,10 @@ export const usePdfTokenManager = () => {
             const decodedToken = decodeJWT(
               drepResponse.jwt,
             ) as GovToolsJwtPayload;
-            const { hasProvider } = await handleCheckOAuthProvider(
-              stakeKeyBech32,
-              OAuthProviderType.GOVTOOLS,
-            );
-            if (!hasProvider) {
+            if (!externalLogins?.[OAuthProviderType.GOVTOOLS]?.jwt) {
               openModal(ModalType.SAVE_JWT, {
                 jwt: drepResponse.jwt,
+                refreshToken: drepResponse.refreshToken,
                 stakeKeyBech32,
                 expiresAt: decodedToken.exp
                   ? new Date(decodedToken.exp * 1000)
@@ -246,6 +224,7 @@ export const usePdfTokenManager = () => {
               storeJwtInOAuth(
                 drepResponse.jwt,
                 stakeKeyBech32,
+                drepResponse.refreshToken,
                 decodedToken.exp
                   ? new Date(decodedToken.exp * 1000)
                   : undefined,
@@ -266,13 +245,10 @@ export const usePdfTokenManager = () => {
           const decodedToken = decodeJWT(
             userResponse.jwt,
           ) as GovToolsJwtPayload;
-          const { hasProvider } = await handleCheckOAuthProvider(
-            stakeKeyBech32,
-            OAuthProviderType.GOVTOOLS,
-          );
-          if (!hasProvider) {
+          if (!externalLogins?.[OAuthProviderType.GOVTOOLS]?.jwt) {
             openModal(ModalType.SAVE_JWT, {
               jwt: userResponse.jwt,
+              refreshToken: userResponse.refreshToken,
               stakeKeyBech32,
               expiresAt: decodedToken.exp
                 ? new Date(decodedToken.exp * 1000)
@@ -285,9 +261,10 @@ export const usePdfTokenManager = () => {
             storeJwtInOAuth(
               userResponse.jwt,
               stakeKeyBech32,
+              userResponse.refreshToken,
               decodedToken.exp ? new Date(decodedToken.exp * 1000) : undefined,
               {
-                keyType: 'drep',
+                keyType: 'stake',
               },
             );
           }
@@ -323,24 +300,10 @@ export const usePdfTokenManager = () => {
     return { loginSuccess: true };
   };
 
-  const getOAuthProviderId = async (
-    stakeKeyBech32: string,
-    provider: OAuthProviderType,
-  ) => {
-    try {
-      const providerData = await getOAuthProvider({ stakeKeyBech32, provider });
-      return providerData?.id || null;
-    } catch (error) {
-      console.error('Failed to get OAuth provider ID:', error);
-      return null;
-    }
-  };
-
   return {
     validateAndRefreshToken,
     performFullLogin,
     ensureAuthenticated,
     storeJwtInOAuth,
-    updateJwtInOAuth,
   };
 };

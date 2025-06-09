@@ -10,6 +10,7 @@ import { CommentsService } from 'src/comments/comments.service';
 import { VoterService } from 'src/voter/voter.service';
 import { AuthService } from 'src/auth/auth.service';
 import { BlockfrostService } from 'src/blockfrost/blockfrost.service';
+import { GovtoolsOAuthProvider } from 'src/auth/providers/govtools-oauth.provider';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { BlockfrostService } from 'src/blockfrost/blockfrost.service';
     VoterService,
     AuthService,
     BlockfrostService,
+    GovtoolsOAuthProvider
   ],
 })
 export class NoteModule {}

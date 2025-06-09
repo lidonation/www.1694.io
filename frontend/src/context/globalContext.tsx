@@ -223,6 +223,7 @@ export type ModalProps = {
   [ModalType.TRANSACTION]: TxnModalState;
   [ModalType.SAVE_JWT]: {
     jwt: string;
+    refreshToken?: string;
     stakeKeyBech32: string;
     expiresAt?: Date;
     metadata?: ExternalOAuthMetadata[OAuthProviderType.GOVTOOLS];
@@ -258,6 +259,7 @@ interface ModalContextState {
   saveJwtModal: {
     isOpen: boolean;
     jwt: string | null;
+    refreshToken?: string | null;
     stakeKeyBech32: string | null;
     expiresAt?: Date;
     metadata?: ExternalOAuthMetadata[OAuthProviderType.GOVTOOLS] | null;
@@ -318,6 +320,7 @@ const defaultModalState: ModalContextState = {
   saveJwtModal: {
     isOpen: false,
     jwt: null,
+    refreshToken: null,
     stakeKeyBech32: null,
     expiresAt: undefined,
     metadata: null,
@@ -1194,6 +1197,7 @@ export const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
               saveJwtModal: {
                 isOpen: true,
                 jwt: saveJwtProps?.jwt || null,
+                refreshToken: saveJwtProps?.refreshToken || null,
                 stakeKeyBech32: saveJwtProps?.stakeKeyBech32 || null,
                 expiresAt: saveJwtProps?.expiresAt,
                 metadata: saveJwtProps?.metadata || null,
@@ -1386,9 +1390,9 @@ export const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
         </div>
       )}
 
-      {modalState.saveJwtModal.isOpen &&
-        modalState.saveJwtModal.jwt &&
-        modalState.saveJwtModal.stakeKeyBech32 && (
+      {!modalState.saveJwtModal.isOpen &&
+        !modalState.saveJwtModal.jwt &&
+        !modalState.saveJwtModal.stakeKeyBech32 && (
           <div className="blur-container fixed left-0 top-0 z-50 flex h-screen w-full items-center justify-center">
             <SaveJwtModal
               {...modalState.saveJwtModal}
