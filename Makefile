@@ -71,6 +71,10 @@ sh-frontend:
 test-backend:
 	docker-compose exec backend yarn run test
 
+.PHONY test-backend-e2e:
+test-backend-e2e:
+	docker-compose exec backend yarn run test:e2e
+
 .PHONY: frontend-clean
 frontend-clean:
 	rm -rf frontend/node_modules 2>/dev/null || true

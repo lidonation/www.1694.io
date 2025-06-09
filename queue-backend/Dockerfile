@@ -11,7 +11,7 @@ ENV NODE_ENV build
 
 WORKDIR /usr/src/app
 
-COPY backend/package.json backend/yarn.lock* backend/package-lock.json* backend/pnpm-lock.yaml* ./
+COPY queue-backend/package.json queue-backend/yarn.lock* queue-backend/package-lock.json* queue-backend/pnpm-lock.yaml* ./
 
 RUN \
   if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
@@ -30,12 +30,12 @@ WORKDIR /usr/src/app
 
 ENV NODE_ENV build
 
-COPY --chown=node:node ./backend/package.json ./
-COPY --chown=node:node ./backend/yarn.lock ./
+COPY --chown=node:node ./queue-backend/package.json ./
+COPY --chown=node:node ./queue-backend/yarn.lock ./
 
 COPY --chown=node:node --from=dependencies /usr/src/app/node_modules ./node_modules
 
-COPY --chown=node:node ./backend .
+COPY --chown=node:node ./queue-backend .
 
 RUN yarn run build
 
@@ -54,7 +54,7 @@ WORKDIR /usr/src/app
 COPY --chown=node:node --from=build /usr/src/app/node_modules ./node_modules
 COPY --chown=node:node --from=build /usr/src/app/dist ./
 
-COPY --chown=node:node backend/package.json ./
+COPY --chown=node:node queue-backend/package.json ./
 
 EXPOSE 9999
 

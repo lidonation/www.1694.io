@@ -32,7 +32,7 @@ export const getDRepDelegatorsCountQuery: string = `
 
 export const getDRepVotesCountQuery: string = `
   SELECT 
-      COUNT(vp.id) AS vote_count
+      COUNT(DISTINCT vp.gov_action_proposal_id) AS vote_count
   FROM 
       drep_hash AS dh
   JOIN 

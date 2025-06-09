@@ -8,7 +8,7 @@ export class QueueService {
   constructor(
     @InjectQueue(Queues.DREP_CLAIM)
     private drepClaimQueue: Queue,
-    // where we can injetc our queues
+    // where we can inject our queues
   ) {}
 
   /**

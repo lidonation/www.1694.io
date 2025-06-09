@@ -88,6 +88,17 @@ backend:
     path: /api
     tls:
 
+queue:
+  replicaCount: 2
+  labels:
+    service: queue
+  image:
+    repository: registry.lidonation.com/voltaire/www.1694.io/1694.io-queue-backend
+  ingress:
+    path: /api
+    tls:
+
+
 frontend:
   replicaCount: 2
   labels:

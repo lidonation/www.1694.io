@@ -137,6 +137,7 @@ export class LoginFileProvider implements AuthenticationProvider {
           addressBech32:
             relatedAddresses.length > 0 ? relatedAddresses[0] : null,
           stakeKey: loginData.stakeKeyHex,
+          loginCredentials: this.loginCredentials,
           stakeKeyBech32: loginData.stakeKeyBech32,
           balance: profileData?.walletBalance,
           registeredStakeKeysListState: [loginData?.stakeKeyBech32], //TODO: check if this is correct
