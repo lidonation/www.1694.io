@@ -22,6 +22,7 @@ import { AttachmentService } from './attachment/attachment.service';
 import { CommentsService } from './comments/comments.service';
 import { HttpModule } from '@nestjs/axios';
 import { BlockfrostService } from './blockfrost/blockfrost.service';
+import { GovtoolsOAuthProvider } from './auth/providers/govtools-oauth.provider';
 
 @Module({
   imports: [
@@ -52,6 +53,6 @@ import { BlockfrostService } from './blockfrost/blockfrost.service';
     QueueModule
   ],
   controllers: [],
-  providers: [AuthService, ReactionsService, AttachmentService, CommentsService, BlockfrostService],
+  providers: [AuthService, ReactionsService, AttachmentService, CommentsService, BlockfrostService, GovtoolsOAuthProvider],
 })
 export class AppModule {}

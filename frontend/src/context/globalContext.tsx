@@ -223,6 +223,7 @@ export type ModalProps = {
   [ModalType.TRANSACTION]: TxnModalState;
   [ModalType.SAVE_JWT]: {
     jwt: string;
+    refreshToken?: string;
     stakeKeyBech32: string;
     expiresAt?: Date;
     metadata?: ExternalOAuthMetadata[OAuthProviderType.GOVTOOLS];
@@ -258,6 +259,7 @@ interface ModalContextState {
   saveJwtModal: {
     isOpen: boolean;
     jwt: string | null;
+    refreshToken?: string | null;
     stakeKeyBech32: string | null;
     expiresAt?: Date;
     metadata?: ExternalOAuthMetadata[OAuthProviderType.GOVTOOLS] | null;
@@ -318,6 +320,7 @@ const defaultModalState: ModalContextState = {
   saveJwtModal: {
     isOpen: false,
     jwt: null,
+    refreshToken: null,
     stakeKeyBech32: null,
     expiresAt: undefined,
     metadata: null,
@@ -1194,6 +1197,7 @@ export const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
               saveJwtModal: {
                 isOpen: true,
                 jwt: saveJwtProps?.jwt || null,
+                refreshToken: saveJwtProps?.refreshToken || null,
                 stakeKeyBech32: saveJwtProps?.stakeKeyBech32 || null,
                 expiresAt: saveJwtProps?.expiresAt,
                 metadata: saveJwtProps?.metadata || null,

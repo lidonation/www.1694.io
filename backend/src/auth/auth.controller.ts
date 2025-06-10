@@ -55,7 +55,17 @@ export class AuthController {
   ) {
     return this.authService.getOAuthProvidersByStakeKeyBech32(stakeKeyBech32);
   }
-
+  
+  @Get('oauth/provider')
+  async getOAuthProvider(
+    @Query('stakeKeyBech32')
+    stakeKeyBech32: string,
+    @Query('provider')
+    provider: OAuthProviderType,
+  ) {
+    return this.authService.getOAuthProviderBy(provider, stakeKeyBech32);
+  }
+  
   @Get('oauth/provider/check')
   async getOAuthProviderCheck(
     @Query('stakeKeyBech32')
@@ -66,19 +76,21 @@ export class AuthController {
     return this.authService.getOAuthProviderCheck(stakeKeyBech32, provider);
   }
 
-  @Get('oauth/provider')
-  async getOAuthProvider(
-    @Query('stakeKeyBech32')
-    stakeKeyBech32: string,
-    @Query('provider')
-    provider: OAuthProviderType,
-  ) {
-    return this.authService.getOAuthProviderBy(provider, stakeKeyBech32);
-  }
 
   @Post('oauth/add')
   async addOAuthProvider(@Body() addOAuthPayload: CreateOAuthDto) {
     return this.authService.addOAuthProvider(addOAuthPayload);
+  }
+
+  @Post('oauth/refresh')
+  async initiateRefreshOAuth(
+    @Body()
+    refreshOAuthPayload: {
+      stakeKeyBech32: string;
+      provider: OAuthProviderType;
+    },
+  ) {
+    return this.authService.refreshOAuthProvider(refreshOAuthPayload);
   }
 
   @Post('oauth/update')

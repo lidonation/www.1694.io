@@ -11,6 +11,7 @@ import { ReactionsService } from 'src/reactions/reactions.service';
 import { VoterService } from 'src/voter/voter.service';
 import { AuthService } from 'src/auth/auth.service';
 import { BlockfrostService } from 'src/blockfrost/blockfrost.service';
+import { GovtoolsOAuthProvider } from 'src/auth/providers/govtools-oauth.provider';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { BlockfrostService } from 'src/blockfrost/blockfrost.service';
     ReactionsService,
     VoterService,
     AuthService,
+    GovtoolsOAuthProvider,
     BlockfrostService,
   ],
 })

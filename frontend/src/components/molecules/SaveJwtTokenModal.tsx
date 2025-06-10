@@ -9,6 +9,7 @@ interface SaveJwtModalProps {
   hideCloseButton?: boolean;
   onClose: () => void;
   jwt: string;
+  refreshToken?: string;
   stakeKeyBech32: string;
   metadata?: ExternalOAuthMetadata[OAuthProviderType.GOVTOOLS];
   expiresAt?: Date;
@@ -18,6 +19,7 @@ const SaveJwtModal: React.FC<SaveJwtModalProps> = ({
   hideCloseButton = false,
   onClose,
   jwt,
+  refreshToken,
   stakeKeyBech32,
   expiresAt,
   metadata,
@@ -29,7 +31,13 @@ const SaveJwtModal: React.FC<SaveJwtModalProps> = ({
   const handleSaveJwt = async () => {
     setIsProcessing(true);
     try {
-      const success = await storeJwtInOAuth(jwt, stakeKeyBech32, expiresAt, metadata);
+      const success = await storeJwtInOAuth(
+        jwt,
+        stakeKeyBech32,
+        refreshToken,
+        expiresAt,
+        metadata,
+      );
       if (success) {
         addSuccessAlert(
           "Gov.tools token saved successfully. You won't need to sign with your keys again.",
@@ -50,12 +58,14 @@ const SaveJwtModal: React.FC<SaveJwtModalProps> = ({
       handleClick: handleSaveJwt,
       disabled: isProcessing,
       loading: isProcessing,
+      variant: 'contained',
     },
     {
       label: "No, Don't Save",
       className: 'border border-gray-300 text-gray-700 hover:bg-gray-50',
       handleClick: onClose,
       disabled: isProcessing,
+      variant: 'outlined',
       loading: false,
     },
   ];
