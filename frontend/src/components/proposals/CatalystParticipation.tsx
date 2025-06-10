@@ -31,7 +31,7 @@ const CatalystParticipation = ({
     );
   }
   return (
-    <Box className="mx-auto w-full max-w-4xl py-8">
+    <Box className="mx-auto w-full py-8">
       <h2 className="mb-6 text-center text-xl font-semibold">
         Catalyst Participation:
       </h2>
