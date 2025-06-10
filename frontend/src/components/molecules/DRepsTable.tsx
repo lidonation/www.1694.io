@@ -2,11 +2,9 @@
 
 import React from 'react';
 import StatusChip from '../atoms/StatusChip';
-import { useRouter } from 'next/navigation';
 import { useGetDRepsQuery } from '@/hooks/useGetDRepsQuery';
 import {
   checkStatus,
-  compareDRepIDs,
   convertHexToCIP129,
   convertString,
   formatAsCurrency,
@@ -16,7 +14,6 @@ import {
 } from '@/lib';
 import { useScreenDimension } from '@/hooks';
 import { Box, IconButton, Skeleton, Tooltip } from '@mui/material';
-import Button from '../atoms/Button';
 import Link from 'next/link';
 import Pagination from './Pagination';
 import CopyToClipBoard from '../atoms/svgs/CopyToClipBoardIcon';
@@ -25,10 +22,6 @@ import ArrowUpIcon from '../atoms/svgs/ArrowUpIcon';
 import CrossIcon from '../atoms/svgs/CrossIcon';
 import Typography from '@mui/material/Typography';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
-import { useDelegateTodRep } from '@/hooks/useDelegateToDRep';
-import ClaimProfileButton from '../atoms/ClaimProfileButton';
-import { useGetAdaHolderCurrentDelegationQuery } from '@/hooks/useGetAdaHolderCurrentDelegationQuery';
-import { useWallet } from '@/context/globalContext';
 import DRepLogo from './DRepLogo';
 import RecordsNotFound from '../atoms/RecordsNotFound';
 
@@ -61,14 +54,7 @@ const DRepsTable = ({
   type,
 }: DRepsTableProps) => {
   const { isMobile } = useScreenDimension();
-  const {
-    wallet: { stakeKey },
-  } = useWallet();
-  const router = useRouter();
   const { addSuccessAlert } = useGlobalNotifications();
-  const { delegate, isDelegating } = useDelegateTodRep();
-  const { currentDelegation } = useGetAdaHolderCurrentDelegationQuery(stakeKey);
-
   const { DReps, isDRepsLoading, isError } = useGetDRepsQuery(
     query,
     page,
@@ -79,17 +65,6 @@ const DRepsTable = ({
     includeRetired,
     type,
   );
-
-  const handleViewOrDelegate = (drep: any) => {
-    if (compareDRepIDs(drep?.view, currentDelegation?.drep_view)) {
-      // View DRep
-      router.push(`/dreps/${drep?.view}`);
-      return;
-    }
-    // Delegate to DRep
-    delegate(drep?.view, { isRetired: drep?.retired });
-    return;
-  };
 
   return (
     <div className="dreps-table-wrapper flex flex-col overflow-x-auto">
@@ -162,7 +137,7 @@ const DRepsTable = ({
                     ) && <DRepLogo drepView={drep?.view} />}
 
                     {drep?.type === 'voting_option' ||
-                    drep?.type === 'scripted' ? (
+                    drep?.type === 'scripted' && (
                       <Link
                         className="flex items-center gap-4"
                         href={`/dreps/${drep?.view}`}
@@ -174,29 +149,6 @@ const DRepsTable = ({
                             : drep?.view.replace('drep_', '')}
                         </p>
                       </Link>
-                    ) : drep?.drep_id ? (
-                      <Button
-                        size="extraSmall"
-                        className="w-fit"
-                        handleClick={() => handleViewOrDelegate(drep)}
-                        disabled={!!isDelegating}
-                      >
-                        {compareDRepIDs(
-                          drep?.view,
-                          currentDelegation?.drep_view,
-                        )
-                          ? 'View'
-                          : 'Delegate'}
-                      </Button>
-                    ) : (
-                      <div className="flex items-center gap-4">
-                        <ClaimProfileButton
-                          drepToBeClaimed={drep?.view}
-                          label="Claim"
-                          size="extraSmall"
-                          width={4}
-                        />
-                      </div>
                     )}
 
                     {drep?.type !== 'voting_option' && (

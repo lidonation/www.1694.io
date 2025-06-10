@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   DefaultValuePipe,
@@ -9,11 +10,10 @@ import {
   Query,
   Res,
 } from '@nestjs/common';
-
 import { createDrepDto, ValidateMetadataDTO } from 'src/dto';
 import { DrepService } from './drep.service';
 import { VoterService } from 'src/voter/voter.service';
-import { Delegation, StakeKeys } from 'src/common/types';
+import { Delegation } from 'src/common/types';
 import { lastValueFrom } from 'rxjs';
 import { Response } from 'express';
 import { MiscellaneousService } from 'src/miscellaneous/miscellaneous.service';
@@ -195,5 +195,21 @@ export class DrepController {
   @Get(':voterId/governance-participation')
   getGovernanceParticipation(@Param('voterId') voterId: string) {
     return this.drepService.getGovernanceParticipation(voterId);
+  }
+
+  @Post(':stakeKey/claim-profile')
+  async claimProfile(
+    @Param('stakeKey') stakeKey: string,
+    @Body() body: { signature: string; signatureKey: string },
+  ) {
+    // Validate the signature and signatureKey
+    if (!body?.signature || !body?.signatureKey) {
+      throw new BadRequestException('Signature and signatureKey are required');
+    }
+    return this.drepService.checkDRepClaimStatus(
+      stakeKey,
+      body.signature,
+      body.signatureKey,
+    );
   }
 }

@@ -66,6 +66,21 @@ export const updateOAuth = async (payload: UpdateOAuthDto) => {
   return response.data;
 };
 
+export const initiateRefreshOAuth = async ({
+  stakeKeyBech32,
+  provider,
+}: {
+  stakeKeyBech32: string;
+  provider: OAuthProviderType;
+}) => {
+  const response = await axiosInstance.post('auth/oauth/refresh', {
+    stakeKeyBech32,
+    provider,
+  });
+
+  return response.data;
+};
+
 export const deleteOAuth = async ({
   stakeKeyBech32,
   providerId,

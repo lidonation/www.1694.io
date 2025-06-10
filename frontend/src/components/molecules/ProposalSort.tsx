@@ -1,5 +1,5 @@
 'use client';
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import {
   Box,
   IconButton,
@@ -13,7 +13,12 @@ import {
 } from '@mui/material';
 import { useRouter, useSearchParams } from 'next/navigation';
 import DotIndicator from '@/components/atoms/DotIndicator';
-
+import {
+  PROPOSAL_SORT_LS_KEY,
+  getItemFromLocalStorage,
+  setItemToLocalStorage,
+  removeItemFromLocalStorage,
+} from '@/lib/localStorage';
 interface ProposalSortProps {
   showSort: boolean;
   setShowSort: React.Dispatch<React.SetStateAction<boolean>>;
@@ -35,8 +40,6 @@ const orderableSorts: SortOption[] = [
   { value: 'conversationRate', label: 'Conversation Rate' },
 ];
 
-const DEFAULT_ORDER: 'asc' | 'desc' = 'desc';
-
 const ProposalSort: React.FC<ProposalSortProps> = ({
   showSort,
   setShowSort,
@@ -46,12 +49,24 @@ const ProposalSort: React.FC<ProposalSortProps> = ({
   const searchParams = useSearchParams();
   const params = new URLSearchParams(searchParams.toString());
 
-  const sortBy = searchParams.get('sort') || 'updatedAt';
-  const sortOrder = (searchParams.get('order') as 'asc' | 'desc') || DEFAULT_ORDER;
+  const sortBy = searchParams.get('sort') || '';
+  const sortOrder = (searchParams.get('order') as 'asc' | 'desc') || '';
+  const hasActiveSort = !!sortBy && !!sortOrder;
 
-  const hasActiveSort = sortBy !== 'updatedAt' || sortOrder !== DEFAULT_ORDER;
+  useEffect(() => {
+    if (!sortBy) {
+      const storedSort = getItemFromLocalStorage(PROPOSAL_SORT_LS_KEY);
+      if (storedSort?.sort && storedSort?.order) {
+        params.set('sort', storedSort.sort);
+        params.set('order', storedSort.order);
+        params.set('page', '1');
+        router.replace(`?${params.toString()}`);
+      }
+    }
+  }, [sortBy, router]);
 
   const updateSortParams = (sort: string, order: 'asc' | 'desc') => {
+    setItemToLocalStorage(PROPOSAL_SORT_LS_KEY, { sort, order });
     params.set('sort', sort);
     params.set('order', order);
     params.set('page', '1');
@@ -72,6 +87,7 @@ const ProposalSort: React.FC<ProposalSortProps> = ({
     params.delete('order');
     params.set('page', '1');
     router.push(`?${params.toString()}`);
+    removeItemFromLocalStorage(PROPOSAL_SORT_LS_KEY);
   };
 
   return (
@@ -122,7 +138,7 @@ const ProposalSort: React.FC<ProposalSortProps> = ({
             <RadioGroup
               value={sortBy}
               onChange={(e) => handleSortChange(e.target.value)}>
-
+                
               {sortOptions.map((option) => (
                 <FormControlLabel
                   key={option.value}

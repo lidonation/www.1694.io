@@ -10,14 +10,11 @@ import { CommentsService } from 'src/comments/comments.service';
 import { ReactionsService } from 'src/reactions/reactions.service';
 import { VoterService } from 'src/voter/voter.service';
 import { AuthService } from 'src/auth/auth.service';
-import { HttpModule } from '@nestjs/axios';
 import { BlockfrostService } from 'src/blockfrost/blockfrost.service';
+import { GovtoolsOAuthProvider } from 'src/auth/providers/govtools-oauth.provider';
 
 @Module({
   imports: [
-    HttpModule.register({
-      maxRedirects: 5,
-    }),
     TypeOrmModule.forFeature([Drep, Attachment, Note], 'default'),
     TypeOrmModule.forFeature([], 'dbsync'),
   ],
@@ -29,6 +26,7 @@ import { BlockfrostService } from 'src/blockfrost/blockfrost.service';
     ReactionsService,
     VoterService,
     AuthService,
+    GovtoolsOAuthProvider,
     BlockfrostService,
   ],
 })

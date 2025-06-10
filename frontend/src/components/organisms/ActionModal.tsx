@@ -1,10 +1,11 @@
 import { Box, CircularProgress, Typography } from '@mui/material';
 import { ModalContents, ModalHeader, ModalWrapper } from '../atoms';
-import Button from '../atoms/Button';
+import Button, { ButtonProps } from '../atoms/Button';
 
 export interface ActionButton {
   handleClick: () => void;
   className?: string;
+  variant?: ButtonProps['variant'];
   label: string;
   disabled?: boolean;
   loading?: boolean;
@@ -87,6 +88,7 @@ export function ActionModal({
                 className={button.className}
                 handleClick={button.handleClick}
                 disabled={button?.disabled}
+                variant={button?.variant || 'contained'}
               >
                 {button?.loading ? (
                   <CircularProgress size={20} />

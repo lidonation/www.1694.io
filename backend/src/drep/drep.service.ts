@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   HttpException,
   HttpStatus,
   Injectable,
@@ -74,6 +75,13 @@ import {
   getDRepVotedGovActionsCountQuery,
   getDRepVotedGovActionsQuery,
 } from 'src/queries/drepVotes';
+import { QueueService } from 'src/queue/queue.service';
+import { Drep } from 'src/entities/drep.entity';
+import {
+  DRepClaimJobData,
+  JobTypes,
+  Queues,
+} from 'src/queue/queue.types';
 
 @Injectable()
 export class DrepService {
@@ -89,6 +97,7 @@ export class DrepService {
     private readonly httpService: HttpService,
     private blockfrostService: BlockfrostService,
     private miscService: MiscellaneousService,
+    private queueService: QueueService,
   ) {}
 
   async getAllDReps(
@@ -1392,4 +1401,51 @@ export class DrepService {
       totalPages,
     };
   }
+
+  async checkDRepClaimStatus(stakeKey: string, signature: string, key: string) {
+   try {
+     if (!stakeKey) {
+      throw new BadRequestException('Stake key is required');
+    }
+
+    const dRep = await this.voltaireService
+      .getRepository(Drep)
+      .createQueryBuilder('drep')
+      .leftJoinAndSelect('drep.signatures', 'signature')
+      .where('signature.stakeKey = :stakeKey', { stakeKey })
+      .getOne();
+
+    if (dRep) {
+      return {
+        claimed: true,
+        drepId: dRep.id,
+        drepBech32: dRep.signatures[0].drep_bech32,
+        voterId: dRep.signatures[0].voterId,
+      };
+    }
+    
+    this.queueService.addToQueue<DRepClaimJobData>(
+      Queues.DREP_CLAIM,
+      {
+        name: JobTypes.DREP_CLAIM,
+        data: {
+          stakeKey,
+          signature,
+          signatureKey: key,
+        },
+      },
+    );
+
+    return {
+      claimed: false,
+      message: 'DRep claim job has been queued successfully.',
+    };
+   } catch (error) {
+    console.error('Error checking DRep claim status:', error);
+    throw new HttpException(
+      error instanceof Error ? error.message : 'Internal Server Error',
+      error?.status || HttpStatus.INTERNAL_SERVER_ERROR,
+    );
+   }
+  }  
 }

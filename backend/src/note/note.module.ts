@@ -9,15 +9,11 @@ import { ReactionsService } from 'src/reactions/reactions.service';
 import { CommentsService } from 'src/comments/comments.service';
 import { VoterService } from 'src/voter/voter.service';
 import { AuthService } from 'src/auth/auth.service';
-import { HttpModule } from '@nestjs/axios';
 import { BlockfrostService } from 'src/blockfrost/blockfrost.service';
+import { GovtoolsOAuthProvider } from 'src/auth/providers/govtools-oauth.provider';
 
 @Module({
   imports: [
-    HttpModule.register({
-      timeout: 5000,
-      maxRedirects: 5,
-    }),
     TypeOrmModule.forFeature([Note]),
   ],
   controllers: [NoteController],
@@ -30,6 +26,7 @@ import { BlockfrostService } from 'src/blockfrost/blockfrost.service';
     VoterService,
     AuthService,
     BlockfrostService,
+    GovtoolsOAuthProvider
   ],
 })
 export class NoteModule {}

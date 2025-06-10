@@ -1,10 +1,10 @@
-import { CardanoApiWallet } from "@/models/wallet";
-import {Ed25519KeyHash} from "@emurgo/cardano-serialization-lib-asmjs";
+import { CardanoApiWallet } from '@/models/wallet';
+import { Ed25519KeyHash } from '@emurgo/cardano-serialization-lib-asmjs';
 
 export interface AuthResult {
   success: boolean;
   accountInfo?: AccountInfo;
-  walletApi?:CardanoApiWallet
+  walletApi?: CardanoApiWallet;
   error?: string;
 }
 
@@ -15,6 +15,10 @@ export interface AccountInfo {
   stakeKeyBech32?: string;
   registeredStakeKeysListState?: string[];
   balance?: string;
+  loginCredentials?: {
+    signature: string;
+    key: string;
+  } | null;
   dRepInfo?: {
     isDRep: boolean;
     dRepId: string | null;
@@ -48,7 +52,6 @@ export enum AuthMethod {
   LOGIN_FILE = 'login_file',
 }
 
-
 export type LoginPayload = {
   expiry: number;
   drepId?: string;
@@ -58,7 +61,6 @@ export type LoginPayload = {
   signatures: {
     signature: string;
     key: string;
-    type: 'drep' | 'signer'
+    type: 'drep' | 'signer';
   }[];
 };
-

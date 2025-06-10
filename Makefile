@@ -2,6 +2,10 @@
 backend-install:
 	docker-compose run --rm backend yarn install
 
+.PHONY: queue-backend-install
+queue-backend-install:
+	docker-compose run --rm queue-backend yarn install
+
 .PHONY: frontend-install
 frontend-install:
 	docker-compose run --rm frontend yarn install
@@ -66,6 +70,10 @@ sh-frontend:
 .PHONY: test-backend
 test-backend:
 	docker-compose exec backend yarn run test
+
+.PHONY test-backend-e2e:
+test-backend-e2e:
+	docker-compose exec backend yarn run test:e2e
 
 .PHONY: frontend-clean
 frontend-clean:

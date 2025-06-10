@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { Box, Grow } from '@mui/material';
 import { useGetSingleDRepQuery } from '@/hooks/useGetSingleDRepQuery';
 import { useParams } from 'next/navigation';
+import { useLocale } from 'next-intl';
 import NotFound from './not-found';
 import BreadCrumbs from '@/components/molecules/BreadCrumbs';
 import { useWallet } from '@/context/globalContext';
@@ -16,6 +17,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   } = useWallet();
   const [isOpen, setIsOpen] = useState(false);
   const { drepid } = useParams();
+  const locale = useLocale();
   const { dRep, isDRepLoading, fetchError } = useGetSingleDRepQuery(
     drepid.toString(),
   );
@@ -36,26 +38,26 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       </Grow>
     );
   }
+
   return (
     <Box>
       <BreadCrumbs
         crumbs={[
           {
             label: 'DReps',
-            href: `/dreps`,
+            href: `/${locale}/dreps`,
           },
           {
             label: 'DReps List',
-            href: `/dreps/list`,
+            href: `/${locale}/dreps/list`,
           },
           {
             label: `DRep (${drepid})`,
-            href: `/dreps/${drepid}`,
+            href: `/${locale}/dreps/${drepid}`,
           },
         ]}
       />
       <Box className="flex">
-        {/* If current user is a drep, the drawer will be available for use */}
         {currentUserIsDrepOwner && (
           <DRepProfileBar isOpen={isOpen} setIsOpen={setIsOpen} />
         )}

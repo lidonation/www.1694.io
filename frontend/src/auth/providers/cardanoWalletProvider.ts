@@ -55,6 +55,10 @@ export class CardanoWalletProvider implements AuthenticationProvider {
     deposit: string | null;
     voting_power: string;
   } | null = null;
+  private loginCredentials: {
+    signature: string;
+    key: string;
+  } | null = null;
 
   supportsMessageSigning = true;
   supportsColdWallet = false;
@@ -74,7 +78,11 @@ export class CardanoWalletProvider implements AuthenticationProvider {
         const payloadBuffer = Buffer.from(
           'Please verify your identity',
         ).toString('hex');
-        await this.walletApi.signData(this.stakeKey, payloadBuffer);
+        const loginPayload=await this.walletApi.signData(this.stakeKey, payloadBuffer);
+        this.loginCredentials = {
+          signature: loginPayload.signature,
+          key: loginPayload.key,
+        };
         this.connected = true;
         this.walletName = walletName;
 
@@ -136,6 +144,7 @@ export class CardanoWalletProvider implements AuthenticationProvider {
         delegatedTo: this.delegatedDRepID || '',
         votingPower: this.dRepRegistration?.voting_power || '',
       },
+      loginCredentials: this.loginCredentials || null,
     };
   }
 
