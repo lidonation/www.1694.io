@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Box } from '@mui/material';
+import { setItemToLocalStorage, DREP_LAST_TAB_LS_KEY } from '@/lib/localStorage';
 
 export type TabItem = {
   id: string;
@@ -32,6 +33,10 @@ const TabGroup: React.FC<TabGroupProps> = ({
     )?.id || defaultTab;
 
   useEffect(() => {
+    setItemToLocalStorage(DREP_LAST_TAB_LS_KEY, activeTab);
+  }, [activeTab]);
+
+  useEffect(() => {
     if (activeTabRef.current && containerRef.current) {
       const container = containerRef.current;
       const activeElement = activeTabRef.current;
@@ -57,7 +62,7 @@ const TabGroup: React.FC<TabGroupProps> = ({
       {tabs.map((tab) => (
         <Link
           key={tab.id}
-          ref={activeTab === tab.id ? activeTabRef : null}
+          ref={tab.id === activeTab ? activeTabRef : null}
           href={tab.path}
           prefetch={true}
           scroll={false}
@@ -65,7 +70,7 @@ const TabGroup: React.FC<TabGroupProps> = ({
             activeTab === tab.id
               ? 'rounded-t-lg border-b-2 border-blue-800 bg-white text-blue-800'
               : 'rounded-t-lg bg-blue-50 text-gray-500 hover:text-gray-800'
-          }`}
+          } `}
           aria-current={activeTab === tab.id ? 'page' : undefined}
         >
           {tab.label}
