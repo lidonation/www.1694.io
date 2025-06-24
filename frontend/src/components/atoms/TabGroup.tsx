@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Box } from '@mui/material';
-import { setItemToLocalStorage, DREP_LAST_TAB_LS_KEY } from '@/lib/localStorage';
+import { setItemToLocalStorage, DREP_LAST_TAB_LS_KEY, LAST_DREP_ID_LS_KEY } from '@/lib/localStorage';
 
 export type TabItem = {
   id: string;
@@ -14,12 +14,14 @@ interface TabGroupProps {
   tabs: TabItem[];
   defaultTab?: string;
   className?: string;
+  drepId: string;
 }
 
 const TabGroup: React.FC<TabGroupProps> = ({
   tabs,
   defaultTab = tabs[0]?.id,
   className = '',
+  drepId,
 }) => {
   const pathname = usePathname();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -33,8 +35,9 @@ const TabGroup: React.FC<TabGroupProps> = ({
     )?.id || defaultTab;
 
   useEffect(() => {
+    setItemToLocalStorage(LAST_DREP_ID_LS_KEY, drepId);
     setItemToLocalStorage(DREP_LAST_TAB_LS_KEY, activeTab);
-  }, [activeTab]);
+  }, [activeTab, drepId]);
 
   useEffect(() => {
     if (activeTabRef.current && containerRef.current) {

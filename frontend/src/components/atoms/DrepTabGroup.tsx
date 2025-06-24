@@ -13,7 +13,7 @@ const DrepTabGroup = ({ drepId }: { drepId: string }) => {
     },
   ];
 
-  return <TabGroup tabs={tabs} defaultTab="profile" />;
+  return <TabGroup tabs={tabs} defaultTab="profile" drepId={drepId}/>;
 };
 
 export default DrepTabGroup;

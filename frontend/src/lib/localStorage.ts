@@ -6,6 +6,7 @@ export const DREP_ID_CLAIM_LS_KEY = 'drep_id_claim_data';
 export const DREP_FILTERS_LS_KEY = 'drep_filters';
 export const DREP_SORT_LS_KEY = 'drep_sort';
 export const DREP_LAST_TAB_LS_KEY = 'drep_last_tab';
+export const LAST_DREP_ID_LS_KEY = 'last_drep_id';
 export const PROPOSAL_FILTERS_LS_KEY = 'proposal_filters';
 export const PROPOSAL_SORT_LS_KEY = 'proposal_sort';
 

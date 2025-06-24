@@ -1,10 +1,12 @@
 'use client';
+import React, { useEffect } from 'react';
 import DRepsMetrics from '@/components/atoms/DRepsMetrics';
 import DRepTableSearch from '@/components/atoms/DRepTableSearch';
 import BreadCrumbs from '@/components/molecules/BreadCrumbs';
 import DRepsTable from '@/components/molecules/DRepsTable';
 import DRepFilterChips from '@/components/atoms/DRepFilterChips';
-import React from 'react';
+import { useRouter } from 'next/navigation';
+import { getItemFromLocalStorage, DREP_LAST_TAB_LS_KEY, LAST_DREP_ID_LS_KEY } from '@/lib/localStorage';
 
 type PageProps = {
   searchParams?: {
@@ -19,6 +21,7 @@ type PageProps = {
   };
 };
 const page = ({ searchParams }: PageProps) => {
+  const router = useRouter();
   const query = searchParams?.s || '';
   const page = Number(searchParams?.page) || 1;
   const sort = searchParams?.sort || null;
@@ -27,6 +30,16 @@ const page = ({ searchParams }: PageProps) => {
   const includeRetired = searchParams?.include_retired || null;
   const campaignStatus = searchParams?.campaign || null;
   const type = searchParams?.type || null;
+
+useEffect(() => {
+  const lastTab = getItemFromLocalStorage(DREP_LAST_TAB_LS_KEY);
+  const lastDrepId = getItemFromLocalStorage(LAST_DREP_ID_LS_KEY);
+  if (lastTab && lastDrepId) {
+    const tabPath = lastTab === 'profile' ? '' : `/${lastTab}`;
+    const redirectUrl = `/dreps/${lastDrepId}${tabPath}`;
+    router.push(redirectUrl);
+  }
+}, [router]);
 
   return (
     <div>
