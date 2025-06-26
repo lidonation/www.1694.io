@@ -1,11 +1,11 @@
 import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
-import { CommentsService } from 'src/comments/comments.service';
 import { Delegation } from 'src/common/types';
 import { createNoteDto } from 'src/dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
-import { ReactionsService } from 'src/reactions/reactions.service';
-import { DRepRepository } from 'src/repository/voltaire/dRep.repository';
+import { CommentRepository } from 'src/repository/voltaire/comment.repository';
+import { DRepRepository } from 'src/repository/voltaire/drep.repository';
 import { NoteRepository } from 'src/repository/voltaire/note.repository';
+import { ReactionRepository } from 'src/repository/voltaire/reactions.repository';
 import { SignatureRepository } from 'src/repository/voltaire/signature.repository';
 
 @Injectable()
@@ -14,8 +14,8 @@ export class NoteService {
     private readonly noteRepository: NoteRepository,
     private readonly signatureRepository: SignatureRepository,
     private readonly drepRepository: DRepRepository,
-    private readonly reactionsService: ReactionsService,
-    private readonly commentsService: CommentsService,
+    private readonly reactionsRepository: ReactionRepository,
+    private readonly commentRepository: CommentRepository,
     private readonly notificationsService: NotificationsService,
   ) {}
 
@@ -36,14 +36,15 @@ export class NoteService {
     allNotes = await Promise.all(
       allNotes.map(async (note) => {
         // Get reactions and comments
-        const reactions = await this.reactionsService.getReactions(
+        const reactions = await this.reactionsRepository.findByParent(
           note.note_id,
           'note',
         );
-        const comments = await this.commentsService.getComments(
-          note.note_id,
-          'note',
-        );
+        const comments =
+          await this.commentRepository.getCommentsWithReactionsAndReplies(
+            note.note_id,
+            'note',
+          );
         // Add reactions and comments to the note
         return { ...note, reactions: reactions, comments: comments };
       }),
@@ -58,8 +59,15 @@ export class NoteService {
     if (!note) {
       throw new NotFoundException('Note not found!');
     }
-    const reactions = await this.reactionsService.getReactions(note.id, 'note');
-    const comments = await this.commentsService.getComments(note.id, 'note');
+    const reactions = await this.reactionsRepository.findByParent(
+      note.id,
+      'note',
+    );
+    const comments =
+      await this.commentRepository.getCommentsWithReactionsAndReplies(
+        note.id,
+        'note',
+      );
     return { ...note, reactions: reactions, comments: comments };
   }
 

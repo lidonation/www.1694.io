@@ -24,7 +24,7 @@ export class OAuthRepository extends Repository<OAuth> {
     });
   }
 
-  async createOAuth(oAuthData: any) {
+  async createOAuth(oAuthData: Partial<OAuth>) {
     const newOAuth = this.create(oAuthData);
     return this.save(newOAuth);
   }

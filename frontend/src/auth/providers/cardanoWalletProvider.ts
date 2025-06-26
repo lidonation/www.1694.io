@@ -75,10 +75,12 @@ export class CardanoWalletProvider implements AuthenticationProvider {
       const result = await this.enable(walletName);
 
       if (result.status === 'ok') {
-        const payloadBuffer = Buffer.from(
-          'Please verify your identity',
-        ).toString('hex');
-        const loginPayload=await this.walletApi.signData(this.stakeKey, payloadBuffer);
+        const messageToSign = 'Please verify your identity';
+        const payloadBuffer = Buffer.from(messageToSign).toString('hex');
+        const loginPayload = await this.walletApi.signData(
+          this.stakeKey,
+          payloadBuffer,
+        );
         this.loginCredentials = {
           signature: loginPayload.signature,
           key: loginPayload.key,

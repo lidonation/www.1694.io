@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   HttpException,
   HttpStatus,
   Injectable,
@@ -24,8 +23,6 @@ import {
   timeout,
 } from 'rxjs';
 import { AxiosResponse } from 'axios';
-import { ReactionsService } from 'src/reactions/reactions.service';
-import { CommentsService } from 'src/comments/comments.service';
 import {
   DRepDelegatorsHistoryResponse,
   DRepRegistrationData,
@@ -42,32 +39,31 @@ import {
   VoterNoteResponse,
   VotingActivityHistory,
 } from 'src/common/types';
-import { AuthService } from 'src/auth/auth.service';
 import { BlockfrostService } from 'src/blockfrost/blockfrost.service';
 import { JsonLd } from 'jsonld/jsonld-spec';
 import { Response } from 'express';
 import { Currency } from 'src/common/enums';
 import { Signature } from 'src/entities/signatures.entity';
 import { MiscellaneousService } from 'src/miscellaneous/miscellaneous.service';
-import { QueueService } from 'src/queue/queue.service';
-import { DRepClaimJobData, JobTypes, Queues } from 'src/queue/queue.types';
-import { DRepRepository } from 'src/repository/voltaire/dRep.repository';
+import { DRepRepository } from 'src/repository/voltaire/drep.repository';
 import { NoteRepository } from 'src/repository/voltaire/note.repository';
 import { IpfsService } from 'src/ipfs/ipfs.service';
+import { SignatureRepository } from 'src/repository/voltaire/signature.repository';
+import { ReactionRepository } from 'src/repository/voltaire/reactions.repository';
+import { CommentRepository } from 'src/repository/voltaire/comment.repository';
 
 @Injectable()
 export class DrepService {
   constructor(
     private readonly drepRepository: DRepRepository,
     private readonly noteRepository: NoteRepository,
-    private readonly ipfsService: IpfsService,
-    private readonly reactionsService: ReactionsService,
-    private readonly commentsService: CommentsService,
-    private readonly authService: AuthService,
+    private readonly reactionsRepository: ReactionRepository,
+    private readonly commentRepository: CommentRepository,
+    private readonly signatureRepository: SignatureRepository,
     private readonly httpService: HttpService,
+    private readonly ipfsService: IpfsService,
     private readonly blockfrostService: BlockfrostService,
     private readonly miscService: MiscellaneousService,
-    private readonly queueService: QueueService,
   ) {}
 
   async getAllDReps(
@@ -590,10 +586,13 @@ export class DrepService {
         const noteObservables = allNotes.map((note) => {
           return forkJoin({
             reactions: from(
-              this.reactionsService.getReactions(note.note_id, 'note'),
+              this.reactionsRepository.findByParent(note.note_id, 'note'),
             ),
             comments: from(
-              this.commentsService.getComments(note.note_id, 'note'),
+              this.commentRepository.getCommentsWithReactionsAndReplies(
+                note.note_id,
+                'note',
+              ),
             ),
           }).pipe(
             map((result) => ({
@@ -638,11 +637,10 @@ export class DrepService {
         signatures: drepDto?.signatures,
         drep_bech32: drepDto?.drep_bech32,
       };
-      const { token, insertedSig } = await this.authService.login(
+      await this.signatureRepository.linkSignaturesToDRepWithTransaction(
         signatureDto,
-        10000,
       );
-      return { insertedDrep, insertedSig, token };
+      return { insertedDrep };
     } catch (error) {
       console.error('Error registering DRep:', error);
       throw new HttpException(
@@ -924,44 +922,5 @@ export class DrepService {
       currentPage,
       itemsPerPage,
     );
-  }
-
-  async checkDRepClaimStatus(stakeKey: string, signature: string, key: string) {
-    try {
-      if (!stakeKey) {
-        throw new BadRequestException('Stake key is required');
-      }
-
-      const dRep = await this.drepRepository.checkDRepClaimStatus(stakeKey);
-
-      if (dRep) {
-        return {
-          claimed: true,
-          drepId: dRep.id,
-          drepBech32: dRep.signatures[0].drep_bech32,
-          voterId: dRep.signatures[0].voterId,
-        };
-      }
-
-      this.queueService.addToQueue<DRepClaimJobData>(Queues.DREP_CLAIM, {
-        name: JobTypes.DREP_CLAIM,
-        data: {
-          stakeKey,
-          signature,
-          signatureKey: key,
-        },
-      });
-
-      return {
-        claimed: false,
-        message: 'DRep claim job has been queued successfully.',
-      };
-    } catch (error) {
-      console.error('Error checking DRep claim status:', error);
-      throw new HttpException(
-        error instanceof Error ? error.message : 'Internal Server Error',
-        error?.status || HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
   }
 }

@@ -1,7 +1,10 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { createReactionDto } from 'src/dto/createReactionDto';
 import { ReactionsService } from './reactions.service';
+import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
 
+
+@UseGuards(JwtAuthGuard)
 @Controller('reactions')
 export class ReactionsController {
   constructor(private reactionsService: ReactionsService) {}

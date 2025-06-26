@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { InjectDataSource } from '@nestjs/typeorm';
 import { Delegation, VoterData } from 'src/common/types';
 import { getCurrentDelegationQuery } from 'src/queries/currentDelegation';
 import { getDrepAddrData } from 'src/queries/drepAddrData';
@@ -11,7 +10,6 @@ import {
   getVoterGovActionsQuery,
 } from 'src/queries/voterGovActions';
 import { CardanoRepository } from 'src/repository/cardano/cardano.repository';
-import { DataSource } from 'typeorm';
 
 @Injectable()
 export class VoterService {

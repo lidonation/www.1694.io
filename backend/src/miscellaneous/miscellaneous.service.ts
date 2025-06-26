@@ -1,5 +1,4 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { InjectDataSource } from '@nestjs/typeorm';
 import { BlockfrostService } from 'src/blockfrost/blockfrost.service';
 import { Currency } from 'src/common/enums';
 import { BlockfrostBlockRes, Metrics, NodeBlockRes } from 'src/common/types';
@@ -11,7 +10,6 @@ import {
   getTotalDrepsAndVotingPower,
   getTotalGovernanceActionsQuery,
 } from 'src/queries/getMetricsQueries';
-import { DataSource } from 'typeorm';
 import {
   BlockfrostUTXO,
   DbSyncUTXO,

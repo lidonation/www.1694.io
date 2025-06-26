@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { CommentParentEntityType } from 'src/entities/comment.entity';
 import { NotificationsService } from 'src/notifications/notifications.service';
-import { ReactionsService } from 'src/reactions/reactions.service';
 import { CommentRepository } from 'src/repository/voltaire/comment.repository';
 import { NoteRepository } from 'src/repository/voltaire/note.repository';
 import { SignatureRepository } from 'src/repository/voltaire/signature.repository';
@@ -12,31 +11,14 @@ export class CommentsService {
     private readonly commentRepository: CommentRepository,
     private readonly noteRepository: NoteRepository,
     private readonly signatureRepository: SignatureRepository,
-    private readonly reactionsService: ReactionsService,
     private readonly notificationsService: NotificationsService,
   ) {}
 
   async getComments(parentId: number, parentEntity: string) {
-    const comments = await this.commentRepository.findByParent(
+    return await this.commentRepository.getCommentsWithReactionsAndReplies(
       parentId,
-      parentEntity,
+      parentEntity as CommentParentEntityType,
     );
-
-    for (const comment of comments) {
-      comment.reactions = await this.reactionsService.getReactions(
-        comment.id,
-        'comment',
-      );
-      comment['comments'] = await this.getComments(comment.id, 'comment');
-    }
-
-    // Sort by creation date (newest first)
-    const sortedComments = comments.sort(
-      (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-    );
-
-    return sortedComments;
   }
 
   async insertComment(
