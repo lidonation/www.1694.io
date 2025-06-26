@@ -1,36 +1,41 @@
 import { Injectable } from '@nestjs/common';
-import { InjectDataSource } from '@nestjs/typeorm';
+import { CommentParentEntityType } from 'src/entities/comment.entity';
 import { NotificationsService } from 'src/notifications/notifications.service';
 import { ReactionsService } from 'src/reactions/reactions.service';
-import { DataSource } from 'typeorm';
+import { CommentRepository } from 'src/repository/voltaire/comment.repository';
+import { NoteRepository } from 'src/repository/voltaire/note.repository';
+import { SignatureRepository } from 'src/repository/voltaire/signature.repository';
 
 @Injectable()
 export class CommentsService {
   constructor(
-    @InjectDataSource('default')
-    private voltaireService: DataSource,
-    private reactionsService: ReactionsService,
-    private notificationsService: NotificationsService,
+    private readonly commentRepository: CommentRepository,
+    private readonly noteRepository: NoteRepository,
+    private readonly signatureRepository: SignatureRepository,
+    private readonly reactionsService: ReactionsService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async getComments(parentId: number, parentEntity: string) {
-    const comments = await this.voltaireService
-      .getRepository('Comment')
-      .createQueryBuilder('comment')
-      .where('comment.parentId = :parentId', { parentId })
-      .andWhere('comment.parentEntity = :parentEntity', { parentEntity })
-      .getMany();
+    const comments = await this.commentRepository.findByParent(
+      parentId,
+      parentEntity,
+    );
+
     for (const comment of comments) {
       comment.reactions = await this.reactionsService.getReactions(
         comment.id,
         'comment',
       );
-      comment.comments = await this.getComments(comment.id, 'comment');
+      comment['comments'] = await this.getComments(comment.id, 'comment');
     }
+
+    // Sort by creation date (newest first)
     const sortedComments = comments.sort(
       (a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     );
+
     return sortedComments;
   }
 
@@ -42,74 +47,27 @@ export class CommentsService {
     rootEntity: string,
     rootEntityId: number,
   ) {
-    const newComment = this.voltaireService.getRepository('Comment').create({
+    // Create the comment
+    const savedComment = await this.commentRepository.createComment({
       parentId,
-      parentEntity,
+      parentEntity: parentEntity as CommentParentEntityType,
       content: comment,
       voter,
     });
 
+    // Update root note's updatedAt if applicable
     if (rootEntity === 'note') {
-      const note = await this.voltaireService
-        .getRepository('Note')
-        .findOne({ where: { id: rootEntityId } });
-      if (note) {
-        await this.voltaireService
-          .getRepository('Note')
-          .update({ id: rootEntityId }, { updatedAt: new Date() });
-      }
+      await this.noteRepository.updateTimestamp(rootEntityId);
     }
 
-    const savedComment = await this.voltaireService
-      .getRepository('Comment')
-      .save(newComment);
-    // send notification to the owner of the parent entity
-    switch (parentEntity) {
-      case 'note':
-        const note = await this.voltaireService
-          .getRepository('Note')
-          .createQueryBuilder('note')
-          .leftJoinAndSelect('note.author', 'signature')
-          .where('note.id = :id', { id: parentId })
-          .getOne();
-        if (note) {
-          const owner = note.author?.id;
-          if (voter !== note?.author?.stakeKey) {
-            await this.notificationsService.createNotification(
-              this.notificationsService.newCommentOnNoteNotification(
-                new Date(note?.createdAt as Date).getTime(),
-                note?.author?.voterId,
-                voter,
-              ),
-              owner,
-            );
-          }
-        }
-        break;
-      case 'comment':
-        const parentComment = await this.voltaireService
-          .getRepository('Comment')
-          .findOne({ where: { id: parentId } });
+    // Handle notifications based on parent entity
+    await this.handleCommentNotification(
+      savedComment,
+      parentId,
+      parentEntity,
+      voter,
+    );
 
-        if (parentComment) {
-          const owner = parentComment.voter;
-          if (owner !== voter) {
-            const signature = await this.voltaireService
-              .getRepository('Signature')
-              .findOne({ where: { stakeKey: owner } });
-            await this.notificationsService.createNotification(
-              this.notificationsService.newReplyToCommentNotification(
-                voter,
-              ),
-              signature.id,
-              savedComment.createdAt,
-            );
-          }
-        }
-        break;
-      default:
-        break;
-    }
     return savedComment;
   }
 
@@ -119,16 +77,81 @@ export class CommentsService {
     comment: string,
     voter: string,
   ) {
-    const commentToRemove = await this.voltaireService
-      .getRepository('Comment')
-      .createQueryBuilder('comment')
-      .where('comment.parentId = :parentId', { parentId })
-      .andWhere('comment.parentEntity = :parentEntity', { parentEntity })
-      .andWhere('comment.comment = :comment', { comment })
-      .andWhere('comment.voter = :voter', { voter })
-      .getOne();
-    return this.voltaireService
-      .getRepository('Comment')
-      .delete(commentToRemove.id);
+    const commentToRemove = await this.commentRepository.findSpecificComment(
+      parentId,
+      parentEntity,
+      comment,
+      voter,
+    );
+
+    if (commentToRemove) {
+      return this.commentRepository.delete(commentToRemove.id);
+    }
+  }
+
+  private async handleCommentNotification(
+    savedComment: any,
+    parentId: number,
+    parentEntity: string,
+    voter: string,
+  ) {
+    switch (parentEntity) {
+      case 'note':
+        await this.handleNoteCommentNotification(savedComment, parentId, voter);
+        break;
+      case 'comment':
+        await this.handleReplyNotification(savedComment, parentId, voter);
+        break;
+      default:
+        break;
+    }
+  }
+
+  private async handleNoteCommentNotification(
+    savedComment: any,
+    noteId: number,
+    voter: string,
+  ) {
+    const note = await this.noteRepository.findWithAuthor(noteId);
+
+    if (note && voter !== note?.author?.stakeKey) {
+      const notificationContent =
+        this.notificationsService.newCommentOnNoteNotification(
+          new Date(note?.createdAt as Date).getTime(),
+          note?.author?.voterId,
+          voter,
+        );
+
+      await this.notificationsService.createNotification(
+        notificationContent,
+        note.author?.id,
+      );
+    }
+  }
+
+  private async handleReplyNotification(
+    savedComment: any,
+    parentCommentId: number,
+    voter: string,
+  ) {
+    const parentComment =
+      await this.commentRepository.findById(parentCommentId);
+
+    if (parentComment && parentComment.voter !== voter) {
+      const signature = await this.signatureRepository.findByStakeKey(
+        parentComment.voter,
+      );
+
+      if (signature) {
+        const notificationContent =
+          this.notificationsService.newReplyToCommentNotification(voter);
+
+        await this.notificationsService.createNotification(
+          notificationContent,
+          signature.id,
+          savedComment.createdAt,
+        );
+      }
+    }
   }
 }

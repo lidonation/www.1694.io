@@ -5,6 +5,7 @@ import { createNotificationDto } from 'src/dto/createNotificationDto';
 @Controller('notifications')
 export class NotificationsController {
   constructor(private notificationService: NotificationsService) {}
+
   @Get('/:recipientId/all')
   async getNotifications(@Param('recipientId') recipientId: string) {
     return this.notificationService.getNotifications(recipientId);
@@ -19,12 +20,14 @@ export class NotificationsController {
       Number(recipientId),
     );
   }
+
   @Post('/:notificationId/read')
   async markNotificationAsRead(
     @Param('notificationId') notificationId: string,
   ) {
     return this.notificationService.markNotificationAsRead(notificationId);
   }
+
   @Post('/:notificationId/unread')
   async markNotificationAsUnread(
     @Param('notificationId') notificationId: string,

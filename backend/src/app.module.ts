@@ -23,6 +23,8 @@ import { CommentsService } from './comments/comments.service';
 import { HttpModule } from '@nestjs/axios';
 import { BlockfrostService } from './blockfrost/blockfrost.service';
 import { GovtoolsOAuthProvider } from './auth/providers/govtools-oauth.provider';
+import { RepositoryModule } from './repository/repository.module';
+import { IpfsModule } from './ipfs/ipfs.module';
 
 @Module({
   imports: [
@@ -37,6 +39,7 @@ import { GovtoolsOAuthProvider } from './auth/providers/govtools-oauth.provider'
     }),
     DrepModule,
     DbModule,
+    RepositoryModule,
     NoteModule,
     AttachmentModule,
     HealthzModule,
@@ -50,9 +53,17 @@ import { GovtoolsOAuthProvider } from './auth/providers/govtools-oauth.provider'
     BlockfrostModule,
     ActionsProposalsModule,
     MetricsModule,
-    QueueModule
+    QueueModule,
+    IpfsModule,
   ],
   controllers: [],
-  providers: [AuthService, ReactionsService, AttachmentService, CommentsService, BlockfrostService, GovtoolsOAuthProvider],
+  providers: [
+    AuthService,
+    ReactionsService,
+    AttachmentService,
+    CommentsService,
+    BlockfrostService,
+    GovtoolsOAuthProvider,
+  ],
 })
 export class AppModule {}

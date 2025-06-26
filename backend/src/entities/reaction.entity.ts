@@ -11,7 +11,7 @@ import { Note } from './note.entity';
 import { Comment } from './comment.entity';
 import { BaseEntity } from '../global';
 
-enum ReactionTypeName {
+export enum ReactionTypeName {
   Like = 'like',
   ThumbsUp = 'thumbsup',
   ThumbsDown = 'thumbsdown',
