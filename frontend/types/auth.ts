@@ -48,19 +48,14 @@ export interface AuthenticationProvider {
 
 export enum AuthMethod {
   HOT_WALLET = 'hot_wallet',
-  COLD_WALLET = 'cold_wallet',
   LOGIN_FILE = 'login_file',
 }
 
-export type LoginPayload = {
-  expiry: number;
-  drepId?: string;
-  voterId?: string;
-  drep_bech32: string;
+
+export class UnifiedLoginDto {
   stakeKey: string;
-  signatures: {
-    signature: string;
-    key: string;
-    type: 'drep' | 'signer';
-  }[];
-};
+  signature: string;
+  signatureKey: string;
+  method: AuthMethod;
+  address?: string;
+}

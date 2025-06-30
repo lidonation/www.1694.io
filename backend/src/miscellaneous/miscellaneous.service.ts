@@ -1,5 +1,4 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { InjectDataSource } from '@nestjs/typeorm';
 import { BlockfrostService } from 'src/blockfrost/blockfrost.service';
 import { Currency } from 'src/common/enums';
 import { BlockfrostBlockRes, Metrics, NodeBlockRes } from 'src/common/types';
@@ -11,7 +10,6 @@ import {
   getTotalDrepsAndVotingPower,
   getTotalGovernanceActionsQuery,
 } from 'src/queries/getMetricsQueries';
-import { DataSource } from 'typeorm';
 import {
   BlockfrostUTXO,
   DbSyncUTXO,
@@ -23,18 +21,20 @@ import { proposalMetadataByHash } from 'src/queries/proposalMetadataByHash';
 import { catchError, firstValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 import { Response } from 'express';
+import { IpfsService } from 'src/ipfs/ipfs.service';
+import { CardanoRepository } from 'src/repository/cardano/cardano.repository';
 
 @Injectable()
 export class MiscellaneousService {
   private readonly IPFS_GATEWAYS = ['ipfs.io', 'dweb.link'];
   constructor(
-    @InjectDataSource('dbsync')
-    private cexplorerService: DataSource,
+    private cardanoRepository: CardanoRepository,
     private blockfrostService: BlockfrostService,
+    private ipfsService: IpfsService,
     private httpService: HttpService,
   ) {}
   async getFirstEpoch() {
-    const epoch = await this.cexplorerService.manager.query(
+    const epoch = await this.cardanoRepository.query(
       `SELECT * 
         FROM "epoch" 
         ORDER BY "start_time" ASC 
@@ -44,7 +44,7 @@ export class MiscellaneousService {
   }
 
   async checkTxExists(hash: string) {
-    const tx = await this.cexplorerService.manager.query(
+    const tx = await this.cardanoRepository.query(
       `SELECT id, SUBSTRING(CAST(tx.hash AS TEXT) FROM 3) AS tx_hash 
        FROM "tx" 
        WHERE "hash" = decode($1, 'hex');`,
@@ -56,7 +56,7 @@ export class MiscellaneousService {
   async getNodeStatus() {
     try {
       const nodeLatestBlock: [NodeBlockRes] =
-        await this.cexplorerService.manager.query(getLatestBlock);
+        await this.cardanoRepository.query(getLatestBlock);
       //compare with the latest block from a blockfrost API or any other API
       const confirmationLatestBlock: BlockfrostBlockRes =
         await this.blockfrostService.getLatestBlock();
@@ -75,7 +75,7 @@ export class MiscellaneousService {
   async getProposalMetadataByHash(hash: string) {
     //assumption is that native dbsync has failed parsing the metadata, thus try fetching it ourselves
     try {
-      const proposal = (await this.cexplorerService.manager.query(
+      const proposal = (await this.cardanoRepository.query(
         proposalMetadataByHash,
         [hash],
       )) as ProposalByHashDetails[];
@@ -98,7 +98,7 @@ export class MiscellaneousService {
       switch (urlProtocol) {
         case 'ipfs':
           const ipfsHash = url.replace('ipfs://', '');
-          return await this.blockfrostService.getIPFSContent(ipfsHash);
+          return await this.ipfsService.getIPFSContent(ipfsHash);
 
         case 'http':
         case 'https':
@@ -274,11 +274,11 @@ export class MiscellaneousService {
         totalGovernanceActions,
         totalLiveStake,
       ] = await Promise.all([
-        this.cexplorerService.manager.query(getTotalDrepsAndVotingPower),
-        this.cexplorerService.manager.query(getActiveDRepsQuery),
-        this.cexplorerService.manager.query(getTotalDelegatorsQuery),
-        this.cexplorerService.manager.query(getTotalGovernanceActionsQuery),
-        this.cexplorerService.manager.query(getLiveStakeQuery),
+        this.cardanoRepository.query(getTotalDrepsAndVotingPower),
+        this.cardanoRepository.query(getActiveDRepsQuery),
+        this.cardanoRepository.query(getTotalDelegatorsQuery),
+        this.cardanoRepository.query(getTotalGovernanceActionsQuery),
+        this.cardanoRepository.query(getLiveStakeQuery),
       ]);
 
       const metrics: Metrics = {
@@ -341,10 +341,9 @@ export class MiscellaneousService {
     } catch (error) {
       // Try fetching from the local database
       try {
-        const dbUtxos = (await this.cexplorerService.manager.query(
-          getAddrUtxosQuery,
-          [address],
-        )) as DbSyncUTXO[];
+        const dbUtxos = (await this.cardanoRepository.query(getAddrUtxosQuery, [
+          address,
+        ])) as DbSyncUTXO[];
 
         // Transform db response to match Blockfrost format
         return this.transformDbSyncUtxos(dbUtxos);

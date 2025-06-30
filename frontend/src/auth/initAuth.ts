@@ -18,7 +18,6 @@ export function initializeAuthentication() {
     ExtendedAuthMethod.LOGIN_FILE,
     new LoginFileProvider()
   );
-  
-  console.log('Authentication service initialized with all providers');
+
   return authService;
 }

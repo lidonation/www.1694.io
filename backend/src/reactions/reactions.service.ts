@@ -1,57 +1,89 @@
 import { Injectable } from '@nestjs/common';
-import { InjectDataSource } from '@nestjs/typeorm';
 import { NotificationsService } from 'src/notifications/notifications.service';
-import { DataSource } from 'typeorm';
+import { ReactionRepository } from 'src/repository/voltaire/reactions.repository';
+import { SignatureRepository } from 'src/repository/voltaire/signature.repository';
+import { NoteRepository } from 'src/repository/voltaire/note.repository';
+import { CommentRepository } from 'src/repository/voltaire/comment.repository';
+import {
+  ReactionParentEntityType,
+  ReactionTypeName,
+} from 'src/entities/reaction.entity';
 
 @Injectable()
 export class ReactionsService {
   constructor(
-    @InjectDataSource('default')
-    private voltaireService: DataSource,
+    private readonly reactionsRepository: ReactionRepository,
+    private readonly signatureRepository: SignatureRepository,
+    private readonly noteRepository: NoteRepository,
+    private readonly commentRepository: CommentRepository,
     private notificationsService: NotificationsService,
   ) {}
 
   async getReactions(parentId: number, parentEntity: string) {
-    const reactions = await this.voltaireService
-      .getRepository('Reaction')
-      .createQueryBuilder('reaction')
-      .where('reaction.parentId = :parentId', { parentId })
-      .andWhere('reaction.parentEntity = :parentEntity', { parentEntity })
-      .getMany();
-    return reactions;
+    return this.reactionsRepository.findByParent(parentId, parentEntity);
   }
+
   async insertReaction(
     parentId: number,
     parentEntity: string,
     type: string,
     voter: string,
   ) {
-    const newReaction = this.voltaireService.getRepository('Reaction').create({
+    const createdRxn = await this.reactionsRepository.createReaction({
+      parentId,
+      parentEntity: parentEntity as ReactionParentEntityType,
+      type: type as ReactionTypeName,
+      voter,
+    });
+    5;
+
+    await this.handleReactionNotification(
+      createdRxn,
+      parentId,
+      parentEntity,
+      voter,
+    );
+
+    return createdRxn;
+  }
+
+  async removeReaction(
+    parentId: number,
+    parentEntity: string,
+    type: string,
+    voter: string,
+  ) {
+    const reaction = await this.reactionsRepository.findSpecificReaction(
       parentId,
       parentEntity,
       type,
       voter,
-    });
-    const createdRxn = await this.voltaireService
-      .getRepository('Reaction')
-      .save(newReaction);
-    //inform the owner of the reacted to entity
+    );
+
+    if (reaction) {
+      return this.reactionsRepository.delete(reaction.id);
+    }
+  }
+
+  private async handleReactionNotification(
+    reaction: any,
+    parentId: number,
+    parentEntity: string,
+    voter: string,
+  ) {
     let parent;
     let content;
+
     switch (parentEntity) {
       case 'note':
-        parent = await this.voltaireService
-          .getRepository(parentEntity)
-          .createQueryBuilder(parentEntity)
-          .leftJoinAndSelect('note.author', 'signature')
-          .where('note.id = :parentId', { parentId })
-          .getOne();
+        parent = await this.noteRepository.findWithAuthor(parentId);
+
         if (voter !== parent.author?.stakeKey) {
           content = this.notificationsService.newReactionToNoteNotification(
-            createdRxn.type as any,
+            reaction.type as any,
             voter,
             parent?.author?.voterId,
-            new Date(parent?.createdAt).getTime()
+            new Date(parent?.createdAt).getTime(),
           );
           await this.notificationsService.createNotification(
             content,
@@ -59,18 +91,19 @@ export class ReactionsService {
           );
         }
         break;
+
       case 'comment':
-        parent = await this.voltaireService
-          .getRepository(parentEntity)
-          .findOne({ where: { id: parentId } });
+        parent = await this.commentRepository.findById(parentId);
+
         if (voter !== parent.voter) {
           content = this.notificationsService.newReactionForCommentNotification(
-            createdRxn.type as any,
+            reaction.type as any,
             voter,
           );
-          const signature = await this.voltaireService
-            .getRepository('Signature')
-            .findOne({ where: { stakeKey: parent.voter } });
+
+          const signature = await this.signatureRepository.findByStakeKey(
+            parent.voter,
+          );
           if (signature) {
             await this.notificationsService.createNotification(
               content,
@@ -79,25 +112,9 @@ export class ReactionsService {
           }
         }
         break;
+
       default:
         break;
     }
-    return createdRxn;
-  }
-  async removeReaction(
-    parentId: number,
-    parentEntity: string,
-    type: string,
-    voter: string,
-  ) {
-    const reaction = await this.voltaireService
-      .getRepository('Reaction')
-      .createQueryBuilder('reaction')
-      .where('reaction.parentId = :parentId', { parentId })
-      .andWhere('reaction.parentEntity = :parentEntity', { parentEntity })
-      .andWhere('reaction.type = :type', { type })
-      .andWhere('reaction.voter = :voter', { voter })
-      .getOne();
-    return this.voltaireService.getRepository('Reaction').delete(reaction.id);
   }
 }

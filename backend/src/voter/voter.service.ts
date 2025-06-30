@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { InjectDataSource } from '@nestjs/typeorm';
 import { Delegation, VoterData } from 'src/common/types';
 import { getCurrentDelegationQuery } from 'src/queries/currentDelegation';
 import { getDrepAddrData } from 'src/queries/drepAddrData';
@@ -10,42 +9,38 @@ import {
   getVoterGovActionsCountQuery,
   getVoterGovActionsQuery,
 } from 'src/queries/voterGovActions';
-import { DataSource } from 'typeorm';
+import { CardanoRepository } from 'src/repository/cardano/cardano.repository';
 
 @Injectable()
 export class VoterService {
-  constructor(
-    @InjectDataSource('dbsync')
-    private cexplorerService: DataSource,
-  ) {}
+  constructor(private readonly cardanoRepository: CardanoRepository) {}
   async getVoter(voterIdentity: string): Promise<VoterData> {
     let voterData;
     let delegationHistory;
     switch (true) {
       case voterIdentity.includes('drep'):
-        voterData = await this.cexplorerService.manager.query(getDrepAddrData, [
+        voterData = await this.cardanoRepository.query(getDrepAddrData, [
           voterIdentity,
         ]);
-        delegationHistory = await this.cexplorerService.manager.query(
+        delegationHistory = await this.cardanoRepository.query(
           getVoterDelegationHistory,
           [voterData[0].stake_address],
         );
         break;
       case voterIdentity.includes('stake'):
-        voterData = await this.cexplorerService.manager.query(getStakeKeyData, [
+        voterData = await this.cardanoRepository.query(getStakeKeyData, [
           voterIdentity,
         ]);
-        delegationHistory = await this.cexplorerService.manager.query(
+        delegationHistory = await this.cardanoRepository.query(
           getVoterDelegationHistory,
           [voterIdentity], // stakeKey
         );
         break;
       default:
-        voterData = await this.cexplorerService.manager.query(
-          getAddrDataQuery,
-          [voterIdentity],
-        );
-        delegationHistory = await this.cexplorerService.manager.query(
+        voterData = await this.cardanoRepository.query(getAddrDataQuery, [
+          voterIdentity,
+        ]);
+        delegationHistory = await this.cardanoRepository.query(
           getVoterDelegationHistory,
           [voterData[0].stake_address],
         );
@@ -60,12 +55,10 @@ export class VoterService {
         }
       : null;
   }
-  async getAdaHolderCurrentDelegation(
-    stakeKey: string,
-  ): Promise<Delegation> {
+  async getAdaHolderCurrentDelegation(stakeKey: string): Promise<Delegation> {
     if (!stakeKey) return null;
 
-    const delegation = await this.cexplorerService.manager.query(
+    const delegation = await this.cardanoRepository.query(
       getCurrentDelegationQuery,
       [stakeKey],
     );
@@ -97,12 +90,12 @@ export class VoterService {
       param = voterIdentity;
     }
 
-    const govActions = await this.cexplorerService.manager.query(
+    const govActions = await this.cardanoRepository.query(
       getVoterGovActionsQuery(queryType, itemsPerPage, offset),
       [param],
     );
 
-    const totalResults = await this.cexplorerService.manager.query(
+    const totalResults = await this.cardanoRepository.query(
       getVoterGovActionsCountQuery(queryType),
       [param],
     );

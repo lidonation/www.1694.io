@@ -1,29 +1,46 @@
-import { Body, Controller, Delete, Get, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpException,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {
   CreateOAuthDto,
+  UnifiedLoginDto,
   UpdateOAuthDto,
   VerifyDRepSignatureDto,
 } from './auth.dto';
 import { OAuthProviderType } from 'src/entities/oauth.entity';
+import {
+  verifySignature,
+  verifySignatureFromLoginFile,
+  verifyTxWitness,
+} from 'src/utils/cardano-utils';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
-  @Post('session')
-  async getSession(@Body('payload') payload: any) {
-    return this.authService.getSession(payload);
-  }
 
   @Post('login')
-  async login(@Body() payload: any) {
-    const { expiry, ...authPayload } = payload;
-    return this.authService.login(authPayload, expiry);
+  async login(@Body() payload: UnifiedLoginDto) {
+    try {
+      return this.authService.unifiedLogin(payload);
+    } catch (error) {
+      console.error('Login error:', error);
+      throw new HttpException(
+        error?.message || 'Login failed',
+        error?.status || 500,
+      );
+    }
   }
 
   @Post('signatures/verify')
   async verifySignature(@Body() payload: VerifyDRepSignatureDto) {
-    return this.authService.verifySignature(payload);
+    return verifySignature(payload);
   }
 
   @Post('login/verify-sigs')
@@ -31,7 +48,14 @@ export class AuthController {
     @Body('payload')
     payload: Omit<VerifyDRepSignatureDto, 'address'>['signatures'],
   ) {
-    return this.authService.verifySignatureFromLoginFile(payload);
+    return verifySignatureFromLoginFile(payload);
+  }
+  @Post('login/link-sigs-to-drep')
+  async linkSignaturesToDRep(
+    @Body('payload')
+    payload: Omit<VerifyDRepSignatureDto, 'address'>['signatures'],
+  ) {
+    return verifySignatureFromLoginFile(payload);
   }
 
   @Post('witnesses/verify')
@@ -45,7 +69,7 @@ export class AuthController {
       address: string;
     },
   ) {
-    return this.authService.verifyTxWitness(payload);
+    return verifyTxWitness(payload);
   }
 
   @Get('oauth/providers')
@@ -55,7 +79,7 @@ export class AuthController {
   ) {
     return this.authService.getOAuthProvidersByStakeKeyBech32(stakeKeyBech32);
   }
-  
+
   @Get('oauth/provider')
   async getOAuthProvider(
     @Query('stakeKeyBech32')
@@ -65,7 +89,7 @@ export class AuthController {
   ) {
     return this.authService.getOAuthProviderBy(provider, stakeKeyBech32);
   }
-  
+
   @Get('oauth/provider/check')
   async getOAuthProviderCheck(
     @Query('stakeKeyBech32')
@@ -75,7 +99,6 @@ export class AuthController {
   ) {
     return this.authService.getOAuthProviderCheck(stakeKeyBech32, provider);
   }
-
 
   @Post('oauth/add')
   async addOAuthProvider(@Body() addOAuthPayload: CreateOAuthDto) {
