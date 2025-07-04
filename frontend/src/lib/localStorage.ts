@@ -5,7 +5,6 @@ export const DREP_CLAIM_LS_KEY = 'drep_claim_data';
 export const DREP_ID_CLAIM_LS_KEY = 'drep_id_claim_data';
 export const DREP_FILTERS_LS_KEY = 'drep_filters';
 export const DREP_SORT_LS_KEY = 'drep_sort';
-export const DREP_LAST_TAB_LS_KEY = 'drep_last_tab';
 export const PROPOSAL_FILTERS_LS_KEY = 'proposal_filters';
 export const PROPOSAL_SORT_LS_KEY = 'proposal_sort';
 
@@ -21,3 +20,5 @@ export function setItemToLocalStorage(key: string, data: any) {
 export function removeItemFromLocalStorage(key: string) {
   window.localStorage.removeItem(key);
 }
+
+export const getDrepLastTabKey = (drepId: string) => `DREP_LAST_TAB_${drepId}`;
