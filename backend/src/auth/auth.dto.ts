@@ -74,13 +74,11 @@ export enum LoginMethod {
   LOGIN_FILE = 'login_file',
 }
 
-
 export class UnifiedLoginDto {
   stakeKey: string;
   signature: string;
   signatureKey: string;
   method: LoginMethod;
-  address?: string;
 }
 
 export class JwtPayload {

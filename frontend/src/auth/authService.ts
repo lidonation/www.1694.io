@@ -2,7 +2,6 @@ import {
   ACTIVE_PROVIDER_LS_KEY,
   getItemFromLocalStorage,
   removeItemFromLocalStorage,
-  saveDataInSession,
   setItemToLocalStorage,
 } from '@/lib';
 import {
@@ -10,11 +9,8 @@ import {
   AuthResult,
   AccountInfo,
   AuthMethod,
-  UnifiedLoginDto,
 } from '../../types/auth';
 import { CardanoApiWallet } from '@/models/wallet';
-import { userLogin } from '@/services/requests/userLogin';
-import { LOGIN_TOKEN_1694 } from '@/constants/storage';
 
 /**
  * Service that coordinates different authentication providers
@@ -58,16 +54,7 @@ export class AuthenticationService {
       if (!result.success) {
         throw new Error(result?.error || 'An error occured');
       }
-      const loginRes = await this.login({
-        signature: result.accountInfo.loginCredentials.signature,
-        signatureKey: result.accountInfo.loginCredentials.key,
-        stakeKey: result.accountInfo.stakeKeyBech32,
-        method: providerName as AuthMethod,
-      });
-      if (!loginRes.success) {
-        throw new Error(loginRes?.error || 'An error occured');
-      }
-      saveDataInSession(LOGIN_TOKEN_1694, loginRes.response.access_token);
+
       this.setActiveProvider(providerName);
       if (result.walletApi) {
         this.walletApi = result.walletApi;
@@ -86,29 +73,6 @@ export class AuthenticationService {
     }
   }
 
-  /**
-   * Login with a specific provider
-   * @param providerName The name of the provider to use
-   * @param params Optional parameters for the provider
-   * @returns Login Result (JWT)
-   */
-
-  private async login(loginDto: UnifiedLoginDto) {
-    try {
-      const response = await userLogin(loginDto);
-      return {
-        success: true,
-        response,
-        error: null,
-      };
-    } catch (error) {
-      console.log(error);
-      return {
-        success: false,
-        error,
-      };
-    }
-  }
   /**
    * Get the currently active provider name
    * @returns Provider name or null if none active

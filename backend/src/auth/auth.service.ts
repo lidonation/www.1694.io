@@ -150,7 +150,7 @@ export class AuthService {
    * Verify signatures from login files
    */
   private async verifyLoginFileSignature(loginDto: UnifiedLoginDto) {
-    if (!loginDto.address) {
+    if (!loginDto.stakeKey) {
       throw new HttpException(
         'Address is required for login file verification',
         HttpStatus.BAD_REQUEST,
@@ -164,7 +164,7 @@ export class AuthService {
           vkey: loginDto.signatureKey,
           signature: loginDto.signature,
         },
-        address: loginDto.address,
+        address: loginDto.stakeKey,
       });
     } catch (error) {
       console.error('Login file verification failed:', error);

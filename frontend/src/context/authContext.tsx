@@ -7,9 +7,11 @@ import React, {
   useRef,
 } from 'react';
 import { authService, AuthenticationService } from '../auth/authService';
-import { AuthMethod, AccountInfo } from '../../types/auth';
+import { AuthMethod, AccountInfo, UnifiedLoginDto } from '../../types/auth';
 import { CardanoApiWallet } from '@/models/wallet';
-import { postAutoClaimProfile } from '@/services/requests/postAutoClaimProfile';
+import { userLogin } from '@/services/requests/userLogin';
+import { saveDataInSession } from '@/lib';
+import { LOGIN_TOKEN_1694 } from '@/constants/storage';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -123,20 +125,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
       }
       const result = await service.authenticate(method, params);
 
-      if (result.success) {
-        setIsAuthenticated(true);
-        setAccountInfo(result.accountInfo || null);
-        setActiveProvider(service.getActiveProviderName());
-        if (result.walletApi) {
-          setWalletApi(result.walletApi);
-        }
-        setWalletBeingConnected(null);
-        //atempt to auto-claim profile if applicable
-        return {
-          success: true,
-          error: null,
-        };
-      } else {
+      if (!result.success) {
         setAuthError(result.error || 'Authentication failed');
         setIsAuthenticated(false);
         setAccountInfo(null);
@@ -148,6 +137,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
           error: result.error || 'Authentication failed',
         };
       }
+      const loginRes = await login({
+        signature: result.accountInfo.loginCredentials.signature,
+        signatureKey: result.accountInfo.loginCredentials.key,
+        stakeKey: result.accountInfo.stakeKeyBech32,
+        method: method as AuthMethod,
+      });
+
+      if (!loginRes.success) {
+        throw new Error(loginRes?.error || 'An error occured');
+      }
+
+      saveDataInSession(LOGIN_TOKEN_1694, loginRes.response.access_token);
+
+      setIsAuthenticated(true);
+      setAccountInfo(result.accountInfo || null);
+      setActiveProvider(service.getActiveProviderName());
+      if (result.walletApi) {
+        setWalletApi(result.walletApi);
+      }
+      setWalletBeingConnected(null);
+      return {
+        success: true,
+        error: null,
+      };
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
@@ -166,29 +179,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
     }
   };
 
-  const autoClaimProfile = async (
-    stakeKey: string,
-    signature: string,
-    signatureKey: string,
-  ) => {
+  const login = async (loginDto: UnifiedLoginDto) => {
     try {
-      const result = await postAutoClaimProfile({
-        stakeKey,
-        signature,
-        signatureKey,
-      });
-      if (result.success) {
-        return { success: true };
-      } else {
-        return { success: false, error: result.error || 'Auto claim failed' };
-      }
+      const response = await userLogin(loginDto);
+      return {
+        success: true,
+        response,
+        error: null,
+      };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      return { success: false, error: errorMessage };
+      console.log(error);
+      return {
+        success: false,
+        error,
+      };
     }
   };
-
   const logout = async (): Promise<void> => {
     try {
       await service.disconnect();
