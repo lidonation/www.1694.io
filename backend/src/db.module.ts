@@ -37,6 +37,24 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         database: configService.get('DATABASE_NAME_DBSYNC', 'cexplorer'),
       }),
     }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      name: 'governance',
+      useFactory: (configService: ConfigService) => ({
+        type: 'postgres',
+        host: configService.get('DATABASE_HOST_DBSYNC', 'dbsync_db'),
+        port: configService.get('DATABASE_PORT_DBSYNC', 5432),
+        username: configService.get('DATABASE_USERNAME_DBSYNC', 'postgres'),
+        password: configService.get('DATABASE_PASSWORD_DBSYNC'),
+        database: configService.get('DATABASE_NAME_DBSYNC', 'cexplorer'),
+        entities: [__dirname + '/entities/governance/*.entity.{ts,js}'],
+        synchronize: false,
+        logging: process.env.NODE_ENV === 'development',
+        retryAttempts: 5,
+        retryDelay: 3000,
+      }),
+    }),
   ],
 })
 export class DbModule {}

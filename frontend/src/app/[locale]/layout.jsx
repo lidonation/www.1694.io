@@ -1,16 +1,16 @@
 import { locales } from '@/constants';
-import { AppRouterCacheProvider } from '@mui/material-nextjs/v13-appRouter';
+import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 import { AppContextProvider } from '@/context/context';
 import { NextIntlClientProvider } from 'next-intl';
 import { unstable_setRequestLocale } from 'next-intl/server';
 import { Poppins } from 'next/font/google';
 import { notFound } from 'next/navigation';
 import '@/assets/styles/globals.css';
-import dynamic from 'next/dynamic';
 import '@fontsource/poppins';
 import { ThemeProvider } from '@mui/material';
 import theme from '@/assets/theme';
 import PageBanner from '@/components/atoms/PageBanner';
+import ClientAnalyticsWrapper from '@/components/analytics/ClientAnalyticsWrapper';
 
 const poppins = Poppins({
   weight: ['400'],
@@ -30,18 +30,10 @@ export const metadata = {
   description:
     'Town Halls and Campaigns for Voltaire DReps and their communities.',
 };
-// Dynamically imported ClientScriptLoader with no SSR
-const SprigClientScriptLoader = dynamic(
-  () => import('@/components/analytics/SprigClientScriptLoader'),
-  { ssr: false },
-);
-const FathomClientScriptLoader = dynamic(
-  () => import('@/components/analytics/AnalyticsLoader'),
-  { ssr: false },
-);
 
-async function RootLayout({ children, params: { locale } }) {
+async function RootLayout({ children, params }) {
   // Root layout component, sets up locale, loads messages, and wraps the app with providers.
+  const { locale } = await params;
   unstable_setRequestLocale(locale); // Set the locale for the request, use with caution due to unstable API.
   if (!locales.variants.includes(locale)) notFound(); // Check if the locale is supported, otherwise trigger a 404.
 
@@ -71,8 +63,7 @@ async function RootLayout({ children, params: { locale } }) {
               </AppContextProvider>
             </ThemeProvider>
           </AppRouterCacheProvider>
-          <SprigClientScriptLoader />
-          <FathomClientScriptLoader />
+          <ClientAnalyticsWrapper />
         </NextIntlClientProvider>
       </body>
     </html>

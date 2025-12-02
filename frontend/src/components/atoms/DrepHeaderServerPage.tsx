@@ -2,8 +2,8 @@
 import { headers } from 'next/headers';
 import React from 'react';
 
-const ServerPage = ({ children }) => {
-    const headersList = headers();
+const ServerPage = async ({ children }) => {
+    const headersList = await headers();
     const redirectCause = headersList.get('x-status-reason');
     return (
         <div>

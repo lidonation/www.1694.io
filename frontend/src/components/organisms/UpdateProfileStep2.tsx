@@ -168,10 +168,7 @@ const UpdateProfileStep2 = () => {
         drepId: savedDRepId.current,
       };
       //TODO: refacfor signature logic
-      await userLogin({
-        expiry: '1h',
-        ...formData,
-      });
+      await userLogin(formData);
       queryClient.invalidateQueries(QUERY_KEYS.getVoterClaimedProfilesKey);
       addChangesSavedAlert();
     } catch (error) {

@@ -109,3 +109,23 @@ image-build-backend:
 	-f ./backend/Dockerfile.dev \
 	-t backend \
 	./backend/.
+
+.PHONY: governance-indexer-logs
+governance-indexer-logs:
+	docker-compose logs -f governance-indexer
+
+.PHONY: governance-indexer-restart
+governance-indexer-restart:
+	docker-compose restart governance-indexer
+
+.PHONY: governance-db-shell
+governance-db-shell:
+	docker-compose exec dbsync_db psql -U postgres -d cexplorer
+
+.PHONY: build-governance-indexer
+build-governance-indexer:
+	docker-compose build governance-indexer
+
+.PHONY: governance-indexer-status
+governance-indexer-status:
+	docker-compose ps governance-indexer dbsync_db

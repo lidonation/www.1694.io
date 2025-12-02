@@ -1,4 +1,3 @@
-version: "3.9"
 services:
   backend:
     container_name: backend
@@ -83,6 +82,7 @@ services:
       - ${POSTGRES_PORT:-5432}:5432
     volumes:
       - dbsync-db-data:/var/lib/postgresql/data
+      - ../governance-indexer/schema.sql:/docker-entrypoint-initdb.d/02-governance-schema.sql:ro
     restart: on-failure
     networks:
       - io-1694
@@ -100,8 +100,7 @@ services:
 
   web_db:
     container_name: voltaire_db
-    platform: linux/amd64
-    image: bitnami/postgresql:15.4.0-debian-11-r30
+    image: postgres:17.1-bookworm
     restart: unless-stopped
     ports:
       - "5434:5432"
@@ -114,7 +113,7 @@ services:
       POSTGRES_USER: voltaire
       POSTGRES_DB: 1694
     volumes:
-      - db-data:/bitnami/postgresql
+      - db-data:/var/lib/postgresql/data
     networks:
       - io-1694
     healthcheck:
@@ -203,6 +202,35 @@ services:
     restart: on-failure
     networks:
       - io-1694
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
+
+  governance-indexer:
+    container_name: governance-indexer
+    build:
+      context: ../governance-indexer/rust-indexer
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://voltaire:postgres@web_db:5432/1694
+      RELAY_ADDRESS: backbone.mainnet.emurgornd.com:3001
+      NETWORK_MAGIC: 764824073
+      MAX_CONCURRENT_WORKERS: 8
+      BATCH_SIZE: 100
+      SLOT_HASHES_FILE: /app/slot_hashes.csv
+      RUST_LOG: info
+    depends_on:
+      web_db:
+        condition: service_healthy
+      cardano-node:
+        condition: service_healthy
+    networks:
+      - io-1694
+    volumes:
+      - ../governance-indexer/rust-indexer/slot_hashes.csv:/app/slot_hashes.csv:ro
     logging:
       driver: "json-file"
       options:
