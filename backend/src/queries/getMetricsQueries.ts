@@ -39,14 +39,14 @@ JOIN
     latest_epoch e ON d.hash_id = e.hash_id AND d.epoch_no = e.latest_epoch_no;
 `;
 export const getTotalDelegatorsQuery = `
-With delegation_summary as (SELECT * from "drepdelegationsummary")
-select SUM(vote_count) as total_delegators
+With delegation_summary as (SELECT * from "drep_frontend_snapshot")
+select SUM(delegation_vote_count) as total_delegators
 from delegation_summary`;
 export const getLiveStakeQuery = `
-With delegation_summary as (SELECT * from "drepdelegationsummary")
-select SUM(live_stake) as total_live_stake
+With delegation_summary as (SELECT * from "drep_frontend_snapshot")
+select SUM(live_stake_ada) as total_live_stake
 from delegation_summary`;
-export const getTotalGovernanceActionsQuery = `SELECT COUNT(*) as count FROM "gov_action_proposal"`;
+export const getTotalGovernanceActionsQuery = `SELECT COUNT(*) as count FROM "proposals"`
 export const getActiveDRepsQuery=`
 WITH latest_epoch AS (
     -- Get the latest epoch from the block table

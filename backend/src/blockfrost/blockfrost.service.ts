@@ -164,4 +164,88 @@ export class BlockfrostService {
       },
     });
   }
+
+  async getAllDReps() {
+    return this.executeWithFallback({
+      method: 'GET',
+      endpoint: '/governance/dreps',
+    });
+  }
+
+  async getDRepInfo(drepId: string) {
+    return this.executeWithFallback({
+      method: 'GET',
+      endpoint: `/governance/dreps/${drepId}`,
+    });
+  }
+
+  async getDRepMetadata(drepId: string) {
+    return this.executeWithFallback({
+      method: 'GET',
+      endpoint: `/governance/dreps/${drepId}/metadata`,
+    });
+  }
+
+  async getDRepDelegators(drepId: string, page = 1, count = 100, order = 'asc') {
+    return this.executeWithFallback({
+      method: 'GET',
+      endpoint: `/governance/dreps/${drepId}/delegators?page=${page}&count=${count}&order=${order}`,
+    });
+  }
+
+  async getAllProposals(page = 1, count = 100, order = 'asc') {
+    return this.executeWithFallback({
+      method: 'GET',
+      endpoint: `/governance/proposals?page=${page}&count=${count}&order=${order}`,
+    });
+  }
+
+  async getProposal(txHash: string, certIndex: number) {
+    return this.executeWithFallback({
+      method: 'GET',
+      endpoint: `/governance/proposals/${txHash}/${certIndex}`,
+    });
+  }
+
+  async getProposalMetadata(txHash: string, certIndex: number) {
+    return this.executeWithFallback({
+      method: 'GET',
+      endpoint: `/governance/proposals/${txHash}/${certIndex}/metadata`,
+    });
+  }
+
+  async getProposalVotes(txHash: string, certIndex: number, page = 1, count = 100, order = 'asc') {
+    return this.executeWithFallback({
+      method: 'GET',
+      endpoint: `/governance/proposals/${txHash}/${certIndex}/votes?page=${page}&count=${count}&order=${order}`,
+    });
+  }
+
+  async getAllDRepsWithPagination(page = 1, count = 100, order = 'asc') {
+    return this.executeWithFallback({
+      method: 'GET',
+      endpoint: `/governance/dreps?page=${page}&count=${count}&order=${order}`,
+    });
+  }
+
+  async getDRepVotes(drepId: string, page = 1, count = 100, order = 'asc') {
+    return this.executeWithFallback({
+      method: 'GET',
+      endpoint: `/governance/dreps/${drepId}/votes?page=${page}&count=${count}&order=${order}`,
+    });
+  }
+
+  async getTransaction(txHash: string) {
+    return this.executeWithFallback({
+      method: 'GET',
+      endpoint: `/txs/${txHash}`,
+    });
+  }
+
+  async getEpoch(epochNumber: number | 'latest') {
+    return this.executeWithFallback({
+      method: 'GET',
+      endpoint: `/epochs/${epochNumber}`,
+    });
+  }
 }

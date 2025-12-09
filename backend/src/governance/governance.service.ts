@@ -1,20 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource, SelectQueryBuilder } from 'typeorm';
-import { DrepFrontendSnapshot } from '../entities/governance/drep-frontend-snapshot.entity';
+import { Drep } from '../entities/governance/drep.entity';
 import { DrepTimelineEvent } from '../entities/governance/drep-timeline-event.entity';
 
 @Injectable()
 export class GovernanceService {
   constructor(
-    @InjectDataSource('governance')
+    @InjectDataSource('default')
     private governanceDataSource: DataSource,
   ) {}
 
-  /**
-   * Get paginated DRep list with filtering and sorting
-   * This replaces the complex DB-sync queries with optimized governance indexer queries
-   */
   async getAllDReps(
     search: string = '',
     page: number = 1,
@@ -27,13 +23,12 @@ export class GovernanceService {
     type?: 'has_script',
   ) {
     const queryBuilder = this.governanceDataSource
-      .getRepository(DrepFrontendSnapshot)
+      .getRepository(Drep)
       .createQueryBuilder('drep');
 
-    // Apply filters
     if (search) {
       queryBuilder.andWhere(
-        '(drep.view ILIKE :search OR drep.givenName ILIKE :search OR drep.chainId ILIKE :search)',
+        '(drep.drepId ILIKE :search OR drep.givenName ILIKE :search OR drep.hex ILIKE :search)',
         { search: `%${search}%` },
       );
     }
@@ -58,15 +53,12 @@ export class GovernanceService {
       queryBuilder.andWhere('drep.hasScript = true');
     }
 
-    // Apply sorting
     const sortColumn = this.getSortColumn(sort);
     queryBuilder.orderBy(`drep.${sortColumn}`, order);
 
-    // Apply pagination
     const skip = (page - 1) * perPage;
     queryBuilder.skip(skip).take(perPage);
 
-    // Execute query
     const [dreps, total] = await queryBuilder.getManyAndCount();
 
     return {
@@ -80,10 +72,6 @@ export class GovernanceService {
     };
   }
 
-  /**
-   * Get DRep timeline events for activity feed
-   * This replaces complex joins with simple queries against pre-computed events
-   */
   async getDRepTimeline(
     voterId: string,
     options: {
@@ -97,9 +85,8 @@ export class GovernanceService {
     const queryBuilder = this.governanceDataSource
       .getRepository(DrepTimelineEvent)
       .createQueryBuilder('event')
-      .where('event.drepView = :voterId', { voterId });
+      .where('event.drepId = :voterId', { voterId });
 
-    // Apply time range filters
     if (options.startTimeCursor) {
       const startTime = new Date(options.startTimeCursor);
       if (options.loadDirection === 'older') {
@@ -114,14 +101,12 @@ export class GovernanceService {
       queryBuilder.andWhere('event.timestamp <= :endTime', { endTime });
     }
 
-    // Apply event type filters
     if (options.filterValues && options.filterValues.length > 0) {
-      queryBuilder.andWhere('event.type IN (:...types)', {
+      queryBuilder.andWhere('event.eventType IN (:...types)', {
         types: options.filterValues,
       });
     }
 
-    // Order and limit
     queryBuilder
       .orderBy('event.timestamp', 'DESC')
       .limit(options.minItems || 20);
@@ -135,14 +120,11 @@ export class GovernanceService {
     };
   }
 
-  /**
-   * Get DRep stats (voting power, delegators, etc.)
-   */
   async getDRepStats(voterId: string) {
     const drep = await this.governanceDataSource
-      .getRepository(DrepFrontendSnapshot)
+      .getRepository(Drep)
       .findOne({
-        where: { view: voterId },
+        where: { drepId: voterId },
       });
 
     if (!drep) {
@@ -151,7 +133,7 @@ export class GovernanceService {
 
     return {
       votingPower: parseFloat(drep.votingPowerAda),
-      liveStake: drep.liveStakeAda ? parseFloat(drep.liveStakeAda) : null,
+      liveStake: drep.votingPowerAda ? parseFloat(drep.votingPowerAda) : null,
       delegatorsCount: drep.delegationVoteCount,
       governanceVotesCount: drep.governanceVoteCount,
       isActive: drep.active,
@@ -160,14 +142,11 @@ export class GovernanceService {
     };
   }
 
-  /**
-   * Get single DRep by voter ID
-   */
   async getSingleDRep(voterId: string) {
     const drep = await this.governanceDataSource
-      .getRepository(DrepFrontendSnapshot)
+      .getRepository(Drep)
       .findOne({
-        where: { view: voterId },
+        where: { drepId: voterId },
       });
 
     return drep ? this.formatDRepForAPI(drep) : null;
@@ -186,24 +165,33 @@ export class GovernanceService {
     return sortMap[sort] || 'votingPowerAda';
   }
 
-  private formatDRepForAPI(drep: DrepFrontendSnapshot) {
+  private formatDRepForAPI(drep: Drep) {
     return {
-      drepId: drep.drepHashId,
-      view: drep.view,
-      chainId: drep.chainId,
-      cip129Id: drep.cip129Id,
+      drepId: drep.drepId,
+      view: drep.drepId,
+      chainId: drep.hex,
+      cip129Id: drep.drepId,
       hasScript: drep.hasScript,
-      type: drep.drepType,
+      type: drep.hasScript ? 'scripted' : 'drep',
       active: drep.active,
       retired: drep.retired,
-      votingPower: parseFloat(drep.votingPowerAda),
-      liveStake: drep.liveStakeAda ? parseFloat(drep.liveStakeAda) : null,
+      votingPower: drep.votingPowerAda ? parseFloat(drep.votingPowerAda) : 0,
+      voting_power: drep.votingPowerAda ? parseFloat(drep.votingPowerAda) : 0,
+      liveStake: drep.votingPowerAda ? parseFloat(drep.votingPowerAda) : null,
+      live_stake: drep.votingPowerAda ? parseFloat(drep.votingPowerAda) : null,
       delegatorsCount: drep.delegationVoteCount,
+      delegation_vote_count: drep.delegationVoteCount,
       votesCount: drep.governanceVoteCount,
+      governance_vote_count: drep.governanceVoteCount,
       givenName: drep.givenName,
+      given_name: drep.givenName,
       imageUrl: drep.imageUrl,
       metadataUrl: drep.metadataUrl,
-      stakeAddress: drep.stakeAddress,
+      paymentAddress: drep.paymentAddress,
+      objectives: drep.objectives,
+      motivations: drep.motivations,
+      qualifications: drep.qualifications,
+      references: drep.references,
       isClaimed: drep.isClaimed,
       voltaireDrepId: drep.voltaireDrepId,
       updatedAt: drep.updatedAt,
@@ -213,10 +201,17 @@ export class GovernanceService {
   private formatTimelineEventForAPI(event: DrepTimelineEvent) {
     return {
       id: event.id,
-      type: event.type,
+      eventType: event.eventType,
+      type: event.eventType, // Keep backward compatibility
       timestamp: event.timestamp.getTime(),
-      epochNo: event.epochNo,
-      payload: event.payload,
+      epoch: event.epoch,
+      epochNo: event.epoch, // Keep backward compatibility
+      slot: event.slot,
+      txHash: event.txHash,
+      blockHash: event.blockHash,
+      drepId: event.drepId,
+      metadata: event.metadata,
+      payload: event.metadata, // Keep backward compatibility
     };
   }
 }

@@ -16,10 +16,10 @@ import {
   verifySignatureWithSignedMessage,
 } from 'src/utils/cardano-utils';
 import { SignatureRepository } from 'src/repository/voltaire/signature.repository';
-import { OAuthRepository } from 'src/repository/voltaire/oauth.repository';
-import { DRepClaimJobData, JobTypes, Queues } from 'src/queue/queue.types';
-import { DRepRepository } from 'src/repository/voltaire/drep.repository';
+import { OAuthRepository } from 'src/repository/voltaire/oAuth.repository';
+import { DRepRepository } from 'src/repository/voltaire/dRep.repository';
 import { QueueService } from 'src/queue/queue.service';
+import { DRepClaimJobData, Queues, JobTypes } from 'src/queue/queue.types';
 
 @Injectable()
 export class AuthService {

@@ -18,20 +18,7 @@ export const AnimatedCounter = ({
   width,
   height,
 }: AnimatedCounterProps) => {
-  const spring = useSpring(0, { 
-    damping: 60, 
-    stiffness: 100,
-    duration: duration 
-  });
-  
-  const display = useTransform(spring, (current) =>
-    formatNumber(Math.round(current), format)
-  );
-
-  useEffect(() => {
-    spring.set(value);
-  }, [spring, value]);
-
+  // Move formatNumber function before it's used
   const formatNumber = (num: number, formatStr: string): string => {
     if (formatStr.includes('(,ddd)')) {
       const parts = num.toString().split('.');
@@ -49,6 +36,20 @@ export const AnimatedCounter = ({
     
     return num.toString();
   };
+
+  const spring = useSpring(0, { 
+    damping: 60, 
+    stiffness: 100,
+    duration: duration 
+  });
+  
+  const display = useTransform(spring, (current) =>
+    formatNumber(Math.round(current), format)
+  );
+
+  useEffect(() => {
+    spring.set(value);
+  }, [spring, value]);
 
   const style = {
     ...(width && { width: `${width}px` }),

@@ -53,6 +53,9 @@ export const GovActionVoteCard = ({ action }) => {
     setIsExpanded(!isExpanded);
   };
 
+  console.log({ action });
+  
+
   return (
     <tr className="transition-all hover:bg-gray-50">
       <td className="hidden whitespace-nowrap px-4 py-3 md:table-cell">

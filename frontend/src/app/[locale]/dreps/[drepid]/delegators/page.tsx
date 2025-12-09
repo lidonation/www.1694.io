@@ -3,7 +3,7 @@ import DRepDelegators from '@/components/atoms/DRepDelegators';
 import { Box } from '@mui/material';
 import { useParams } from 'next/navigation';
 
-const page = () => {
+const Page = () => {
   const { drepid } = useParams();
   return (
     <Box className="min-h-screen">
@@ -12,4 +12,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default Page;

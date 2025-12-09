@@ -2,10 +2,11 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { createNotificationDto } from 'src/dto/createNotificationDto';
 import { Signature } from 'src/entities/signatures.entity';
-import { CardanoRepository } from 'src/repository/cardano/cardano.repository';
 import { NotificationRepository } from 'src/repository/voltaire/notifications.repository';
 import { SignatureRepository } from 'src/repository/voltaire/signature.repository';
 import { SynctimeRepository } from 'src/repository/voltaire/synctime.repository';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 type NotificationEvent = //for reference
 
@@ -22,7 +23,8 @@ export class NotificationsService {
     private readonly notificationRepository: NotificationRepository,
     private readonly signatureRepository: SignatureRepository,
     private readonly synctimeRepository: SynctimeRepository,
-    private readonly cardanoRepository: CardanoRepository,
+    @InjectDataSource('default')
+    private readonly voltaireDb: DataSource,
   ) {}
 
   async getNotifications(ownerId: string) {
@@ -106,38 +108,57 @@ export class NotificationsService {
     lastSyncTime: Date,
   ) {
     try {
-      // Get all the events since the last signin
+      // Get all the events since the last sync
       const timeSinceLastSync = lastSyncTime || signature.lastSignedIn;
 
-      // Note_creation by drep delegated to
-      const delegatedTo = await this.cardanoRepository.getCurrentDelegation(
-        signature.stakeKey,
+      // Get current delegation for the user
+      const delegationData = await this.voltaireDb.query(
+        `SELECT dd.drep_id, d.given_name
+         FROM drep_delegators dd
+         LEFT JOIN dreps d ON d.drep_id = dd.drep_id
+         WHERE dd.stake_address = $1
+         ORDER BY dd.updated_at DESC
+         LIMIT 1`,
+        [signature.stakeKey]
       );
-      const votingActivity = await this.cardanoRepository.getDrepVotingActivity(
-        delegatedTo[0].drep_view,
-        timeSinceLastSync,
-        new Date(),
+
+      if (!delegationData || delegationData.length === 0) {
+        console.log('No delegation found for user');
+        return 'Done';
+      }
+
+      const delegatedTo = delegationData[0];
+      
+      // Get voting activity for the delegated DRep since last sync
+      const votingActivity = await this.voltaireDb.query(
+        `SELECT pv.*, p.title, p.type, p.created_at as proposal_created_at
+         FROM proposal_votes pv
+         LEFT JOIN proposals p ON p.id = pv.proposal_id
+         WHERE pv.voter = $1 AND pv.created_at > $2
+         ORDER BY pv.created_at DESC`,
+        [delegatedTo.drep_id, timeSinceLastSync]
       );
 
       for (const vote of votingActivity) {
         // Check if voter is the recipient, skip if so
-        if (signature.voterId === vote.view) {
+        if (signature.voterId === vote.voter) {
           continue;
         }
 
-        const timeVoted = new Date(vote.time_voted).getTime();
+        const timeVoted = new Date(vote.created_at).getTime();
         const notificationContent = this.newVoteOnProposalNotification(
           timeVoted,
-          delegatedTo[0].drep_view,
-          vote.vote,
+          delegatedTo.drep_id,
+          vote.vote
         );
 
         await this.createNotification(
           notificationContent,
           signature.id,
-          vote.time_voted,
+          vote.created_at,
         );
       }
+      
       return 'Done';
     } catch (error) {
       console.log('Error while processing vote notifications', error);
@@ -149,38 +170,43 @@ export class NotificationsService {
     drepId: string,
     note_creation_date: Date,
   ) {
-    // Get all the delegators of the drep
-    const drep = await this.cardanoRepository.getDrepByView(drepId);
-    const delegators = await this.cardanoRepository.getDrepDelegators(
-      drep[0].id,
-    );
-
-    for (const delegator of delegators) {
-      // Check those who have ever signed in
-      const signature = await this.signatureRepository.findByStakeKey(
-        delegator.view,
+    // Use enhanced delegators table
+    try {
+      const delegators = await this.voltaireDb.query(
+        'SELECT stake_address FROM drep_delegators WHERE drep_id = $1',
+        [drepId]
       );
-      if (!signature || signature?.voterId === drepId) {
-        continue;
-      }
 
-      // Check if delegator has signed in recently (2wks)
-      if (
-        new Date(signature.lastSignedIn).getTime() <
-        note_creation_date.getTime() - 14 * 24 * 60 * 60 * 1000
-      ) {
-        // Delegator has not signed in recently. Skipping to save resources
-        continue;
-      }
+      for (const delegator of delegators) {
+        // Check those who have ever signed in
+        const signature = await this.signatureRepository.findByStakeKey(
+          delegator.stake_address,
+        );
+        if (!signature || signature?.voterId === drepId) {
+          continue;
+        }
 
-      // Send notification to each delegator
-      const notificationContent = this.newNoteNotification(
-        note_creation_date.getTime(),
-        drepId,
-      );
-      await this.createNotification(notificationContent, signature.id);
+        // Check if delegator has signed in recently (2wks)
+        if (
+          new Date(signature.lastSignedIn).getTime() <
+          note_creation_date.getTime() - 14 * 24 * 60 * 60 * 1000
+        ) {
+          // Delegator has not signed in recently. Skipping to save resources
+          continue;
+        }
+
+        // Send notification to each delegator
+        const notificationContent = this.newNoteNotification(
+          note_creation_date.getTime(),
+          drepId,
+        );
+        await this.createNotification(notificationContent, signature.id);
+      }
+      return 'Done';
+    } catch (error) {
+      console.log('Error processing note notifications:', error);
+      return 'Done';
     }
-    return 'Done';
   }
 
   // Notification templates (unchanged)

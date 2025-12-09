@@ -4,10 +4,10 @@ import DRepTableSearch from '@/components/atoms/DRepTableSearch';
 import BreadCrumbs from '@/components/molecules/BreadCrumbs';
 import DRepsTable from '@/components/molecules/DRepsTable';
 import DRepFilterChips from '@/components/atoms/DRepFilterChips';
-import React from 'react';
+import React, { use } from 'react';
 
 type PageProps = {
-  searchParams?: {
+  searchParams: Promise<{
     s?: string;
     page?: string;
     sort?: string;
@@ -16,17 +16,18 @@ type PageProps = {
     include_retired?: string;
     campaign?: string;
     type?: string;
-  };
+  }>;
 };
 const page = ({ searchParams }: PageProps) => {
-  const query = searchParams?.s || '';
-  const page = Number(searchParams?.page) || 1;
-  const sort = searchParams?.sort || null;
-  const order = searchParams?.order || null;
-  const onChainStatus = searchParams?.on_chain || null;
-  const includeRetired = searchParams?.include_retired || null;
-  const campaignStatus = searchParams?.campaign || null;
-  const type = searchParams?.type || null;
+  const params = use(searchParams);
+  const query = params?.s || '';
+  const page = Number(params?.page) || 1;
+  const sort = params?.sort || null;
+  const order = params?.order || null;
+  const onChainStatus = params?.on_chain || null;
+  const includeRetired = params?.include_retired || null;
+  const campaignStatus = params?.campaign || null;
+  const type = params?.type || null;
 
   return (
     <div>

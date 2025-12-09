@@ -54,34 +54,43 @@ export class AddGovernanceIndexerTables1764661679000 implements MigrationInterfa
         await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_drep_snapshot_delegators ON drep_frontend_snapshot(delegation_vote_count DESC)`);
         await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_drep_snapshot_votes ON drep_frontend_snapshot(governance_vote_count DESC)`);
 
-        // Create drep_timeline_event table
+        // Create unified drep_timeline_event table
         await queryRunner.query(`
             CREATE TABLE IF NOT EXISTS drep_timeline_event (
-                id             BIGSERIAL PRIMARY KEY,
-
-                -- DRep identity
-                drep_view      TEXT        NOT NULL,     -- same string the frontend uses as :drepid
-                drep_hash_id   BIGINT,                  -- optional FK to drep_frontend_snapshot.drep_hash_id
-
+                id BIGSERIAL PRIMARY KEY,
+                
                 -- Event classification
-                type           TEXT        NOT NULL,     -- 'epoch' | 'voting_activity' | 'delegation' | 'note' | 'registration' | 'claimed_profile'
-
-                -- Ordering / filtering
-                timestamp      TIMESTAMPTZ NOT NULL,    -- canonical event time
-                epoch_no       INTEGER,                 -- convenience for epoch-based queries
-
-                -- Type-specific data, already shaped for the frontend
-                payload        JSONB       NOT NULL,
-
-                created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
+                event_type TEXT NOT NULL, -- 'registration', 'retirement', 'delegation', 'proposal', 'vote'
+                
+                -- Temporal data
+                timestamp TIMESTAMPTZ NOT NULL,
+                epoch INTEGER NOT NULL,
+                slot BIGINT NOT NULL,
+                
+                -- Transaction context
+                tx_hash TEXT NOT NULL,
+                block_hash TEXT, -- Optional: for deeper chain tracking
+                
+                -- DRep identifier (nullable for non-DRep events like proposals)
+                drep_id TEXT,
+                
+                -- Flexible metadata storage - structure varies by event_type
+                -- See schema documentation for detailed structure by event_type
+                metadata JSONB NOT NULL,
+                
+                -- Bookkeeping
+                created_at TIMESTAMPTZ NOT NULL DEFAULT now()
             )
         `);
 
         // Create indexes for drep_timeline_event
-        await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_timeline_drep_ts ON drep_timeline_event (drep_view, timestamp DESC)`);
-        await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_timeline_type ON drep_timeline_event (type)`);
-        await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_timeline_epoch ON drep_timeline_event (epoch_no)`);
-        await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_drep_timeline_payload ON drep_timeline_event USING GIN (payload)`);
+        await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_drep_timeline_type ON drep_timeline_event(event_type)`);
+        await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_drep_timeline_timestamp ON drep_timeline_event(timestamp DESC)`);
+        await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_drep_timeline_epoch ON drep_timeline_event(epoch)`);
+        await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_drep_timeline_tx_hash ON drep_timeline_event(tx_hash)`);
+        await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_drep_timeline_drep_id ON drep_timeline_event(drep_id) WHERE drep_id IS NOT NULL`);
+        await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_drep_timeline_drep_timeline ON drep_timeline_event(drep_id, timestamp DESC) WHERE drep_id IS NOT NULL`);
+        await queryRunner.query(`CREATE INDEX IF NOT EXISTS idx_drep_timeline_metadata ON drep_timeline_event USING GIN (metadata)`);
 
         // Create governance_action table
         await queryRunner.query(`

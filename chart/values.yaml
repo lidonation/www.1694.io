@@ -108,3 +108,23 @@ frontend:
   ingress:
     path: /
     tls:
+
+governanceIndexer:
+  replicaCount: 1
+  labels:
+    service: governance-indexer
+  image:
+    repository: registry.lidonation.com/voltaire/www.1694.io/1694.io-governance-indexer
+  databaseUrl: "postgres://voltaire:postgres@postgresql:5432/1694"
+  relayAddress: "backbone.mainnet.emurgornd.com:3001"
+  networkMagic: "764824073"
+  maxConcurrentWorkers: "8"
+  batchSize: "100"
+  rustLog: "info"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 1024Mi
+      cpu: 500m

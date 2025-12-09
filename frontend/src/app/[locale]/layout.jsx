@@ -1,5 +1,5 @@
 import { locales } from '@/constants';
-import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
+import { AppRouterCacheProvider } from '@mui/material-nextjs/v13-appRouter';
 import { AppContextProvider } from '@/context/context';
 import { NextIntlClientProvider } from 'next-intl';
 import { unstable_setRequestLocale } from 'next-intl/server';

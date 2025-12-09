@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ $.Chart.Name }}-governance-indexer"
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: "governance-indexer"
+    service: "{{ .Values.governanceIndexer.labels.service }}"
+spec:
+  selector:
+    matchLabels:
+      app: "governance-indexer"
+      service: "{{ .Values.governanceIndexer.labels.service }}"
+  replicas: {{ .Values.governanceIndexer.replicaCount }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: "governance-indexer"
+        service: "{{ .Values.governanceIndexer.labels.service }}"
+    spec:
+      imagePullSecrets:
+        - name: {{ .Values.image.pullSecret }}
+      containers:
+        - name: indexer
+          image: "{{ .Values.governanceIndexer.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: DATABASE_URL
+              value: "{{ .Values.governanceIndexer.databaseUrl }}"
+            - name: RELAY_ADDRESS
+              value: "{{ .Values.governanceIndexer.relayAddress }}"
+            - name: NETWORK_MAGIC
+              value: "{{ .Values.governanceIndexer.networkMagic }}"
+            - name: MAX_CONCURRENT_WORKERS
+              value: "{{ .Values.governanceIndexer.maxConcurrentWorkers }}"
+            - name: BATCH_SIZE
+              value: "{{ .Values.governanceIndexer.batchSize }}"
+            - name: RUST_LOG
+              value: "{{ .Values.governanceIndexer.rustLog }}"
+          resources:
+            limits:
+              memory: {{ .Values.governanceIndexer.resources.limits.memory }}
+              cpu: {{ .Values.governanceIndexer.resources.limits.cpu }}
+            requests:
+              cpu: {{ .Values.governanceIndexer.resources.requests.cpu }}
+              memory: {{ .Values.governanceIndexer.resources.requests.memory }}
+      restartPolicy: Always

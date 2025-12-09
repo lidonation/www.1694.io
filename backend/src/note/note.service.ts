@@ -3,7 +3,7 @@ import { Delegation } from 'src/common/types';
 import { createNoteDto } from 'src/dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
 import { CommentRepository } from 'src/repository/voltaire/comment.repository';
-import { DRepRepository } from 'src/repository/voltaire/drep.repository';
+import { DRepRepository } from 'src/repository/voltaire/dRep.repository';
 import { NoteRepository } from 'src/repository/voltaire/note.repository';
 import { ReactionRepository } from 'src/repository/voltaire/reactions.repository';
 import { SignatureRepository } from 'src/repository/voltaire/signature.repository';

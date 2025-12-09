@@ -159,10 +159,7 @@ const DRepsTable = ({
                               size="small"
                               onClick={() =>
                                 handleCopyText(
-                                  convertHexToCIP129(
-                                    drep?.has_script,
-                                    drep?.chain_id,
-                                  ),
+                                  drep?.view,
                                   addSuccessAlert,
                                 )
                               }
@@ -173,18 +170,12 @@ const DRepsTable = ({
                         </Tooltip>
 
                         <Link
-                          href={`/dreps/${convertHexToCIP129(
-                            drep?.has_script,
-                            drep?.chain_id,
-                          )}`}
+                          href={`/dreps/${drep?.view}`}
                           prefetch={false}
                         >
                           <p className="hover:font-semibold">
                             {convertString(
-                              convertHexToCIP129(
-                                drep?.has_script,
-                                drep?.chain_id,
-                              ),
+                              drep?.view,
                               isMobile,
                             )}
                           </p>
@@ -193,20 +184,32 @@ const DRepsTable = ({
                     )}
 
                     <Box className="w-30 flex flex-row items-center gap-1.5">
-                      {drep.given_name !== null && (
+                      {drep.given_name && drep.given_name.trim() ? (
                         <Tooltip title="DRep given name">
                           <Link
                             className="inline-flex"
-                            href={`/dreps/${convertHexToCIP129(
-                              drep?.has_script,
-                              drep?.chain_id,
-                            )}`}
+                            href={`/dreps/${drep?.view}`}
                             prefetch={false}
                           >
                             <span className="inline-block rounded-xl border border-black px-1.5 py-0.5 text-xs font-black text-black">
                               {drep.given_name.length > 25
                                 ? `${drep.given_name.slice(0, 25)}...`
                                 : drep.given_name}
+                            </span>
+                          </Link>
+                        </Tooltip>
+                      ) : (
+                        <Tooltip title="DRep ID (no given name)">
+                          <Link
+                            className="inline-flex"
+                            href={`/dreps/${drep?.view}`}
+                            prefetch={false}
+                          >
+                            <span className="inline-block rounded-xl border border-gray-400 bg-gray-50 px-1.5 py-0.5 text-xs font-medium text-gray-600">
+                              {convertString(
+                                drep?.view,
+                                true
+                              )}
                             </span>
                           </Link>
                         </Tooltip>

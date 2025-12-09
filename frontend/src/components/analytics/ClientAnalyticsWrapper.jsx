@@ -16,8 +16,8 @@ const FathomClientScriptLoader = dynamic(
 export default function ClientAnalyticsWrapper() {
   return (
     <>
-      <SprigClientScriptLoader />
-      <FathomClientScriptLoader />
+      {/* <SprigClientScriptLoader />
+      <FathomClientScriptLoader /> */}
     </>
   );
 }

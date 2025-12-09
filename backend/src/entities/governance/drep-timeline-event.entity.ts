@@ -1,30 +1,39 @@
 import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm';
 
 @Entity('drep_timeline_event')
-@Index('idx_timeline_drep_ts', ['drepView', 'timestamp'])
-@Index('idx_timeline_type', ['type'])
-@Index('idx_timeline_epoch', ['epochNo'])
+@Index('idx_drep_timeline_type', ['eventType'])
+@Index('idx_drep_timeline_timestamp', ['timestamp'])
+@Index('idx_drep_timeline_epoch', ['epoch'])
+@Index('idx_drep_timeline_tx_hash', ['txHash'])
+@Index('idx_drep_timeline_drep_id', ['drepId'])
+@Index('idx_drep_timeline_drep_timeline', ['drepId', 'timestamp'])
 export class DrepTimelineEvent {
   @PrimaryGeneratedColumn({ name: 'id', type: 'bigint' })
   id: string;
 
-  @Column({ name: 'drep_view', type: 'text' })
-  drepView: string;
-
-  @Column({ name: 'drep_hash_id', type: 'bigint', nullable: true })
-  drepHashId: string | null;
-
-  @Column({ name: 'type', type: 'text' })
-  type: 'epoch' | 'voting_activity' | 'delegation' | 'note' | 'registration' | 'claimed_profile';
+  @Column({ name: 'event_type', type: 'text' })
+  eventType: 'registration' | 'retirement' | 'delegation' | 'proposal' | 'vote';
 
   @Column({ name: 'timestamp', type: 'timestamptz' })
   timestamp: Date;
 
-  @Column({ name: 'epoch_no', type: 'integer', nullable: true })
-  epochNo: number | null;
+  @Column({ name: 'epoch', type: 'integer' })
+  epoch: number;
 
-  @Column({ name: 'payload', type: 'jsonb' })
-  payload: any;
+  @Column({ name: 'slot', type: 'bigint' })
+  slot: string;
+
+  @Column({ name: 'tx_hash', type: 'text' })
+  txHash: string;
+
+  @Column({ name: 'block_hash', type: 'text', nullable: true })
+  blockHash: string | null;
+
+  @Column({ name: 'drep_id', type: 'text', nullable: true })
+  drepId: string | null;
+
+  @Column({ name: 'metadata', type: 'jsonb' })
+  metadata: any;
 
   @Column({ name: 'created_at', type: 'timestamptz', default: () => 'now()' })
   createdAt: Date;
