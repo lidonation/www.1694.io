@@ -379,6 +379,8 @@ production:
         --set backend.replicaCount=5 \
         --set frontend.replicaCount=5 \
         --set queue.replicaCount=2 \
+        --set governanceIndexer.replicaCount=1 \
+        --set governanceIndexer.databaseUrl="$GOVERNANCE_INDEXER_DATABASE_URL" \
         --set secrets.NEXT_PUBLIC_GOOGLE_API="$NEXT_PUBLIC_GOOGLE_API" \
         --set ingress.hosts[0]="$AUTO_DEVOPS_WEB_DOMAIN" \
         --set namespace=$KUBE_NAMESPACE \
