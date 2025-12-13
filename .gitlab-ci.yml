@@ -259,17 +259,14 @@ app-preview:
       set -xev
 
       DEPLOYMENT_NAME="www-1694.$CI_ENVIRONMENT_SLUG"    
-      cp $ENV_FILE backend/.env.production
       cat $ENV_FILE_BACKEND > backend/.env.production
       cat $ENV_FILE_FRONTEND > frontend/.env.production
       cp backend/.env.production ./chart/backend_env
 
-      cp $ENV_FILE frontend/.env.production
       cat $ENV_FILE_FRONTEND > frontend/.env.production
       cp frontend/.env.production ./chart/frontend_env
       cp $ENV_FILE_FRONTEND ./chart/frontend_env
 
-      cp $ENV_FILE queue-backend/.env.production
       cat $ENV_FILE_QUEUE > queue-backend/.env.production
       cp frontend/.env.production ./chart/frontend_env
       cp $ENV_FILE_QUEUE ./chart/queue_env
@@ -295,6 +292,8 @@ app-preview:
         --set backend.replicaCount=1 \
         --set frontend.replicaCount=1 \
         --set queue.replicaCount=1 \
+        --set governanceIndexer.replicaCount=1 \
+        --set governanceIndexer.databaseUrl="$GOVERNANCE_INDEXER_DATABASE_URL" \
         --set secrets.NEXT_PUBLIC_GOOGLE_API="$NEXT_PUBLIC_GOOGLE_API" \
         --set ingress.hosts[0]="$AUTO_DEVOPS_WEB_DOMAIN" \
         --set namespace=$KUBE_NAMESPACE \
@@ -353,17 +352,14 @@ production:
     - |
       DEPLOYMENT_NAME="www-1694.$CI_ENVIRONMENT_SLUG"
 
-      cp $ENV_FILE backend/.env.production
       cat $ENV_FILE_BACKEND > backend/.env.production
       cat $ENV_FILE_FRONTEND > frontend/.env.production
       cp backend/.env.production ./chart/backend_env
 
-      cp $ENV_FILE frontend/.env.production
       cat $ENV_FILE_FRONTEND > frontend/.env.production
       cp frontend/.env.production ./chart/frontend_env
       cp $ENV_FILE_FRONTEND ./chart/frontend_env
 
-      cp $ENV_FILE queue-backend/.env.production
       cat $ENV_FILE_QUEUE > queue-backend/.env.production
       cp $ENV_FILE_QUEUE ./chart/queue_env
 
@@ -377,6 +373,8 @@ production:
         --set backend.replicaCount=5 \
         --set frontend.replicaCount=5 \
         --set queue.replicaCount=2 \
+        --set governanceIndexer.replicaCount=1 \
+        --set governanceIndexer.databaseUrl="$GOVERNANCE_INDEXER_DATABASE_URL" \
         --set secrets.NEXT_PUBLIC_GOOGLE_API="$NEXT_PUBLIC_GOOGLE_API" \
         --set ingress.hosts[0]="$AUTO_DEVOPS_WEB_DOMAIN" \
         --set namespace=$KUBE_NAMESPACE \
