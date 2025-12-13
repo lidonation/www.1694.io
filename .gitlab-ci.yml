@@ -5,7 +5,6 @@ variables:
   DOCKER_HOST: tcp://docker:2375/
   DOCKER_DRIVER: overlay2
   HELM_VERSION: 3.10.2
-  # KUBE_CONTEXT: voltaire/www.1694.io:1694
   KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: gitlab-admin
   KUBERNETES_VERSION: 1.24.9
   DEPLOY_CARDANO_DBSYNC:
@@ -45,13 +44,6 @@ services:
 .auto-deploy:
   image: "${CI_TEMPLATE_REGISTRY_HOST}/gitlab-org/cluster-integration/auto-deploy-image:${AUTO_DEPLOY_IMAGE_VERSION}"
   dependencies: []
-
-.setup: &setup
-  - apk add --no-cache ca-certificates curl bash openssl git
-  - curl -LO https://dl.k8s.io/release/v1.25.9/bin/linux/amd64/kubectl && chmod +x kubectl && mv kubectl /usr/local/bin/kubectl
-  - curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 && chmod 700 get_helm.sh && DESIRED_VERSION=v$HELM_VERSION ./get_helm.sh
-  - kubectl config get-contexts
-  - kubectl config use-context voltaire/www.1694.io:1694
 
 .infra_rules: &infra_rules
   - if: '$CI_COMMIT_BRANCH == "main" &&
@@ -143,7 +135,6 @@ build_frontend:
   image: docker:24.0.2-git
   retry: 1
   script:
-    - *setup
     - |
       set -xev
       cp $ENV_FILE_NEXT_PUBLIC_TEMPLATE frontend/.env.production
@@ -164,7 +155,6 @@ build_backend:
   image: docker:24.0.2-git
   retry: 1
   script:
-    - *setup
     - |
       set -xev
 
@@ -189,7 +179,6 @@ build_queue_backend:
   image: docker:24.0.2-git
   retry: 1
   script:
-    - *setup
     - |
       set -xev
 
@@ -211,14 +200,12 @@ build_queue_backend:
 .deploy_postgres_web: &deploy_postgres_web
   <<: *deploy_template
   script:
-    - *setup
     - *deploy_postgres_web_script
   rules: *infra_rules
 
 .deploy_postgres_dbsync: &deploy_postgres_dbsync
   <<: *deploy_template
   script:
-    - *setup
     - *deploy_postgres_dbsync_script
   rules: *infra_rules
 
@@ -250,7 +237,6 @@ app-preview:
   image: "${CI_TEMPLATE_REGISTRY_HOST}/gitlab-org/cluster-integration/auto-deploy-image:${AUTO_DEPLOY_IMAGE_VERSION}"
   stage: preview
   script:
-    - *setup
     - auto-deploy check_kube_domain
     - auto-deploy download_chart
     - auto-deploy create_secret
