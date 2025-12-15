@@ -13,6 +13,9 @@ metadata:
     {{- end }}
       traefik.ingress.kubernetes.io/router.middlewares: "traefik-redirect-http-to-https@kubernetescrd,traefik-default-headers@kubernetescrd"
 spec:
+  {{- if .Values.ingress.ingressClassName }}
+  ingressClassName: {{ .Values.ingress.ingressClassName }}
+  {{- end }}
   tls:
   {{- range .Values.ingress.tls }}
   - hosts:
