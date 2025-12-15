@@ -23,7 +23,7 @@ secrets:
   NEXT_PUBLIC_GOOGLE_API:
 
 image:
-  repository: registry.lidonation.com/voltaire/www.1694.io
+  repository: registry.2lovelaces.io/voltaire/www.1694.io
   tag: stable
   pullPolicy: IfNotPresent
   pullSecret: '1694-registry-deploy-token'
@@ -83,7 +83,7 @@ backend:
   labels:
     service: backend
   image:
-    repository: registry.lidonation.com/voltaire/www.1694.io/1694.io-backend
+    repository: registry.2lovelaces.io/voltaire/www.1694.io/1694.io-backend
   ingress:
     path: /api
     tls:
@@ -93,7 +93,7 @@ queue:
   labels:
     service: queue
   image:
-    repository: registry.lidonation.com/voltaire/www.1694.io/1694.io-queue-backend
+    repository: registry.2lovelaces.io/voltaire/www.1694.io/1694.io-queue-backend
   ingress:
     path: /api
     tls:
@@ -104,7 +104,7 @@ frontend:
   labels:
     service: frontend
   image:
-      repository: registry.lidonation.com/voltaire/www.1694.io/1694.io-frontend
+      repository: registry.2lovelaces.io/voltaire/www.1694.io/1694.io-frontend
   ingress:
     path: /
     tls:
@@ -114,7 +114,7 @@ governanceIndexer:
   labels:
     service: governance-indexer
   image:
-    repository: registry.lidonation.com/voltaire/www.1694.io/1694.io-governance-indexer
+    repository: registry.2lovelaces.io/voltaire/www.1694.io/governance-indexer
   databaseUrl: "postgres://voltaire:postgres@postgresql:5432/1694"
   relayAddress: "backbone.mainnet.emurgornd.com:3001"
   networkMagic: "764824073"
