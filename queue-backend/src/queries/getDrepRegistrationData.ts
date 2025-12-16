@@ -35,4 +35,4 @@ SELECT
     ldr.retired
 FROM drep_hash dh
 INNER JOIN latest_drep_registrations ldr ON dh.id = ldr.drep_hash_id;
-`
+`;

@@ -1,19 +1,19 @@
-import { Processor, WorkerHost } from '@nestjs/bullmq';
-import { Job } from 'bullmq';
+import { Processor, WorkerHost } from "@nestjs/bullmq";
+import { Job } from "bullmq";
 import {
   createDrepDto,
   DRepClaimJobData,
   DRepClaimJobResponse,
   Queues,
-} from '../queue.types';
-import { InjectDataSource } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
-import { Drep } from '../entities/governance/drep.entity';
+} from "../queue.types";
+import { InjectDataSource } from "@nestjs/typeorm";
+import { DataSource } from "typeorm";
+import { Drep } from "../entities/drep.entity";
 
 @Processor(Queues.DREP_CLAIM, { concurrency: 10 })
 export class DrepClaimWorker extends WorkerHost {
   constructor(
-    @InjectDataSource('default')
+    @InjectDataSource("default")
     private voltaireService: DataSource,
   ) {
     super();
@@ -24,15 +24,19 @@ export class DrepClaimWorker extends WorkerHost {
   ) {
     try {
       const { stakeKey } = job.data;
-      
+
       const registeredDrep = await this.voltaireService
         .getRepository(Drep)
-        .createQueryBuilder('drep')
-        .leftJoin('drep_delegators', 'delegator', 'delegator.drepId = drep.drepId')
-        .where('delegator.stakeAddress = :stakeKey', { stakeKey })
-        .orWhere('drep.paymentAddress = :stakeKey', { stakeKey })
-        .andWhere('drep.active = true')
-        .andWhere('drep.retired = false')
+        .createQueryBuilder("drep")
+        .leftJoin(
+          "drep_delegators",
+          "delegator",
+          "delegator.drepId = drep.drepId",
+        )
+        .where("delegator.stakeAddress = :stakeKey", { stakeKey })
+        .orWhere("drep.paymentAddress = :stakeKey", { stakeKey })
+        .andWhere("drep.active = true")
+        .andWhere("drep.retired = false")
         .getOne();
 
       if (!registeredDrep) {
@@ -64,7 +68,6 @@ export class DrepClaimWorker extends WorkerHost {
         view: drepClaimResponse.view,
         drepId: drepClaimResponse.drepId,
       };
-
     } catch (error) {
       console.error(`Error processing job ${job.id}:`, error);
       throw error;
@@ -76,10 +79,10 @@ export class DrepClaimWorker extends WorkerHost {
     const { stakeKey, isRegistered, retired, view } = claimDto;
 
     if (!isRegistered) {
-      console.warn('Unable to auto-claim DRep, not registered');
+      console.warn("Unable to auto-claim DRep, not registered");
       return {
         success: false,
-        message: 'DRep is not registered, auto-claim failed.',
+        message: "DRep is not registered, auto-claim failed.",
         isRegistered: false,
         stakeKey,
         view,
@@ -87,10 +90,10 @@ export class DrepClaimWorker extends WorkerHost {
     }
 
     if (retired) {
-      console.warn('Unable to auto-claim DRep, retired');
+      console.warn("Unable to auto-claim DRep, retired");
       return {
         success: false,
-        message: 'DRep is retired, auto-claim failed.',
+        message: "DRep is retired, auto-claim failed.",
         isRegistered: true,
         stakeKey,
         view,
@@ -99,17 +102,17 @@ export class DrepClaimWorker extends WorkerHost {
 
     const existingDrep = await this.voltaireService
       .createQueryBuilder()
-      .select(['drep.*', 'signature.*'])
-      .from('drep', 'drep')
-      .leftJoin('signature', 'signature', 'signature."drepId" = drep.id')
+      .select(["drep.*", "signature.*"])
+      .from("drep", "drep")
+      .leftJoin("signature", "signature", 'signature."drepId" = drep.id')
       .where('signature."stakeKey" = :stakeKey', { stakeKey })
       .getRawOne();
 
     if (existingDrep) {
-      console.warn('DRep already exists for this stake key');
+      console.warn("DRep already exists for this stake key");
       return {
         success: false,
-        message: 'DRep already exists for this stake key.',
+        message: "DRep already exists for this stake key.",
         isRegistered: true,
         stakeKey,
         view: existingDrep.drep_bech32,
@@ -124,7 +127,7 @@ export class DrepClaimWorker extends WorkerHost {
         {
           key: claimDto.signatureKey as string,
           signature: claimDto.signature as string,
-          type: 'drep',
+          type: "drep",
         },
       ],
     };
@@ -133,18 +136,18 @@ export class DrepClaimWorker extends WorkerHost {
       const { insertedDrep, insertedSig } = await this.registerDrep(drepDto);
       return {
         success: true,
-        message: 'DRep auto-claimed successfully.',
+        message: "DRep auto-claimed successfully.",
         isRegistered: true,
         view: insertedSig?.drep_bech32,
         stakeKey: insertedSig?.stakeKey,
         drepId: insertedDrep?.id,
       };
     } catch (error) {
-      console.error('DRep registration failed:', error);
+      console.error("DRep registration failed:", error);
       return {
         success: false,
-        message: 'Failed to register DRep due to database error',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        message: "Failed to register DRep due to database error",
+        error: error instanceof Error ? error.message : "Unknown error",
       };
     }
   }
@@ -154,9 +157,9 @@ export class DrepClaimWorker extends WorkerHost {
       const insertedDrep = await manager
         .createQueryBuilder()
         .insert()
-        .into('drep')
+        .into("drep")
         .values({})
-        .returning('id')
+        .returning("id")
         .execute();
 
       const drepId = insertedDrep.raw[0].id;
@@ -173,9 +176,9 @@ export class DrepClaimWorker extends WorkerHost {
 
       const existingSig = await manager
         .createQueryBuilder()
-        .select(['signature.*', 'drep.id as drep_id'])
-        .from('signature', 'signature')
-        .leftJoin('drep', 'drep', 'drep.id = signature."drepId"')
+        .select(["signature.*", "drep.id as drep_id"])
+        .from("signature", "signature")
+        .leftJoin("drep", "drep", 'drep.id = signature."drepId"')
         .where('signature."stakeKey" = :stakeKey', {
           stakeKey: signatureDto.stakeKey,
         })
@@ -190,23 +193,23 @@ export class DrepClaimWorker extends WorkerHost {
         if (!existingSig.drep_id) {
           const updatedSig = await manager
             .createQueryBuilder()
-            .update('signature')
+            .update("signature")
             .set({
               drepId: drepId,
               voterId: signatureDto.voterId,
               drep_bech32: signatureDto.drep_bech32,
             })
-            .where('id = :id', { id: existingSig.id })
+            .where("id = :id", { id: existingSig.id })
             .returning([
-              'id',
-              'drep_bech32',
-              'signature',
-              'signatureKey',
-              'lastSignedIn',
-              'type',
-              'stakeKey',
-              'voterId',
-              'drepId',
+              "id",
+              "drep_bech32",
+              "signature",
+              "signatureKey",
+              "lastSignedIn",
+              "type",
+              "stakeKey",
+              "voterId",
+              "drepId",
             ])
             .execute();
 
@@ -218,18 +221,18 @@ export class DrepClaimWorker extends WorkerHost {
         const insertedSig = await manager
           .createQueryBuilder()
           .insert()
-          .into('signature')
+          .into("signature")
           .values({
             stakeKey: signatureDto.stakeKey,
             signature: signatureDto.signature,
             signatureKey: signatureDto.signatureKey,
             drepId: drepId,
             voterId: signatureDto.voterId,
-            drep_bech32: signatureDto.drep_bech32 || '',
+            drep_bech32: signatureDto.drep_bech32 || "",
             type: signatureDto.type,
             lastSignedIn: new Date(),
           })
-          .returning('*')
+          .returning("*")
           .execute();
 
         resultSig = insertedSig.raw[0];

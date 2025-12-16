@@ -1,5 +1,5 @@
 export enum Queues {
-  DREP_CLAIM = 'drep-claim',
+  DREP_CLAIM = "drep-claim",
 }
 
 export type DRepClaimJobData = {
@@ -8,7 +8,7 @@ export type DRepClaimJobData = {
   signatureKey: string;
 };
 
-export type DRepClaimJobResponse ={
+export type DRepClaimJobResponse = {
   success: boolean;
   message: string;
   isRegistered?: boolean;
@@ -18,8 +18,7 @@ export type DRepClaimJobResponse ={
   view?: string;
   deposit?: string;
   retired?: boolean;
-}
-
+};
 
 export class createDrepDto {
   stake_addr?: string;
@@ -28,6 +27,6 @@ export class createDrepDto {
   signatures: {
     signature: string;
     key: string;
-    type: 'drep' | 'signer'
+    type: "drep" | "signer";
   }[];
 }
