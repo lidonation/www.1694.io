@@ -506,15 +506,20 @@ export class DrepService {
     maxRecursionDepth = 3,
     loadDirection = 'older',
   }): Observable<TimelineResponse> {
-    // Use optimized governance indexer timeline
-    return from(this.getOptimizedDrepTimeline({
-      voterId,
+    // Use governance indexer timeline with proper event type mapping
+    return from(this.governanceService.getDRepTimeline(voterId, {
       startTimeCursor: Number(startTimeCursor),
       endTimeCursor: Number(endTimeCursor),
       filterValues,
       minItems,
-      loadDirection
-    }));
+      loadDirection: loadDirection as 'older' | 'newer'
+    })).pipe(
+      map(result => ({
+        appliedStartTime: startTimeCursor || Date.now(),
+        appliedEndTime: endTimeCursor || Date.now(),
+        entries: result.events
+      }))
+    );
   }
 
   async getOptimizedDrepTimeline({
@@ -754,8 +759,6 @@ export class DrepService {
         startingTime,
         endingTime,
       ),
-    ).pipe(
-      map((data) => data.map((item) => ({ ...item, type: 'voting_activity' }))),
     );
   }
 
@@ -887,6 +890,7 @@ export class DrepService {
       order,
     );
   }
+
 
   async updateDrepInfo(drepId: number, drep: createDrepDto) {
     const foundDrep = await this.drepRepository.findById(drepId);

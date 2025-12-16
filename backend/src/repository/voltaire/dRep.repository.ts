@@ -5,8 +5,10 @@ import { Drep as VoltaireDrep } from 'src/entities/drep.entity';
 import { Signature } from 'src/entities/signatures.entity';
 import { Drep } from 'src/entities/governance/drep.entity';
 import { DrepDelegator } from 'src/entities/governance/drep-delegator.entity';
+import { DrepTimelineEvent } from 'src/entities/governance/drep-timeline-event.entity';
 import { Proposal } from 'src/entities/governance/proposal.entity';
 import { ProposalVote } from 'src/entities/governance/proposal-vote.entity';
+import { BlockfrostService } from 'src/blockfrost/blockfrost.service';
 
 interface GetAllDRepsParams {
   query?: string;
@@ -26,6 +28,7 @@ export class DRepRepository extends Repository<VoltaireDrep> {
   constructor(
     @InjectDataSource('default')
     private readonly voltaireDb: DataSource,
+    private readonly blockfrostService: BlockfrostService,
   ) {
     super(VoltaireDrep, voltaireDb.createEntityManager());
   }
@@ -206,7 +209,7 @@ export class DRepRepository extends Repository<VoltaireDrep> {
       has_script: drep.hasScript,
       active: drep.active,
       retired: drep.retired,
-      tx_hash: null, // Not available in Blockfrost data
+      tx_hash: null,
       last_register_time: drep.updatedAt,
       given_name: drep.givenName,
       image_url: drep.imageUrl,
@@ -222,7 +225,6 @@ export class DRepRepository extends Repository<VoltaireDrep> {
   }
 
   async getDrepDetails(drepVoterId: string) {
-    // Use enhanced dreps table data instead of dbsync
     const drepData = await this.voltaireDb
       .getRepository(Drep)
       .findOne({ where: { drepId: drepVoterId } });
@@ -249,21 +251,19 @@ export class DRepRepository extends Repository<VoltaireDrep> {
   }
 
   async getDrepDateOfRegistration(drepVoterId: string) {
-    // Return created date from enhanced table
     const drepData = await this.voltaireDb
       .getRepository(Drep)
       .findOne({ where: { drepId: drepVoterId } });
     
     return [{ 
-      drep_hash_id: 0, // Not available in enhanced table
-      reg_tx_hash: '', // Not available in enhanced table
+      drep_hash_id: 0,
+      reg_tx_hash: '',
       date_of_registration: drepData?.createdAt || null,
-      epoch_of_registration: 0 // Not available in enhanced table
+      epoch_of_registration: 0
     }];
   }
 
   async getEpochs(startingTime: Date, endingTime: Date) {
-    // Return empty array since epoch data is not critical for current functionality
     return [];
   }
 
@@ -272,13 +272,40 @@ export class DRepRepository extends Repository<VoltaireDrep> {
     startingTime: Date,
     endingTime: Date,
   ) {
-    // Return empty array - timeline data should use drep_timeline_event table
-    return [];
+    const votingEvents = await this.voltaireDb
+      .getRepository(DrepTimelineEvent)
+      .createQueryBuilder('event')
+      .where('event.drepId = :drepId', { drepId: drepVoterId })
+      .andWhere('event.eventType = :eventType', { eventType: 'vote' })
+      .andWhere('event.timestamp >= :startTime', { startTime: startingTime })
+      .andWhere('event.timestamp <= :endTime', { endTime: endingTime })
+      .orderBy('event.timestamp', 'DESC')
+      .getMany();
+
+    return votingEvents.map(event => ({
+      view: drepVoterId,
+      gov_action_proposal_id: event.metadata?.gov_action_proposal_id || event.metadata?.proposalId || 'unknown',
+      prop_inception: event.timestamp,
+      type: 'voting_activity',
+      description: event.metadata?.description || 'Voting activity',
+      voting_anchor_id: event.metadata?.voting_anchor_id || 'unknown',
+      vote: event.metadata?.vote || 'unknown',
+      metadata: event.metadata || {},
+      time_voted: event.timestamp,
+      proposal_epoch: event.epoch,
+      voting_epoch: event.epoch,
+      url: event.metadata?.url || null,
+    }));
   }
 
   async getEpochParams() {
-    // Return default epoch params or fetch from Blockfrost if needed
-    return [];
+    try {
+      const epochParams = await this.blockfrostService.getEpochParameters();
+      return epochParams;
+    } catch (error) {
+      console.error('Error fetching epoch parameters from Blockfrost:', error);
+      return [];
+    }
   }
 
   async getDrepDelegatorsWithVotingPower(
@@ -288,10 +315,62 @@ export class DRepRepository extends Repository<VoltaireDrep> {
     sort?: string,
     order?: string,
   ) {
+    // First verify the DRep exists and get its canonical ID
+    const drepRecord = await this.voltaireDb
+      .getRepository(Drep)
+      .findOne({ where: { drepId: drepVoterId } });
+    
+    if (!drepRecord) {
+      return {
+        data: [],
+        totalItems: 0,
+        currentPage,
+        itemsPerPage,
+        totalPages: 0,
+      };
+    }
+
+    // Use raw query to check what's actually in the database
+    const rawDelegatorCheck = await this.voltaireDb.query(`
+      SELECT COUNT(*) as count 
+      FROM drep_delegators dd 
+      WHERE dd.drep_id = $1
+    `, [drepVoterId]);
+    
+    const rawCount = parseInt(rawDelegatorCheck[0]?.count || '0');
+    
+    if (rawCount === 0) {
+      // Try with hex format if bech32 didn't work
+      const hexDelegatorCheck = await this.voltaireDb.query(`
+        SELECT COUNT(*) as count 
+        FROM drep_delegators dd 
+        WHERE dd.drep_id = $1
+      `, [drepRecord.hex]);
+      
+      const hexCount = parseInt(hexDelegatorCheck[0]?.count || '0');
+      
+      if (hexCount > 0) {
+        // Use hex format for the main query
+        const queryBuilder = this.voltaireDb
+          .getRepository(DrepDelegator)
+          .createQueryBuilder('delegator')
+          .where('delegator.drepId = :drepId', { drepId: drepRecord.hex });
+      } else {
+        // No delegators found with either format
+        return {
+          data: [],
+          totalItems: 0,
+          currentPage,
+          itemsPerPage,
+          totalPages: 0,
+        };
+      }
+    }
+
     const queryBuilder = this.voltaireDb
       .getRepository(DrepDelegator)
       .createQueryBuilder('delegator')
-      .where('delegator.drepId = :drepId', { drepId: drepVoterId });
+      .where('delegator.drepId = :drepId', { drepId: rawCount > 0 ? drepVoterId : drepRecord.hex });
 
     // Apply sorting
     const sortColumn = sort === 'power' ? 'delegator.votingPowerLovelace' : 'delegator.updatedAt';
@@ -311,7 +390,7 @@ export class DRepRepository extends Repository<VoltaireDrep> {
     return {
       data: delegators.map((delegator) => ({
         stakeAddress: delegator.stakeAddress,
-        delegationEpoch: null, // Not available in new table
+        delegationEpoch: null,
         votingPower: delegator.votingPowerLovelace ? (parseInt(delegator.votingPowerLovelace) / 1_000_000).toString() : '0',
       })),
       totalItems,
@@ -322,7 +401,6 @@ export class DRepRepository extends Repository<VoltaireDrep> {
   }
 
   async getDrepStats(drepVoterId: string) {
-    // Get DRep data from enhanced dreps table
     const drepData = await this.voltaireDb
       .getRepository(Drep)
       .findOne({ where: { drepId: drepVoterId } });
@@ -335,12 +413,15 @@ export class DRepRepository extends Repository<VoltaireDrep> {
       };
     }
 
-    // Get delegators count
-    const drepDelegatorsCount = await this.voltaireDb
-      .getRepository(DrepDelegator)
-      .count({ where: { drepId: drepVoterId } });
+    // Use raw query to get accurate delegator count
+    const rawDelegatorCheck = await this.voltaireDb.query(`
+      SELECT COUNT(*) as count 
+      FROM drep_delegators dd 
+      WHERE dd.drep_id = $1 OR dd.drep_id = $2
+    `, [drepVoterId, drepData.hex]);
+    
+    const drepDelegatorsCount = parseInt(rawDelegatorCheck[0]?.count || '0');
 
-    // Get votes count from proposal votes table
     const drepVotesCount = await this.voltaireDb
       .getRepository(ProposalVote)
       .count({ where: { voter: drepVoterId } });
@@ -359,7 +440,6 @@ export class DRepRepository extends Repository<VoltaireDrep> {
     startingTime: Date,
     endingTime: Date,
   ) {
-    // Use timeline delegation events enriched with current stake information
     const timelineEvents = await this.voltaireDb
       .createQueryBuilder()
       .select('*')
@@ -379,13 +459,11 @@ export class DRepRepository extends Repository<VoltaireDrep> {
       delegation_epoch: event.delegation_epoch || event.epoch,
       tx_hash: event.tx_hash,
       type: 'delegation' as const,
-      // Use best available stake amount
       total_stake: event.best_stake_lovelace || '0',
       total_stake_ada: parseFloat(event.best_stake_ada) || 0,
       voting_power_lovelace: event.current_voting_power_lovelace || '0',
       voting_power_ada: parseFloat(event.current_voting_power_ada) || 0,
       added_power: event.added_power,
-      // Additional enrichment fields
       delegation_status: event.delegation_status,
       current_delegated_drep: event.current_delegated_drep,
       epochNo: event.epoch,
@@ -405,6 +483,7 @@ export class DRepRepository extends Repository<VoltaireDrep> {
       view: voterId,
     };
   }
+
 
   async getDrepMetadata(voterId: string) {
     const drepData = await this.voltaireDb

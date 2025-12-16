@@ -24,7 +24,7 @@ secrets:
 
 image:
   repository: registry.2lovelaces.io/voltaire/www.1694.io
-  tag: stable
+  tag: latest
   pullPolicy: IfNotPresent
   pullSecret: '1694-registry-deploy-token'
 

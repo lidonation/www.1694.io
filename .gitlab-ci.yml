@@ -214,12 +214,6 @@ postgres-app-preview:
   environment:
     name: preview
 
-postgres-dbsync-preview:
-  <<: *deploy_postgres_dbsync
-  stage: preview
-  needs: []
-  environment:
-    name: preview
 
 redis_preview:
   <<: *redis_template
@@ -304,13 +298,6 @@ postgres-app-production:
   environment:
     name: production
 
-postgres-dbsync-production:
-  <<: *deploy_postgres_dbsync
-  stage: production
-  environment:
-    name: production
-  needs:
-    - job: postgres-dbsync-preview
 
 redis_production:
   <<: *redis_template

@@ -8,9 +8,11 @@ import { ReactionRepository } from './voltaire/reactions.repository';
 import { SignatureRepository } from './voltaire/signature.repository';
 import { SynctimeRepository } from './voltaire/synctime.repository';
 import { CommentRepository } from './voltaire/comment.repository';
+import { BlockfrostModule } from '../blockfrost/blockfrost.module';
 
 @Global()
 @Module({
+  imports: [BlockfrostModule],
   providers: [
     AttachmentRepository,
     DRepRepository,

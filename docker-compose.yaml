@@ -210,17 +210,10 @@ services:
 
   governance-indexer:
     container_name: governance-indexer
-    build:
-      context: ../governance-indexer/rust-indexer
-      dockerfile: Dockerfile
+    image: registry.2lovelaces.io/voltaire/www.1694.io:latest
     restart: unless-stopped
     environment:
       DATABASE_URL: postgres://voltaire:postgres@web_db:5432/1694
-      RELAY_ADDRESS: backbone.mainnet.emurgornd.com:3001
-      NETWORK_MAGIC: 764824073
-      MAX_CONCURRENT_WORKERS: 8
-      BATCH_SIZE: 100
-      SLOT_HASHES_FILE: /app/slot_hashes.csv
       RUST_LOG: info
     depends_on:
       web_db:
@@ -229,8 +222,6 @@ services:
         condition: service_healthy
     networks:
       - io-1694
-    volumes:
-      - ../governance-indexer/rust-indexer/slot_hashes.csv:/app/slot_hashes.csv:ro
     logging:
       driver: "json-file"
       options:

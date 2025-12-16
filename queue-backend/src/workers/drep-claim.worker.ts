@@ -8,15 +8,13 @@ import {
 } from '../queue.types';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
-import { getDrepRegistrationData } from 'src/queries/getDrepRegistrationData';
+import { Drep } from '../entities/governance/drep.entity';
 
 @Processor(Queues.DREP_CLAIM, { concurrency: 10 })
 export class DrepClaimWorker extends WorkerHost {
   constructor(
     @InjectDataSource('default')
     private voltaireService: DataSource,
-    @InjectDataSource('dbsync')
-    private cexplorerService: DataSource,
   ) {
     super();
   }
@@ -26,15 +24,21 @@ export class DrepClaimWorker extends WorkerHost {
   ) {
     try {
       const { stakeKey } = job.data;
-      const registrationData = await this.cexplorerService.query(
-        getDrepRegistrationData,
-        [stakeKey],
-      );
+      
+      const registeredDrep = await this.voltaireService
+        .getRepository(Drep)
+        .createQueryBuilder('drep')
+        .leftJoin('drep_delegators', 'delegator', 'delegator.drepId = drep.drepId')
+        .where('delegator.stakeAddress = :stakeKey', { stakeKey })
+        .orWhere('drep.paymentAddress = :stakeKey', { stakeKey })
+        .andWhere('drep.active = true')
+        .andWhere('drep.retired = false')
+        .getOne();
 
-      if (!registrationData || registrationData.length === 0) {
+      if (!registeredDrep) {
         return {
           success: true,
-          message: `No registration data found for stake key ${stakeKey}`,
+          message: `No active DRep registration found for stake key ${stakeKey}`,
           isRegistered: false,
         };
       }
@@ -46,7 +50,8 @@ export class DrepClaimWorker extends WorkerHost {
         stakeKey,
         signature: job.data.signature,
         signatureKey: job.data.signatureKey,
-        ...registrationData[0],
+        view: registeredDrep.drepId,
+        retired: registeredDrep.retired,
       };
 
       const drepClaimResponse = await this.autoClaimDRep(claimDto);
@@ -59,6 +64,7 @@ export class DrepClaimWorker extends WorkerHost {
         view: drepClaimResponse.view,
         drepId: drepClaimResponse.drepId,
       };
+
     } catch (error) {
       console.error(`Error processing job ${job.id}:`, error);
       throw error;

@@ -76,19 +76,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         database: configService.get('DATABASE_NAME', '1694'),
       }),
     }),
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      name: 'dbsync',
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: configService.get('DATABASE_HOST_DBSYNC', 'dbsync_db'),
-        port: configService.get('DATABASE_PORT_DBSYNC', 5432),
-        username: configService.get('DATABASE_USERNAME_DBSYNC', 'postgres'),
-        password: configService.get('DATABASE_PASSWORD_DBSYNC'),
-        database: configService.get('DATABASE_NAME_DBSYNC', 'cexplorer'),
-      }),
-    }),
   ],
   providers: [AppService, DrepClaimWorker],
 })
