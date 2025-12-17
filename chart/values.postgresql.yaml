@@ -49,7 +49,7 @@ global:
 ## @section Common parameters
 
 
-namespaceOverride: "catalystexplorer-preview"
+namespaceOverride: "voltaire-preview"
 
 ## Diagnostic mode in the deployment
 ##
