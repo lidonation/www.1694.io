@@ -37,7 +37,7 @@ COPY --chown=node:node --from=dependencies /usr/src/app/node_modules ./node_modu
 
 COPY --chown=node:node ./backend .
 
-RUN yarn run build
+RUN npx tsc --project tsconfig.prod.json
 
 RUN yarn cache clean
 
@@ -62,4 +62,4 @@ ENV HOSTNAME "0.0.0.0"
 
 USER node
 
-CMD [ "node", "main.js" ]
+CMD [ "node", "src/main.js" ]

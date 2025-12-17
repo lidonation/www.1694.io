@@ -110,11 +110,11 @@ export class DrepService {
           live_stake: 'live_stake',
           delegators: 'delegation_vote_count',
           votes: 'governance_vote_count',
-        }[sort] || null;
+        }[sort as keyof object] || null;
 
       const sortOrder = !!order ? order.toUpperCase() : null;
 
-      let dRepViews: string[];
+      let dRepViews: string[] = [];
       if (campaignStatus) {
         const voltaireDReps = await this.drepRepository.getAllWithSignatures();
         dRepViews = voltaireDReps.map((drep) => drep.signature_drep_bech32);
@@ -133,9 +133,9 @@ export class DrepService {
         type,
       });
 
-      const drepViews = drepList.data.map((drep) => drep.view);
-      const voltaireDReps = await this.drepRepository.getByViews(drepViews);
-      const totalPages = Math.ceil(drepList.totalItems / itemsPerPage);
+      const drepViews2 = drepList.data.map((drep) => drep.view);
+      const voltaireDReps = await this.drepRepository.getByViews(drepViews2);
+      const totalPages = Math.ceil(drepList.totalItems / (itemsPerPage || 24));
 
       const mergedDRepsData = drepList.data.map((drep) => {
         const voltaireDrep = voltaireDReps.find(
@@ -267,7 +267,6 @@ export class DrepService {
         return {
           result: false,
           message: 'Too few arguments',
-          signatures: null,
         };
       }
 
@@ -285,7 +284,6 @@ export class DrepService {
         return {
           result: false,
           message: 'No signature found for this voterId',
-          signatures: null,
         };
       }
 
@@ -925,8 +923,8 @@ export class DrepService {
   }: ValidateMetadataDTO): Promise<
     Observable<AxiosResponse<ValidateMetadataResult, any>>
   > {
-    let status: MetadataValidationStatus;
-    let metadata: any;
+    let status: MetadataValidationStatus | undefined;
+    let metadata: any = null;
     try {
       const { data } = await firstValueFrom(
         this.httpService.get(url).pipe(
@@ -946,10 +944,11 @@ export class DrepService {
       if (hashedMetadata !== hash) {
         throw MetadataValidationStatus.INVALID_HASH;
       }
+      metadata = data;
     } catch (error) {
       Logger.error(LoggerMessage.METADATA_VALIDATION_ERROR, error);
       if (Object.values(MetadataValidationStatus).includes(error)) {
-        status = error;
+        status = error as MetadataValidationStatus;
       }
     }
 

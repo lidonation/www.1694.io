@@ -94,7 +94,7 @@ export class AttachmentService {
         url: attachment.buffer,
         name: attachment.originalname,
         parententity: this.parseEntityType(parentEntity),
-        parentid: !String(parentId).includes('null') ? parentId : null,
+        parentid: !String(parentId).includes('null') ? parentId : undefined,
         attachmentType: await this.parseMimeType(mimeType),
       };
 

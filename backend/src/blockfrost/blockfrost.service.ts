@@ -27,17 +27,17 @@ export class BlockfrostService {
     private readonly httpService: HttpService,
   ) {
     this.primaryConfig = {
-      url: this.configService.get<string>('BLOCKFROST_NETWORK_URL'),
+      url: this.configService.get<string>('BLOCKFROST_NETWORK_URL') || '',
       projectId: this.configService.get<string>(
         'BLOCKFROST_NETWORK_PROJECT_ID',
-      ),
+      ) || '',
     };
 
     this.fallbackConfig = {
-      url: this.configService.get<string>('BLOCKFROST_NETWORK_URL_FALLBACK'),
+      url: this.configService.get<string>('BLOCKFROST_NETWORK_URL_FALLBACK') || '',
       projectId: this.configService.get<string>(
         'BLOCKFROST_NETWORK_PROJECT_ID_FALLBACK',
-      ),
+      ) || '',
     };
   }
 

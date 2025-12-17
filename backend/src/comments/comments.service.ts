@@ -66,7 +66,7 @@ export class CommentsService {
       voter,
     );
 
-    if (commentToRemove) {
+    if (commentToRemove && commentToRemove.id) {
       return this.commentRepository.delete(commentToRemove.id);
     }
   }

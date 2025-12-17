@@ -25,6 +25,23 @@ spec:
     spec:
       imagePullSecrets:
         - name: {{ .Values.image.pullSecret }}
+      initContainers:
+        - name: migration
+          image: "{{ .Values.backend.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          envFrom:
+            - secretRef:
+                name: "{{ $.Chart.Name }}-global-secrets"
+            - secretRef:
+                name: "{{ $.Chart.Name }}-backend-secrets"
+          command: ["yarn", "run", "migrate:up"]
+          resources:
+            limits:
+              memory: 512Mi
+              cpu: 500m
+            requests:
+              cpu: 100m
+              memory: 256Mi
       containers:
         - name: app
           image: "{{ .Values.backend.image.repository }}:{{ .Values.image.tag }}"

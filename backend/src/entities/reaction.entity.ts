@@ -52,9 +52,7 @@ export class Reaction extends BaseEntity {
   @Column({ nullable: false })
   voter: string;
   //timestamps
-  @CreateDateColumn()
-  createdAt: Date;
+  declare createdAt: Date;
 
-  @UpdateDateColumn()
-  updatedAt: Date;
+  declare updatedAt: Date;
 }

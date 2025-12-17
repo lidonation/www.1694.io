@@ -33,15 +33,15 @@ export class IpfsService {
     private readonly httpService: HttpService,
   ) {
     this.primaryConfig = {
-      url: this.configService.get<string>('BLOCKFROST_IPFS_URL'),
-      projectId: this.configService.get<string>('BLOCKFROST_IPFS_PROJECT_ID'),
+      url: this.configService.get<string>('BLOCKFROST_IPFS_URL') || '',
+      projectId: this.configService.get<string>('BLOCKFROST_IPFS_PROJECT_ID') || '',
     };
 
     this.fallbackConfig = {
-      url: this.configService.get<string>('BLOCKFROST_IPFS_URL_FALLBACK'),
+      url: this.configService.get<string>('BLOCKFROST_IPFS_URL_FALLBACK') || '',
       projectId: this.configService.get<string>(
         'BLOCKFROST_IPFS_PROJECT_ID_FALLBACK',
-      ),
+      ) || '',
     };
   }
 

@@ -14,7 +14,11 @@ export const parseMetadata = (
     //     (reference) => reference?.uri['@value'],
     //   );
     // }
-    parsedMetadata[key] = value['@value'];
+    if (value && typeof value === 'object' && '@value' in value) {
+      parsedMetadata[key] = (value as any)['@value'];
+    } else {
+      parsedMetadata[key] = value;
+    }
   }
   Logger.debug(LoggerMessage.PARSED_METADATA_BODY, parsedMetadata, {
     standard,

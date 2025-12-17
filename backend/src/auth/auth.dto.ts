@@ -84,7 +84,7 @@ export class UnifiedLoginDto {
 }
 
 export class JwtPayload {
-  sub: number; // signature.id
+  sub?: number; // signature.id
   stakeKey: string;
   voterId?: string;
   drepId?: string;
