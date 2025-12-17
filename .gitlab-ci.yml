@@ -54,7 +54,7 @@ services:
     when: manual
 
 .deploy_template: &deploy_template
-  image: alpine:3.16.1
+  image: "${CI_TEMPLATE_REGISTRY_HOST}/gitlab-org/cluster-integration/auto-deploy-image:${AUTO_DEPLOY_IMAGE_VERSION}"
   retry: 0
   cache: {}
 
@@ -81,28 +81,28 @@ services:
         $DEPLOYMENT_NAME-web-db \
         bitnami/postgresql
 
-.deploy_postgres_dbsync_script: &deploy_postgres_dbsync_script
-  - |
-    DEPLOYMENT_NAME="www-1694-$CI_ENVIRONMENT_SLUG"
-    helm repo add bitnami https://charts.bitnami.com/bitnami
-    helm repo update
+# .deploy_postgres_dbsync_script: &deploy_postgres_dbsync_script
+#   - |
+#     DEPLOYMENT_NAME="www-1694-$CI_ENVIRONMENT_SLUG"
+#     helm repo add bitnami https://charts.bitnami.com/bitnami
+#     helm repo update
 
-    echo "install postgres for dbsync"
-    helm upgrade --install \
-        --timeout 300s \
-        --wait \
-        --atomic \
-        --namespace="$KUBE_NAMESPACE" \
-        --create-namespace \
-        -f ./chart/values.postgresql.yaml \
-        --set global.postgresql.auth.username="$POSTGRESQL_DBSYNC_USERNAME" \
-        --set global.postgresql.auth.database="$POSTGRESQL_DBSYNC_DATABASE" \
-        --set global.postgresql.auth.password="$POSTGRESQL_DBSYNC_PASSWORD" \
-        --set global.postgresql.auth.postgresPassword="$POSTGRESQL_DBSYNC_POSTGRES_PASSWORD" \
-        --set primary.persistence.size="$POSTGRESQL_DBSYNC_SIZE" \
-        --set namespace=$KUBE_NAMESPACE \
-        $DEPLOYMENT_NAME-dbsync-db \
-        bitnami/postgresql
+#     echo "install postgres for dbsync"
+#     helm upgrade --install \
+#         --timeout 300s \
+#         --wait \
+#         --atomic \
+#         --namespace="$KUBE_NAMESPACE" \
+#         --create-namespace \
+#         -f ./chart/values.postgresql.yaml \
+#         --set global.postgresql.auth.username="$POSTGRESQL_DBSYNC_USERNAME" \
+#         --set global.postgresql.auth.database="$POSTGRESQL_DBSYNC_DATABASE" \
+#         --set global.postgresql.auth.password="$POSTGRESQL_DBSYNC_PASSWORD" \
+#         --set global.postgresql.auth.postgresPassword="$POSTGRESQL_DBSYNC_POSTGRES_PASSWORD" \
+#         --set primary.persistence.size="$POSTGRESQL_DBSYNC_SIZE" \
+#         --set namespace=$KUBE_NAMESPACE \
+#         $DEPLOYMENT_NAME-dbsync-db \
+#         bitnami/postgresql
 
 .redis: &redis_template
   image: "${CI_TEMPLATE_REGISTRY_HOST}/gitlab-org/cluster-integration/auto-deploy-image:${AUTO_DEPLOY_IMAGE_VERSION}"
@@ -201,11 +201,11 @@ build_queue_backend:
     - *deploy_postgres_web_script
   rules: *infra_rules
 
-.deploy_postgres_dbsync: &deploy_postgres_dbsync
-  <<: *deploy_template
-  script:
-    - *deploy_postgres_dbsync_script
-  rules: *infra_rules
+# .deploy_postgres_dbsync: &deploy_postgres_dbsync
+#   <<: *deploy_template
+#   script:
+#     - *deploy_postgres_dbsync_script
+#   rules: *infra_rules
 
 postgres-app-preview:
   <<: *deploy_postgres_web
