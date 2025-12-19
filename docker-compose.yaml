@@ -209,24 +209,17 @@ services:
         max-file: "10"
 
   governance-indexer:
+    image: registry.2lovelaces.io/voltaire/www.1694.io/rust-indexer:latest
     container_name: governance-indexer
-    image: registry.2lovelaces.io/voltaire/www.1694.io:latest
-    restart: unless-stopped
     environment:
       DATABASE_URL: postgres://voltaire:postgres@web_db:5432/1694
       RUST_LOG: info
     depends_on:
       web_db:
         condition: service_healthy
-      cardano-node:
-        condition: service_healthy
     networks:
       - io-1694
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "200k"
-        max-file: "10"
+    restart: unless-stopped
 
   adminer:
     image: adminer
