@@ -114,7 +114,7 @@ governanceIndexer:
   labels:
     service: governance-indexer
   image:
-    repository: registry.2lovelaces.io/voltaire/governance-indexer
+    repository: registry.2lovelaces.io/voltaire/www.1694.io/governance-indexer
   databaseUrl: "postgres://voltaire:postgres@postgresql:5432/1694"
   relayAddress: "backbone.mainnet.emurgornd.com:3001"
   networkMagic: "764824073"
