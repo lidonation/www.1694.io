@@ -253,7 +253,7 @@ app-preview:
 
       kubectl create secret docker-registry 1694-registry-deploy-token \
         --namespace="$KUBE_NAMESPACE" \
-        --docker-server=registry.lidonation.com \
+        --docker-server=registry.2lovelaces.io \
         --docker-username=$CI_REGISTRY_USER \
         --docker-password=$CI_REGISTRY_PASSWORD \
         --docker-email=$REGISTRY_EMAIL

@@ -26,6 +26,27 @@ spec:
       imagePullSecrets:
         - name: {{ .Values.image.pullSecret }}
       initContainers:
+        - name: wait-for-db
+          image: postgres:15-alpine
+          envFrom:
+            - secretRef:
+                name: "{{ $.Chart.Name }}-global-secrets"
+            - secretRef:
+                name: "{{ $.Chart.Name }}-backend-secrets"
+          command:
+            - sh
+            - -c
+            - |
+              until pg_isready -h "$DATABASE_HOST" -p "$DATABASE_PORT" -U "$DATABASE_USERNAME" -d "$DATABASE_NAME" -q; do
+                sleep 2
+              done
+          resources:
+            limits:
+              memory: 128Mi
+              cpu: 100m
+            requests:
+              cpu: 50m
+              memory: 64Mi
         - name: migration
           image: "{{ .Values.backend.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
@@ -34,7 +55,15 @@ spec:
                 name: "{{ $.Chart.Name }}-global-secrets"
             - secretRef:
                 name: "{{ $.Chart.Name }}-backend-secrets"
-          command: ["yarn", "run", "migrate:up"]
+          command:
+            - sh
+            - -c
+            - |
+              apk add --no-cache postgresql-client
+              until PGPASSWORD="$DATABASE_PASSWORD" pg_isready -h "$DATABASE_HOST" -p "$DATABASE_PORT" -U "$DATABASE_USERNAME" -d "$DATABASE_NAME" -q; do
+                sleep 2
+              done
+              yarn run migrate:up
           resources:
             limits:
               memory: 512Mi
