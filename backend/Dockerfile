@@ -5,7 +5,7 @@ FROM node:20-alpine AS base
 ###################
 FROM base As dependencies
 
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat postgresql-client
 
 ENV NODE_ENV build
 
@@ -46,6 +46,8 @@ RUN yarn cache clean
 # PRODUCTION RUNTIME
 ###################
 FROM base As production
+
+RUN apk add --no-cache postgresql-client
 
 ENV NODE_ENV production
 
