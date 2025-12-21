@@ -26,7 +26,7 @@ image:
   repository: registry.2lovelaces.io/voltaire/www.1694.io
   tag: latest
   pullPolicy: IfNotPresent
-  pullSecret: '1694-registry-deploy-token'
+  pullSecret: 'gitlab-ci-token'
 
 imageCredentials:
   registry: registry.raddcreative.io
