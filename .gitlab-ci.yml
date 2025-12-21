@@ -195,21 +195,6 @@ build_queue_backend:
   rules:
     - if: '$DEPLOY_WEBSITE == "true"'
 
-build_governance_indexer:
-  stage: build
-  image: docker:24.0.2-git
-  retry: 1
-  script:
-    - |
-      docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
-      # Pull and retag the governance indexer image
-      docker pull registry.2lovelaces.io/voltaire/governance-indexer:latest
-      docker tag registry.2lovelaces.io/voltaire/governance-indexer:latest "$CI_APPLICATION_REPOSITORY/governance-indexer:$CI_APPLICATION_TAG"
-      docker tag registry.2lovelaces.io/voltaire/governance-indexer:latest "$CI_APPLICATION_REPOSITORY/governance-indexer:latest"
-      docker push "$CI_APPLICATION_REPOSITORY/governance-indexer:$CI_APPLICATION_TAG"
-      docker push "$CI_APPLICATION_REPOSITORY/governance-indexer:latest"
-  rules:
-    - if: '$DEPLOY_WEBSITE == "true"'
 
 .deploy_postgres_web: &deploy_postgres_web
   <<: *deploy_template
@@ -300,7 +285,6 @@ app-preview:
     - job: build_frontend
     - job: build_backend
     - job: build_queue_backend
-    - job: build_governance_indexer
   environment:
     name: preview
   rules:
