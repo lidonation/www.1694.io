@@ -25,7 +25,7 @@ secrets:
 image:
   repository: registry.2lovelaces.io/voltaire/www.1694.io
   tag: latest
-  pullPolicy: IfNotPresent
+  pullPolicy: always
   pullSecret: 'gitlab-ci-token'
 
 imageCredentials:
