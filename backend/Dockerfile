@@ -57,6 +57,7 @@ COPY --chown=node:node --from=build /usr/src/app/node_modules ./node_modules
 COPY --chown=node:node --from=build /usr/src/app/dist ./
 
 COPY --chown=node:node backend/package.json ./
+COPY --chown=node:node backend/tsconfig.json ./
 
 EXPOSE 8000
 
