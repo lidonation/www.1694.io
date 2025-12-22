@@ -259,6 +259,15 @@ app-preview:
         --docker-password=$CI_REGISTRY_PASSWORD \
         --docker-email=$REGISTRY_EMAIL
 
+      kubectl delete secret gitlab-registry-token --ignore-not-found --namespace="$KUBE_NAMESPACE"
+      
+      kubectl create secret docker-registry gitlab-registry-token \
+        --namespace="$KUBE_NAMESPACE" \
+        --docker-server=gitlab.2lovelaces.io \
+        --docker-username=$CI_REGISTRY_USER \
+        --docker-password=$CI_REGISTRY_PASSWORD \
+        --docker-email=$REGISTRY_EMAIL
+
       echo "AUTO_DEVOPS_WEB_DOMAIN: $AUTO_DEVOPS_WEB_DOMAIN"
 
       helm upgrade $DEPLOYMENT_NAME ./chart --install \

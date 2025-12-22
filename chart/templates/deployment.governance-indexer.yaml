@@ -24,7 +24,7 @@ spec:
         service: "{{ .Values.governanceIndexer.labels.service }}"
     spec:
       imagePullSecrets:
-        - name: {{ .Values.image.pullSecret }}
+        - name: gitlab-registry-token
       containers:
         - name: indexer
           image: "{{ .Values.governanceIndexer.image.repository }}"
