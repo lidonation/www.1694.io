@@ -38,12 +38,14 @@ spec:
             - sh
             - -c
             - |
-              echo "Init container starting - skipping migration for now"
-              until PGPASSWORD="$DATABASE_PASSWORD" pg_isready -h "$DATABASE_HOST" -p "$DATABASE_PORT" -U "$DATABASE_USERNAME" -d "$DATABASE_NAME" -q; do
-                sleep 2
-              done
-              yarn run migrate:up
-              echo "Init container completed"
+              # echo "Init container starting - skipping migration for now"
+
+              # until PGPASSWORD="$DATABASE_PASSWORD" pg_isready -h "$DATABASE_HOST" -p "$DATABASE_PORT" -U "$DATABASE_USERNAME" -d "$DATABASE_NAME" -q; do
+              #   sleep 2
+              # done
+
+              # yarn run migrate:up
+              # echo "Init container completed"
           resources:
             limits:
               memory: 512Mi
