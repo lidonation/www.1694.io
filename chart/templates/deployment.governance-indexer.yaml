@@ -28,7 +28,7 @@ spec:
       containers:
         - name: indexer
           image: "{{ .Values.governanceIndexer.image.repository }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          imagePullPolicy: {{ .Values.governanceIndexer.image.tag }}
           env:
             - name: DATABASE_URL
               value: "{{ .Values.governanceIndexer.databaseUrl }}"
