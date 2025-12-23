@@ -11,8 +11,8 @@ metadata:
     {{- range $key, $value := .Values.ingress.annotations }}
       {{ $key }}: {{ $value | quote }}
     {{- end }}
-      traefik.ingress.kubernetes.io/router.middlewares: "traefik-redirect-http-to-https@kubernetescrd,traefik-default-headers@kubernetescrd"
-      traefik.ingress.kubernetes.io/router.priority: "100"
+      traefik.ingress.kubernetes.io/router.middlewares: "traefik-redirect-http-to-https@kubernetescrd,traefik-default-headers@kubernetescrd,traefik-strip-prefix@kubernetescrd"
+      traefik.ingress.kubernetes.io/router.priority: "1000"
 spec:
   {{- if .Values.ingress.ingressClassName }}
   ingressClassName: {{ .Values.ingress.ingressClassName }}
@@ -31,6 +31,13 @@ spec:
       http:
         paths:
           - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: "{{ $.Chart.Name }}-backend-service"
+                port:
+                  number: 80
+          - path: /en/api
             pathType: Prefix
             backend:
               service:
