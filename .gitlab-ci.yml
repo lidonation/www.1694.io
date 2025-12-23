@@ -358,6 +358,7 @@ production:
         --set governanceIndexer.databaseUrl="$GOVERNANCE_INDEXER_DATABASE_URL" \
         --set secrets.NEXT_PUBLIC_GOOGLE_API="$NEXT_PUBLIC_GOOGLE_API" \
         --set ingress.hosts[0]="$AUTO_DEVOPS_WEB_DOMAIN" \
+        --set ingress.api="$API" \
         --set namespace=$KUBE_NAMESPACE \
         --namespace="$KUBE_NAMESPACE" \
         --create-namespace
