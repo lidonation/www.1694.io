@@ -284,6 +284,7 @@ app-preview:
         --set governanceIndexer.replicaCount=1 \
         --set governanceIndexer.databaseUrl="$GOVERNANCE_INDEXER_DATABASE_URL" \
         --set secrets.NEXT_PUBLIC_GOOGLE_API="$NEXT_PUBLIC_GOOGLE_API" \
+        --set secrets.NEXT_PUBLIC_BASE_URL_API="$NEXT_PUBLIC_GOOGLE_API" \
         --set ingress.hosts[0]="$AUTO_DEVOPS_WEB_DOMAIN" \
         --set namespace=$KUBE_NAMESPACE \
         --namespace="$KUBE_NAMESPACE" \
@@ -357,7 +358,7 @@ production:
         --set queue.replicaCount=2 \
         --set governanceIndexer.replicaCount=1 \
         --set governanceIndexer.databaseUrl="$GOVERNANCE_INDEXER_DATABASE_URL" \
-        --set secrets.NEXT_PUBLIC_GOOGLE_API="$NEXT_PUBLIC_GOOGLE_API" \
+        --set secrets.NEXT_PUBLIC_GOOGLE_API="$API" \
         --set ingress.hosts[0]="$AUTO_DEVOPS_WEB_DOMAIN" \
         --set ingress.api="$API" \
         --set namespace=$KUBE_NAMESPACE \
