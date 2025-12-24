@@ -32,6 +32,8 @@ spec:
           env:
             - name: NEXT_PUBLIC_GOOGLE_API
               value: {{ .Values.secrets.NEXT_PUBLIC_GOOGLE_API }}
+            - name: NEXT_PUBLIC_BASE_URL_API
+              value: {{ .Values.secrets.NEXT_PUBLIC_BASE_URL_API}}
           envFrom:
             - secretRef:
                 name: "{{ $.Chart.Name }}-global-secrets"
