@@ -11,9 +11,20 @@ import {
 } from "./queue.constants";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { DrepClaimWorker } from "./workers/drep-claim.worker";
+import { StakeSyncWorker } from "./workers/stake-sync.worker";
+import { GovernanceSyncWorker } from "./workers/governance-sync.worker";
+import { DrepVotesSyncWorker } from "./workers/drep-votes-sync.worker";
+import { ProposalsSyncWorker } from "./workers/proposals-sync.worker";
+import { Drep } from "./entities/governance/drep.entity";
+import { DrepDelegator } from "./entities/governance/drep-delegator.entity";
+import { Proposal } from "./entities/governance/proposal.entity";
+import { ProposalMetadata } from "./entities/governance/proposal-metadata.entity";
+import { ProposalVote } from "./entities/governance/proposal-vote.entity";
+import { DrepTimelineEvent } from "./entities/governance/drep-timeline-event.entity";
 import { BullBoardModule } from "@bull-board/nestjs";
 import { ExpressAdapter } from "@bull-board/express";
 import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
+import { BlockfrostModule } from "./blockfrost/blockfrost.module";
 import { TypeOrmModule } from "@nestjs/typeorm";
 
 @Module({
@@ -21,6 +32,7 @@ import { TypeOrmModule } from "@nestjs/typeorm";
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    BlockfrostModule,
     BullModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
@@ -45,6 +57,18 @@ import { TypeOrmModule } from "@nestjs/typeorm";
     BullModule.registerQueue({
       name: Queues.DREP_CLAIM,
     }),
+    BullModule.registerQueue({
+      name: Queues.STAKE_SYNC,
+    }),
+    BullModule.registerQueue({
+      name: Queues.GOVERNANCE_SYNC,
+    }),
+    BullModule.registerQueue({
+      name: Queues.DREP_VOTES_SYNC,
+    }),
+    BullModule.registerQueue({
+      name: Queues.PROPOSALS_SYNC,
+    }),
     BullBoardModule.forRoot({
       route: "/queues",
       adapter: ExpressAdapter,
@@ -62,6 +86,22 @@ import { TypeOrmModule } from "@nestjs/typeorm";
       name: Queues.DREP_CLAIM,
       adapter: BullMQAdapter,
     }),
+    BullBoardModule.forFeature({
+      name: Queues.STAKE_SYNC,
+      adapter: BullMQAdapter,
+    }),
+    BullBoardModule.forFeature({
+      name: Queues.GOVERNANCE_SYNC,
+      adapter: BullMQAdapter,
+    }),
+    BullBoardModule.forFeature({
+      name: Queues.DREP_VOTES_SYNC,
+      adapter: BullMQAdapter,
+    }),
+    BullBoardModule.forFeature({
+      name: Queues.PROPOSALS_SYNC,
+      adapter: BullMQAdapter,
+    }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -76,6 +116,13 @@ import { TypeOrmModule } from "@nestjs/typeorm";
       }),
     }),
   ],
-  providers: [AppService, DrepClaimWorker],
+  providers: [
+    AppService,
+    DrepClaimWorker,
+    StakeSyncWorker,
+    GovernanceSyncWorker,
+    DrepVotesSyncWorker,
+    ProposalsSyncWorker
+  ],
 })
 export class AppModule {}

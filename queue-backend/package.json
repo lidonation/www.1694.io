@@ -17,7 +17,17 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "job:trigger": "ts-node scripts/trigger-jobs.ts",
+    "job:trigger:governance": "npm run job:trigger governance-sync",
+    "job:trigger:governance-force": "npm run job:trigger governance-sync -- --force",
+    "job:trigger:stake": "npm run job:trigger stake-sync",
+    "job:trigger:proposals": "npm run job:trigger proposals-sync",
+    "job:trigger:proposals-force": "npm run job:trigger proposals-sync -- --force",
+    "job:trigger:drep-votes": "npm run job:trigger drep-votes-sync",
+    "job:trigger:drep-votes-force": "npm run job:trigger drep-votes-sync -- --force",
+    "job:trigger:all": "npm run job:trigger all",
+    "job:trigger:all-force": "npm run job:trigger all -- --force"
   },
   "dependencies": {
     "@bull-board/api": "^6.9.6",
