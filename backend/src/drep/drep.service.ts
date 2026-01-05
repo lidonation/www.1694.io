@@ -1245,7 +1245,6 @@ export class DrepService {
       }
       
       // Upsert DRep data using DataSource (since drepRepository extends from Voltaire DRep, not enhanced Drep)
-      const { DataSource } = await import('typeorm');
       const { Drep } = await import('../entities/governance/drep.entity');
       
       // We need to access the voltaire DB from the repository
@@ -1270,8 +1269,8 @@ export class DrepService {
         qualifications: metadata?.json_metadata?.body?.qualifications || null,
         references: metadata?.json_metadata?.body?.references || null,
         votingPowerAda: blockfrostDrep.amount ? (parseInt(blockfrostDrep.amount) / 1_000_000).toString() : '0',
-        governanceVoteCount: 0, // Will be updated after fetching votes
-        delegationVoteCount: 0, // Will be updated after fetching delegators
+        governanceVoteCount: 0, 
+        delegationVoteCount: 0, 
       }, {
         conflictPaths: ['drepId'],
         skipUpdateIfNoValuesChanged: true,

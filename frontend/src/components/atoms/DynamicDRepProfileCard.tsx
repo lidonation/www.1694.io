@@ -192,7 +192,7 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
   };
 
   return (
-    <Box className="flex w-full flex-col bg-white bg-opacity-50 lg:flex-row">
+    <Box className="flex w-full flex-col bg-white/50 lg:flex-row">
       <Box className="flex flex-col gap-5 p-5 lg:sticky lg:top-10 lg:w-[30%] lg:self-start">
         <DRepAvatarCard
           loading={loading}

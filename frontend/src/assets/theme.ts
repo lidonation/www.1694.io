@@ -1,13 +1,5 @@
 'use client';
-import { Poppins } from 'next/font/google';
 import { createTheme } from '@mui/material/styles';
-
-const poppins = Poppins({
-  weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
-  style: ['normal', 'italic'],
-  subsets: ['latin'],
-  display: 'swap',
-});
 
 const theme = createTheme({
   palette: {
@@ -65,7 +57,11 @@ const theme = createTheme({
     },
   },
   typography: {
-    fontFamily: poppins.style.fontFamily,
+    fontFamily: 'var(--font-poppins)',
+    fontWeightLight: 400,
+    fontWeightRegular: 400,
+    fontWeightMedium: 400,
+    fontWeightBold: 400,
   },
 });
 

@@ -6,17 +6,17 @@ import { unstable_setRequestLocale } from 'next-intl/server';
 import { Poppins } from 'next/font/google';
 import { notFound } from 'next/navigation';
 import '@/assets/styles/globals.css';
-import '@fontsource/poppins';
 import { ThemeProvider } from '@mui/material';
 import theme from '@/assets/theme';
 import PageBanner from '@/components/atoms/PageBanner';
 import ClientAnalyticsWrapper from '@/components/analytics/ClientAnalyticsWrapper';
 
 const poppins = Poppins({
-  weight: ['400'],
+  weight: ['400',],
   style: ['normal'],
   subsets: ['latin'],
   display: 'swap',
+  variable: '--font-poppins',
 });
 
 export function generateStaticParams() {
@@ -47,13 +47,13 @@ async function RootLayout({ children, params }) {
 
   return (
     // Set the document language
-    <html lang={locale}>
+    <html lang={locale} className={poppins.variable}>
       <head>
         <title>{metadata.title}</title>
         <link rel="icon" href="/favicon.ico" sizes="any" />
       </head>
       {/* Apply font class and suppress hydration warning. */}
-      <body className={poppins.className} suppressHydrationWarning={true}>
+      <body suppressHydrationWarning={true}>
         <NextIntlClientProvider locale={locale} messages={messages}>
           <AppRouterCacheProvider>
             <ThemeProvider theme={theme}>

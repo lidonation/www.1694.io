@@ -11,7 +11,7 @@ import { useWallet } from '@/context/globalContext';
 const LoaderComponent = () => {
   return Array.from({ length: 4 }).map((_, index) => (
     <div
-      className="flex flex-col gap-1 rounded-xl bg-white bg-opacity-70 p-5 shadow-md"
+      className="flex flex-col gap-1 rounded-xl bg-white/70 p-5 shadow-md"
       key={index}
     >
       <Skeleton variant="text" width={150} />
@@ -166,7 +166,7 @@ function NotesPage() {
     }
   }, [scrollDirection]);
   return (
-    <div className="flex h-screen flex-col gap-5 bg-white bg-opacity-50 px-5 py-10">
+    <div className="flex h-screen flex-col gap-5 bg-white/50 px-5 py-10">
       <NotesPageHeader />
       <List
         id="scrollableDiv"
