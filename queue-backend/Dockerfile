@@ -64,4 +64,4 @@ ENV HOSTNAME "0.0.0.0"
 
 USER node
 
-CMD [ "node", "main.js" ]
+CMD [ "node", "src/main.js" ]
