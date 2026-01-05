@@ -15,24 +15,25 @@ import { StakeSyncWorker } from "./workers/stake-sync.worker";
 import { GovernanceSyncWorker } from "./workers/governance-sync.worker";
 import { DrepVotesSyncWorker } from "./workers/drep-votes-sync.worker";
 import { ProposalsSyncWorker } from "./workers/proposals-sync.worker";
-import { Drep } from "./entities/governance/drep.entity";
-import { DrepDelegator } from "./entities/governance/drep-delegator.entity";
-import { Proposal } from "./entities/governance/proposal.entity";
-import { ProposalMetadata } from "./entities/governance/proposal-metadata.entity";
-import { ProposalVote } from "./entities/governance/proposal-vote.entity";
-import { DrepTimelineEvent } from "./entities/governance/drep-timeline-event.entity";
+
+import { JobSchedulerModule } from "./scheduler/job-scheduler.module";
 import { BullBoardModule } from "@bull-board/nestjs";
 import { ExpressAdapter } from "@bull-board/express";
 import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
 import { BlockfrostModule } from "./blockfrost/blockfrost.module";
 import { TypeOrmModule } from "@nestjs/typeorm";
+import { GovernanceModule } from "./governance/governance.module";
+import { SyncTriggerController } from "./sync-trigger.controller";
+
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    JobSchedulerModule,
     BlockfrostModule,
+    GovernanceModule,
     BullModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
@@ -116,6 +117,7 @@ import { TypeOrmModule } from "@nestjs/typeorm";
       }),
     }),
   ],
+  controllers: [SyncTriggerController],
   providers: [
     AppService,
     DrepClaimWorker,
@@ -126,3 +128,4 @@ import { TypeOrmModule } from "@nestjs/typeorm";
   ],
 })
 export class AppModule {}
+
