@@ -8,6 +8,7 @@ import { DrepDelegator } from 'src/entities/governance/drep-delegator.entity';
 import { DrepTimelineEvent } from 'src/entities/governance/drep-timeline-event.entity';
 import { Proposal } from 'src/entities/governance/proposal.entity';
 import { ProposalVote } from 'src/entities/governance/proposal-vote.entity';
+import { ProposalMetadata } from 'src/entities/governance/proposal-metadata.entity';
 import { BlockfrostService } from 'src/blockfrost/blockfrost.service';
 
 interface GetAllDRepsParams {
@@ -143,7 +144,28 @@ export class DRepRepository extends Repository<VoltaireDrep> {
 
     const queryBuilder = this.voltaireDb
       .getRepository(Drep)
-      .createQueryBuilder('drep');
+      .createQueryBuilder('drep')
+      .leftJoin('drep_delegators', 'delegator', 'delegator.drep_id = drep.drep_id OR delegator.drep_id = drep.hex')
+      .addSelect('COUNT(DISTINCT delegator.stake_address)', 'live_delegation_count')
+      .addSelect('SUM(delegator.amount_lovelace)', 'live_stake_lovelace')
+      .addSelect(subQuery => {
+        return subQuery
+          .select('COUNT(pv.id)', 'vote_count')
+          .from(ProposalVote, 'pv')
+          .where('pv.voter = drep.drep_id');
+      }, 'computed_vote_count')
+      .groupBy('drep.drep_id');
+
+    // Consolidate duplicates: Filter to keep only the latest (by createdAt) drepId for each hex
+    queryBuilder.andWhere((qb) => {
+        const subQuery = qb.subQuery()
+            .select('DISTINCT ON (d.hex) d.drep_id')
+            .from(Drep, 'd')
+            .orderBy('d.hex')
+            .addOrderBy('d.created_at', 'DESC')
+            .getQuery();
+        return 'drep.drep_id IN ' + subQuery;
+    });
 
     // Apply search filter
     if (query) {
@@ -183,7 +205,7 @@ export class DRepRepository extends Repository<VoltaireDrep> {
       'delegation_vote_count': 'drep.delegationVoteCount',
       'live_stake': 'drep.votingPowerAda',
       'voting_power': 'drep.votingPowerAda', 
-      'governance_vote_count': 'drep.governanceVoteCount',
+      'governance_vote_count': 'computed_vote_count',
     };
 
     const dbSortColumn = sortColumnMap[sortColumn] || 'drep.votingPowerAda';
@@ -198,25 +220,51 @@ export class DRepRepository extends Repository<VoltaireDrep> {
     const offset = (currentPage - 1) * itemsPerPage;
     queryBuilder.skip(offset).take(itemsPerPage);
 
-    const drepList = await queryBuilder.getMany();
+    const { entities, raw } = await queryBuilder.getRawAndEntities();
 
     // Transform to expected format
-    const transformedData = drepList.map(drep => ({
-      chain_id: drep.hex,
-      view: drep.drepId,
-      url: drep.metadata?.url || null,
-      voting_power: drep.votingPowerAda || '0',
-      has_script: drep.hasScript,
-      active: drep.active,
-      retired: drep.retired,
-      tx_hash: null,
-      last_register_time: drep.updatedAt,
-      given_name: drep.metadata?.json_metadata?.body?.givenName || null,
-      image_url: drep.metadata?.json_metadata?.body?.image?.contentUrl || null,
-      delegation_vote_count: drep.delegationVoteCount,
-      live_stake: drep.votingPowerAda,
-      governance_vote_count: drep.governanceVoteCount
-    }));
+    const transformedData = entities.map((drep) => {
+      const rawResult = raw.find(r => r.drep_drep_id === drep.drepId);
+      const liveCount = parseInt(rawResult?.live_delegation_count || '0');
+      const liveStakeLovelace = rawResult?.live_stake_lovelace || '0';
+      const liveStakeAda = parseInt(liveStakeLovelace) / 1000000;
+      const voteCount = parseInt(rawResult?.computed_vote_count || '0');
+      
+      let givenName = drep.metadata?.json_metadata?.body?.givenName || null;
+      // Handle doubly-encoded JSON or JSON string in givenName field
+      if (givenName && typeof givenName === 'string' && givenName.trim().startsWith('{')) {
+        try {
+           const parsed = JSON.parse(givenName);
+           // Try to extract name from parsed object if it has likely keys, or use parsed itself if it turned out to be a simple string (less likely)
+           if (parsed.givenName) givenName = parsed.givenName;
+        } catch (e) {
+           // If parse fails, keep original string
+        }
+      }
+
+      let imageUrl = drep.metadata?.json_metadata?.body?.image?.contentUrl || null;
+      if (imageUrl && imageUrl.startsWith('ipfs://')) {
+          imageUrl = imageUrl.replace('ipfs://', 'https://ipfs.io/ipfs/');
+      }
+
+      return {
+        chain_id: drep.hex,
+        view: drep.drepId,
+        url: drep.metadata?.url || null,
+        voting_power: drep.votingPowerAda || '0',
+        has_script: drep.hasScript,
+        active: drep.active,
+        retired: drep.retired,
+        tx_hash: null,
+        last_register_time: drep.updatedAt,
+        given_name: givenName,
+        image_url: imageUrl,
+        delegation_vote_count: liveCount,
+        delegatorsCount: liveCount,
+        live_stake: liveStakeAda.toString(),
+        governance_vote_count: voteCount
+      };
+    });
 
     return {
       data: transformedData,
@@ -547,7 +595,8 @@ export class DRepRepository extends Repository<VoltaireDrep> {
     const queryBuilder = this.voltaireDb
       .getRepository(ProposalVote)
       .createQueryBuilder('vote')
-      .leftJoinAndSelect(Proposal, 'proposal', 'proposal.id = vote.proposalId')
+      .leftJoinAndSelect('vote.proposal', 'proposal')
+      .leftJoinAndSelect('proposal.metadata', 'meta')
       .where('vote.voter = :voterId', { voterId })
       .orderBy('vote.createdAt', 'DESC');
 
@@ -560,12 +609,18 @@ export class DRepRepository extends Repository<VoltaireDrep> {
     return {
       data: votes.map(vote => ({
         tx_hash: vote.txHash,
-        vote: vote.vote.charAt(0).toUpperCase() + vote.vote.slice(1), // Capitalize: yes -> Yes
+        vote: vote.vote.charAt(0).toUpperCase() + vote.vote.slice(1),
         proposal_id: vote.proposalId,
-        gov_action_proposal_id: vote.proposalId, // Add frontend-expected field
-        time_voted: vote.createdAt?.toISOString() || new Date().toISOString(), // Add timestamp
-        type: 'InfoAction', // Default type, could be enhanced later
-        description: { tag: 'InfoAction' }, // Default description
+        gov_action_proposal_id: vote.proposalId, 
+        time_voted: vote.createdAt?.toISOString() || new Date().toISOString(),
+        type: (vote as any).proposal?.governanceType || 'InfoAction',
+        description: { tag: (vote as any).proposal?.governanceType || 'InfoAction' },
+        proposal: {
+          title: (vote as any).proposal?.metadata?.jsonMetadata?.body?.title || null,
+          abstract: (vote as any).proposal?.metadata?.jsonMetadata?.body?.abstract || null,
+          rationale: (vote as any).proposal?.metadata?.jsonMetadata?.body?.rationale || null,
+          type: (vote as any).proposal?.governanceType || null
+        }
       })),
       totalItems,
       currentPage,

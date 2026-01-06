@@ -20,6 +20,7 @@ import {
   removeItemFromLocalStorage,
   renderJsonLdValue,
   setItemToLocalStorage,
+  shortNumber,
 } from '@/lib';
 import { useScreenDimension } from '@/hooks';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
@@ -42,6 +43,7 @@ import { ModalType, useModals, useWallet } from '@/context/globalContext';
 import ProfileSkeletonLoader from '../Loaders/ProfileSkeletonLoader';
 import LinearProgressBar from '../molecules/LinearProgressBar';
 import { useGetDRepParticipationQuery } from '@/hooks/useGetDRepParticipationQuery';
+import { AnimatedOdometer } from './DRepMetricCard';
 
 interface DynamicDRepProfileCardProps {
   drep: SingleDRep;
@@ -255,7 +257,7 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
               {loading ? (
                 <Skeleton animation="wave" width={50} height={20} />
               ) : drep?.voting_power != null ? (
-                `₳ ${formattedAda(drep?.voting_power, 2)}`
+                `₳ ${shortNumber(parseInt(drep?.voting_power), 2)}`
               ) : (
                 '-'
               )}
@@ -267,7 +269,7 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
               {loading ? (
                 <Skeleton animation="wave" width={50} height={20} />
               ) : drep?.live_stake != null ? (
-                `₳ ${formattedAda(drep?.live_stake, 2)}`
+                `₳ ${shortNumber(parseInt(drep?.live_stake), 2)}`
               ) : (
                 '-'
               )}
@@ -315,7 +317,21 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
           <Typography variant="h6" className="">
             Metrics
           </Typography>
-          <Box className="flex flex-col gap-1">
+          <Box className="flex flex-col gap-4">
+            <Box>
+              <Box className="flex items-start">
+                <AnimatedOdometer
+                  value={participationData?.total_actions || 0}
+                  className="text-xl font-black"
+                  isLoading={isParticipationDataLoading}
+                  width={undefined}
+                  height={undefined}
+                />
+              </Box>
+              <Typography sx={{ fontSize: 13, color: 'text.secondary', fontWeight: 500 }}>
+                Total Governance Actions
+              </Typography>
+            </Box>
             <Typography sx={{ fontSize: 14 }}>
               Governance Actions Participation
             </Typography>

@@ -36,7 +36,7 @@ const VoterDelegationHistory: React.FC<VoterDelegationHistoryProps> = ({
     navigator.clipboard.writeText(id);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
-  };
+  };  
 
   if (isVoterDataLoading) {
     return (
@@ -209,13 +209,14 @@ const VoterDelegationHistory: React.FC<VoterDelegationHistoryProps> = ({
                     Date of Delegation
                   </Typography>
                   <Typography>
-                    {new Date(item.time).toLocaleDateString('en-US', {
+                    {new Date(item.timestamp).toLocaleString('en-US', {
                       year: 'numeric',
                       month: 'long',
                       day: 'numeric',
                       hour: 'numeric',
                       minute: 'numeric',
-                    })}
+                    })
+                    }
                   </Typography>
                 </TableCell>
                 <TableCell>

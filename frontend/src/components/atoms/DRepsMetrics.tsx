@@ -11,16 +11,26 @@ const DRepsMetrics = () => {
     totalVotingPower: 0,
     totalRegisteredStakeAddresses: 0,
     totalLiveStake: 0,
+    totalProposals: 0,
   });
   const { metrics: fetchedMetrics, isMetricsLoading } = useGetMetricsQuery();
   useEffect(() => {
     if (!isMetricsLoading && fetchedMetrics) {
-      setMetrics(fetchedMetrics);
+      setMetrics({
+        ...fetchedMetrics,
+        totalProposals: fetchedMetrics.totalProposals ?? 0,
+      });
     }
   }, [isMetricsLoading, fetchedMetrics]);
 
+  console.log({ metrics,  });
+  
+
   return (
-    <TableContainer className="drep_metrics" style={{ width: 'auto', overflowX: 'visible' }}>
+    <TableContainer
+      className="drep_metrics"
+      style={{ width: 'auto', overflowX: 'visible' }}
+    >
       <table className="w-auto">
         <tbody>
           <tr className="flex">
@@ -35,7 +45,7 @@ const DRepsMetrics = () => {
               isLoading={isMetricsLoading}
             />
             <MetricCard
-              value={metrics.totalGovernanceActions}
+              value={metrics.totalProposals??0}
               label="Total Governance Actions"
               isLoading={isMetricsLoading}
             />

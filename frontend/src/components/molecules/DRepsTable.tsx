@@ -185,7 +185,7 @@ const DRepsTable = ({
                     )}
 
                     <Box className="w-30 flex flex-row items-center gap-1.5">
-                      {drep?.given_name ? (
+                      {typeof drep?.given_name === 'string' && drep.given_name.trim() ? (
                         <Tooltip title="DRep given name">
                           <Link
                             className="inline-flex"
@@ -194,8 +194,8 @@ const DRepsTable = ({
                           >
                             <span className="inline-block rounded-xl border border-black px-1.5 py-0.5 text-xs font-black text-black">
                               {(() => {
-                                const gName = drep.given_name || drep.metadata?.json_metadata?.body?.givenName;
-                                return gName.length > 25
+                                const gName = drep.given_name;
+                                return typeof gName === 'string' && gName.length > 25
                                   ? `${gName.slice(0, 25)}...`
                                   : gName;
                               })()}

@@ -5,6 +5,7 @@ import {
   formattedAda,
   handleCopyText,
   lovelaceToAda,
+  shortNumber,
 } from '@/lib';
 import React, { useEffect, useState } from 'react';
 import { Box, IconButton, Skeleton, Tooltip, Typography } from '@mui/material';
@@ -182,12 +183,11 @@ const DRepDelegators = ({ voterId }: { voterId: string }) => {
                   </td>
                   <td className="flex w-full flex-nowrap items-center justify-start px-4 py-3">
                     <Tooltip
-                      title={`₳ ${formatAsCurrency(
-                        lovelaceToAda(delegator?.votingPower),
-                      )}`}
+                      title={
+                        `₳ ${shortNumber(delegator?.votingPower, 2)}`}
                     >
                       <Typography>
-                        ₳ {formattedAda(delegator?.votingPower, 2)}
+                        ₳ {shortNumber(delegator?.votingPower, 2)}                        
                       </Typography>
                     </Tooltip>
                   </td>

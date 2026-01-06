@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn, Index, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, Index, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Proposal } from './proposal.entity';
 
 @Entity('proposal_votes')
 @Index('idx_proposal_vote_proposal', ['proposalId'])
@@ -33,4 +34,8 @@ export class ProposalVote {
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt: Date;
+
+  @ManyToOne(() => Proposal, (proposal) => proposal.votes)
+  @JoinColumn({ name: 'proposal_id' })
+  proposal: Proposal;
 }

@@ -19,23 +19,24 @@ export const GovActionVoteCard = ({ action }) => {
     useState<RationaleDataVariants | null>(null);
   const rationaleRef = useRef(null);
 
+  /*
   const { proposalMetadata } = useGetProposalMetadataByHashQuery({
     hashQueryString: action?.gov_action_proposal_id,
     isRequired: !Boolean(action?.title),
   });
+  */
 
   const { metadata, isMetadataLoading, metadataError } = useGetExternalMetadata(
     action?.vote_rationale,
     true,
   );
-
-  console.log({ metadata, isMetadataLoading, metadataError });
   
 
   const title =
+    action?.proposal?.title ||
+    action?.proposal?.abstract ||
     action?.metadata?.body?.title ||
     action?.title ||
-    proposalMetadata?.body?.title ||
     '-';
 
   useEffect(() => {
@@ -88,6 +89,11 @@ export const GovActionVoteCard = ({ action }) => {
               <h3 className="mb-1 text-base font-bold text-gray-800 break-words">
                 {title || '-'}
               </h3>
+              {action?.proposal?.rationale && (
+                <p className="mb-2 text-sm text-gray-600 line-clamp-3">
+                  {action.proposal.rationale}
+                </p>
+              )}
               <p className="mb-1 text-sm text-gray-500 md:mb-1">
                 Type:{' '}
                 <span className="font-medium text-gray-700">

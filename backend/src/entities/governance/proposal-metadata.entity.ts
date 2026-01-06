@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryColumn, Index, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryColumn, Index, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn } from 'typeorm';
+import { Proposal } from './proposal.entity';
 
 @Entity('proposal_metadata')
 @Index('idx_proposal_metadata_proposal', ['proposalId'])
@@ -31,4 +32,8 @@ export class ProposalMetadata {
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt: Date;
+
+  @OneToOne(() => Proposal, (proposal) => proposal.metadata)
+  @JoinColumn({ name: 'proposal_id' })
+  proposal: Proposal;
 }

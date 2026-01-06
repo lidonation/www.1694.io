@@ -89,6 +89,9 @@ export class GovernanceService {
     const queryBuilder = this.governanceDataSource
       .getRepository(DrepTimelineEvent)
       .createQueryBuilder('event')
+      .leftJoin('proposals', 'proposal', "proposal.tx_hash = event.metadata->>'gov_action_proposal_id' AND proposal.cert_index = (event.metadata->>'proposal_index')::int")
+      .leftJoin('proposal_metadata', 'meta', 'meta.proposal_id = proposal.id')
+      .addSelect(['proposal.governanceType', 'meta.jsonMetadata'])
       .where('event.drepId = :voterId', { voterId });
 
     if (options.loadDirection === 'older') {
@@ -112,10 +115,31 @@ export class GovernanceService {
       .orderBy('event.timestamp', 'DESC')
       .limit(options.minItems || 20);
 
-    const events = await queryBuilder.getMany();
+    const { entities, raw } = await queryBuilder.getRawAndEntities();
 
     // Convert events to timeline format
-    const timelineEvents = events.map(this.formatTimelineEventForAPI);
+    const timelineEvents = entities.map((event) => {
+      const formatted = this.formatTimelineEventForAPI(event);
+      
+      let proposal = null;
+
+      // Inject proposal metadata for voting events
+      if (formatted.type === 'voting_activity') {
+        const rawData = raw.find(r => r.event_id === event.id);
+        if (rawData) {
+          proposal = {
+            title: rawData.meta_json_metadata?.body?.title || null,
+            abstract: rawData.meta_json_metadata?.body?.abstract || null,
+            rationale: rawData.meta_json_metadata?.body?.rationale || null,
+            type: rawData.proposal_governance_type || null
+          };
+        }
+      }
+      return {
+        ...formatted,
+        proposal
+      };
+    });
     
     // Add epoch markers if not filtering for specific types or if epochs are requested
     const shouldIncludeEpochs = !options.filterValues || 
@@ -226,7 +250,7 @@ export class GovernanceService {
     };
   }
 
-  private mapFilterValuesToEventTypes(filterValues: string[]): string[] {
+  private mapFilterValuesToEventTypes(filterValues: string[] | string): string[] {
     const mapping = {
       'voting_activity': 'vote',
       'delegation': 'delegation', 
@@ -234,8 +258,10 @@ export class GovernanceService {
       'retirement': 'retirement',
       'proposal': 'proposal'
     };
+
+    const values = Array.isArray(filterValues) ? filterValues : [filterValues];
     
-    return filterValues
+    return values
       .map(filter => mapping[filter] || filter)
       .filter(type => ['vote', 'delegation', 'registration', 'retirement', 'proposal'].includes(type));
   }
@@ -278,17 +304,16 @@ export class GovernanceService {
     return {
       id: event.id,
       eventType: event.eventType,
-      type: mappedType, // Use mapped type for frontend
-      timestamp: event.timestamp, // Keep as Date object to match TimelineEntry type
+      type: mappedType, 
+      timestamp: event.timestamp, 
       epoch: event.epoch,
-      epochNo: event.epoch, // Keep backward compatibility
+      epochNo: event.epoch, 
       slot: event.slot,
       txHash: event.txHash,
       blockHash: event.blockHash,
       drepId: event.drepId,
       metadata: event.metadata,
-      payload: event.metadata, // Keep backward compatibility
-      // Add fields expected by frontend for different event types
+      payload: event.metadata, 
       ...(mappedType === 'delegation' && event.metadata ? {
         stake_address: event.metadata.stake_address,
         current_drep: event.metadata.current_drep,

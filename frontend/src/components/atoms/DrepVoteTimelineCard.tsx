@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Box } from '@mui/material';
 import CopyToClipboard from './CopyToClipboard';
-import { useGetProposalMetadataByHashQuery } from '@/hooks/useGetProposalMetadataByHash';
 import { DrepVote } from '../../../types/timeline';
 import Button from './Button';
 import {
@@ -42,8 +41,6 @@ const DrepVoteTimelineCard = ({
   item,
   isVoteOwner,
 }: DrepVoteTimelineCardProps) => {
-  const { latestEpoch } = useWallet();
-  const [govActionName, setGovActionName] = useState(null);
   const [rationaleModalOptions, setRationalModalOptions] =
     useState<VoteRationaleModalProps>({
       mode: 'view',
@@ -52,26 +49,12 @@ const DrepVoteTimelineCard = ({
       onEdit: () => {},
       rationaleUrl: item?.vote_rationale,
     });
-  const title = item?.metadata?.body?.title;
+  const { latestEpoch } = useWallet();
+  const title = (item as DrepVote).proposal?.title || (item as DrepVote).proposal?.abstract || (item as any)?.metadata?.body?.title;
   const isEnacted = item?.enacted_epoch && latestEpoch > item?.enacted_epoch;
   const isExpired =
     item?.expiration_epoch && latestEpoch > item?.expiration_epoch;
-  const tag = item?.description?.tag || (item?.type as string);
-  const { proposalMetadata, isProposalMetadataFetching } =
-    useGetProposalMetadataByHashQuery({
-      hashQueryString: item?.gov_action_proposal_id,
-      isRequired: !Boolean(title),
-    });
-
-  useEffect(() => {
-    if (title) {
-      setGovActionName(title);
-      return;
-    }
-    if (!isProposalMetadataFetching) {
-      setGovActionName(proposalMetadata?.body?.title);
-    }
-  }, [govActionName, proposalMetadata, isProposalMetadataFetching]);
+  const tag = (item as DrepVote).proposal?.type || (item?.type as string);
 
   let actionDetais: { imgSrc: string; actionName: string } = {
     imgSrc: '/svgs/exchange.svg',
@@ -182,11 +165,7 @@ const DrepVoteTimelineCard = ({
       case !item?.vote_rationale && isVoteOwner && isExpired: // Case 3: Vote owner but proposal is enacted
       case !item?.vote_rationale && isVoteOwner && isEnacted: // Case 4: Vote owner but proposal is enacted
       case !item?.vote_rationale: // Case 5: No rationale provided
-        return (
-          <Button disabled color="primary" size="small">
-            No Rationale Provided
-          </Button>
-        );
+        return null;
 
       default:
         return null;
@@ -214,8 +193,13 @@ const DrepVoteTimelineCard = ({
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           <Box>
             <p className="overflow-hidden text-ellipsis text-sm font-bold">
-              {govActionName ? govActionName : '-'}
+              {title || '-'}
             </p>
+            {(item as DrepVote).proposal?.rationale && (
+              <p className="mt-2 line-clamp-3 text-xs text-gray-500">
+                {(item as DrepVote).proposal?.rationale}
+              </p>
+            )}
           </Box>
 
           {actionDetais.actionName !== '' && (

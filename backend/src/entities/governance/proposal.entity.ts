@@ -1,4 +1,6 @@
-import { Entity, Column, PrimaryColumn, Index, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryColumn, Index, CreateDateColumn, UpdateDateColumn, OneToMany, OneToOne } from 'typeorm';
+import { ProposalVote } from './proposal-vote.entity';
+import { ProposalMetadata } from './proposal-metadata.entity';
 
 @Entity('proposals')
 @Index('idx_proposal_id', ['id'], { unique: true })
@@ -50,4 +52,10 @@ export class Proposal {
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt: Date;
+
+  @OneToMany(() => ProposalVote, (vote) => vote.proposal)
+  votes: ProposalVote[];
+
+  @OneToOne(() => ProposalMetadata, (metadata) => metadata.proposal)
+  metadata: ProposalMetadata;
 }

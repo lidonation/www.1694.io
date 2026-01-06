@@ -198,94 +198,67 @@ export class VoterService {
   ) {
     try {
       const offset = (currentPage - 1) * itemsPerPage;
-      let queryType: 'stake' | 'drep' | 'wallet';
-      let param: string;
-      let query: string;
       
-      if (voterIdentity.startsWith('stake')) {
-        queryType = 'stake';
-        param = voterIdentity;
-        // Get actions through delegation
-        query = `
-          SELECT p.*, pv.vote, pv.tx_hash as vote_tx_hash, pv.voter
-          FROM proposals p
-          LEFT JOIN proposal_votes pv ON p.id = pv.proposal_id
-          LEFT JOIN drep_delegators dd ON dd.drep_id = pv.voter
-          WHERE dd.stake_address = $1
-          ORDER BY p.created_at DESC
-          LIMIT $2 OFFSET $3
-        `;
-      } else if (voterIdentity.startsWith('drep')) {
-        queryType = 'drep';
-        param = voterIdentity;
-        // Get actions voted on by DRep
-        query = `
-          SELECT p.*, pv.vote, pv.tx_hash as vote_tx_hash, pv.voter
-          FROM proposals p
-          LEFT JOIN proposal_votes pv ON p.id = pv.proposal_id
-          WHERE pv.voter = $1
-          ORDER BY p.created_at DESC
-          LIMIT $2 OFFSET $3
-        `;
-      } else {
-        queryType = 'wallet';
-        param = voterIdentity;
-        // For wallet addresses, check through stake address delegation
-        query = `
-          SELECT p.*, pv.vote, pv.tx_hash as vote_tx_hash, pv.voter
-          FROM proposals p
-          LEFT JOIN proposal_votes pv ON p.id = pv.proposal_id
-          LEFT JOIN drep_delegators dd ON dd.drep_id = pv.voter
-          WHERE dd.stake_address IN (
-            SELECT stake_address FROM drep_delegators WHERE drep_id = $1
-          )
-          ORDER BY p.created_at DESC
-          LIMIT $2 OFFSET $3
-        `;
+      const queryBuilder = this.voltaireDb
+        .getRepository('Proposal')
+        .createQueryBuilder('p')
+        .leftJoinAndSelect('p.votes', 'pv')
+        .leftJoinAndSelect('p.metadata', 'pm');
+
+      if (voterIdentity.startsWith('stake')) { // Stake Key
+        queryBuilder
+          .innerJoin('drep_delegators', 'dd', 'dd.drep_id = pv.voter')
+          .where('dd.stake_address = :identity', { identity: voterIdentity });
+      } else if (voterIdentity.startsWith('drep')) { // DRep ID
+        queryBuilder
+          .where('pv.voter = :identity', { identity: voterIdentity });
+      } else { 
+          queryBuilder
+          .innerJoin('drep_delegators', 'dd', 'dd.drep_id = pv.voter')
+          .where('dd.stake_address = (SELECT stake_address FROM drep_delegators WHERE drep_id = :identity LIMIT 1)', { identity: voterIdentity }); 
       }
-      
-      const govActions = await this.voltaireDb.query(query, [param, itemsPerPage, offset]);
-      
-      // Get total count
-      let countQuery: string;
-      if (queryType === 'stake') {
-        countQuery = `
-          SELECT COUNT(DISTINCT p.id) as total
-          FROM proposals p
-          LEFT JOIN proposal_votes pv ON p.id = pv.proposal_id
-          LEFT JOIN drep_delegators dd ON dd.drep_id = pv.voter
-          WHERE dd.stake_address = $1
-        `;
-      } else if (queryType === 'drep') {
-        countQuery = `
-          SELECT COUNT(DISTINCT p.id) as total
-          FROM proposals p
-          LEFT JOIN proposal_votes pv ON p.id = pv.proposal_id
-          WHERE pv.voter = $1
-        `;
-      } else {
-        countQuery = `
-          SELECT COUNT(DISTINCT p.id) as total
-          FROM proposals p
-          LEFT JOIN proposal_votes pv ON p.id = pv.proposal_id
-          LEFT JOIN drep_delegators dd ON dd.drep_id = pv.voter
-          WHERE dd.stake_address IN (
-            SELECT stake_address FROM drep_delegators WHERE drep_id = $1
-          )
-        `;
-      }
-      
-      const totalResults = await this.voltaireDb.query(countQuery, [param]);
-      const totalItems = parseInt(totalResults[0]?.total || '0', 10);
-      const totalPages = Math.ceil(totalItems / itemsPerPage);
-      
+
+      queryBuilder
+        .orderBy('p.createdAt', 'DESC')
+        .skip(offset)
+        .take(itemsPerPage);
+
+      const [proposals, total] = await queryBuilder.getManyAndCount();
+      const totalPages = Math.ceil(total / itemsPerPage);
+
+      const formattedActions = proposals.map(p => {
+        const vote = p.votes[0]; 
+        return {
+          gov_action_proposal_id: p.id,
+          gov_action_proposal_index: p.certIndex,
+          type: p.governanceType,
+          description: { tag: p.governanceType },
+          vote: vote?.vote ? vote.vote.charAt(0).toUpperCase() + vote.vote.slice(1) : null,
+          url: p.metadata?.url || null,
+          metadata: p.metadata?.jsonMetadata || null,
+          epoch_no: null, // Not directly on proposal, would need block info
+          time_voted: vote?.createdAt,
+          vote_tx_hash: vote?.txHash,
+          drep_id: vote?.voter,
+          view: vote?.voter,
+          vote_rationale: null, // Vote rationale not on proposal, would need extended vote entity if it exists
+          proposal: {
+             title: p.metadata?.jsonMetadata?.body?.title || null,
+             abstract: p.metadata?.jsonMetadata?.body?.abstract || null,
+             rationale: p.metadata?.jsonMetadata?.body?.rationale || null,
+             type: p.governanceType
+          }
+        };
+      });
+
       return {
-        data: govActions,
-        totalItems,
+        data: formattedActions,
+        totalItems: total,
         currentPage,
         itemsPerPage,
         totalPages,
       };
+
     } catch (error) {
       console.error('Error getting governance actions:', error);
       throw new HttpException(
