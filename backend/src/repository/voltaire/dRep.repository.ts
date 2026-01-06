@@ -156,12 +156,13 @@ export class DRepRepository extends Repository<VoltaireDrep> {
       }, 'computed_vote_count')
       .groupBy('drep.drep_id');
 
-    // Consolidate duplicates: Filter to keep only the latest (by createdAt) drepId for each hex
+
     queryBuilder.andWhere((qb) => {
         const subQuery = qb.subQuery()
-            .select('DISTINCT ON (d.hex) d.drep_id')
+            .select('DISTINCT ON (RIGHT(d.hex, 56)) d.drep_id')
             .from(Drep, 'd')
-            .orderBy('d.hex')
+            .orderBy('RIGHT(d.hex, 56)')
+            .addOrderBy('LENGTH(d.hex)', 'DESC') // Prioritize CIP-129 (longer)
             .addOrderBy('d.created_at', 'DESC')
             .getQuery();
         return 'drep.drep_id IN ' + subQuery;
