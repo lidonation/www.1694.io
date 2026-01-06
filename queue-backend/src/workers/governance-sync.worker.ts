@@ -34,7 +34,7 @@ export class GovernanceSyncWorker extends WorkerHost {
     this.logger.log(`Starting governance sync job: ${job.id}`);
 
     try {
-      const { forceRefresh = false } = job.data;
+      const { forceRefresh = false, syncOnly } = job.data;
 
       let drepsCount = 0;
       let proposalsCount = 0;
@@ -42,24 +42,32 @@ export class GovernanceSyncWorker extends WorkerHost {
       let delegatorsCount = 0;
 
       // Sync DReps
-      this.logger.log('Syncing DReps...');
-      drepsCount = await this.syncDReps();
+      if (!syncOnly || syncOnly === 'dreps') {
+        this.logger.log('Syncing DReps...');
+        drepsCount = await this.syncDReps();
+      }
 
       // Sync DRep Delegators
-      this.logger.log('Syncing DRep delegators...');
-      delegatorsCount = await this.syncDRepDelegators();
+      if (!syncOnly || syncOnly === 'delegators') {
+        this.logger.log('Syncing DRep delegators...');
+        delegatorsCount = await this.syncDRepDelegators();
 
-      // Update delegation counts on DReps
-      this.logger.log('Updating delegation counts...');
-      await this.updateDelegationCounts();
+        // Update delegation counts on DReps
+        this.logger.log('Updating delegation counts...');
+        await this.updateDelegationCounts();
+      }
 
       // Sync Proposals
-      this.logger.log('Syncing proposals...');
-      proposalsCount = await this.syncProposals();
+      if (!syncOnly || syncOnly === 'proposals') {
+        this.logger.log('Syncing proposals...');
+        proposalsCount = await this.syncProposals();
+      }
 
       // Sync Proposal Metadata and Votes
-      this.logger.log('Syncing proposal metadata and votes...');
-      votesCount = await this.syncProposalMetadataAndVotes();
+      if (!syncOnly || syncOnly === 'metadata-votes') {
+        this.logger.log('Syncing proposal metadata and votes...');
+        votesCount = await this.syncProposalMetadataAndVotes();
+      }
 
       this.logger.log(
         `Governance sync completed: ${drepsCount} DReps, ${delegatorsCount} delegators, ${proposalsCount} proposals, ${votesCount} votes`,
@@ -153,18 +161,7 @@ export class GovernanceSyncWorker extends WorkerHost {
               retired: detailedInfo?.retired ?? drepData.retired ?? false,
               expired: detailedInfo?.expired ?? drepData.expired ?? false,
               lastActiveEpoch: detailedInfo?.last_active_epoch || null,
-              metadataUrl: metadata?.url || null,
-              metadataHash: metadata?.hash || null,
-              givenName: metadata?.json_metadata?.body?.givenName || null,
-              imageUrl:
-                metadata?.json_metadata?.body?.image?.contentUrl || null,
-              paymentAddress:
-                metadata?.json_metadata?.body?.paymentAddress || null,
-              objectives: metadata?.json_metadata?.body?.objectives || null,
-              motivations: metadata?.json_metadata?.body?.motivations || null,
-              qualifications:
-                metadata?.json_metadata?.body?.qualifications || null,
-              references: metadata?.json_metadata?.body?.references || null,
+              metadata: metadata || null,
               votingPowerAda: detailedInfo?.amount
                 ? (parseInt(detailedInfo.amount) / 1_000_000).toString()
                 : null,
@@ -231,19 +228,8 @@ export class GovernanceSyncWorker extends WorkerHost {
 
             for (const delegatorData of delegatorsData) {
               try {
-                let votingPowerLovelace: string | null = null;
-                try {
-                  const stakeInfo =
-                    await this.blockfrostService.getStakeAddressInfo(
-                      delegatorData.address,
-                    );
-                  votingPowerLovelace = stakeInfo?.controlled_amount || null;
-                  await new Promise((resolve) => setTimeout(resolve, 50));
-                } catch (stakeInfoError) {
-                  this.logger.warn(
-                    `Failed to get stake info for ${delegatorData.address}: ${stakeInfoError.message}`,
-                  );
-                }
+   
+                const votingPowerLovelace = delegatorData.amount;
 
                 await delegatorsRepository.upsert(
                   {

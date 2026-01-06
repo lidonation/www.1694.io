@@ -38,32 +38,8 @@ export class Drep {
   @Column({ name: 'last_active_epoch', type: 'integer', nullable: true })
   lastActiveEpoch: number | null;
 
-  @Column({ name: 'metadata_url', type: 'text', nullable: true })
-  metadataUrl: string | null;
-
-  @Column({ name: 'metadata_hash', type: 'text', nullable: true })
-  metadataHash: string | null;
-
-  @Column({ name: 'given_name', type: 'text', nullable: true })
-  givenName: string | null;
-
-  @Column({ name: 'image_url', type: 'text', nullable: true })
-  imageUrl: string | null;
-
-  @Column({ name: 'payment_address', type: 'text', nullable: true })
-  paymentAddress: string | null;
-
-  @Column({ name: 'objectives', type: 'text', nullable: true })
-  objectives: string | null;
-
-  @Column({ name: 'motivations', type: 'text', nullable: true })
-  motivations: string | null;
-
-  @Column({ name: 'qualifications', type: 'text', nullable: true })
-  qualifications: string | null;
-
-  @Column({ name: 'references', type: 'jsonb', nullable: true })
-  references: any[] | null;
+  @Column({ name: 'metadata', type: 'jsonb', nullable: true })
+  metadata: any | null;
 
   @Column({ name: 'voting_power_ada', type: 'decimal', precision: 30, scale: 6, nullable: true })
   votingPowerAda: string | null;

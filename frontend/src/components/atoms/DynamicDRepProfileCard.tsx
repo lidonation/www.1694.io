@@ -67,7 +67,7 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
   const [isSubmittingMetadata, setIsSubmittingMetadata] = useState(false);
   const [hoveredOnWarning, setHoveredOnWarning] = useState(false);
   const { metadata, isMetadataLoading, metadataError } =
-    useGetDRepMetadataQuery(voterId);
+    useGetDRepMetadataQuery(!drep?.metadata ? voterId : '');
   const { currentDelegation } = useGetAdaHolderCurrentDelegationQuery(stakeKey);
   const { participationData, isParticipationDataLoading } =
     useGetDRepParticipationQuery(voterId);
@@ -82,9 +82,11 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
     (claimedDRep) => claimedDRep?.claimedDRepBech32 === drep?.view,
   );
 
+  const activeMetadata = metadata || drep?.metadata?.json_metadata;
+
   const metadataJson =
-    !isMetadataLoading && metadata ? renderJSONLDToJSONArr(metadata) : null;
-  const name = metadata?.body?.givenName || metadata?.body?.dRepName;
+    !isMetadataLoading && activeMetadata ? renderJSONLDToJSONArr(activeMetadata) : null;
+  const name = activeMetadata?.body?.givenName || activeMetadata?.body?.dRepName;
   const displayName = name
     ? renderJsonLdValue(name)
     : drep?.type === 'voting_option'
@@ -196,7 +198,7 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
       <Box className="flex flex-col gap-5 p-5 lg:sticky lg:top-10 lg:w-[30%] lg:self-start">
         <DRepAvatarCard
           loading={loading}
-          imageSrc={metadata?.body?.image?.contentUrl}
+          imageSrc={activeMetadata?.body?.image?.contentUrl}
           size="large"
           showStatusInfo
           variant="rounded"
@@ -305,7 +307,7 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
           </p>
         </Box>
 
-        <DRepSocialLinks links={metadata?.body?.references} />
+        <DRepSocialLinks links={activeMetadata?.body?.references} />
       </Box>
 
       <Box className="bg-white p-5 lg:w-[70%]">
@@ -357,10 +359,10 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
               <ProfileSkeletonLoader />
             ) : (
               <MetadataViewer
-                metadata={metadata}
-                isMetadataLoading={isMetadataLoading}
+                metadata={activeMetadata}
+                isMetadataLoading={isMetadataLoading && !activeMetadata}
                 metadataError={metadataError}
-                metadataUrl={drep?.metadata_url}
+                metadataUrl={drep?.metadata_url || drep?.metadata?.url}
               />
             )}
           </div>

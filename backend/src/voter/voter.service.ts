@@ -75,11 +75,11 @@ export class VoterService {
         );
         
         voterData = {
-          address: drep.payment_address,
+          address: drep.metadata?.json_metadata?.body?.paymentAddress || null,
           total_stake: parseFloat(drep.voting_power_ada || '0'),
           drep_id: drep.drep_id,
-          stake_address: drep.payment_address,
-          given_name: drep.given_name,
+          stake_address: drep.metadata?.json_metadata?.body?.paymentAddress || null,
+          given_name: drep.metadata?.json_metadata?.body?.givenName || null,
           active: drep.active,
           retired: drep.retired,
         };
@@ -98,7 +98,7 @@ export class VoterService {
           
           // Get delegation info
           const delegationData = await this.voltaireDb.query(
-            `SELECT dd.drep_id, dd.amount_lovelace, dd.updated_at, d.given_name
+            `SELECT dd.drep_id, dd.amount_lovelace, dd.updated_at, d.metadata->'json_metadata'->'body'->>'givenName' as given_name
              FROM drep_delegators dd
              LEFT JOIN dreps d ON d.drep_id = dd.drep_id
              WHERE dd.stake_address = $1
@@ -164,7 +164,7 @@ export class VoterService {
     try {
 
       const delegationData = await this.voltaireDb.query(
-        `SELECT dd.drep_id, d.given_name, d.voting_power_ada, d.has_script
+        `SELECT dd.drep_id, d.metadata->'json_metadata'->'body'->>'givenName' as given_name, d.voting_power_ada, d.has_script
          FROM drep_delegators dd
          LEFT JOIN dreps d ON d.drep_id = dd.drep_id
          WHERE dd.stake_address = $1

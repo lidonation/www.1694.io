@@ -30,14 +30,14 @@ export class SyncTriggerController {
   }
 
   @Post('governance/trigger')
-  async triggerGovernanceSync(@Body() body: { forceRefresh?: boolean } = {}) {
-    const { forceRefresh = false } = body;
+  async triggerGovernanceSync(@Body() body: { forceRefresh?: boolean; syncOnly?: 'dreps' | 'delegators' | 'proposals' | 'metadata-votes' } = {}) {
+    const { forceRefresh = false, syncOnly } = body;
     await this.governanceSyncQueue.add(
       `${JobTypes.GOVERNANCE_SYNC}-manual`,
-      { forceRefresh }
+      { forceRefresh, syncOnly }
     );
-    this.logger.log(`Triggered manual governance sync job (forceRefresh: ${forceRefresh})`);
-    return { success: true, message: 'Manual governance sync triggered' };
+    this.logger.log(`Triggered manual governance sync job (forceRefresh: ${forceRefresh}, syncOnly: ${syncOnly})`);
+    return { success: true, message: `Manual governance sync triggered${syncOnly ? ` (only: ${syncOnly})` : ''}` };
   }
 
   @Post('proposals/trigger')

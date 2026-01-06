@@ -18,6 +18,7 @@ type PageProps = {
     type?: string;
   }>;
 };
+
 const page = ({ searchParams }: PageProps) => {
   const params = use(searchParams);
   const query = params?.s || '';

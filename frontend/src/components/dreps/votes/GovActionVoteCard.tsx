@@ -29,6 +29,9 @@ export const GovActionVoteCard = ({ action }) => {
     true,
   );
 
+  console.log({ metadata, isMetadataLoading, metadataError });
+  
+
   const title =
     action?.metadata?.body?.title ||
     action?.title ||

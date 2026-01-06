@@ -148,7 +148,7 @@ export class DRepRepository extends Repository<VoltaireDrep> {
     // Apply search filter
     if (query) {
       queryBuilder.andWhere(
-        '(drep.drepId ILIKE :search OR drep.givenName ILIKE :search OR drep.hex ILIKE :search OR drep.paymentAddress ILIKE :search)',
+        "(drep.drepId ILIKE :search OR drep.metadata->'json_metadata'->'body'->>'givenName' ILIKE :search OR drep.hex ILIKE :search OR drep.metadata->'json_metadata'->'body'->>'paymentAddress' ILIKE :search)",
         { search: `%${query}%` }
       );
     }
@@ -204,15 +204,15 @@ export class DRepRepository extends Repository<VoltaireDrep> {
     const transformedData = drepList.map(drep => ({
       chain_id: drep.hex,
       view: drep.drepId,
-      url: drep.metadataUrl,
+      url: drep.metadata?.url || null,
       voting_power: drep.votingPowerAda || '0',
       has_script: drep.hasScript,
       active: drep.active,
       retired: drep.retired,
       tx_hash: null,
       last_register_time: drep.updatedAt,
-      given_name: drep.givenName,
-      image_url: drep.imageUrl,
+      given_name: drep.metadata?.json_metadata?.body?.givenName || null,
+      image_url: drep.metadata?.json_metadata?.body?.image?.contentUrl || null,
       delegation_vote_count: drep.delegationVoteCount,
       live_stake: drep.votingPowerAda,
       governance_vote_count: drep.governanceVoteCount
@@ -240,13 +240,13 @@ export class DRepRepository extends Repository<VoltaireDrep> {
       voting_power: drepData.votingPowerAda,
       delegation_vote_count: drepData.delegationVoteCount,
       governance_vote_count: drepData.governanceVoteCount,
-      given_name: drepData.givenName,
-      image_url: drepData.imageUrl,
-      metadata_url: drepData.metadataUrl,
-      payment_address: drepData.paymentAddress,
-      objectives: drepData.objectives,
-      motivations: drepData.motivations,
-      qualifications: drepData.qualifications,
+      given_name: drepData.metadata?.json_metadata?.body?.givenName || null,
+      image_url: drepData.metadata?.json_metadata?.body?.image?.contentUrl || null,
+      metadata_url: drepData.metadata?.url || null,
+      payment_address: drepData.metadata?.json_metadata?.body?.paymentAddress || null,
+      objectives: drepData.metadata?.json_metadata?.body?.objectives || null,
+      motivations: drepData.metadata?.json_metadata?.body?.motivations || null,
+      qualifications: drepData.metadata?.json_metadata?.body?.qualifications || null,
     };
   }
 
@@ -493,19 +493,13 @@ export class DRepRepository extends Repository<VoltaireDrep> {
     if (!drepData) return [];
     
     return [{
-      given_name: drepData.givenName,
-      image_url: drepData.imageUrl,
-      metadata_url: drepData.metadataUrl,
-      objectives: drepData.objectives,
-      motivations: drepData.motivations,
-      qualifications: drepData.qualifications,
-      metadata: {
-        givenName: drepData.givenName,
-        imageUrl: drepData.imageUrl,
-        objectives: drepData.objectives,
-        motivations: drepData.motivations,
-        qualifications: drepData.qualifications,
-      }
+      given_name: drepData.metadata?.json_metadata?.body?.givenName || null,
+      image_url: drepData.metadata?.json_metadata?.body?.image?.contentUrl || null,
+      metadata_url: drepData.metadata?.url || null,
+      objectives: drepData.metadata?.json_metadata?.body?.objectives || null,
+      motivations: drepData.metadata?.json_metadata?.body?.motivations || null,
+      qualifications: drepData.metadata?.json_metadata?.body?.qualifications || null,
+      metadata: drepData.metadata
     }];
   }
 
@@ -514,7 +508,7 @@ export class DRepRepository extends Repository<VoltaireDrep> {
       .getRepository(Drep)
       .findOne({ where: { drepId: voterId } });
     
-    return [{ metadata_url: drepData?.metadataUrl || null }];
+    return [{ metadata_url: drepData?.metadata?.url || null }];
   }
 
   async getVoterProfileData(stakeKey: string) {
@@ -634,14 +628,15 @@ export class DRepRepository extends Repository<VoltaireDrep> {
       epoch_no: drepData.snapshotEpochNo,
       retired: drepData.retired,
       active: drepData.active,
-      metadata_url: drepData.metadataUrl,
+      metadata: drepData.metadata,
+      metadata_url: drepData.metadata?.url || null,
       has_script: drepData.hasScript,
-      given_name: drepData.givenName,
-      image_url: drepData.imageUrl,
-      payment_address: drepData.paymentAddress,
-      objectives: drepData.objectives,
-      motivations: drepData.motivations,
-      qualifications: drepData.qualifications,
+      given_name: drepData.metadata?.json_metadata?.body?.givenName || null,
+      image_url: drepData.metadata?.json_metadata?.body?.image?.contentUrl || null,
+      payment_address: drepData.metadata?.json_metadata?.body?.paymentAddress || null,
+      objectives: drepData.metadata?.json_metadata?.body?.objectives || null,
+      motivations: drepData.metadata?.json_metadata?.body?.motivations || null,
+      qualifications: drepData.metadata?.json_metadata?.body?.qualifications || null,
       governance_vote_count: drepData.governanceVoteCount,
       // Set defaults for missing fields
       deposit: null,

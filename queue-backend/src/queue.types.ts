@@ -57,6 +57,7 @@ export type StakeSyncJobResponse = {
 
 export type GovernanceSyncJobData = {
   forceRefresh?: boolean;
+  syncOnly?: 'dreps' | 'delegators' | 'proposals' | 'metadata-votes';
 };
 
 export type GovernanceSyncJobResponse = {

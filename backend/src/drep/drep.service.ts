@@ -210,6 +210,7 @@ export class DrepService {
             epoch_no: blockfrostDrep.active_epoch,
             retired: blockfrostDrep.retired,
             active: blockfrostDrep.active,
+            metadata: metadata,
             metadata_url: metadata?.url || null,
             has_script: blockfrostDrep.has_script,
             given_name: metadata?.json_metadata?.body?.givenName || null,
@@ -1068,58 +1069,21 @@ export class DrepService {
   }
 
   async getMetadata(voterId: string) {
-    try {
-      const drepSnapshot = await this.governanceService.getSingleDRep(voterId);
-      
-      if (!drepSnapshot) {
-        throw new NotFoundException('DRep not found!');
-      }
-      
-      if (drepSnapshot.metadataUrl) {
-        try {
-          return await this.miscService.fetchWithIPFSFallback(drepSnapshot.metadataUrl);
-        } catch (error) {
-          console.error('Error fetching metadata from governance indexer URL:', error);
-          return null;
-        }
-      } else {
-        return null;
-      }
-    } catch (governanceError) {
-      // If it's a NotFoundException, re-throw it
-      if (governanceError instanceof NotFoundException) {
-        throw governanceError;
-      }
-      
-      console.warn('Governance metadata lookup failed, falling back to legacy method:', governanceError.message);
-      
-      // Legacy method fallback
-      const savedMetadata = await this.drepRepository.getDrepMetadata(voterId);
+    const drepSnapshot = await this.governanceService.getSingleDRep(voterId);
 
-      if (!savedMetadata || savedMetadata.length === 0 || !savedMetadata?.[0]?.metadata) {
-        const metadata = await this.drepRepository.getDrepMetadataUrl(voterId);
-        
-        if (!metadata || metadata.length === 0) {
+    if (!drepSnapshot || !drepSnapshot.metadata) {
+      try {
+        const blockfrostMetadata = await this.blockfrostService.getDRepMetadata(voterId);
+        return blockfrostMetadata?.json_metadata || null;
+      } catch (error) {
+        if (!drepSnapshot) {
           throw new NotFoundException('DRep not found!');
         }
-        
-        const metadataUrl = metadata?.[0]?.metadata_url;
-
-        if (!metadataUrl) {
-          // DRep exists but has no metadata URL
-          return null;
-        }
-
-        try {
-          return await this.miscService.fetchWithIPFSFallback(metadataUrl);
-        } catch (error) {
-          console.error('Error fetching metadata:', error);
-          return null;
-        }
-      } else if (savedMetadata?.[0]) {
-        return savedMetadata?.[0].metadata;
+        return null;
       }
     }
+
+    return drepSnapshot.metadata.json_metadata || null;
   }
 
   async getVoltaireDRepViaVoterID(drepVoterId: string) {
@@ -1259,15 +1223,7 @@ export class DrepService {
         retired: blockfrostDrep.retired,
         expired: blockfrostDrep.expired,
         lastActiveEpoch: blockfrostDrep.last_active_epoch,
-        metadataUrl: metadata?.url || null,
-        metadataHash: metadata?.hash || null,
-        givenName: metadata?.json_metadata?.body?.givenName || null,
-        imageUrl: metadata?.json_metadata?.body?.image?.contentUrl || null,
-        paymentAddress: metadata?.json_metadata?.body?.paymentAddress || null,
-        objectives: metadata?.json_metadata?.body?.objectives || null,
-        motivations: metadata?.json_metadata?.body?.motivations || null,
-        qualifications: metadata?.json_metadata?.body?.qualifications || null,
-        references: metadata?.json_metadata?.body?.references || null,
+        metadata: metadata || null,
         votingPowerAda: blockfrostDrep.amount ? (parseInt(blockfrostDrep.amount) / 1_000_000).toString() : '0',
         governanceVoteCount: 0, 
         delegationVoteCount: 0, 

@@ -114,6 +114,8 @@ import { SyncTriggerController } from "./sync-trigger.controller";
         username: configService.get("DATABASE_USERNAME", "voltaire"),
         password: configService.get("DATABASE_PASSWORD", "postgres"),
         database: configService.get("DATABASE_NAME", "1694"),
+        autoLoadEntities: true,
+        synchronize: false,
       }),
     }),
   ],

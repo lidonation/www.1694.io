@@ -49,20 +49,24 @@ export class BlockfrostService {
     try {
       return await this.makeRequest<T>(this.primaryConfig, options);
     } catch (primaryError) {
-      this.logger.warn(
-        `Primary request failed for ${endpoint}: ${primaryError.message}. Trying fallback...`,
-      );
+      if (primaryError.status !== 404) {
+        this.logger.warn(
+          `Primary request failed for ${endpoint}: ${primaryError.message}. Trying fallback...`,
+        );
+      }
 
       try {
         return await this.makeRequest<T>(this.fallbackConfig, options);
       } catch (fallbackError) {
-        this.logger.error(
-          `Both primary and fallback requests failed for ${endpoint}`,
-          {
-            primaryError: primaryError.message,
-            fallbackError: fallbackError.message,
-          },
-        );
+        if (fallbackError.status !== 404) {
+          this.logger.error(
+            `Both primary and fallback requests failed for ${endpoint}`,
+            {
+              primaryError: primaryError.message,
+              fallbackError: fallbackError.message,
+            },
+          );
+        }
 
         throw new HttpException(
           fallbackError?.response?.data ||

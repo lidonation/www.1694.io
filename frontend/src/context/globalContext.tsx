@@ -1033,10 +1033,10 @@ export const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
                 isFetchingMetadataForClaim: true,
               },
             }));
-            const { jsonLd, jsonLdHash } =
-              await handleFetchDRepMetadata(dRepIDToClaimBech32);
             const regData = await getDRepRegStatus(dRepIDToClaimBech32);
             const drepData = await getSingleDRepViaVoterId(dRepIDToClaimBech32);
+            const jsonLd = drepData.metadata?.json_metadata || null;
+            const jsonLdHash = drepData.metadata?.hash || null;
             userInfo.dRepClaimInfo = {
               ...user.dRepClaimInfo,
               dRepIDToClaimBech32,

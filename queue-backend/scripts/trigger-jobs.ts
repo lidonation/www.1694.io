@@ -112,11 +112,13 @@ async function main() {
     
     if (jobType === 'governance-sync' || jobType === 'all') {
       const forceRefresh = args.includes('--force');
+      const onlyArg = args.find(arg => arg.startsWith('--only='));
+      const syncOnly = onlyArg ? onlyArg.split('=')[1] as any : undefined;
       
-      console.log(`📊 Triggering governance sync (forceRefresh: ${forceRefresh})...`);
+      console.log(`📊 Triggering governance sync (forceRefresh: ${forceRefresh}${syncOnly ? `, syncOnly: ${syncOnly}` : ''})...`);
       const job = await queueService.addToQueue(Queues.GOVERNANCE_SYNC, {
         name: `${JobTypes.GOVERNANCE_SYNC}-manual`,
-        data: { forceRefresh }
+        data: { forceRefresh, syncOnly }
       });
       console.log(`✅ Governance sync job queued with ID: ${job.id}`);
     }

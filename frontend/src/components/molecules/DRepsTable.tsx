@@ -5,7 +5,6 @@ import StatusChip from '../atoms/StatusChip';
 import { useGetDRepsQuery } from '@/hooks/useGetDRepsQuery';
 import {
   checkStatus,
-  convertHexToCIP129,
   convertString,
   formatAsCurrency,
   handleCopyText,
@@ -65,6 +64,8 @@ const DRepsTable = ({
     includeRetired,
     type,
   );
+
+  console.log({ DReps });
 
   return (
     <div className="dreps-table-wrapper flex flex-col overflow-x-auto">
@@ -134,7 +135,7 @@ const DRepsTable = ({
                     {!(
                       drep?.type === 'voting_option' ||
                       drep?.type === 'scripted'
-                    ) && <DRepLogo drepView={drep?.view} />}
+                                        ) && <DRepLogo drepView={drep?.view} metadata={drep?.metadata?.json_metadata} />}
 
                     {drep?.type === 'voting_option' ||
                     drep?.type === 'scripted' && (
@@ -184,7 +185,7 @@ const DRepsTable = ({
                     )}
 
                     <Box className="w-30 flex flex-row items-center gap-1.5">
-                      {drep.given_name && drep.given_name.trim() ? (
+                      {drep?.given_name ? (
                         <Tooltip title="DRep given name">
                           <Link
                             className="inline-flex"
@@ -192,9 +193,12 @@ const DRepsTable = ({
                             prefetch={false}
                           >
                             <span className="inline-block rounded-xl border border-black px-1.5 py-0.5 text-xs font-black text-black">
-                              {drep.given_name.length > 25
-                                ? `${drep.given_name.slice(0, 25)}...`
-                                : drep.given_name}
+                              {(() => {
+                                const gName = drep.given_name || drep.metadata?.json_metadata?.body?.givenName;
+                                return gName.length > 25
+                                  ? `${gName.slice(0, 25)}...`
+                                  : gName;
+                              })()}
                             </span>
                           </Link>
                         </Tooltip>
