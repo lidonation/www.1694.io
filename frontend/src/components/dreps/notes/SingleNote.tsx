@@ -226,7 +226,7 @@ const SingleNote = ({
     rocket: '/svgs/reactions/rocket-filled.svg',
   };
   return (
-    <div className="flex flex-col gap-3 rounded-xl bg-white bg-opacity-70 shadow-md">
+    <div className="flex flex-col gap-3 rounded-xl bg-white/70 shadow-md">
       <div className="flex flex-col gap-3 p-5">
         <Typography className="font-black" variant="h5">
           {note.note_title}

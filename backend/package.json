@@ -7,6 +7,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",
+    "build:prod": "npx tsc --project tsconfig.prod.json",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
@@ -23,7 +24,17 @@
     "migration:show": "yarn run typeorm migration:show -d src/typeorm.config.ts",
     "migrate:up": "yarn run typeorm migration:run -d src/typeorm.config.ts",
     "migrate:down": "yarn run typeorm migration:revert -d src/typeorm.config.ts",
-    "migrate:fake": "yarn run typeorm migration:run --fake -d src/typeorm.config.ts "
+    "migrate:fake": "yarn run typeorm migration:run --fake -d src/typeorm.config.ts",
+    "job:trigger": "node scripts/trigger-jobs.js",
+    "job:trigger:governance": "npm run job:trigger governance-sync",
+    "job:trigger:governance-force": "npm run job:trigger governance-sync -- --force",
+    "job:trigger:stake": "npm run job:trigger stake-sync",
+    "job:trigger:proposals": "npm run job:trigger proposals-sync",
+    "job:trigger:proposals-force": "npm run job:trigger proposals-sync -- --force",
+    "job:trigger:drep-votes": "npm run job:trigger drep-votes-sync",
+    "job:trigger:drep-votes-force": "npm run job:trigger drep-votes-sync -- --force",
+    "job:trigger:all": "npm run job:trigger all",
+    "job:trigger:all-force": "npm run job:trigger all -- --force"
   },
   "dependencies": {
     "@emurgo/cardano-serialization-lib-nodejs": "^14.1.1",

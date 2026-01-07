@@ -4,9 +4,14 @@ import ViewDraftsButton from '@/components/molecules/ViewDraftsButton';
 import UpdateNoteForm from '@/components/organisms/UpdateNoteForm';
 import { ModalType, useModals, useWallet } from '@/context/globalContext';
 import { getSingleNote } from '@/services/requests/getSingleNote';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, use } from 'react';
 
-const page = (params: { params: { noteid: number } }) => {
+interface PageProps {
+  params: Promise<{ noteid: number }>;
+}
+
+const page = ({ params }: PageProps) => {
+  const { noteid } = use(params);
   const {
     wallet: { isConnected },
   } = useWallet();
@@ -22,7 +27,7 @@ const page = (params: { params: { noteid: number } }) => {
             hideCloseButton: true,
           });
         }
-        const note = await getSingleNote(params.params.noteid);
+        const note = await getSingleNote(noteid);
         setInitialValues(note);
       } catch (error) {
         console.log(error);
@@ -62,7 +67,7 @@ const page = (params: { params: { noteid: number } }) => {
               </div>
             </div>
             <UpdateNoteForm
-              noteId={params.params.noteid}
+              noteId={noteid}
               initialValues={initialValues}
             />
           </div>

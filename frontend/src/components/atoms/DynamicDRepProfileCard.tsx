@@ -20,6 +20,7 @@ import {
   removeItemFromLocalStorage,
   renderJsonLdValue,
   setItemToLocalStorage,
+  shortNumber,
 } from '@/lib';
 import { useScreenDimension } from '@/hooks';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
@@ -42,6 +43,7 @@ import { ModalType, useModals, useWallet } from '@/context/globalContext';
 import ProfileSkeletonLoader from '../Loaders/ProfileSkeletonLoader';
 import LinearProgressBar from '../molecules/LinearProgressBar';
 import { useGetDRepParticipationQuery } from '@/hooks/useGetDRepParticipationQuery';
+import { AnimatedOdometer } from './DRepMetricCard';
 
 interface DynamicDRepProfileCardProps {
   drep: SingleDRep;
@@ -67,10 +69,12 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
   const [isSubmittingMetadata, setIsSubmittingMetadata] = useState(false);
   const [hoveredOnWarning, setHoveredOnWarning] = useState(false);
   const { metadata, isMetadataLoading, metadataError } =
-    useGetDRepMetadataQuery(voterId);
+    useGetDRepMetadataQuery(!drep?.metadata ? voterId : '');
   const { currentDelegation } = useGetAdaHolderCurrentDelegationQuery(stakeKey);
   const { participationData, isParticipationDataLoading } =
     useGetDRepParticipationQuery(voterId);
+
+    console.log({participationData});
   const isDelegated = compareDRepIDs(drep?.view, currentDelegation?.drep_view);
   const isClaimed =
     drep?.type === 'scripted' ||
@@ -80,9 +84,11 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
     (claimedDRep) => claimedDRep?.claimedDRepBech32 === drep?.view,
   );
 
+  const activeMetadata = metadata || drep?.metadata?.json_metadata;
+
   const metadataJson =
-    !isMetadataLoading && metadata ? renderJSONLDToJSONArr(metadata) : null;
-  const name = metadata?.body?.givenName || metadata?.body?.dRepName;
+    !isMetadataLoading && activeMetadata ? renderJSONLDToJSONArr(activeMetadata) : null;
+  const name = activeMetadata?.body?.givenName || activeMetadata?.body?.dRepName;
   const displayName = name
     ? renderJsonLdValue(name)
     : drep?.type === 'voting_option'
@@ -190,11 +196,11 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
   };
 
   return (
-    <Box className="flex w-full flex-col bg-white bg-opacity-50 lg:flex-row">
+    <Box className="flex w-full flex-col bg-white/50 lg:flex-row">
       <Box className="flex flex-col gap-5 p-5 lg:sticky lg:top-10 lg:w-[30%] lg:self-start">
         <DRepAvatarCard
           loading={loading}
-          imageSrc={metadata?.body?.image?.contentUrl}
+          imageSrc={activeMetadata?.body?.image?.contentUrl}
           size="large"
           showStatusInfo
           variant="rounded"
@@ -251,7 +257,7 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
               {loading ? (
                 <Skeleton animation="wave" width={50} height={20} />
               ) : drep?.voting_power != null ? (
-                `₳ ${formattedAda(drep?.voting_power, 2)}`
+                `₳ ${shortNumber(parseInt(drep?.voting_power), 2)}`
               ) : (
                 '-'
               )}
@@ -263,7 +269,7 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
               {loading ? (
                 <Skeleton animation="wave" width={50} height={20} />
               ) : drep?.live_stake != null ? (
-                `₳ ${formattedAda(drep?.live_stake, 2)}`
+                `₳ ${shortNumber(parseInt(drep?.live_stake), 2)}`
               ) : (
                 '-'
               )}
@@ -303,7 +309,7 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
           </p>
         </Box>
 
-        <DRepSocialLinks links={metadata?.body?.references} />
+        <DRepSocialLinks links={activeMetadata?.body?.references} />
       </Box>
 
       <Box className="bg-white p-5 lg:w-[70%]">
@@ -311,7 +317,21 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
           <Typography variant="h6" className="">
             Metrics
           </Typography>
-          <Box className="flex flex-col gap-1">
+          <Box className="flex flex-col gap-4">
+            <Box>
+              <Box className="flex items-start">
+                <AnimatedOdometer
+                  value={participationData?.total_actions || 0}
+                  className="text-xl font-black"
+                  isLoading={isParticipationDataLoading}
+                  width={undefined}
+                  height={undefined}
+                />
+              </Box>
+              <Typography sx={{ fontSize: 13, color: 'text.secondary', fontWeight: 500 }}>
+                Total Governance Actions
+              </Typography>
+            </Box>
             <Typography sx={{ fontSize: 14 }}>
               Governance Actions Participation
             </Typography>
@@ -355,10 +375,10 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
               <ProfileSkeletonLoader />
             ) : (
               <MetadataViewer
-                metadata={metadata}
-                isMetadataLoading={isMetadataLoading}
+                metadata={activeMetadata}
+                isMetadataLoading={isMetadataLoading && !activeMetadata}
                 metadataError={metadataError}
-                metadataUrl={drep?.metadata_url}
+                metadataUrl={drep?.metadata_url || drep?.metadata?.url}
               />
             )}
           </div>

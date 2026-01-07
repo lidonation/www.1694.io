@@ -12,10 +12,6 @@ export type DrepVote = {
   gov_action_proposal_index: string;
   prop_inception: string;
   type: 'voting_activity';
-  description: {
-    tag: string;
-    contents:string| null;
-  };
   voting_anchor_id: string;
   vote: string;
   metadata: any;
@@ -27,6 +23,12 @@ export type DrepVote = {
   url: string;
   vote_rationale: string;
   timestamp: string;
+  proposal?: {
+    title: string | null;
+    abstract: string | null;
+    rationale: string | null;
+    type: string | null;
+  };
 };
 
 export type Delegation = {

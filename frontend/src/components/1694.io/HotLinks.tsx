@@ -106,7 +106,7 @@ const HotLinks = ({ seethrough }: HotLinksProps) => {
 
   return (
     <div
-      className={`my-5 bg-white ${seethrough ? 'bg-opacity-50' : ''} w-full overflow-hidden`}
+      className={`my-5 ${seethrough ? 'bg-white/50' : 'bg-white'} w-full overflow-hidden`}
     >
       <div className="flex w-full flex-row flex-wrap items-center justify-center gap-3 p-4 md:p-8">
         {links

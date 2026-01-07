@@ -6,8 +6,7 @@ import { Column, Entity,  PrimaryGeneratedColumn } from 'typeorm';
 //for reference to the notifications   
 @Entity() 
 export class Notification extends BaseImmutableEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+  declare id: number;
 
   @Column()
   title: string;
@@ -22,8 +21,7 @@ export class Notification extends BaseImmutableEntity {
   })
   type: string;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  createdAt: Date;
+  declare createdAt: Date;
 
   @Column({ default: false })
   isRead: boolean;
@@ -31,8 +29,7 @@ export class Notification extends BaseImmutableEntity {
   @Column({ default: false })
   isArchived: boolean;
 
-  @Column({ nullable: true })
-  deletedAt: Date;
+  declare deletedAt: Date;
 
   @Column({ default: false })
   isPersistent: boolean;

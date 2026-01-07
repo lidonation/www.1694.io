@@ -15,10 +15,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     private voltaireService: DataSource,
     private configService: ConfigService
   ) {
+    const secret = configService.get<string>('JWT_SECRET') || 'default-secret';
     super({
       jwtFromRequest: customAuthHeaderExtractor,
       ignoreExpiration: false,
-      secretOrKey: configService.get<string>('JWT_SECRET'),
+      secretOrKey: secret,
     });
   }
 

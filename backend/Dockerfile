@@ -5,7 +5,7 @@ FROM node:20-alpine AS base
 ###################
 FROM base As dependencies
 
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat postgresql-client
 
 ENV NODE_ENV build
 
@@ -37,7 +37,7 @@ COPY --chown=node:node --from=dependencies /usr/src/app/node_modules ./node_modu
 
 COPY --chown=node:node ./backend .
 
-RUN yarn run build
+RUN npx tsc --project tsconfig.prod.json
 
 RUN yarn cache clean
 
@@ -47,6 +47,8 @@ RUN yarn cache clean
 ###################
 FROM base As production
 
+RUN apk add --no-cache postgresql-client
+
 ENV NODE_ENV production
 
 WORKDIR /usr/src/app
@@ -55,6 +57,8 @@ COPY --chown=node:node --from=build /usr/src/app/node_modules ./node_modules
 COPY --chown=node:node --from=build /usr/src/app/dist ./
 
 COPY --chown=node:node backend/package.json ./
+COPY --chown=node:node backend/tsconfig.json ./
+COPY --chown=node:node backend/scripts ./scripts
 
 EXPOSE 8000
 
@@ -62,4 +66,4 @@ ENV HOSTNAME "0.0.0.0"
 
 USER node
 
-CMD [ "node", "main.js" ]
+CMD [ "node", "src/main.js" ]

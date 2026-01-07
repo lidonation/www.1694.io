@@ -1,3 +1,4 @@
+import 'tsconfig-paths/register';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as bodyParser from 'body-parser';
@@ -13,6 +14,7 @@ async function bootstrap() {
   );
   app.enableCors();
 
-  await app.listen(8000);
+  const port = process.env.PORT || 8000;
+  await app.listen(port);
 }
 bootstrap().then();

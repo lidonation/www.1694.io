@@ -1,70 +1,63 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 import { BlockfrostService } from 'src/blockfrost/blockfrost.service';
-import { Currency } from 'src/common/enums';
-import { BlockfrostBlockRes, Metrics, NodeBlockRes } from 'src/common/types';
-import { getLatestBlock } from 'src/queries/getLatestBlock';
-import {
-  getActiveDRepsQuery,
-  getLiveStakeQuery,
-  getTotalDelegatorsQuery,
-  getTotalDrepsAndVotingPower,
-  getTotalGovernanceActionsQuery,
-} from 'src/queries/getMetricsQueries';
+import { BlockfrostBlockRes, Metrics } from 'src/common/types';
+
 import {
   BlockfrostUTXO,
   DbSyncUTXO,
-  ProposalByHashDetails,
   StandardizedUTXO,
 } from './misc.types';
-import { getAddrUtxosQuery } from 'src/queries/getAddressUtxos';
-import { proposalMetadataByHash } from 'src/queries/proposalMetadataByHash';
 import { catchError, firstValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 import { Response } from 'express';
 import { IpfsService } from 'src/ipfs/ipfs.service';
-import { CardanoRepository } from 'src/repository/cardano/cardano.repository';
-
 @Injectable()
 export class MiscellaneousService {
   private readonly IPFS_GATEWAYS = ['ipfs.io', 'dweb.link'];
   constructor(
-    private cardanoRepository: CardanoRepository,
+    @InjectDataSource('default')
+    private readonly voltaireDb: DataSource,
     private blockfrostService: BlockfrostService,
     private ipfsService: IpfsService,
     private httpService: HttpService,
   ) {}
   async getFirstEpoch() {
-    const epoch = await this.cardanoRepository.query(
-      `SELECT * 
-        FROM "epoch" 
-        ORDER BY "start_time" ASC 
-        LIMIT 1;`,
-    );
-    return epoch[0];
+    try {
+      // Return latest epoch data instead of first epoch
+      return await this.blockfrostService.getLatestEpoch();
+    } catch (error) {
+      console.log(error);
+      throw new HttpException(
+        'Failed to get epoch data',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   async checkTxExists(hash: string) {
-    const tx = await this.cardanoRepository.query(
-      `SELECT id, SUBSTRING(CAST(tx.hash AS TEXT) FROM 3) AS tx_hash 
-       FROM "tx" 
-       WHERE "hash" = decode($1, 'hex');`,
-      [hash],
-    );
-
-    return tx[0]?.tx_hash ? true : false;
+    try {
+      await this.blockfrostService.getTransaction(hash);
+      return true;
+    } catch (error) {
+      return false;
+    }
   }
+
   async getNodeStatus() {
     try {
-      const nodeLatestBlock: [NodeBlockRes] =
-        await this.cardanoRepository.query(getLatestBlock);
-      //compare with the latest block from a blockfrost API or any other API
+      // Just return Blockfrost latest block as node status
       const confirmationLatestBlock: BlockfrostBlockRes =
         await this.blockfrostService.getLatestBlock();
-      //compare the block number
+
       return {
-        ...nodeLatestBlock[0],
+        block_no: confirmationLatestBlock.height,
+        slot_no: confirmationLatestBlock.slot.toString(),
+        epoch_no: confirmationLatestBlock.epoch,
+        time: new Date(confirmationLatestBlock.time * 1000).toISOString(),
         comparedLatestSlotNo: confirmationLatestBlock.slot,
-        behindBy: confirmationLatestBlock.height - nodeLatestBlock[0].block_no,
+        behindBy: 0, // Assume we're synced since using Blockfrost
       };
     } catch (error) {
       console.log(error);
@@ -73,18 +66,21 @@ export class MiscellaneousService {
   }
 
   async getProposalMetadataByHash(hash: string) {
-    //assumption is that native dbsync has failed parsing the metadata, thus try fetching it ourselves
+    // Use Blockfrost to get proposal metadata
     try {
-      const proposal = (await this.cardanoRepository.query(
-        proposalMetadataByHash,
-        [hash],
-      )) as ProposalByHashDetails[];
+      const proposals = await this.blockfrostService.getAllProposals();
+      const proposal = proposals.find((p) => p.tx_hash === hash);
 
-      if (!proposal?.[0]) {
+      if (!proposal) {
         return null;
       }
-      const url = proposal[0]?.url;
-      return this.fetchExternalMetadata(url);
+
+      // Try to get metadata for the specific proposal
+      const metadata = await this.blockfrostService.getProposalMetadata(
+        proposal.tx_hash,
+        proposal.cert_index,
+      );
+      return metadata;
     } catch (error) {
       console.log(error);
       throw new HttpException('Failed to get the proposal metadata', 500);
@@ -267,31 +263,35 @@ export class MiscellaneousService {
 
   async getMetrics(): Promise<Metrics> {
     try {
+      // Use enhanced dreps table and other local tables for metrics
       const [
-        drepMetricsForAllDReps,
+        totalRegisteredDReps,
         totalActiveDReps,
+        totalVotingPower,
         totalDelegators,
-        totalGovernanceActions,
-        totalLiveStake,
+        totalProposals,
       ] = await Promise.all([
-        this.cardanoRepository.query(getTotalDrepsAndVotingPower),
-        this.cardanoRepository.query(getActiveDRepsQuery),
-        this.cardanoRepository.query(getTotalDelegatorsQuery),
-        this.cardanoRepository.query(getTotalGovernanceActionsQuery),
-        this.cardanoRepository.query(getLiveStakeQuery),
+        this.voltaireDb.query('SELECT COUNT(*) as count FROM dreps'),
+        this.voltaireDb.query(
+          'SELECT COUNT(*) as count FROM dreps WHERE active = true AND retired = false',
+        ),
+        this.voltaireDb.query(
+          'SELECT SUM(COALESCE(voting_power_ada::numeric, 0)) as total FROM dreps WHERE active = true',
+        ),
+        this.voltaireDb.query(
+          'SELECT COUNT(DISTINCT stake_address) as count FROM drep_delegators',
+        ),
+        this.voltaireDb.query('SELECT COUNT(*) as count FROM proposals'),
       ]);
 
       const metrics: Metrics = {
-        totalRegisteredDReps: parseInt(drepMetricsForAllDReps[0].total_dreps),
-        totalActiveDReps: parseInt(totalActiveDReps[0].total_active_dreps),
-        totalLiveStake:
-          parseInt(totalLiveStake[0].total_live_stake) / Currency.LOVELACETOADA, // convert to ADA
-        totalGovernanceActions: parseInt(totalGovernanceActions[0].count),
-        totalVotingPower:
-          parseInt(drepMetricsForAllDReps[0].total_active_power) /
-          Currency.LOVELACETOADA, // convert to ADA
+        totalRegisteredDReps: parseInt(totalRegisteredDReps[0]?.count || '0'),
+        totalActiveDReps: parseInt(totalActiveDReps[0]?.count || '0'),
+        totalLiveStake: parseFloat(totalVotingPower[0]?.total || '0'), // Already in ADA from enhanced table
+        totalProposals: parseInt(totalProposals[0]?.count || '0'),
+        totalVotingPower: parseFloat(totalVotingPower[0]?.total || '0'), // Already in ADA from enhanced table
         totalRegisteredStakeAddresses: parseInt(
-          totalDelegators[0].total_delegators,
+          totalDelegators[0]?.count || '0',
         ),
       };
 
@@ -335,25 +335,15 @@ export class MiscellaneousService {
 
   async getAddressUtxos(address: string): Promise<StandardizedUTXO[]> {
     try {
-      // First query blockfrost to get the utxos
+      // Use Blockfrost to get the utxos
       const utxos = await this.blockfrostService.getAddressUtxos(address);
       return utxos;
     } catch (error) {
-      // Try fetching from the local database
-      try {
-        const dbUtxos = (await this.cardanoRepository.query(getAddrUtxosQuery, [
-          address,
-        ])) as DbSyncUTXO[];
-
-        // Transform db response to match Blockfrost format
-        return this.transformDbSyncUtxos(dbUtxos);
-      } catch (dbError) {
-        console.log(dbError);
-        throw new HttpException(
-          dbError?.message || dbError || 'An error occurred',
-          500,
-        );
-      }
+      console.log(error);
+      throw new HttpException(
+        error?.message || error || 'Failed to fetch UTXOs',
+        500,
+      );
     }
   }
 

@@ -6,13 +6,18 @@ import DRepIntro from '@/components/organisms/DRepIntro';
 import GovernanceActionsCard from '@/components/organisms/GovernanceActionsCard';
 import PickADRep from '@/components/organisms/PickADRep';
 import { useWallet } from '@/context/globalContext';
-import React, { useEffect } from 'react';
+import React, { useEffect, use } from 'react';
 
-const page = ({ params: { locale } }) => {
+interface PageProps {
+  params: Promise<{ locale: string }>;
+}
+
+const page = ({ params }: PageProps) => {
+  const { locale } = use(params);
   const { setCurrentLocale } = useWallet();
   useEffect(() => {
     setCurrentLocale(locale);
-  }, []);
+  }, [locale]);
   return (
     <Background>
       <BreadCrumbs

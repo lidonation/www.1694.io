@@ -8,6 +8,34 @@ const nextConfig = {
     // your project has ESLint errors.
     ignoreDuringBuilds: true,
   },
+  webpack: (config, { isServer }) => {
+    // Enable WebAssembly
+    config.experiments = {
+      ...(config.experiments || {}),
+      asyncWebAssembly: true,
+      layers: true,
+    };
+
+    // Treat .wasm files as async WebAssembly modules
+    config.module.rules = config.module.rules || [];
+    config.module.rules.push({
+      test: /\.wasm$/,
+      type: 'webassembly/async',
+    });
+
+    // Avoid bundling Node core modules in the client bundle
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...(config.resolve.fallback || {}),
+        fs: false,
+        net: false,
+        tls: false,
+        crypto: false,
+      };
+    }
+
+    return config;
+  },
 };
 const sassOptions = {
   includePaths: [path.join(__dirname, 'assets/styles')],

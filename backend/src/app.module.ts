@@ -19,6 +19,7 @@ import { QueueModule } from './queue/queue.module';
 import { HttpModule } from '@nestjs/axios';
 import { RepositoryModule } from './repository/repository.module';
 import { IpfsModule } from './ipfs/ipfs.module';
+import { GovernanceModule } from './governance/governance.module';
 import { JwtModule } from '@nestjs/jwt';
 
 @Module({
@@ -44,6 +45,7 @@ import { JwtModule } from '@nestjs/jwt';
     }),
     DbModule,
     RepositoryModule,
+    GovernanceModule,
     DrepModule,
     NoteModule,
     AttachmentModule,

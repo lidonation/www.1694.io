@@ -4,7 +4,7 @@ import BecomeADrepCard from '../molecules/BecomeADrepCard';
 
 const DRepInfo = () => {
   return (
-    <div className="mt-5 w-full overflow-hidden rounded-t-3xl bg-opacity-20 bg-[url(/img/drepsBg.png)] bg-cover bg-center shadow-lg">
+    <div className="mt-5 w-full overflow-hidden rounded-t-3xl bg-[url(/img/drepsBg.png)] bg-cover bg-center shadow-lg">
       {/* Inner div for img background */}
       <div className="drep_bg flex h-full w-full flex-col gap-10">
         <div className="base_container py-16">

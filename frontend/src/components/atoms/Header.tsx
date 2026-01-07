@@ -51,7 +51,7 @@ const Header = () => {
 
   //add event listener to the window to check if the screen is mobile
   return (
-    <header className="w-full bg-white bg-opacity-50">
+    <header className="w-full bg-white/50">
       <div className="base_container flex shrink-0 flex-row items-center justify-between py-6 ">
         <Link href="/">
           <img

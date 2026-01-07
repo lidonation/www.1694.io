@@ -63,6 +63,7 @@ export type Metrics = {
   totalGovernanceActions: number;
   totalVotingPower: number;
   totalRegisteredStakeAddresses: number;
+  totalProposals?: number;
 };
 
 export interface ProposalMetrics {

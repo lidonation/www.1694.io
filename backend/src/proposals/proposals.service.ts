@@ -1,23 +1,40 @@
 import { HttpException, Injectable } from '@nestjs/common';
-import { getProposalByHashQuery } from 'src/queries/getProposalsViaQuery';
-import { CardanoRepository } from 'src/repository/cardano/cardano.repository';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
+import { Proposal } from 'src/entities/governance/proposal.entity';
 
 @Injectable()
 export class ProposalsService {
-  constructor(private cardanoRepository: CardanoRepository) {}
+  constructor(
+    @InjectDataSource('default')
+    private readonly dataSource: DataSource,
+  ) {}
+  
   async getProposalByQuery(query: string) {
-    if (!query) throw new HttpException('query is required', 400);
-    if (query.length < 5)
-      throw new HttpException(
-        'Query string should be greater than 5 chars',
-        400,
-      );
-    const matchingProposals = await this.cardanoRepository.query(
-      getProposalByHashQuery,
-      [`%${query}%`],
-    );
-    if (!matchingProposals.length)
-      throw new HttpException('No matching proposals found', 404);
-    return matchingProposals;
+    const proposals = await this.dataSource
+      .getRepository(Proposal)
+      .createQueryBuilder('proposal')
+      .where('proposal.id ILIKE :query', { query: `%${query}%` })
+      .orWhere('proposal.txHash ILIKE :query', { query: `%${query}%` })
+      .orWhere('proposal.governanceType ILIKE :query', { query: `%${query}%` })
+      .orderBy('proposal.createdAt', 'DESC')
+      .limit(20)
+      .getMany();
+
+    return proposals.map(proposal => ({
+      id: proposal.id,
+      txHash: proposal.txHash,
+      governanceType: proposal.governanceType,
+      governanceDescription: proposal.governanceDescription,
+      depositLovelace: proposal.depositLovelace,
+      returnStakeAddress: proposal.returnStakeAddress,
+      ratifiedEpoch: proposal.ratifiedEpoch,
+      enactedEpoch: proposal.enactedEpoch,
+      droppedEpoch: proposal.droppedEpoch,
+      expiredEpoch: proposal.expiredEpoch,
+      expirationEpoch: proposal.expirationEpoch,
+      createdAt: proposal.createdAt,
+      updatedAt: proposal.updatedAt,
+    }));
   }
 }

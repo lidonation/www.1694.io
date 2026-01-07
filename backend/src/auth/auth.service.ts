@@ -16,10 +16,10 @@ import {
   verifySignatureWithSignedMessage,
 } from 'src/utils/cardano-utils';
 import { SignatureRepository } from 'src/repository/voltaire/signature.repository';
-import { OAuthRepository } from 'src/repository/voltaire/oauth.repository';
-import { DRepClaimJobData, JobTypes, Queues } from 'src/queue/queue.types';
-import { DRepRepository } from 'src/repository/voltaire/drep.repository';
+import { OAuthRepository } from 'src/repository/voltaire/oAuth.repository';
+import { DRepRepository } from 'src/repository/voltaire/dRep.repository';
 import { QueueService } from 'src/queue/queue.service';
+import { DRepClaimJobData, Queues, JobTypes } from 'src/queue/queue.types';
 
 @Injectable()
 export class AuthService {
@@ -85,7 +85,7 @@ export class AuthService {
    */
   async refreshToken(currentUser: any) {
     const jwtPayload: JwtPayload = {
-      sub: currentUser?.id || null,
+      sub: currentUser?.id,
       stakeKey: currentUser.stakeKey,
       signatureKey: currentUser.signatureKey,
     };
@@ -232,7 +232,7 @@ export class AuthService {
       );
 
     const jwtPayload: JwtPayload = {
-      sub: signatureRecord?.id || null,
+      sub: signatureRecord?.id,
       stakeKey: loginDto.stakeKey,
       signatureKey: loginDto.signatureKey,
     };
@@ -259,6 +259,12 @@ export class AuthService {
         );
 
       if (existingOAuth) {
+        if (!existingOAuth.id) {
+          throw new HttpException(
+            'OAuth provider ID not found',
+            HttpStatus.INTERNAL_SERVER_ERROR,
+          );
+        }
         const updatedOAuth = await this.oAuthRepository.updateOAuth(
           existingOAuth.id,
           addOAuthPayload,
@@ -346,11 +352,23 @@ export class AuthService {
 
     switch (provider) {
       case OAuthProviderType.GOVTOOLS: {
+        if (!oAuthProvider.refreshToken) {
+          throw new HttpException(
+            'Refresh token not found for OAuth provider',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
         const refreshedCreds = await this.govtoolsOAuthProvider.refreshToken({
           jwt: oAuthProvider.accessToken,
           refreshToken: oAuthProvider.refreshToken,
         });
 
+        if (!oAuthProvider.id) {
+          throw new HttpException(
+            'OAuth provider ID not found',
+            HttpStatus.INTERNAL_SERVER_ERROR,
+          );
+        }
         const updatedOAuth = await this.oAuthRepository.updateOAuth(
           oAuthProvider.id,
           {
@@ -384,6 +402,12 @@ export class AuthService {
       throw new HttpException('OAuth provider not found', HttpStatus.NOT_FOUND);
     }
 
+    if (!existingOAuth[0].id) {
+      throw new HttpException(
+        'OAuth provider ID not found',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
     const updatedOAuth = await this.oAuthRepository.updateOAuth(
       existingOAuth[0].id,
       updateOAuthPayload,
@@ -415,6 +439,12 @@ export class AuthService {
       throw new HttpException('OAuth provider not found', HttpStatus.NOT_FOUND);
     }
 
+    if (!existingOAuth.id) {
+      throw new HttpException(
+        'OAuth provider ID not found',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
     await this.oAuthRepository.deleteOAuth(existingOAuth.id);
     return { message: 'OAuth provider deleted successfully' };
   }

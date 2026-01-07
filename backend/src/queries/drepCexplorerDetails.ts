@@ -56,8 +56,8 @@ RankedRows AS (
         lr.reg_address,
         sa.view AS stake_address,
         (lr.deposit IS NOT NULL AND lr.deposit < 0) AS retired,
-        COALESCE(dd_data.vote_count, 0) AS delegation_vote_count,
-        COALESCE(dd_data.live_stake, null) AS live_stake,
+        COALESCE(dd_data.delegation_vote_count, 0) AS delegation_vote_count,
+        COALESCE(dd_data.live_stake_ada, null) AS live_stake,
         ROW_NUMBER() OVER (
             PARTITION BY dh.id 
             ORDER BY dd.epoch_no DESC
@@ -67,7 +67,7 @@ RankedRows AS (
     LEFT JOIN drep_distr dd ON dh.id = dd.hash_id
     LEFT JOIN delegation_vote dv ON dh.id = dv.drep_hash_id
     LEFT JOIN stake_address sa ON dv.addr_id = sa.id
-    LEFT JOIN drepdelegationsummary dd_data ON dd_data.drep_hash_id = dh.id
+    LEFT JOIN drep_frontend_snapshot dd_data ON dd_data.drep_hash_id = dh.id
     CROSS JOIN IsRegisteredAsSoleVoter irasv
     WHERE dh.view = $1
 )

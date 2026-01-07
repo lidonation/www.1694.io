@@ -74,14 +74,14 @@ const GovernanceActionsTypeTable = () => {
     <table>
       <thead>
         <tr className="bg-white text-left ">
-          <th className="border border-slate-500 border-opacity-80 p-4">
+          <th className="border border-slate-500/80 p-4">
             Governance action type
           </th>
-          <th className="border border-slate-500 border-opacity-80 p-4">CC</th>
-          <th className="border border-slate-500 border-opacity-80 p-4">
+          <th className="border border-slate-500/80 p-4">CC</th>
+          <th className="border border-slate-500/80 p-4">
             DReps
           </th>
-          <th className="border border-slate-500 border-opacity-80 p-4">
+          <th className="border border-slate-500/80 p-4">
             SPOs
           </th>
         </tr>
@@ -90,18 +90,18 @@ const GovernanceActionsTypeTable = () => {
         {data.map((item, index) => (
           <tr
             key={index}
-            className={`${(index + 1) % 2 == 0 ? 'border-b border-white bg-violet-50' : 'border-b border-cyan-800 border-opacity-20 bg-white bg-opacity-50'}`}
+            className={`${(index + 1) % 2 == 0 ? 'border-b border-white bg-violet-50' : 'border-b border-cyan-800/20 bg-white/50'}`}
           >
-            <td className="border border-slate-500 border-opacity-50 p-5">
+            <td className="border border-slate-500/50 p-5">
               {index + 1}. {item.actions}
             </td>
-            <td className="border border-slate-500 border-opacity-50 p-5">
+            <td className="border border-slate-500/50 p-5">
               {item.CC}
             </td>
-            <td className="border border-slate-500 border-opacity-50 p-5">
+            <td className="border border-slate-500/50 p-5">
               {item.DReps}
             </td>
-            <td className="border border-slate-500 border-opacity-50 p-5">
+            <td className="border border-slate-500/50 p-5">
               {item.SPOs}
             </td>
           </tr>

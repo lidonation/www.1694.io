@@ -5,32 +5,23 @@ import { catchError, firstValueFrom, of } from 'rxjs';
 
 @Injectable()
 export class MetricsService {
+  private readonly METRICS_URL: string;
+
   constructor(
     private configService: ConfigService,
     private httpService: HttpService,
-  ) {}
-
-  private readonly METRICS_URL =
-    this.configService.get<string>('METRICS_BASE_URL');
+  ) {
+    this.METRICS_URL = this.configService.get<string>('METRICS_BASE_URL') || '';
+  }
 
   async getProposalMetrics(search?: string, category?: string, committee?: string): Promise<any> {
     try {
       let url = `${this.METRICS_URL}/cardano/budget-proposals/metrics`;
-      const queryParams = {
-        s: search,
-        category,
-        committee,
-      };
-
-      for (const param in queryParams) {
-        if (
-          queryParams[param] === undefined ||
-          queryParams[param] === null ||
-          queryParams[param] === ''
-        ) {
-          delete queryParams[param];
-        }
-      }
+      const queryParams: Record<string, string> = {};
+      
+      if (search) queryParams['s'] = search;
+      if (category) queryParams['category'] = category;
+      if (committee) queryParams['committee'] = committee;
 
       const params = new URLSearchParams(queryParams);
       url += `?${params.toString()}`;

@@ -5,8 +5,10 @@ import { VoterService } from 'src/voter/voter.service';
 import { BlockfrostService } from 'src/blockfrost/blockfrost.service';
 import { MiscellaneousService } from 'src/miscellaneous/miscellaneous.service';
 import { IpfsService } from 'src/ipfs/ipfs.service';
+import { GovernanceModule } from 'src/governance/governance.module';
 
 @Module({
+  imports: [GovernanceModule],
   controllers: [DrepController],
   providers: [
     DrepService,

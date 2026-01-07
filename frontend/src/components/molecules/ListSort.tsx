@@ -115,13 +115,13 @@ export default function ListSort({ tableType, sortOptions }: ListSortProps) {
 
   return (
     <Box>
-      <Box
-        component="button"
-        className="relative flex w-6 justify-start"
-        aria-describedby={id}
-        onClick={handleShow}
-      >
-        <IconButton color="primary" sx={{ width: 40, height: 40 }}>
+      <Box className="relative flex justify-start">
+        <IconButton 
+          color="primary" 
+          sx={{ width: 40, height: 40 }}
+          aria-describedby={id}
+          onClick={handleShow}
+        >
           <img
             src="/svgs/arrows-sort.svg"
             className="mt-1 h-5 w-5"

@@ -154,24 +154,14 @@ const UpdateProfileStep2 = () => {
 
   const saveProfile: SubmitHandler<InputType> = async (data) => {
     try {
-      const formData = {
-        signatures: [
-          {
-            signature: getValues('verificationSignature'),
-            key: getValues('verificationKey'),
-            type: 'drep',
-          },
-        ],
+      const loginData = {
         stakeKey: stakeKeyBech32,
-        drep_bech32: convertDrepPhraseToCIP105(dRepIDToClaimBech32),
-        voterId: convertDrepPhraseToCIP105(dRepIdBech32),
-        drepId: savedDRepId.current,
+        signature: getValues('verificationSignature'),
+        signatureKey: getValues('verificationKey'),
+        method: 'hot_wallet' as any,
       };
       //TODO: refacfor signature logic
-      await userLogin({
-        expiry: '1h',
-        ...formData,
-      });
+      await userLogin(loginData);
       queryClient.invalidateQueries(QUERY_KEYS.getVoterClaimedProfilesKey);
       addChangesSavedAlert();
     } catch (error) {
