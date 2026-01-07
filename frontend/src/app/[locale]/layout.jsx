@@ -58,7 +58,7 @@ async function RootLayout({ children, params }) {
           <AppRouterCacheProvider>
             <ThemeProvider theme={theme}>
               <AppContextProvider>
-                <PageBanner />
+                {/* <PageBanner /> */}
                 {children}
               </AppContextProvider>
             </ThemeProvider>
