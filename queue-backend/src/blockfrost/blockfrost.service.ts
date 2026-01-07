@@ -47,7 +47,7 @@ export class BlockfrostService {
     const { endpoint } = options;
 
     try {
-      return await this.makeRequest<T>(this.primaryConfig, options);
+      return await this.retryRequest(() => this.makeRequest<T>(this.primaryConfig, options));
     } catch (primaryError) {
       if (primaryError.status !== 404) {
         this.logger.warn(
@@ -56,7 +56,7 @@ export class BlockfrostService {
       }
 
       try {
-        return await this.makeRequest<T>(this.fallbackConfig, options);
+        return await this.retryRequest(() => this.makeRequest<T>(this.fallbackConfig, options));
       } catch (fallbackError) {
         if (fallbackError.status !== 404) {
           this.logger.error(
@@ -75,6 +75,19 @@ export class BlockfrostService {
           fallbackError?.response?.status || 500,
         );
       }
+    }
+  }
+
+  private async retryRequest<T>(requestFn: () => Promise<T>, retries = 3, delay = 1000): Promise<T> {
+    try {
+      return await requestFn();
+    } catch (error) {
+      if (retries > 0 && error.status === 429) {
+        this.logger.warn(`Rate limit hit (429). Retrying in ${delay}ms... (${retries} attempts left)`);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        return this.retryRequest(requestFn, retries - 1, delay * 2);
+      }
+      throw error;
     }
   }
 

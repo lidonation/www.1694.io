@@ -270,6 +270,9 @@ export class GovernanceSyncWorker extends WorkerHost {
           `Failed to sync delegators for DRep ${drep.drepId}: ${drepError.message}`,
         );
       }
+      
+      // Rate limiting - wait 200ms between DReps to avoid 429s
+      await new Promise((resolve) => setTimeout(resolve, 200));
     }
 
     return totalSynced;
