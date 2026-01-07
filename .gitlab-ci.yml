@@ -78,6 +78,7 @@ services:
         --set global.postgresql.auth.postgresPassword="$POSTGRESQL_WEB_POSTGRES_PASSWORD" \
         --set primary.persistence.size="$POSTGRESQL_WEB_SIZE" \
         --set namespace=$KUBE_NAMESPACE \
+        --set namespaceOverride=$KUBE_NAMESPACE \
         $DEPLOYMENT_NAME-web-db \
         bitnami/postgresql
 
