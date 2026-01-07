@@ -27,7 +27,7 @@ spec:
         - name: gitlab-registry-token
       containers:
         - name: indexer
-          image: "{{ .Values.governanceIndexer.image.repository }}"
+          image: "{{ .Values.governanceIndexer.image.repository }}:{{ .Values.governanceIndexer.image.tag }}"
           imagePullPolicy: Always
           env:
             - name: DATABASE_URL
