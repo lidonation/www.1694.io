@@ -12,6 +12,7 @@ export class CreateDrepTimelineEvent1735110000000 implements MigrationInterface 
         "epoch" integer NOT NULL, 
         "slot" bigint NOT NULL, 
         "tx_hash" text NOT NULL, 
+        "tx_index" integer NOT NULL,
         "block_hash" text, 
         "drep_id" text, 
         "metadata" jsonb NOT NULL, 
@@ -21,10 +22,13 @@ export class CreateDrepTimelineEvent1735110000000 implements MigrationInterface 
     `);
 
     await queryRunner.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS "uniq_drep_timeline_tx_event" ON "drep_timeline_event" ("tx_hash", "tx_index")
+    `);
+    await queryRunner.query(`
       CREATE INDEX IF NOT EXISTS "idx_drep_timeline_type" ON "drep_timeline_event" ("event_type")
     `);
     await queryRunner.query(`
-      CREATE INDEX IF NOT EXISTS "idx_drep_timeline_timestamp" ON "drep_timeline_event" ("timestamp")
+      CREATE INDEX IF NOT EXISTS "idx_drep_timeline_timestamp" ON "drep_timeline_event" ("timestamp" DESC)
     `);
     await queryRunner.query(`
       CREATE INDEX IF NOT EXISTS "idx_drep_timeline_epoch" ON "drep_timeline_event" ("epoch")
@@ -33,10 +37,12 @@ export class CreateDrepTimelineEvent1735110000000 implements MigrationInterface 
       CREATE INDEX IF NOT EXISTS "idx_drep_timeline_tx_hash" ON "drep_timeline_event" ("tx_hash")
     `);
     await queryRunner.query(`
-      CREATE INDEX IF NOT EXISTS "idx_drep_timeline_drep_id" ON "drep_timeline_event" ("drep_id")
+      CREATE INDEX IF NOT EXISTS "idx_drep_timeline_drep_id" ON "drep_timeline_event" ("drep_id") 
+      WHERE drep_id IS NOT NULL
     `);
     await queryRunner.query(`
-      CREATE INDEX IF NOT EXISTS "idx_drep_timeline_drep_timeline" ON "drep_timeline_event" ("drep_id", "timestamp")
+      CREATE INDEX IF NOT EXISTS "idx_drep_timeline_drep_timeline" ON "drep_timeline_event" ("drep_id", "timestamp" DESC) 
+      WHERE drep_id IS NOT NULL
     `);
   }
 
