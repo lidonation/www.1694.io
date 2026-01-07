@@ -1,5 +1,17 @@
 export enum Queues {
-  DREP_CLAIM = 'drep-claim',
+  DREP_CLAIM = "drep-claim",
+  STAKE_SYNC = 'stake-sync',
+  GOVERNANCE_SYNC = 'governance-sync',
+  DREP_VOTES_SYNC = 'drep-votes-sync',
+  PROPOSALS_SYNC = 'proposals-sync',
+}
+
+export enum JobTypes {
+  DREP_CLAIM = 'drep-claim-job',
+  STAKE_SYNC = 'stake-sync-job',
+  GOVERNANCE_SYNC = 'governance-sync-job',
+  DREP_VOTES_SYNC = 'drep-votes-sync-job',
+  PROPOSALS_SYNC = 'proposals-sync-job',
 }
 
 export type DRepClaimJobData = {
@@ -8,7 +20,7 @@ export type DRepClaimJobData = {
   signatureKey: string;
 };
 
-export type DRepClaimJobResponse ={
+export type DRepClaimJobResponse = {
   success: boolean;
   message: string;
   isRegistered?: boolean;
@@ -18,8 +30,7 @@ export type DRepClaimJobResponse ={
   view?: string;
   deposit?: string;
   retired?: boolean;
-}
-
+};
 
 export class createDrepDto {
   stake_addr?: string;
@@ -28,6 +39,54 @@ export class createDrepDto {
   signatures: {
     signature: string;
     key: string;
-    type: 'drep' | 'signer'
+    type: "drep" | "signer";
   }[];
 }
+
+export type StakeSyncJobData = {
+  epochNo?: number;
+};
+
+export type StakeSyncJobResponse = {
+  success: boolean;
+  message: string;
+  updatedDRepsCount?: number;
+  updatedDelegatorsCount?: number;
+  epochNo?: number;
+};
+
+export type GovernanceSyncJobData = {
+  forceRefresh?: boolean;
+  syncOnly?: 'dreps' | 'delegators' | 'proposals' | 'metadata-votes';
+};
+
+export type GovernanceSyncJobResponse = {
+  success: boolean;
+  message: string;
+  drepsCount?: number;
+  proposalsCount?: number;
+  votesCount?: number;
+  delegatorsCount?: number;
+};
+
+export type DrepVotesSyncJobData = {
+  forceRefresh?: boolean;
+};
+
+export type DrepVotesSyncJobResponse = {
+  success: boolean;
+  message: string;
+  drepVotesCount?: number;
+  processedDreps?: number;
+};
+
+export type ProposalsSyncJobData = {
+  forceRefresh?: boolean;
+};
+
+export type ProposalsSyncJobResponse = {
+  success: boolean;
+  message: string;
+  proposalsCount?: number;
+  metadataCount?: number;
+};

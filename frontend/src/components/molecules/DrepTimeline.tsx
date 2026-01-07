@@ -175,6 +175,9 @@ const DRepTimeline = ({ drep }: { drep: any }) => {
     replace(`${pathName}?${params.toString()}`, { scroll: false });
   };
 
+  console.log({ DRepActivity });
+  
+
   return (
     <div className="flex h-full w-full flex-col gap-5 bg-white">
       <div className="flex flex-col items-center gap-2 sm:flex-row sm:justify-between">

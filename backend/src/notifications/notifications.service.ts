@@ -1,12 +1,13 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { InjectDataSource } from '@nestjs/typeorm';
-import { VotingActivityHistory } from 'src/common/types';
 import { createNotificationDto } from 'src/dto/createNotificationDto';
 import { Signature } from 'src/entities/signatures.entity';
-import { getCurrentDelegationQuery } from 'src/queries/currentDelegation';
-import { getDrepVotingActivityInTimestampQuery } from 'src/queries/drepVotingActivity';
-import { DataSource, In } from 'typeorm';
+import { NotificationRepository } from 'src/repository/voltaire/notifications.repository';
+import { SignatureRepository } from 'src/repository/voltaire/signature.repository';
+import { SynctimeRepository } from 'src/repository/voltaire/synctime.repository';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
+
 type NotificationEvent = //for reference
 
     | 'note_creation'
@@ -15,22 +16,22 @@ type NotificationEvent = //for reference
     | 'reply_to_comment'
     | 'reaction_to_note'
     | 'reaction_to_comment';
+
 @Injectable()
 export class NotificationsService {
   constructor(
+    private readonly notificationRepository: NotificationRepository,
+    private readonly signatureRepository: SignatureRepository,
+    private readonly synctimeRepository: SynctimeRepository,
     @InjectDataSource('default')
-    private voltaireService: DataSource,
-    @InjectDataSource('dbsync')
-    private cexplorerService: DataSource,
+    private readonly voltaireDb: DataSource,
   ) {}
 
   async getNotifications(ownerId: string) {
-    const notifications = await this.voltaireService
-      .getRepository('Notification')
-      .createQueryBuilder('notification')
-      .where('notification.recipient = :ownerId', { ownerId })
-      .getMany();
-    //sort by date(latest) and isRead
+    const notifications =
+      await this.notificationRepository.findByRecipient(ownerId);
+
+    // Sort by date(latest) and isRead
     notifications.sort((a, b) => {
       if (a.isRead && !b.isRead) {
         return 1;
@@ -40,159 +41,175 @@ export class NotificationsService {
       }
       return b.createdAt.getTime() - a.createdAt.getTime();
     });
+
     return notifications;
   }
+
   async createNotification(
     content: createNotificationDto,
     ownerId: number,
     creationTime?: Date,
   ) {
-    //first check if the owner exists
-    const owner = await this.voltaireService
-      .getRepository('Signature')
-      .findOne({ where: { id: ownerId } });
+    // First check if the owner exists
+    const owner = await this.signatureRepository.findById(ownerId);
     if (!owner) {
       throw new HttpException('Owner not found', HttpStatus.NOT_FOUND);
     }
-    const notification = this.voltaireService
-      .getRepository('Notification')
-      .create({
-        ...content,
-        createdAt: creationTime || new Date(),
-        recipient: Number(ownerId),
-      });
-    await this.voltaireService.getRepository('Notification').save(notification);
-    return notification;
+
+    return this.notificationRepository.createNotification({
+      ...content,
+      createdAt: creationTime || new Date(),
+      recipient: Number(ownerId),
+    });
   }
+
   async markNotificationAsRead(notificationId: string) {
-    const notification = await this.voltaireService
-      .getRepository('Notification')
-      .findOne({ where: { id: notificationId } });
+    const notification =
+      await this.notificationRepository.findById(notificationId);
     if (!notification) {
       throw new HttpException('Notification not found', HttpStatus.NOT_FOUND);
     }
-    notification.isRead = true;
-    return await this.voltaireService
-      .getRepository('Notification')
-      .save(notification);
+
+    return this.notificationRepository.markAsRead(notificationId);
   }
 
   async markNotificationAsUnread(notificationId: string) {
-    const notification = await this.voltaireService
-      .getRepository('Notification')
-      .findOne({ where: { id: notificationId } });
+    const notification =
+      await this.notificationRepository.findById(notificationId);
     if (!notification) {
       throw new HttpException('Notification not found', HttpStatus.NOT_FOUND);
     }
-    notification.isRead = false;
-    return await this.voltaireService
-      .getRepository('Notification')
-      .save(notification);
+
+    return this.notificationRepository.markAsUnread(notificationId);
   }
 
   async deleteNotification(notificationId: string) {
-    const notification = await this.voltaireService
-      .getRepository('Notification')
-      .findOne({ where: { id: notificationId } });
+    const notification =
+      await this.notificationRepository.findById(notificationId);
     if (!notification) {
       throw new HttpException('Notification not found', HttpStatus.NOT_FOUND);
     }
-    return await this.voltaireService
-      .getRepository('Notification')
-      .delete(notification);
+
+    return this.notificationRepository.delete(notificationId);
   }
+
   async bulkDeleteNotifications(notificationIds: string[]) {
-    const notifications = await this.voltaireService
-      .getRepository('Notification')
-      .findBy({ id: In(notificationIds) });
-    if (!notifications) {
+    const notifications =
+      await this.notificationRepository.findByIds(notificationIds);
+    if (!notifications || notifications.length === 0) {
       throw new HttpException('Notifications not found', HttpStatus.NOT_FOUND);
     }
-    return await this.voltaireService
-      .getRepository('Notification')
-      .delete(notifications);
+
+    return this.notificationRepository.bulkDelete(notificationIds);
   }
+
   async processEntityVoteNotifications(
     signature: Signature,
     lastSyncTime: Date,
   ) {
     try {
-      //get all the events since the last signin
+      // Get all the events since the last sync
       const timeSinceLastSync = lastSyncTime || signature.lastSignedIn;
-      //note_creation by drep delegated to
-      const delegatedTo = (await this.cexplorerService.query(
-        getCurrentDelegationQuery,
-        [signature.stakeKey],
-      )) as [{ drep_view: string }];
-      const votingActivity = (await this.cexplorerService.manager.query(
-        getDrepVotingActivityInTimestampQuery,
-        [delegatedTo[0].drep_view, timeSinceLastSync, new Date()],
-      )) as VotingActivityHistory[];
+
+      // Get current delegation for the user
+      const delegationData = await this.voltaireDb.query(
+        `SELECT dd.drep_id, d.given_name
+         FROM drep_delegators dd
+         LEFT JOIN dreps d ON d.drep_id = dd.drep_id
+         WHERE dd.stake_address = $1
+         ORDER BY dd.updated_at DESC
+         LIMIT 1`,
+        [signature.stakeKey]
+      );
+
+      if (!delegationData || delegationData.length === 0) {
+        console.log('No delegation found for user');
+        return 'Done';
+      }
+
+      const delegatedTo = delegationData[0];
+      
+      // Get voting activity for the delegated DRep since last sync
+      const votingActivity = await this.voltaireDb.query(
+        `SELECT pv.*, p.title, p.type, p.created_at as proposal_created_at
+         FROM proposal_votes pv
+         LEFT JOIN proposals p ON p.id = pv.proposal_id
+         WHERE pv.voter = $1 AND pv.created_at > $2
+         ORDER BY pv.created_at DESC`,
+        [delegatedTo.drep_id, timeSinceLastSync]
+      );
+
       for (const vote of votingActivity) {
-        //check if voter is the recipient, skip if so
-        if (signature.voterId === vote.view) {
+        // Check if voter is the recipient, skip if so
+        if (signature.voterId === vote.voter) {
           continue;
         }
-        const timeVoted = new Date(vote.time_voted).getTime();
+
+        const timeVoted = new Date(vote.created_at).getTime();
         const notificationContent = this.newVoteOnProposalNotification(
           timeVoted,
-          delegatedTo[0].drep_view,
-          vote.vote,
+          delegatedTo.drep_id,
+          vote.vote
         );
 
         await this.createNotification(
           notificationContent,
           signature.id,
-          vote.time_voted,
+          vote.created_at,
         );
       }
+      
       return 'Done';
     } catch (error) {
       console.log('Error while processing vote notifications', error);
       throw error;
     }
   }
+
   async processNewNoteNotificationsForDelegators(
     drepId: string,
     note_creation_date: Date,
   ) {
-    //get all the delegators of the drep
-    const drep = await this.cexplorerService.query(
-      `SELECT id, view FROM drep_hash WHERE view = $1`,
-      [drepId],
-    );
-    const delegators = (await this.cexplorerService.query(
-      ` SELECT DISTINCT sa.view FROM delegation_vote as dv
-        JOIN stake_address as sa on sa.id = dv.addr_id
-        WHERE drep_hash_id = $1`,
-      [drep[0].id],
-    )) as [{ view: string }];
-    for (const delegator of delegators) {
-      //check those who have ever signed in
-      const signature = await this.voltaireService
-        .getRepository('Signature')
-        .findOne({ where: { stakeKey: delegator.view } });
-      if (!signature || signature?.voterId === drepId) {
-        continue;
-      }
-      //check if delegator has signed in recently ( 2wks)
-      if (
-        new Date(signature.lastSignedIn).getTime() <
-        note_creation_date.getTime() - 14 * 24 * 60 * 60 * 1000
-      ) {
-        //Delegator has not signed in recently. Skipping to save resources
-        continue;
-      }
-      //send notification to each delegator
-      const notificationContent = this.newNoteNotification(
-        note_creation_date.getTime(),
-        drepId,
+    // Use enhanced delegators table
+    try {
+      const delegators = await this.voltaireDb.query(
+        'SELECT stake_address FROM drep_delegators WHERE drep_id = $1',
+        [drepId]
       );
-      await this.createNotification(notificationContent, signature.id);
+
+      for (const delegator of delegators) {
+        // Check those who have ever signed in
+        const signature = await this.signatureRepository.findByStakeKey(
+          delegator.stake_address,
+        );
+        if (!signature || signature?.voterId === drepId) {
+          continue;
+        }
+
+        // Check if delegator has signed in recently (2wks)
+        if (
+          new Date(signature.lastSignedIn).getTime() <
+          note_creation_date.getTime() - 14 * 24 * 60 * 60 * 1000
+        ) {
+          // Delegator has not signed in recently. Skipping to save resources
+          continue;
+        }
+
+        // Send notification to each delegator
+        const notificationContent = this.newNoteNotification(
+          note_creation_date.getTime(),
+          drepId,
+        );
+        await this.createNotification(notificationContent, signature.id);
+      }
+      return 'Done';
+    } catch (error) {
+      console.log('Error processing note notifications:', error);
+      return 'Done';
     }
-    return 'Done';
   }
-  // Notification templates
+
+  // Notification templates (unchanged)
   newNoteNotification(note_creation_date: number, drepId: string) {
     return {
       title: 'New Note',
@@ -200,6 +217,7 @@ export class NotificationsService {
       type: 'info' as 'info',
     };
   }
+
   newCommentOnNoteNotification(
     note_creation_date: number,
     drepId: string,
@@ -211,6 +229,7 @@ export class NotificationsService {
       type: 'info' as 'info',
     };
   }
+
   newReplyToCommentNotification(voterId: string) {
     return {
       title: 'New Reply',
@@ -218,10 +237,11 @@ export class NotificationsService {
       type: 'info' as 'info',
     };
   }
+
   newReactionToNoteNotification(
     reactionType: 'like' | 'dislike' | 'love' | 'rocket',
     voterId: string,
-    drepId:string,
+    drepId: string,
     note_creation_date: number,
   ) {
     const reactionIcons = {
@@ -236,6 +256,7 @@ export class NotificationsService {
       type: 'info' as 'info',
     };
   }
+
   newReactionForCommentNotification(
     reactionType: 'like' | 'dislike' | 'love' | 'rocket',
     voterId: string,
@@ -252,6 +273,7 @@ export class NotificationsService {
       type: 'info' as 'info',
     };
   }
+
   newVoteOnProposalNotification(
     timeVoted: number,
     drepId: string,
@@ -263,54 +285,44 @@ export class NotificationsService {
       type: 'info' as 'info',
     };
   }
-  //will purge notifications older than 90 days and process vote notifications every hour
+
+  // Will purge notifications older than 90 days and process vote notifications every hour
   @Cron(CronExpression.EVERY_HOUR)
   private async notificationProcessAndPurge() {
-    const synctime = await this.voltaireService
-      .getRepository('Synctime')
-      .find();
-    //get all signatures
-    const signatures = await this.voltaireService
-      .getRepository('Signature')
-      .find({});
+    const synctime = await this.synctimeRepository.getLatest();
+
+    // Get all signatures
+    const signatures = await this.signatureRepository.findAll();
+
     if (signatures) {
       for (const sig of signatures) {
-        //check if the signer sign in is less than 2 wks old
+        // Check if the signer sign in is less than 2 wks old
         if (
           new Date(sig.lastSignedIn).getTime() <
           new Date().getTime() - 14 * 24 * 60 * 60 * 1000
         ) {
-          //skip to save resources. unwise to notify inactive users
+          // Skip to save resources. unwise to notify inactive users
           continue;
         }
         await this.processEntityVoteNotifications(
           sig as Signature,
-          synctime[0]?.lastSyncTime,
+          new Date(synctime[0]?.lastSyncTime),
         );
       }
     }
-    //get notifications
-    const notifications = await this.voltaireService
-      .getRepository('Notification')
-      .find({});
-    if (notifications) {
-      const oldNotifs = notifications.filter((notification) => {
-        const ninetyDaysAgo = new Date();
-        ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
-        return notification.createdAt < ninetyDaysAgo;
-      });
-      if (oldNotifs.length > 0) {
-        await this.bulkDeleteNotifications(oldNotifs.map((notif) => notif.id));
-        console.log(`${oldNotifs.length} notifications purged`);
-      }
+
+    // Get notifications older than 90 days
+    const oldNotifications =
+      await this.notificationRepository.findOlderThan(90);
+
+    if (oldNotifications.length > 0) {
+      await this.bulkDeleteNotifications(
+        oldNotifications.map((notif) => notif.id?.toString()),
+      );
+      console.log(`${oldNotifications.length} notifications purged`);
     }
-    if (!synctime || synctime?.length === 0) {
-      await this.voltaireService
-        .getRepository('Synctime')
-        .insert({ lastSyncTime: new Date() });
-    } else
-      await this.voltaireService
-        .getRepository('Synctime')
-        .update(synctime[0]?.id, { lastSyncTime: new Date() });
+
+    // Update sync time
+    await this.synctimeRepository.updateSyncTime(new Date());
   }
 }

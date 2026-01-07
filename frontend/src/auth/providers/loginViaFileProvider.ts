@@ -105,17 +105,6 @@ export class LoginFileProvider implements AuthenticationProvider {
             );
           }
         }
-        const signaturesVerification = await verifySignatures({
-          signatures: {
-            signature: loginData.signatures.signature,
-            vkey: loginData.signatures.vkey,
-          },
-          address: loginData.stakeKeyBech32,
-        });
-
-        if (!signaturesVerification.payloadResultMatch) {
-          throw new Error('Signature verification failed');
-        }
 
         const credentials = {
           signature: loginData.signatures.signature,

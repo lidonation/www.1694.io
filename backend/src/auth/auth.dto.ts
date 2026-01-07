@@ -45,7 +45,7 @@ export class CreateOAuthDto {
   stakeKeyBech32: string;
 }
 export class UpdateOAuthDto {
-   @IsString()
+  @IsString()
   stakeKeyBech32: string;
 
   @IsOptional()
@@ -67,4 +67,27 @@ export class UpdateOAuthDto {
   @IsOptional()
   @IsString()
   providerUserId?: string;
+}
+
+export enum LoginMethod {
+  HOT_WALLET = 'hot_wallet',
+  LOGIN_FILE = 'login_file',
+}
+
+
+export class UnifiedLoginDto {
+  stakeKey: string;
+  signature: string;
+  signatureKey: string;
+  method: LoginMethod;
+  address?: string;
+}
+
+export class JwtPayload {
+  sub?: number; // signature.id
+  stakeKey: string;
+  voterId?: string;
+  drepId?: string;
+  drep_bech32?: string;
+  signatureKey: string;
 }

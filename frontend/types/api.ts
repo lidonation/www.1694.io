@@ -108,6 +108,7 @@ export type SingleDRep = {
   retired: boolean;
   active: boolean;
   chain_id?: string | null;
+  metadata?: any | null;
 };
 
 export type DRepStats = {

@@ -23,10 +23,10 @@ secrets:
   NEXT_PUBLIC_GOOGLE_API:
 
 image:
-  repository: registry.lidonation.com/voltaire/www.1694.io
-  tag: stable
-  pullPolicy: IfNotPresent
-  pullSecret: '1694-registry-deploy-token'
+  repository: registry.2lovelaces.io/voltaire/www.1694.io
+  tag: latest
+  pullPolicy: Always
+  pullSecret: 'gitlab-ci-token'
 
 imageCredentials:
   registry: registry.raddcreative.io
@@ -36,16 +36,17 @@ imageCredentials:
 
 ingress:
   enabled: true
+  ingressClassName: traefik
   controller:
     headers:
       HTTPS: "on"
   annotations: {
-    kubernetes.io/ingress.class: traefik,
     cert-manager.io/cluster-issuer: letsencrypt-issuer,
     traefik.ingress.kubernetes.io/router.entrypoints: "websecure,web",
   }
   hosts:
     - sancho.1694.io
+  api: preview-api.1694.io
   tls:
     - hosts:
         - "'*.1694.io'"
@@ -83,7 +84,7 @@ backend:
   labels:
     service: backend
   image:
-    repository: registry.lidonation.com/voltaire/www.1694.io/1694.io-backend
+    repository: registry.2lovelaces.io/voltaire/www.1694.io/1694.io-backend
   ingress:
     path: /api
     tls:
@@ -93,7 +94,7 @@ queue:
   labels:
     service: queue
   image:
-    repository: registry.lidonation.com/voltaire/www.1694.io/1694.io-queue-backend
+    repository: registry.2lovelaces.io/voltaire/www.1694.io/1694.io-queue-backend
   ingress:
     path: /api
     tls:
@@ -104,7 +105,28 @@ frontend:
   labels:
     service: frontend
   image:
-      repository: registry.lidonation.com/voltaire/www.1694.io/1694.io-frontend
+      repository: registry.2lovelaces.io/voltaire/www.1694.io/1694.io-frontend
   ingress:
     path: /
     tls:
+
+governanceIndexer:
+  replicaCount: 1
+  labels:
+    service: governance-indexer
+  image:
+    repository: registry.2lovelaces.io/voltaire/governance-indexer
+  
+  databaseUrl: "postgres://voltaire:postgres@postgresql:5432/1694"
+  relayAddress: "backbone.mainnet.emurgornd.com:3001"
+  networkMagic: "764824073"
+  maxConcurrentWorkers: "8"
+  batchSize: "100"
+  rustLog: "info"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 1024Mi
+      cpu: 500m

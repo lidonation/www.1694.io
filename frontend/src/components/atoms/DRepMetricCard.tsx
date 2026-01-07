@@ -1,13 +1,9 @@
 import { shortNumberWithAnnotation } from '@/lib';
 import { Skeleton } from '@mui/material';
-import dynamic from 'next/dynamic';
-const Odometer = dynamic(() => import('react-odometerjs'), {
-  ssr: false,
-});
-import 'odometer/themes/odometer-theme-default.css';
 import { useEffect, useState } from 'react';
+import { AnimatedCounter } from './AnimatedCounter';
 
-const AnimatedOdometer = ({
+export const AnimatedOdometer = ({
   value,
   duration = 1000,
   width = 80,
@@ -41,13 +37,12 @@ const AnimatedOdometer = ({
           }}
         />
       ) : (
-        <div className="flex items-center">
-          <Odometer
+        <div className="flex items-center justify-center gap-0.5">
+          <AnimatedCounter
             value={shortNumberWithAnnotation(displayValue).numValue}
-            width={width}
-            height={height}
-            format="(ddd).dd"
+            format="(,ddd).dd"
             duration={duration}
+            className="font-black"
           />
           <p className="self-center">
             {shortNumberWithAnnotation(displayValue).annotation}

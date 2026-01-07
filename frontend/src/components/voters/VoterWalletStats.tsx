@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Skeleton, Box, Typography, IconButton, Tooltip } from '@mui/material';
 import StatusChip from '../atoms/StatusChip';
-import { convertString, formattedAda } from '@/lib';
+import { convertString, formattedAda, shortNumber } from '@/lib';
 import CopyToClipBoardIcon from '../atoms/svgs/CopyToClipBoardIcon';
 import { VoterData } from '../../../types/api';
 
@@ -62,7 +62,7 @@ const VoterWalletStats = ({
           ) : (
             <Typography variant="h3">
               {voterData?.total_stake
-                ? `₳ ${formattedAda(voterData?.total_stake, 2)}`
+                ? `₳ ${shortNumber(voterData?.total_stake, 2)}`
                 : '-'}
             </Typography>
           )}

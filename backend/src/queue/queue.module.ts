@@ -5,10 +5,15 @@ import { Queues } from './queue.types';
 import { ConfigService } from '@nestjs/config';
 import { DEFAULT_ATTEMPTS, MAX_COMPLETED_JOB_AGE, MAX_COMPLETED_JOBS, MAX_FAILED_JOB_AGE, MAX_FAILED_JOBS } from './queue.constants';
 import { DRepClaimQueueEvents } from './listeners/queue.events';
+import { BlockfrostModule } from '../blockfrost/blockfrost.module';
+import { GovernanceModule } from '../governance/governance.module';
+
 
 @Global()
 @Module({
   imports: [
+    BlockfrostModule,
+    GovernanceModule,
     BullModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
@@ -32,10 +37,11 @@ import { DRepClaimQueueEvents } from './listeners/queue.events';
     }),
     BullModule.registerQueue({
       name: Queues.DREP_CLAIM
-    })
+    }),
   ],
   controllers: [],
   providers: [QueueService, DRepClaimQueueEvents],
   exports: [QueueService],
 })
 export class QueueModule {}
+

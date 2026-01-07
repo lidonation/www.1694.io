@@ -1,29 +1,31 @@
 import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
-import { InjectDataSource } from '@nestjs/typeorm';
-import { CommentsService } from 'src/comments/comments.service';
 import { Delegation } from 'src/common/types';
-import { DrepService } from 'src/drep/drep.service';
 import { createNoteDto } from 'src/dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
-import { ReactionsService } from 'src/reactions/reactions.service';
-import { DataSource } from 'typeorm';
+import { CommentRepository } from 'src/repository/voltaire/comment.repository';
+import { DRepRepository } from 'src/repository/voltaire/dRep.repository';
+import { NoteRepository } from 'src/repository/voltaire/note.repository';
+import { ReactionRepository } from 'src/repository/voltaire/reactions.repository';
+import { SignatureRepository } from 'src/repository/voltaire/signature.repository';
+
 @Injectable()
 export class NoteService {
   constructor(
-    @InjectDataSource('default')
-    private voltaireService: DataSource,
-    private drepService: DrepService,
-    private reactionsService: ReactionsService,
-    private commentsService: CommentsService,
-    private notificationsService: NotificationsService,
+    private readonly noteRepository: NoteRepository,
+    private readonly signatureRepository: SignatureRepository,
+    private readonly drepRepository: DRepRepository,
+    private readonly reactionsRepository: ReactionRepository,
+    private readonly commentRepository: CommentRepository,
+    private readonly notificationsService: NotificationsService,
   ) {}
+
   async getAllNotes(
     stakeKeyBech32?: string,
     delegation?: Delegation,
     currentNote?: number,
     request?: string,
   ) {
-    let allNotes = await this.getNotesWithVisibility(
+    let allNotes = await this.noteRepository.getNotesWithVisibility(
       delegation,
       stakeKeyBech32,
       currentNote,
@@ -34,14 +36,15 @@ export class NoteService {
     allNotes = await Promise.all(
       allNotes.map(async (note) => {
         // Get reactions and comments
-        const reactions = await this.reactionsService.getReactions(
+        const reactions = await this.reactionsRepository.findByParent(
           note.note_id,
           'note',
         );
-        const comments = await this.commentsService.getComments(
-          note.note_id,
-          'note',
-        );
+        const comments =
+          await this.commentRepository.getCommentsWithReactionsAndReplies(
+            note.note_id,
+            'note',
+          );
         // Add reactions and comments to the note
         return { ...note, reactions: reactions, comments: comments };
       }),
@@ -52,122 +55,76 @@ export class NoteService {
 
   async getSingleNote(noteId: string) {
     const numifiedNoteId = Number(noteId);
-    const note = await this.voltaireService.getRepository('Note').findOne({
-      where: { id: numifiedNoteId },
-    });
+    const note = await this.noteRepository.findById(numifiedNoteId);
     if (!note) {
       throw new NotFoundException('Note not found!');
     }
-    const reactions = await this.reactionsService.getReactions(note.id, 'note');
-    const comments = await this.commentsService.getComments(note.id, 'note');
+    const reactions = await this.reactionsRepository.findByParent(
+      note.id,
+      'note',
+    );
+    const comments =
+      await this.commentRepository.getCommentsWithReactionsAndReplies(
+        note.id,
+        'note',
+      );
     return { ...note, reactions: reactions, comments: comments };
   }
+
   async registerNote(noteDto: createNoteDto) {
     try {
-      const isDRepPresent = await this.drepService.getSingleDrepViaVoterID(
+      const isDRepPresent = await this.drepRepository.getSingleDrepViaVoterID(
         noteDto.drep,
       );
-      const author = await this.voltaireService
-        .getRepository('Signature')
-        .findOne({ where: { stakeKey: noteDto.stake_addr } });
+      const author = await this.signatureRepository.findByStakeKey(
+        noteDto.stake_addr,
+      );
       if (!author) {
         throw new NotFoundException('Author details not found!');
       }
       const modifiedNoteDto = {
         ...noteDto,
         drep: isDRepPresent.drep_id,
-        author: author.id,
       };
-      const res = await this.voltaireService
-        .getRepository('Note')
-        .insert(modifiedNoteDto);
-      // add a notification for all delegators if a note is created by the drep and visible to delegators
+      const res = await this.noteRepository.createNote(modifiedNoteDto);
+
       if (isDRepPresent && noteDto.visibility !== 'myself') {
         await this.notificationsService.processNewNoteNotificationsForDelegators(
           isDRepPresent.view,
           new Date(),
         );
       }
-      return { noteAdded: res.identifiers[0].id };
+      return { noteAdded: res?.id, message: 'Note added successfully!' };
     } catch (error) {
       console.log(error);
       throw new HttpException(
-        ((error?.code == 23505) && "Duplicate Note found") || error?.message || error?.status || 'An error occured',
-        ((error?.code == 23505) && 409) || 500,
+        (error?.code == 23505 && 'Duplicate Note found') ||
+          error?.message ||
+          error?.status ||
+          'An error occured',
+        (error?.code == 23505 && 409) || 500,
       );
     }
   }
+
   async updateNoteInfo(noteId: string, note: createNoteDto) {
     const numifiedNoteId = Number(noteId);
-    const foundNote = await this.voltaireService.getRepository('Note').findOne({
-      where: { id: numifiedNoteId },
-    });
+    const foundNote = await this.noteRepository.findById(numifiedNoteId);
     if (!foundNote) {
       throw new NotFoundException('Note to be updated not found!');
     }
-    const isPresent = await this.drepService.getSingleDrepViaVoterID(note.drep);
+    const isPresent = await this.drepRepository.getSingleDrepViaVoterID(
+      note.drep,
+    );
     if (isPresent) {
       const modifiedNote = { ...note, drep: isPresent.drep_id };
       // Iterate through the properties of the note object
       Object.keys(modifiedNote).forEach((key) => {
         foundNote[key] = modifiedNote[key];
       });
-      return await this.voltaireService.getRepository('Note').save(foundNote);
+      return await this.noteRepository.save(foundNote);
     } else {
       return new NotFoundException('DRep associated with note not found!');
     }
-  }
-
-  private async getNotesWithVisibility(
-    delegation?,
-    stakeKeyBech32?: string,
-    currentNote?: number,
-    request?: string,
-  ) {
-    const queryBuilder = this.voltaireService
-      .getRepository('Note')
-      .createQueryBuilder('note')
-      .leftJoinAndSelect('note.drep', 'drep')
-      .leftJoin('drep.signatures', 'signature')
-      .orderBy('note.createdAt', 'DESC') // Order by createdAt descending
-      .limit(20); // limit per req
-    // Basic query for notes with visibility 'everyone'
-    queryBuilder.where('note.visibility = :everyone', {
-      everyone: 'everyone',
-    });
-    if (currentNote) {
-      if (request === 'before') {
-        queryBuilder.where('note.id <= :currentNote', {
-          currentNote: Number(currentNote),
-        });
-      } else if (request === 'after') {
-        queryBuilder.where('note.id <= :currentNote', {
-          currentNote: Number(currentNote) + 20,
-        });
-      }
-    }
-
-    // 'delegators' visibility
-    if (delegation) {
-      queryBuilder.orWhere(
-        'note.visibility = :delegators AND signature.voterId = :drepVoterId',
-        {
-          delegators: 'delegators',
-          drepVoterId: delegation.drep_view,
-        },
-      );
-    }
-    // 'myself' visibility
-    if (stakeKeyBech32) {
-      queryBuilder.orWhere(
-        'note.visibility = :myself AND signature.stakeKey = :stakeKeyBech32',
-        {
-          myself: 'myself',
-          stakeKeyBech32: stakeKeyBech32,
-        },
-      );
-    }
-
-    return queryBuilder.getRawMany();
   }
 }

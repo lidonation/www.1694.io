@@ -2,6 +2,7 @@ import { Entity, Column, ManyToOne, OneToMany } from 'typeorm';
 import { Note } from './note.entity';
 import { Reaction } from './reaction.entity';
 import { BaseEntity } from '../global';
+
 export enum CommentParentEntityType {
   Note = 'note',
   Comment = 'comment',

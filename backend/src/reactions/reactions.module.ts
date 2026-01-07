@@ -1,12 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ReactionsController } from './reactions.controller';
 import { ReactionsService } from './reactions.service';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Reaction } from 'src/entities/reaction.entity';
+import { NotificationsService } from 'src/notifications/notifications.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Reaction])],
   controllers: [ReactionsController],
-  providers: [ReactionsService]
+  providers: [ReactionsService, NotificationsService],
 })
 export class ReactionsModule {}

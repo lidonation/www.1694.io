@@ -4,19 +4,6 @@ export type StakeKeys = {
 } | null;
 
 
-export type LoginPayload = {
-  expiry: number;
-  drepId?: number;
-  voterId?: string;
-  drep_bech32: string;
-  stakeKey: string;
-  signatures: {
-    signature: string;
-    key: string;
-    type: string;
-  }[];
-};
-
 export type Delegation = {
   drep_raw: string | null;
   drep_view: string | null;
@@ -231,7 +218,7 @@ export type Metrics = {
   totalRegisteredDReps: number;
   totalLiveStake: number;
   totalActiveDReps: number;
-  totalGovernanceActions: number;
+  totalProposals: number; // Renamed from totalGovernanceActions
   totalVotingPower: number;
   totalRegisteredStakeAddresses: number;
 };

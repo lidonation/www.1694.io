@@ -1,32 +1,12 @@
 import { Module } from '@nestjs/common';
 import { NoteController } from './note.controller';
 import { NoteService } from './note.service';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Note } from 'src/entities/note.entity';
-import { AttachmentService } from 'src/attachment/attachment.service';
-import { DrepService } from 'src/drep/drep.service';
-import { ReactionsService } from 'src/reactions/reactions.service';
-import { CommentsService } from 'src/comments/comments.service';
-import { VoterService } from 'src/voter/voter.service';
-import { AuthService } from 'src/auth/auth.service';
-import { BlockfrostService } from 'src/blockfrost/blockfrost.service';
-import { GovtoolsOAuthProvider } from 'src/auth/providers/govtools-oauth.provider';
+import { NotificationsService } from 'src/notifications/notifications.service';
+import { VoterModule } from 'src/voter/voter.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Note]),
-  ],
+  imports: [VoterModule],
   controllers: [NoteController],
-  providers: [
-    NoteService,
-    AttachmentService,
-    DrepService,
-    ReactionsService,
-    CommentsService,
-    VoterService,
-    AuthService,
-    BlockfrostService,
-    GovtoolsOAuthProvider
-  ],
+  providers: [NoteService, NotificationsService],
 })
 export class NoteModule {}

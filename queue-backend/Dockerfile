@@ -55,6 +55,8 @@ COPY --chown=node:node --from=build /usr/src/app/node_modules ./node_modules
 COPY --chown=node:node --from=build /usr/src/app/dist ./
 
 COPY --chown=node:node queue-backend/package.json ./
+COPY --chown=node:node queue-backend/tsconfig.json ./
+COPY --chown=node:node queue-backend/scripts ./scripts
 
 EXPOSE 9999
 
@@ -62,4 +64,4 @@ ENV HOSTNAME "0.0.0.0"
 
 USER node
 
-CMD [ "node", "main.js" ]
+CMD [ "node", "src/main.js" ]

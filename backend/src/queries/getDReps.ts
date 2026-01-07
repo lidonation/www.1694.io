@@ -64,8 +64,8 @@ export const getAllDRepsQuery = (
           dr_voting_anchor.register_time AS last_register_time,
           off_chain_vote_drep_data.given_name,
           off_chain_vote_drep_data.image_url,
-          COALESCE(dd.vote_count, 0) AS delegation_vote_count,
-          COALESCE(dd.live_stake, null) AS live_stake,
+          COALESCE(dd.delegation_vote_count, 0) AS delegation_vote_count,
+          COALESCE(dd.live_stake_ada, null) AS live_stake,
           COALESCE(dvc.governance_vote_count, 0) AS governance_vote_count
       FROM drep_hash dh
                LEFT JOIN DRepRegistrationData AS dr_voting_anchor
@@ -97,7 +97,7 @@ export const getAllDRepsQuery = (
                          ON tx_first_register.id = dr_first_register.tx_id
                LEFT JOIN block AS block_first_register
                          ON block_first_register.id = tx_first_register.block_id
-               LEFT JOIN drepdelegationsummary dd ON dd.drep_hash_id = dh.id
+               LEFT JOIN drep_frontend_snapshot dd ON dd.drep_hash_id = dh.id
                LEFT JOIN DRepVoteCounts dvc ON dvc.drep_voter = dh.id
       WHERE 1=1 ${chainStatusCondition} ${sanitizedSearchCondition} ${campaignStatusCondition} ${typeCondition}
       GROUP BY
@@ -114,8 +114,8 @@ export const getAllDRepsQuery = (
           dr_voting_anchor.deposit,
           off_chain_vote_drep_data.given_name,
           off_chain_vote_drep_data.image_url,
-          dd.vote_count,
-          dd.live_stake,
+          dd.delegation_vote_count,
+          dd.live_stake_ada,
           dvc.governance_vote_count
   
           ${orderByClause}
@@ -191,7 +191,7 @@ export const getTotalResultsQuery = (
                 ON tx_first_register.id = dr_first_register.tx_id
             LEFT JOIN block AS block_first_register
                 ON block_first_register.id = tx_first_register.block_id
-            LEFT JOIN drepdelegationsummary dd
+            LEFT JOIN drep_frontend_snapshot dd
                 ON dd.drep_hash_id = dh.id
         WHERE 1=1 
             ${chainStatusCondition} 

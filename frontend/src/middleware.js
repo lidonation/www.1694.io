@@ -1,28 +1,22 @@
-import createMiddleware from 'next-intl/middleware';
-import { locales } from './constants';
 import { NextResponse } from 'next/server';
 
-export default createMiddleware({
-  locales: locales.variants,
-  defaultLocale: locales.defaultLocale,
-});
+export default function middleware(request) {
+  // Skip middleware for static files and API routes
+  if (request.nextUrl.pathname.match(/\.(svg|png|ico|css|js)$/) || 
+      request.nextUrl.pathname.startsWith('/api/')) {
+    return NextResponse.next();
+  }
+
+  // Simple redirect to /en if no locale is present
+  const { pathname } = request.nextUrl;
+  if (!pathname.startsWith('/en') && !pathname.startsWith('/de')) {
+    request.nextUrl.pathname = `/en${pathname}`;
+    return NextResponse.redirect(request.nextUrl);
+  }
+
+  return NextResponse.next();
+}
 
 export const config = {
-  matcher: ['/((?!_next).*)'],
+  matcher: ['/((?!_next|api|static).*)'],
 };
-
-export function middleware(request) {
-  // Check if there is any supported locale in the pathname
-  const { pathname } = request.nextUrl;
-  const pathnameHasLocale = locales.variants.some(
-    (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`,
-  );
-
-  if (pathnameHasLocale) return NextResponse.next();
-  if (pathname.match(/\.(svg|png|ico)$/)) return NextResponse.next();
-  // Redirect if there is no locale
-  const locale = locales.defaultLocale;
-
-  request.nextUrl.pathname = `/${locale}${pathname}`;
-  return NextResponse.redirect(request.nextUrl);
-}

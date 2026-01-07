@@ -1,7 +1,8 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { createNoteDto } from 'src/dto';
 import { NoteService } from './note.service';
 import { VoterService } from 'src/voter/voter.service';
+import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
 
 @Controller('notes')
 export class NoteController {
@@ -26,10 +27,14 @@ export class NoteController {
   getSingleNote(@Param('id') noteId: string) {
     return this.noteService.getSingleNote(noteId);
   }
+
+  @UseGuards(JwtAuthGuard)
   @Post('/new')
   addNote(@Body() note: createNoteDto) {
     return this.noteService.registerNote(note);
   }
+
+  @UseGuards(JwtAuthGuard)
   @Post('/:id/update')
   updateNote(@Param('id') noteId: string, @Body() note: createNoteDto) {
     return this.noteService.updateNoteInfo(noteId, note);

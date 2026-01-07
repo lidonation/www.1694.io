@@ -47,7 +47,7 @@ const GovernanceActionsDescTable = () => {
         {data.map((item, index) => (
           <tr
             key={item.actions}
-            className={`${(index + 1) % 2 == 0 ? 'border-b border-white bg-violet-50' : 'border-b border-cyan-800 border-opacity-20 bg-white bg-opacity-50'}`}
+            className={`${(index + 1) % 2 == 0 ? 'border-b border-white bg-violet-50' : 'border-b border-cyan-800/20 bg-white/50'}`}
           >
             <td className="p-4">
               {index + 1}. {item.actions}

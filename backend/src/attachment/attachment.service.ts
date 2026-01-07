@@ -1,29 +1,19 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Jimp, JimpMime } from 'jimp';
 import {
-  Attachment,
   AttachmentParentEntityType,
   AttachmentTypeName,
 } from 'src/entities/attachment.entity';
-import { InjectDataSource } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
-import { lastValueFrom } from 'rxjs';
-import {
-  IPFSPinResponse,
-  IPFSPinStatusResponse,
-  IPFSResponse,
-} from 'src/common/types';
-import { HttpService } from '@nestjs/axios';
+import { IPFSResponse } from 'src/common/types';
 import { Response } from 'express';
-import { BlockfrostService } from 'src/blockfrost/blockfrost.service';
+import { AttachmentRepository } from 'src/repository/voltaire/attachment.repository';
+import { IpfsService } from 'src/ipfs/ipfs.service';
 
 @Injectable()
 export class AttachmentService {
   constructor(
-    @InjectDataSource('default')
-    private voltaireService: DataSource,
-    private httpService: HttpService,
-    private blockfrostService: BlockfrostService,
+    private readonly attachmentRepository: AttachmentRepository,
+    private ipfsService: IpfsService,
   ) {}
   async parseMimeType(mimeType: string) {
     switch (mimeType) {
@@ -70,7 +60,7 @@ export class AttachmentService {
       const optimizedImageBuffer = await Jimp.read(file.buffer)
         .then((image) => {
           return image
-            .resize({w: 480, h: 480})
+            .resize({ w: 480, h: 480 })
             .getBuffer(this.parseJimpMimeType(mimeType));
         })
         .then((buffer) => {
@@ -104,22 +94,20 @@ export class AttachmentService {
         url: attachment.buffer,
         name: attachment.originalname,
         parententity: this.parseEntityType(parentEntity),
-        parentid: !String(parentId).includes('null') ? parentId : null,
+        parentid: !String(parentId).includes('null') ? parentId : undefined,
         attachmentType: await this.parseMimeType(mimeType),
       };
 
-      const attachmentRepo =
-        await this.voltaireService.getRepository('Attachment');
-      const createdAttachment = attachmentRepo.create(newAttachment);
-      const res = (await attachmentRepo.save(createdAttachment)) as Attachment;
-      return res;
+      return await this.attachmentRepository.createAttachment(newAttachment);
     } catch (error) {
       //duplicate key value violates unique constraint
       if (error.code === '23505') {
         try {
-          const existingAttachment = await this.voltaireService
-            .getRepository('Attachment')
-            .findOneBy({ name: attachment.originalname });
+          const existingAttachment = await this.attachmentRepository.findOne({
+            where: {
+              name: attachment.originalname,
+            },
+          });
           return existingAttachment;
         } catch (findError) {
           console.log('Error finding existing attachment:', findError);
@@ -134,20 +122,18 @@ export class AttachmentService {
 
   async getSingleAttachment(attachmentId: number) {
     try {
-      const attachment = await this.voltaireService
-        .getRepository('Attachment')
-        .findOneBy({ id: attachmentId });
-      return attachment;
+      return await this.attachmentRepository.findOneBy({
+        id: attachmentId,
+      });
     } catch (error) {
       console.log(error);
     }
   }
   async getSingleAttachmentByName(attachmentName: string) {
     try {
-      const attachment = await this.voltaireService
-        .getRepository('Attachment')
-        .findOneBy({ name: attachmentName });
-      return attachment;
+      return await this.attachmentRepository.findOneBy({
+        name: attachmentName,
+      });
     } catch (error) {
       console.log(error);
     }
@@ -167,9 +153,7 @@ export class AttachmentService {
         attachmentType: await this.parseMimeType(mimeType),
       };
       if (attachmentId) {
-        await this.voltaireService
-          .getRepository('Attachment')
-          .update(attachmentId, newAttachment);
+        await this.attachmentRepository.update(attachmentId, newAttachment);
       } else
         await this.insertAttachment(
           attachment,
@@ -184,9 +168,7 @@ export class AttachmentService {
   }
   async deleteAttachment(attachmentId: number) {
     try {
-      await this.voltaireService
-        .getRepository('Attachment')
-        .delete(attachmentId);
+      await this.attachmentRepository.delete(attachmentId);
       return true;
     } catch (error) {
       console.log(error);
@@ -196,22 +178,11 @@ export class AttachmentService {
     attachment: Express.Multer.File | Buffer | Uint8Array | Blob | FormData,
   ): Promise<IPFSResponse> {
     try {
-      const res = await lastValueFrom(
-        this.httpService.post(
-          `${this.blockfrostService.blockfrostIPFSURL}/ipfs/add`,
-          attachment,
-          {
-            headers: {
-              project_id: this.blockfrostService.blockfrostIPFSProjectID,
-            },
-          },
-        ),
-      );
-      const ipfsRes = res.data as IPFSResponse;
+      const ipfsRes = await this.ipfsService.uploadAttachmentToIPFS(attachment);
       //then auto-pin the attachment
-      const ipfsPinStatus = (await this.pinAttachmentToIPFS(
+      const ipfsPinStatus = await this.ipfsService.pinAttachmentToIPFS(
         ipfsRes.ipfs_hash,
-      )) as IPFSPinResponse;
+      );
       return {
         ...ipfsRes,
         state: ipfsPinStatus.state,
@@ -224,81 +195,10 @@ export class AttachmentService {
       );
     }
   }
-  async pinAttachmentToIPFS(hash: string): Promise<IPFSPinResponse> {
-    try {
-      const res = await lastValueFrom(
-        this.httpService.post(
-          `${this.blockfrostService.blockfrostIPFSURL}/ipfs/pin/add/${hash}`,
-          {},
-          {
-            headers: {
-              project_id: this.blockfrostService.blockfrostIPFSProjectID,
-            },
-          },
-        ),
-      );
-      return res.data;
-    } catch (error) {
-      console.error(error.response.data || error.response || error);
-      throw new HttpException(error.response.data, error.response.status);
-    }
-  }
-  async checkPinStatus(hash: string): Promise<IPFSPinStatusResponse> {
-    try {
-      const res = await lastValueFrom(
-        this.httpService.get(
-          `${this.blockfrostService.blockfrostIPFSURL}/ipfs/pin/list/${hash}`,
-          {
-            headers: {
-              project_id: this.blockfrostService.blockfrostIPFSProjectID,
-            },
-          },
-        ),
-      );
-      return res.data;
-    } catch (error) {
-      console.error(error.response.data || error.response || error);
-      throw new HttpException(error.response.data, error.response.status);
-    }
-  }
-  async unpinAttachmentFromIPFS(hash: string): Promise<IPFSPinResponse> {
-    try {
-      const res = await lastValueFrom(
-        this.httpService.post(
-          `${this.blockfrostService.blockfrostIPFSURL}/ipfs/pin/remove/${hash}`,
-          {},
-          {
-            headers: {
-              project_id: this.blockfrostService.blockfrostIPFSProjectID,
-            },
-          },
-        ),
-      );
-      return res.data;
-    } catch (error) {
-      console.error(error.response.data || error.response || error);
-      throw new HttpException(error.response.data, error.response.status);
-    }
-  }
+
   async getAttachmentFromIPFS(hash: string, res: Response): Promise<any> {
     try {
-      const response = await lastValueFrom(
-        this.httpService.get(
-          `${this.blockfrostService.blockfrostIPFSURL}/ipfs/gateway/${hash}`,
-          {
-            headers: {
-              project_id: this.blockfrostService.blockfrostIPFSProjectID,
-            },
-            responseType: 'stream', // Used stream to handle large files or non-JSON data
-          },
-        ),
-      );
-
-      for (const [key, value] of Object.entries(response.headers)) {
-        res.setHeader(key, value as string);
-      }
-      // Stream the data directly to the client
-      return response.data.pipe(res);
+      return await this.ipfsService.getAttachmentFromIPFS(hash, res);
     } catch (error) {
       console.error(error);
       throw new HttpException(

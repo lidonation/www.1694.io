@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   DefaultValuePipe,
@@ -9,6 +8,7 @@ import {
   Post,
   Query,
   Res,
+  UseGuards,
 } from '@nestjs/common';
 import { createDrepDto, ValidateMetadataDTO } from 'src/dto';
 import { DrepService } from './drep.service';
@@ -17,6 +17,7 @@ import { Delegation } from 'src/common/types';
 import { lastValueFrom } from 'rxjs';
 import { Response } from 'express';
 import { MiscellaneousService } from 'src/miscellaneous/miscellaneous.service';
+import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
 
 @Controller('dreps')
 export class DrepController {
@@ -119,10 +120,13 @@ export class DrepController {
     return drepTimeline;
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('new')
   create(@Body() drepDto: createDrepDto) {
     return this.drepService.registerDrep(drepDto);
   }
+
+  @UseGuards(JwtAuthGuard)
   @Post(':id/update')
   updateDetails(@Param('id') drepId: number, @Body() drep: createDrepDto) {
     return this.drepService.updateDrepInfo(drepId, drep);
@@ -138,10 +142,12 @@ export class DrepController {
     return this.drepService.validateMetadata(metadataBody);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('metadata/save')
   saveMetadata(@Body('metadata') metadata: any) {
     return this.drepService.saveMetadata(metadata);
   }
+
   @Get(':voterId/stats')
   getStats(@Param('voterId') voterId: string) {
     return this.drepService.getStats(voterId);
@@ -192,24 +198,9 @@ export class DrepController {
     return this.drepService.getClaimedProfiles(voterId);
   }
 
+
   @Get(':voterId/governance-participation')
   getGovernanceParticipation(@Param('voterId') voterId: string) {
     return this.drepService.getGovernanceParticipation(voterId);
-  }
-
-  @Post(':stakeKey/claim-profile')
-  async claimProfile(
-    @Param('stakeKey') stakeKey: string,
-    @Body() body: { signature: string; signatureKey: string },
-  ) {
-    // Validate the signature and signatureKey
-    if (!body?.signature || !body?.signatureKey) {
-      throw new BadRequestException('Signature and signatureKey are required');
-    }
-    return this.drepService.checkDRepClaimStatus(
-      stakeKey,
-      body.signature,
-      body.signatureKey,
-    );
   }
 }

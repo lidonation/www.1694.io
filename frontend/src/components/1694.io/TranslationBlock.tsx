@@ -65,7 +65,7 @@ const TranslationBlock = () => {
   ];
 
   return (
-    <div className="bg-white bg-opacity-50">
+    <div className="bg-white/50">
       <div className="base_container flex flex-row items-center justify-start pb-3">
         {!isMobile ? (
           <>

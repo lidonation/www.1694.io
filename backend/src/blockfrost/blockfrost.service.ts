@@ -1,230 +1,251 @@
 import { HttpService } from '@nestjs/axios';
-import { HttpException, Injectable } from '@nestjs/common';
+import { HttpException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import axios from 'axios';
 import { lastValueFrom } from 'rxjs';
 import { BlockfrostUTXO } from 'src/miscellaneous/misc.types';
 
+interface BlockfrostConfig {
+  url: string;
+  projectId: string;
+}
+
+interface RequestOptions {
+  method: 'GET' | 'POST';
+  endpoint: string;
+  data?: any;
+  headers?: Record<string, string>;
+}
+
 @Injectable()
 export class BlockfrostService {
-  blockfrostAPIURL: string;
-  blockfrostAPIProjectID: string;
-  blockfrostIPFSURL: string;
-  blockfrostIPFSProjectID: string;
-  blockfrostAPIFallbackURL: string;
-  blockfrostAPIFallbackProjectID: string;
-  blockfrostIPFSFallbackURL: string;
-  blockfrostIPFSFallbackProjectID: string;
+  private readonly logger = new Logger(BlockfrostService.name);
+  private readonly primaryConfig: BlockfrostConfig;
+  private readonly fallbackConfig: BlockfrostConfig;
+
   constructor(
-    private configService: ConfigService,
-    private httpService: HttpService,
+    private readonly configService: ConfigService,
+    private readonly httpService: HttpService,
   ) {
-    //use the external blockfrost API to fetch data(fallback) before the local blockfrost API is ready
-    this.blockfrostAPIURL = this.configService.get<string>(
-      'BLOCKFROST_NETWORK_URL',
-    );
-    this.blockfrostAPIFallbackURL = this.configService.get<string>(
-      'BLOCKFROST_NETWORK_URL_FALLBACK',
-    );
-    this.blockfrostAPIFallbackProjectID = this.configService.get<string>(
-      'BLOCKFROST_NETWORK_PROJECT_ID_FALLBACK',
-    );
-    this.blockfrostAPIProjectID = this.configService.get<string>(
-      'BLOCKFROST_NETWORK_PROJECT_ID',
-    );
-    this.blockfrostIPFSFallbackURL = this.configService.get<string>(
-      'BLOCKFROST_IPFS_URL_FALLBACK',
-    );
-    this.blockfrostIPFSURL = this.configService.get<string>(
-      'BLOCKFROST_IPFS_URL',
-    );
-    this.blockfrostIPFSFallbackProjectID = this.configService.get<string>(
-      'BLOCKFROST_IPFS_PROJECT_ID_FALLBACK',
-    );
-    this.blockfrostIPFSProjectID = this.configService.get<string>(
-      'BLOCKFROST_IPFS_PROJECT_ID',
-    );
+    this.primaryConfig = {
+      url: this.configService.get<string>('BLOCKFROST_NETWORK_URL') || '',
+      projectId: this.configService.get<string>(
+        'BLOCKFROST_NETWORK_PROJECT_ID',
+      ) || '',
+    };
+
+    this.fallbackConfig = {
+      url: this.configService.get<string>('BLOCKFROST_NETWORK_URL_FALLBACK') || '',
+      projectId: this.configService.get<string>(
+        'BLOCKFROST_NETWORK_PROJECT_ID_FALLBACK',
+      ) || '',
+    };
   }
-  async getLatestBlock() {
+
+  private async executeWithFallback<T = any>(
+    options: RequestOptions,
+  ): Promise<T> {
+    const { endpoint } = options;
+
     try {
-      //fetch the latest block from external blockfrost API
-      const apiUrl = `${this.blockfrostAPIFallbackURL}/blocks/latest`; //use the fallback API
-      const response = await axios.get(apiUrl, {
-        headers: {
-          project_id: this.blockfrostAPIFallbackProjectID, //use the fallback project ID
-        },
-      });
+      return await this.makeRequest<T>(this.primaryConfig, options);
+    } catch (primaryError) {
+      this.logger.warn(
+        `Primary request failed for ${endpoint}: ${primaryError.message}. Trying fallback...`,
+      );
+
+      try {
+        return await this.makeRequest<T>(this.fallbackConfig, options);
+      } catch (fallbackError) {
+        this.logger.error(
+          `Both primary and fallback requests failed for ${endpoint}`,
+          {
+            primaryError: primaryError.message,
+            fallbackError: fallbackError.message,
+          },
+        );
+
+        throw new HttpException(
+          fallbackError?.response?.data ||
+            fallbackError.message ||
+            'Blockfrost API unavailable',
+          fallbackError?.response?.status || 500,
+        );
+      }
+    }
+  }
+
+  private async makeRequest<T>(
+    config: BlockfrostConfig,
+    options: RequestOptions,
+  ): Promise<T> {
+    const { method, endpoint, data, headers = {} } = options;
+    const url = `${config.url}${endpoint}`;
+
+    const requestHeaders = {
+      project_id: config.projectId,
+      ...headers,
+    };
+
+    try {
+      let response;
+
+      if (method === 'GET') {
+        response = await lastValueFrom(
+          this.httpService.get(url, { headers: requestHeaders }),
+        );
+      } else if (method === 'POST') {
+        response = await lastValueFrom(
+          this.httpService.post(url, data, { headers: requestHeaders }),
+        );
+      }
+
       return response.data;
     } catch (error) {
-      console.log(error);
       throw new HttpException(
-        error?.response?.data || 'An error occured',
+        error?.response?.data || error.message || 'Request failed',
         error?.response?.status || 500,
       );
     }
   }
 
-  async getIPFSContent(ipfsHash: string) {
-    try {
-      // Try primary IPFS endpoint
-      const primaryUrl = `${this.blockfrostIPFSURL}/ipfs/gateway/${ipfsHash}`;
-      const primaryResponse = await lastValueFrom(
-        this.httpService.get(primaryUrl, {
-          headers: {
-            project_id: this.blockfrostIPFSProjectID,
-          },
-        }),
-      ).catch((primaryError) => {
-        console.log(
-          'Primary IPFS endpoint failed, trying fallback:',
-          primaryError.message,
-        );
-        // If primary fails, try fallback
-        const fallbackUrl = `${this.blockfrostIPFSFallbackURL}/ipfs/gateway/${ipfsHash}`;
-        return lastValueFrom(
-          this.httpService.get(fallbackUrl, {
-            headers: {
-              project_id: this.blockfrostIPFSFallbackProjectID,
-            },
-          }),
-        );
-      });
-
-      return primaryResponse.data;
-    } catch (error) {
-      console.log(error);
-      throw new HttpException(
-        error?.response?.data || 'Failed to fetch IPFS content',
-        error?.response?.status || 500,
-      );
-    }
+  async getLatestBlock() {
+    return this.executeWithFallback({
+      method: 'GET',
+      endpoint: '/blocks/latest',
+    });
   }
 
   async getLatestEpoch() {
-    try {
-      const apiUrl = `${this.blockfrostAPIURL}/epochs/latest`;
-      const response = await lastValueFrom(
-        this.httpService.get(apiUrl, {
-          headers: {
-            project_id: this.blockfrostAPIProjectID,
-          },
-        }),
-      );
-      return response.data;
-    } catch (error) {
-      console.log(error);
-      throw new HttpException(
-        error?.response?.data || 'An error occured',
-        error?.response?.status || 500,
-      );
-    }
+    return this.executeWithFallback({
+      method: 'GET',
+      endpoint: '/epochs/latest',
+    });
   }
 
-  async getAddressUtxos(address: string) {
-    try {
-      const apiUrl = `${this.blockfrostAPIURL}/addresses/${address}/utxos`;
-      const response = await lastValueFrom(
-        this.httpService.get(apiUrl, {
-          headers: {
-            project_id: this.blockfrostAPIProjectID,
-          },
-        }),
-      );
-      return response.data as BlockfrostUTXO[];
-    } catch (error) {
-      console.log(error);
-      throw new HttpException(
-        error?.response?.data || 'An error occured',
-        error?.response?.status || 500,
-      );
-    }
+  async getAddressUtxos(address: string): Promise<BlockfrostUTXO[]> {
+    return await this.executeWithFallback<BlockfrostUTXO[]>({
+      method: 'GET',
+      endpoint: `/addresses/${address}/utxos`,
+    });
   }
+
   async getEpochParameters() {
-    try {
-      const apiUrl = `${this.blockfrostAPIURL}/epochs/latest/parameters`;
-      const response = await lastValueFrom(
-        this.httpService.get(apiUrl, {
-          headers: {
-            project_id: this.blockfrostAPIProjectID,
-          },
-        }),
-      );
-      return response.data;
-    } catch (error) {
-      console.log(error);
-      throw new HttpException(
-        error?.response?.data || 'An error occured',
-        error?.response?.status || 500,
-      );
-    }
+    return this.executeWithFallback({
+      method: 'GET',
+      endpoint: '/epochs/latest/parameters',
+    });
   }
 
   async getStakeAddressInfo(stakeAddress: string) {
-    try {
-      const apiUrl = `${this.blockfrostAPIURL}/accounts/${stakeAddress}`;
-      const response = await lastValueFrom(
-        this.httpService.get(apiUrl, {
-          headers: {
-            project_id: this.blockfrostAPIProjectID,
-          },
-        }),
-      );
-      return response.data;
-    } catch (error) {
-      console.log(error);
-      throw new HttpException(
-        error?.response?.data || 'An error occured',
-        error?.response?.status || 500,
-      );
-    }
+    return this.executeWithFallback({
+      method: 'GET',
+      endpoint: `/accounts/${stakeAddress}`,
+    });
   }
 
   async getAddressesRelatedToStakeAddress(stakeAddress: string) {
-    try {
-      const apiUrl = `${this.blockfrostAPIURL}/accounts/${stakeAddress}/addresses`;
-      const response = await lastValueFrom(
-        this.httpService.get(apiUrl, {
-          headers: {
-            project_id: this.blockfrostAPIProjectID,
-          },
-        }),
-      );
-      return response.data;
-    } catch (error) {
-      console.log(error);
-      throw new HttpException(
-        error?.response?.data || 'An error occured',
-        error?.response?.status || 500,
-      );
-    }
+    return this.executeWithFallback({
+      method: 'GET',
+      endpoint: `/accounts/${stakeAddress}/addresses`,
+    });
   }
 
   async submitTransaction(transactionCbor: string) {
-    try {
-      if (!transactionCbor) {
-        throw new HttpException('Transaction CBOR is required', 400);
-      }
-      console.log('Submitting transaction to Blockfrost', transactionCbor);
-      const apiUrl = `${this.blockfrostAPIURL}/tx/submit`;
-      const response = await lastValueFrom(
-        this.httpService.post(
-          apiUrl,
-          Buffer.from(transactionCbor, 'hex'),
-          {
-            headers: {
-              project_id: this.blockfrostAPIProjectID,
-              'Content-Type': 'application/cbor',
-            },
-          },
-        ),
-      );
-      return response.data;
-    } catch (error) {
-      console.log(error);
-      throw new HttpException(
-        error?.response?.data || 'An error occured',
-        error?.response?.status || 500,
-      );
+    if (!transactionCbor) {
+      throw new HttpException('Transaction CBOR is required', 400);
     }
+
+    return this.executeWithFallback({
+      method: 'POST',
+      endpoint: '/tx/submit',
+      data: Buffer.from(transactionCbor, 'hex'),
+      headers: {
+        'Content-Type': 'application/cbor',
+      },
+    });
+  }
+
+  async getAllDReps() {
+    return this.executeWithFallback({
+      method: 'GET',
+      endpoint: '/governance/dreps',
+    });
+  }
+
+  async getDRepInfo(drepId: string) {
+    return this.executeWithFallback({
+      method: 'GET',
+      endpoint: `/governance/dreps/${drepId}`,
+    });
+  }
+
+  async getDRepMetadata(drepId: string) {
+    return this.executeWithFallback({
+      method: 'GET',
+      endpoint: `/governance/dreps/${drepId}/metadata`,
+    });
+  }
+
+  async getDRepDelegators(drepId: string, page = 1, count = 100, order = 'asc') {
+    return this.executeWithFallback({
+      method: 'GET',
+      endpoint: `/governance/dreps/${drepId}/delegators?page=${page}&count=${count}&order=${order}`,
+    });
+  }
+
+  async getAllProposals(page = 1, count = 100, order = 'asc') {
+    return this.executeWithFallback({
+      method: 'GET',
+      endpoint: `/governance/proposals?page=${page}&count=${count}&order=${order}`,
+    });
+  }
+
+  async getProposal(txHash: string, certIndex: number) {
+    return this.executeWithFallback({
+      method: 'GET',
+      endpoint: `/governance/proposals/${txHash}/${certIndex}`,
+    });
+  }
+
+  async getProposalMetadata(txHash: string, certIndex: number) {
+    return this.executeWithFallback({
+      method: 'GET',
+      endpoint: `/governance/proposals/${txHash}/${certIndex}/metadata`,
+    });
+  }
+
+  async getProposalVotes(txHash: string, certIndex: number, page = 1, count = 100, order = 'asc') {
+    return this.executeWithFallback({
+      method: 'GET',
+      endpoint: `/governance/proposals/${txHash}/${certIndex}/votes?page=${page}&count=${count}&order=${order}`,
+    });
+  }
+
+  async getAllDRepsWithPagination(page = 1, count = 100, order = 'asc') {
+    return this.executeWithFallback({
+      method: 'GET',
+      endpoint: `/governance/dreps?page=${page}&count=${count}&order=${order}`,
+    });
+  }
+
+  async getDRepVotes(drepId: string, page = 1, count = 100, order = 'asc') {
+    return this.executeWithFallback({
+      method: 'GET',
+      endpoint: `/governance/dreps/${drepId}/votes?page=${page}&count=${count}&order=${order}`,
+    });
+  }
+
+  async getTransaction(txHash: string) {
+    return this.executeWithFallback({
+      method: 'GET',
+      endpoint: `/txs/${txHash}`,
+    });
+  }
+
+  async getEpoch(epochNumber: number | 'latest') {
+    return this.executeWithFallback({
+      method: 'GET',
+      endpoint: `/epochs/${epochNumber}`,
+    });
   }
 }

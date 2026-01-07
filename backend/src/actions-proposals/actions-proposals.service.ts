@@ -5,13 +5,16 @@ import { catchError, firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class ActionsProposalsService {
+  private readonly BASE_URL: string;
+  private readonly CX_BASE_URL: string;
+
   constructor(
     private configService: ConfigService,
     private httpService: HttpService,
-  ) { }
-
-  private readonly BASE_URL = this.configService.get<string>('PDF_BASE_URL');
-  private readonly CX_BASE_URL = this.configService.get<string>('METRICS_BASE_URL');
+  ) {
+    this.BASE_URL = this.configService.get<string>('PDF_BASE_URL') || '';
+    this.CX_BASE_URL = this.configService.get<string>('METRICS_BASE_URL') || '';
+  }
   async findAll({
     page = 1,
     pageSize = 12,

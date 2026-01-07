@@ -1,16 +1,10 @@
 import { Skeleton } from '@mui/material';
-import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
 import { 
   ProposalAnimatedMetricProps as AnimatedMetricProps,
   ProposalMetricsCardProps as MetricsCardProps 
 } from '../../../types/commonTypes';
-
-const Odometer = dynamic(() => import('react-odometerjs'), {
-  ssr: false,
-});
-
-import 'odometer/themes/odometer-theme-default.css';
+import { AnimatedCounter } from './AnimatedCounter';
 
 const AnimatedMetric = ({
   value,
@@ -51,7 +45,7 @@ const AnimatedMetric = ({
   if (isPercentage) {
     return (
       <div className="flex items-baseline">
-        <Odometer value={Math.round(displayValue * 100)} duration={duration} />
+        <AnimatedCounter value={Math.round(displayValue * 100)} duration={duration} />
         <span className="ml-1">%</span>
       </div>
     );
@@ -86,7 +80,7 @@ const AnimatedMetric = ({
 
   return (
     <div className="flex items-baseline">
-      <Odometer 
+      <AnimatedCounter 
         value={formattedValue} 
         duration={duration} 
         format="(,ddd).d" 

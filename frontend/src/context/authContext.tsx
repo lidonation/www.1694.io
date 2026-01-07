@@ -92,13 +92,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
           if (result.walletApi) {
             setWalletApi(result.walletApi);
           }
-          if (result.accountInfo.loginCredentials) {
-            await autoClaimProfile(
-              result.accountInfo.stakeKeyBech32,
-              result.accountInfo.loginCredentials.signature,
-              result.accountInfo.loginCredentials.key,
-            );
-          }
         }
       } catch (error) {
         console.error('Reconnection error:', error);
@@ -139,13 +132,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
         }
         setWalletBeingConnected(null);
         //atempt to auto-claim profile if applicable
-        if (result.accountInfo.loginCredentials) {
-          await autoClaimProfile(
-            result.accountInfo.stakeKeyBech32,
-            result.accountInfo.loginCredentials.signature,
-            result.accountInfo.loginCredentials.key,
-          );
-        }
         return {
           success: true,
           error: null,
