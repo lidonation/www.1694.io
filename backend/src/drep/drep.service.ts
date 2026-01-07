@@ -79,105 +79,25 @@ export class DrepService {
     includeRetired?: true | false,
     type?: 'has_script',
   ) {
-    try {
-      // Try to use the optimized governance service first
-      const result = await this.governanceService.getAllDReps(
-        query || '',
-        currentPage || 1,
-        itemsPerPage || 24,
-        sort,
-        order as 'ASC' | 'DESC',
-        onChainStatus,
-        campaignStatus,
-        includeRetired ?? false,
-        type,
-      );
+    const result = await this.governanceService.getAllDReps(
+      query || '',
+      currentPage || 1,
+      itemsPerPage || 24,
+      sort,
+      order as 'ASC' | 'DESC',
+      onChainStatus,
+      campaignStatus,
+      includeRetired ?? false,
+      type,
+    );
       
-      return {
-        data: result.data,
-        totalItems: result.pagination.total,
-        currentPage: result.pagination.page,
-        itemsPerPage: result.pagination.perPage,
-        totalPages: result.pagination.totalPages,
-      };
-    } catch (governanceError) {
-      console.warn('Governance service failed, falling back to legacy method:', governanceError);
-      
-      // Fallback to legacy method
-      const sortColumn =
-        {
-          voting_power: 'voting_power',
-          live_stake: 'live_stake',
-          delegators: 'delegation_vote_count',
-          votes: 'governance_vote_count',
-        }[sort as keyof object] || null;
-
-      const sortOrder = !!order ? order.toUpperCase() : null;
-
-      let dRepViews: string[] = [];
-      if (campaignStatus) {
-        const voltaireDReps = await this.drepRepository.getAllWithSignatures();
-        dRepViews = voltaireDReps.map((drep) => drep.signature_drep_bech32);
-      }
-
-      const drepList = await this.drepRepository.getAllDReps({
-        query,
-        currentPage,
-        itemsPerPage,
-        sortColumn,
-        sortOrder,
-        onChainStatus,
-        campaignStatus,
-        includeRetired,
-        dRepViews,
-        type,
-      });
-
-      const drepViews2 = drepList.data.map((drep) => drep.view);
-      const voltaireDReps = await this.drepRepository.getByViews(drepViews2);
-      const totalPages = Math.ceil(drepList.totalItems / (itemsPerPage || 24));
-
-      const mergedDRepsData = drepList.data.map((drep) => {
-        const voltaireDrep = voltaireDReps.find(
-          (voltaireDrep) => voltaireDrep.signature_drep_bech32 === drep.view,
-        );
-
-        // Account for voting options
-        if (
-          drep?.view &&
-          (drep?.view.includes('drep_always_abstain') ||
-            drep?.view.includes('drep_always_no_confidence'))
-        ) {
-          drep['type'] = 'voting_option';
-        } else if (!!drep?.has_script) {
-          drep['type'] = 'scripted';
-        } else {
-          drep['type'] = 'drep';
-        }
-
-        return {
-          ...drep,
-          ...(voltaireDrep ? voltaireDrep : {}),
-          // Format numbers (already in ADA from enhanced table)
-          voting_power:
-            drep.voting_power != null
-              ? parseFloat(drep.voting_power).toFixed(1)
-              : null,
-          live_stake:
-            drep.live_stake != null
-              ? parseFloat(drep.live_stake).toFixed(1)
-              : null,
-        };
-      });
-
-      return {
-        data: mergedDRepsData,
-        totalItems: drepList.totalItems,
-        currentPage,
-        itemsPerPage,
-        totalPages,
-      };
-    }
+    return {
+      data: result.data,
+      totalItems: result.pagination.total,
+      currentPage: result.pagination.page,
+      itemsPerPage: result.pagination.perPage,
+      totalPages: result.pagination.totalPages,
+    };
   }
 
   async getSingleDrepViaID(drepId: number) {
@@ -343,7 +263,6 @@ export class DrepService {
     return startTime.getTime() < time && endTime.getTime() > time;
   }
 
-  // Optimized timeline method using governance indexer
   async getDrepTimelineOptimized(
     voterId: string,
     options: {
@@ -354,30 +273,12 @@ export class DrepService {
       loadDirection?: 'older' | 'newer';
     } = {},
   ) {
-    try {
-      const result = await this.governanceService.getDRepTimeline(voterId, options);
-      return {
-        appliedStartTime: options.startTimeCursor || Date.now() - 432000000, // 5 days ago default
-        appliedEndTime: options.endTimeCursor || Date.now(),
-        entries: result.events,
-      };
-    } catch (error) {
-      console.warn('Governance timeline service failed, falling back to legacy method:', error);
-      // Fall back to legacy method if governance service fails
-      return this.getDrepTimelineWithMinItemsLegacy({
-        dRep: await this.getVoltaireDRepViaVoterID(voterId),
-        voterId,
-        stakeKeyBech32: undefined,
-        delegation: null,
-        endTimeCursor: options.endTimeCursor,
-        startTimeCursor: options.startTimeCursor,
-        filterValues: options.filterValues,
-        minItems: options.minItems || 10,
-        recursionDepth: 0,
-        maxRecursionDepth: 3,
-        loadDirection: options.loadDirection || 'older',
-      });
-    }
+    const result = await this.governanceService.getDRepTimeline(voterId, options);
+    return {
+      appliedStartTime: options.startTimeCursor || Date.now() - 432000000, // 5 days ago default
+      appliedEndTime: options.endTimeCursor || Date.now(),
+      entries: result.events,
+    };
   }
 
   getDrepTimelineWithMinItemsLegacy({

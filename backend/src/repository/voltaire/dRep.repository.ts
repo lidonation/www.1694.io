@@ -145,23 +145,33 @@ export class DRepRepository extends Repository<VoltaireDrep> {
     const queryBuilder = this.voltaireDb
       .getRepository(Drep)
       .createQueryBuilder('drep')
-      .leftJoin('drep_delegators', 'delegator', 'delegator.drep_id = drep.drep_id OR delegator.drep_id = drep.hex')
+      // Join delegators where the DRep ID *or* Hex matches any alias of this DRep (same hex suffix)
+      // This ensures we count delegations regardless of whether they used the Legacy or CIP-129 ID
+      .leftJoin('drep_delegators', 'delegator', 
+        `(delegator.drep_id IN (SELECT d2.drep_id FROM dreps d2 WHERE LOWER(RIGHT(d2.hex, 56)) = LOWER(RIGHT(drep.hex, 56))) 
+         OR delegator.drep_id IN (SELECT d3.hex FROM dreps d3 WHERE LOWER(RIGHT(d3.hex, 56)) = LOWER(RIGHT(drep.hex, 56))))`)
+      
       .addSelect('COUNT(DISTINCT delegator.stake_address)', 'live_delegation_count')
       .addSelect('SUM(delegator.amount_lovelace)', 'live_stake_lovelace')
+      
+      // Aggregate votes from ALL aliases of this DRep
       .addSelect(subQuery => {
         return subQuery
           .select('COUNT(pv.id)', 'vote_count')
           .from(ProposalVote, 'pv')
-          .where('pv.voter = drep.drep_id');
+          .where(`pv.voter IN (SELECT d_alias.drep_id FROM dreps d_alias WHERE LOWER(RIGHT(d_alias.hex, 56)) = LOWER(RIGHT(drep.hex, 56)))`);
       }, 'computed_vote_count')
-      .groupBy('drep.drep_id');
+      
+      .groupBy('drep.drep_id')
+      .addGroupBy('drep.hex');
 
-
+    // Consolidate duplicates: Filter to keep only the latest (priority by length, then createdAt)
+    // We group by the last 56 chars of hex (removing potential 2-char prefix like '22' or '23')
     queryBuilder.andWhere((qb) => {
         const subQuery = qb.subQuery()
-            .select('DISTINCT ON (RIGHT(d.hex, 56)) d.drep_id')
+            .select('DISTINCT ON (LOWER(RIGHT(d.hex, 56))) d.drep_id')
             .from(Drep, 'd')
-            .orderBy('RIGHT(d.hex, 56)')
+            .orderBy('LOWER(RIGHT(d.hex, 56))')
             .addOrderBy('LENGTH(d.hex)', 'DESC') // Prioritize CIP-129 (longer)
             .addOrderBy('d.created_at', 'DESC')
             .getQuery();
@@ -263,7 +273,8 @@ export class DRepRepository extends Repository<VoltaireDrep> {
         delegation_vote_count: liveCount,
         delegatorsCount: liveCount,
         live_stake: liveStakeAda.toString(),
-        governance_vote_count: voteCount
+        governance_vote_count: voteCount,
+        format: drep.hex.length === 58 ? 'cip129' : 'legacy',
       };
     });
 

@@ -22,13 +22,14 @@ export class GovernanceService {
     includeRetired: boolean = false,
     type?: 'has_script',
   ) {
+    // 1. Build base query for DReps
     const queryBuilder = this.governanceDataSource
       .getRepository(Drep)
       .createQueryBuilder('drep');
 
     if (search) {
       queryBuilder.andWhere(
-        '(drep.drepId ILIKE :search OR drep.givenName ILIKE :search OR drep.hex ILIKE :search)',
+        '(drep.drepId ILIKE :search OR drep.metadata->\'json_metadata\'->\'body\'->>\'givenName\' ILIKE :search OR drep.hex ILIKE :search)',
         { search: `%${search}%` },
       );
     }
@@ -52,17 +53,106 @@ export class GovernanceService {
     if (type === 'has_script') {
       queryBuilder.andWhere('drep.hasScript = true');
     }
+    
+    // Fetch all matching DReps (dataset is small ~2k, so this is efficient)
+    const allDreps = await queryBuilder.getMany();
 
-    const sortColumn = this.getSortColumn(sort);
-    queryBuilder.orderBy(`drep.${sortColumn}`, order);
+    // 2. Fetch raw data for accurate deduplication
+    const votesQuery = await this.governanceDataSource
+        .query(`SELECT voter, proposal_id FROM proposal_votes`);
+    
+    const votesMap = new Map<string, Set<string>>();
+    for (const row of votesQuery) {
+        if (!votesMap.has(row.voter)) votesMap.set(row.voter, new Set());
+        votesMap.get(row.voter).add(row.proposal_id);
+    }
 
-    const skip = (page - 1) * perPage;
-    queryBuilder.skip(skip).take(perPage);
+    const delegatorsQuery = await this.governanceDataSource
+        .query('SELECT drep_id, stake_address, amount_lovelace FROM drep_delegators');
+        
+    const delegatorsMap = new Map<string, Set<string>>();
+    
+    for (const row of delegatorsQuery) {
+        if (!delegatorsMap.has(row.drep_id)) delegatorsMap.set(row.drep_id, new Set());
+        delegatorsMap.get(row.drep_id).add(row.stake_address);
+    }
 
-    const [dreps, total] = await queryBuilder.getManyAndCount();
+    // 3. In-memory Aggregation & Consolidation
+    const groups = new Map<string, Drep[]>();
+
+    for (const drep of allDreps) {
+        const suffix = drep.hex.length >= 56 ? drep.hex.slice(-56).toLowerCase() : drep.hex.toLowerCase();
+        
+        if (!groups.has(suffix)) {
+            groups.set(suffix, []);
+        }
+        groups.get(suffix).push(drep);
+    }
+
+    const consolidatedDReps = Array.from(groups.values()).map(group => {
+        // Sort group to find primary 
+        group.sort((a, b) => b.hex.length - a.hex.length || b.createdAt.getTime() - a.createdAt.getTime());
+        const primary = group[0];
+
+        const uniqueDelegators = new Set<string>();
+        const uniqueVotes = new Set<string>();
+        
+        for (const member of group) {
+            // Merge Votes
+            const memberVotes = votesMap.get(member.drepId);
+            if (memberVotes) {
+                for (const vote of memberVotes) uniqueVotes.add(vote);
+            }
+            
+            // Merge Delegators
+            const memberDelegators = delegatorsMap.get(member.drepId);
+            if (memberDelegators) {
+                for (const del of memberDelegators) uniqueDelegators.add(del);
+            }
+        }
+
+        // Create virtual consolidated entity
+        const consolidated = { ...primary };
+        consolidated.delegationVoteCount = uniqueDelegators.size;
+        consolidated.governanceVoteCount = uniqueVotes.size;
+        consolidated.votingPowerAda = primary.votingPowerAda;
+
+        return consolidated;
+    });
+
+    // 4. Sort
+    const sortCol = this.getSortColumn(sort);
+    consolidatedDReps.sort((a, b) => {
+        let valA: any, valB: any;
+        
+        if (sortCol === 'delegationVoteCount') {
+            valA = a.delegationVoteCount;
+            valB = b.delegationVoteCount;
+        } else if (sortCol === 'governanceVoteCount') {
+            valA = a.governanceVoteCount;
+            valB = b.governanceVoteCount;
+        } else if (sortCol === 'liveStakeAda' || sortCol === 'votingPowerAda') {
+            valA = parseFloat(a.votingPowerAda || '0');
+            valB = parseFloat(b.votingPowerAda || '0');
+        } else if (sortCol === 'givenName') {
+            valA = (a.metadata?.json_metadata?.body?.givenName || '').toLowerCase();
+            valB = (b.metadata?.json_metadata?.body?.givenName || '').toLowerCase();
+        } else {
+            valA = (a as any)[sortCol];
+            valB = (b as any)[sortCol];
+        }
+
+        if (valA < valB) return order === 'ASC' ? -1 : 1;
+        if (valA > valB) return order === 'ASC' ? 1 : -1;
+        return 0;
+    });
+
+    // 5. Paginate
+    const total = consolidatedDReps.length;
+    const paginated = consolidatedDReps.slice((page - 1) * perPage, page * perPage);
 
     return {
-      data: dreps.map(this.formatDRepForAPI),
+      data: paginated.map(this.formatDRepForAPI),
       pagination: {
         page,
         perPage,
@@ -247,6 +337,7 @@ export class GovernanceService {
       isClaimed: drep.isClaimed,
       voltaireDrepId: drep.voltaireDrepId,
       updatedAt: drep.updatedAt,
+      format: drep.hex.length === 58 ? 'cip129' : 'legacy',
     };
   }
 
