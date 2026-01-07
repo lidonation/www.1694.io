@@ -635,7 +635,7 @@ export async function verifySignatureFromLoginFile(signatures: {
         throw new Error('COSE_Key map label "-2" (public key) is missing');
       }
     }
-    console.log('Pub key bytes:', pubKeyBytes);
+
     // Get public key
     const pubKey_buffer = pubKeyBytes || COSE_Key_structure.get(-2);
     if (!Buffer.isBuffer(pubKey_buffer)) {

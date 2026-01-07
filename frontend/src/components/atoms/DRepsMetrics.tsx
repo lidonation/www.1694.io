@@ -23,7 +23,7 @@ const DRepsMetrics = () => {
     }
   }, [isMetricsLoading, fetchedMetrics]);
 
-  console.log({ metrics,  });
+
   
 
   return (

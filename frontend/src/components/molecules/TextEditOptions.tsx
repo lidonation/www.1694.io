@@ -170,7 +170,7 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({
         insertMarkdown('*Italic Text*');
         break;
       default:
-        console.log('Unknown command', format);
+        // console.log('Unknown command', format);
         break;
     }
   };

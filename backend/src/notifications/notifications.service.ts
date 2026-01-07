@@ -123,7 +123,7 @@ export class NotificationsService {
       );
 
       if (!delegationData || delegationData.length === 0) {
-        console.log('No delegation found for user');
+        // console.log('No delegation found for user');
         return 'Done';
       }
 
@@ -319,7 +319,7 @@ export class NotificationsService {
       await this.bulkDeleteNotifications(
         oldNotifications.map((notif) => notif.id?.toString()),
       );
-      console.log(`${oldNotifications.length} notifications purged`);
+      // console.log(`${oldNotifications.length} notifications purged`);
     }
 
     // Update sync time

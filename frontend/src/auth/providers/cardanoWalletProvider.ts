@@ -155,7 +155,7 @@ export class CardanoWalletProvider implements AuthenticationProvider {
    */
   syncConnectionState() {
     if (!this.connected) {
-      console.log('Syncing connection state, enabling wallet');
+
       this.connected = true;
     }
   }

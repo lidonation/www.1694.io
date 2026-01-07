@@ -175,7 +175,7 @@ const DRepTimeline = ({ drep }: { drep: any }) => {
     replace(`${pathName}?${params.toString()}`, { scroll: false });
   };
 
-  console.log({ DRepActivity });
+
   
 
   return (

@@ -22,7 +22,7 @@ export class VoterService {
           'SELECT * FROM dreps WHERE drep_id = $1',
           [voterIdentity]
         );
-        console.log({voterIdentity});
+
         
         
         if (!drepData || drepData.length === 0) {

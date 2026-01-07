@@ -52,7 +52,7 @@ const ProfileUploadCard = ({
       setFiles(file);
       previewFile(file);
     } else {
-      console.log('No files selected');
+
     }
   };
   const previewFile = (file) => {

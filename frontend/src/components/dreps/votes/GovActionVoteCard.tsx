@@ -57,7 +57,7 @@ export const GovActionVoteCard = ({ action }) => {
     setIsExpanded(!isExpanded);
   };
 
-  console.log({ action });
+
   
 
   return (
