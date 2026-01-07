@@ -148,7 +148,7 @@ export class DrepService {
             type: blockfrostDrep.has_script ? 'scripted' : 'drep'
           };
         } catch (blockfrostError) {
-          throw new NotFoundException('DRep not found on onchain (fallback)!');
+          throw new NotFoundException(blockfrostError,'DRep not found on onchain (fallback)!');
         }
       }
       throw error;
