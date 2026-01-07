@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, Repository, ILike } from 'typeorm';
 import { Drep as VoltaireDrep } from 'src/entities/drep.entity';
 import { Signature } from 'src/entities/signatures.entity';
 import { Drep } from 'src/entities/governance/drep.entity';
@@ -674,11 +674,11 @@ export class DRepRepository extends Repository<VoltaireDrep> {
     const drepData = await this.voltaireDb
       .getRepository(Drep)
       .findOne({
-        where: { drepId: drepVoterId }
+        where: { drepId: ILike(drepVoterId.trim()) }
       });
 
     if (!drepData) {
-      throw new NotFoundException('DRep not found!');
+      throw new NotFoundException('DRep not found in database!');
     }
 
     // Get voltaire drep data (claimed profile info)

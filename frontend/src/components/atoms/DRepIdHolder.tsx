@@ -28,7 +28,7 @@ function DRepIdHolder({
         text={drepId}
         
         onCopy={() => {
-          console.log('copied!');
+
         }}
         className={`clipboard-text flex-shrink-0 cursor-pointer rounded-xl px-1 hover:bg-blue-100 ${loading && 'hidden'}`}
       >

@@ -73,7 +73,7 @@ const MultipartDataForm = ({
       setFiles(validFiles);
       previewFile(validFiles);
     } else {
-      console.log('No files selected');
+
     }
   };
   const handleAddLink = () => {

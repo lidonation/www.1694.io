@@ -65,7 +65,7 @@ const DRepsTable = ({
     type,
   );
 
-  console.log({ DReps });
+
 
   return (
     <div className="dreps-table-wrapper flex flex-col overflow-x-auto">

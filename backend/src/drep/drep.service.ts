@@ -112,7 +112,7 @@ export class DrepService {
         try {
           const blockfrostDrep = await this.blockfrostService.getDRepInfo(drepVoterId);
           if (!blockfrostDrep) {
-            throw new NotFoundException('DRep not found!');
+            throw new NotFoundException('DRep not found on onchain!');
           }
           
           let metadata = null;
@@ -148,7 +148,7 @@ export class DrepService {
             type: blockfrostDrep.has_script ? 'scripted' : 'drep'
           };
         } catch (blockfrostError) {
-          throw new NotFoundException('DRep not found!');
+          throw new NotFoundException('DRep not found on onchain (fallback)!');
         }
       }
       throw error;
@@ -1092,12 +1092,12 @@ export class DrepService {
   
   private async fetchAndUpsertMissingDRep(voterId: string) {
     try {
-      console.log(`Fetching missing DRep data for ${voterId} from Blockfrost...`);
+
       
       // Check if DRep exists on Blockfrost
       const blockfrostDrep = await this.blockfrostService.getDRepInfo(voterId);
       if (!blockfrostDrep) {
-        console.log(`DRep ${voterId} not found on Blockfrost`);
+
         return;
       }
       
@@ -1106,7 +1106,7 @@ export class DrepService {
       try {
         metadata = await this.blockfrostService.getDRepMetadata(voterId);
       } catch (metadataError) {
-        console.log(`No metadata found for DRep ${voterId}`);
+
       }
       
       // Upsert DRep data using DataSource (since drepRepository extends from Voltaire DRep, not enhanced Drep)
@@ -1133,7 +1133,7 @@ export class DrepService {
         skipUpdateIfNoValuesChanged: true,
       });
       
-      console.log(`Upserted DRep data for ${voterId}`);
+
       
       // Fetch and upsert delegators (in background, don't wait)
       this.fetchAndUpsertDelegators(voterId).catch(error => 
@@ -1152,7 +1152,7 @@ export class DrepService {
   
   private async fetchAndUpsertDelegators(voterId: string) {
     try {
-      console.log(`Fetching delegators for ${voterId}...`);
+
       
       const { DrepDelegator } = await import('../entities/governance/drep-delegator.entity');
       const delegatorsRepository = this.drepRepository['voltaireDb'].getRepository(DrepDelegator);
@@ -1161,11 +1161,11 @@ export class DrepService {
       const blockfrostDelegators = await this.blockfrostService.getDRepDelegators(voterId);
       
       if (!blockfrostDelegators || blockfrostDelegators.length === 0) {
-        console.log(`No delegators found for ${voterId}`);
+
         return;
       }
       
-      console.log(`Found ${blockfrostDelegators.length} delegators for ${voterId}`);
+
       
       // Clear existing delegators for this DRep
       await delegatorsRepository.delete({ drepId: voterId });
@@ -1207,7 +1207,7 @@ export class DrepService {
         { delegationVoteCount: blockfrostDelegators.length }
       );
       
-      console.log(`Upserted ${blockfrostDelegators.length} delegators for ${voterId}`);
+
       
     } catch (error) {
       console.error(`Error fetching and upserting delegators for ${voterId}:`, error);
@@ -1216,7 +1216,7 @@ export class DrepService {
   
   private async fetchAndUpsertVotes(voterId: string) {
     try {
-      console.log(`Fetching votes for ${voterId}...`);
+
       
       const { ProposalVote } = await import('../entities/governance/proposal-vote.entity');
       const { Proposal } = await import('../entities/governance/proposal.entity');
@@ -1255,11 +1255,11 @@ export class DrepService {
       }
       
       if (allVotes.length === 0) {
-        console.log(`No votes found for ${voterId}`);
+
         return;
       }
       
-      console.log(`Found ${allVotes.length} votes for ${voterId}`);
+
       
       // Clear existing votes for this DRep
       await votesRepository.delete({ voter: voterId });
@@ -1276,7 +1276,7 @@ export class DrepService {
           
           if (!proposalExists) {
             // Skip votes for proposals that don't exist in our database
-            console.log(`Skipping vote for unknown proposal ${vote.proposal_id}`);
+
             continue;
           }
           
@@ -1306,7 +1306,7 @@ export class DrepService {
         { governanceVoteCount: insertedVotes }
       );
       
-      console.log(`Upserted ${insertedVotes}/${allVotes.length} votes for ${voterId}`);
+
       
     } catch (error) {
       console.error(`Error fetching and upserting votes for ${voterId}:`, error);
