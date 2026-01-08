@@ -109,14 +109,11 @@ export const handleCopyText = (
 };
 
 export const formatNumberTimeToReadable = (time: number) => {
-  const options: Intl.DateTimeFormatOptions = {
+  return new Date().toLocaleString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
-  };
-
-  const startTimeFormatted = new Date(time).toLocaleString(undefined, options);
-  return startTimeFormatted;
+  });
 };
 
 export const formatDateTimeToUTC = (timestamp: number): string => {
