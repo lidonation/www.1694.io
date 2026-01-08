@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource, Repository, ILike } from 'typeorm';
+import { bech32 } from 'bech32';
 import { Drep as VoltaireDrep } from 'src/entities/drep.entity';
 import { Signature } from 'src/entities/signatures.entity';
 import { Drep } from 'src/entities/governance/drep.entity';
@@ -80,11 +81,10 @@ export class DRepRepository extends Repository<VoltaireDrep> {
       .where('signature.drep_bech32 = :drepVoterId', { drepVoterId })
       .getRawMany();
   }
-
   async getVoltaireDRepViaVoterID(drepVoterId: string) {
     return this.createQueryBuilder('drep')
       .leftJoinAndSelect('signature', 'signature', 'signature.drepId = drep.id')
-      .where('signature.drep_bech32 = :drepVoterId', { drepVoterId })
+      .where('signature.drep_bech32 ILIKE :drepVoterId', { drepVoterId })
       .getRawOne();
   }
 
@@ -147,42 +147,51 @@ export class DRepRepository extends Repository<VoltaireDrep> {
       .createQueryBuilder('drep')
       // Join delegators where the DRep ID *or* Hex matches any alias of this DRep (same hex suffix)
       // This ensures we count delegations regardless of whether they used the Legacy or CIP-129 ID
-      .leftJoin('drep_delegators', 'delegator', 
+      .leftJoin(
+        'drep_delegators',
+        'delegator',
         `(delegator.drep_id IN (SELECT d2.drep_id FROM dreps d2 WHERE LOWER(RIGHT(d2.hex, 56)) = LOWER(RIGHT(drep.hex, 56))) 
-         OR delegator.drep_id IN (SELECT d3.hex FROM dreps d3 WHERE LOWER(RIGHT(d3.hex, 56)) = LOWER(RIGHT(drep.hex, 56))))`)
-      
-      .addSelect('COUNT(DISTINCT delegator.stake_address)', 'live_delegation_count')
+         OR delegator.drep_id IN (SELECT d3.hex FROM dreps d3 WHERE LOWER(RIGHT(d3.hex, 56)) = LOWER(RIGHT(drep.hex, 56))))`,
+      )
+
+      .addSelect(
+        'COUNT(DISTINCT delegator.stake_address)',
+        'live_delegation_count',
+      )
       .addSelect('SUM(delegator.amount_lovelace)', 'live_stake_lovelace')
-      
+
       // Aggregate votes from ALL aliases of this DRep
-      .addSelect(subQuery => {
+      .addSelect((subQuery) => {
         return subQuery
           .select('COUNT(pv.id)', 'vote_count')
           .from(ProposalVote, 'pv')
-          .where(`pv.voter IN (SELECT d_alias.drep_id FROM dreps d_alias WHERE LOWER(RIGHT(d_alias.hex, 56)) = LOWER(RIGHT(drep.hex, 56)))`);
+          .where(
+            `pv.voter IN (SELECT d_alias.drep_id FROM dreps d_alias WHERE LOWER(RIGHT(d_alias.hex, 56)) = LOWER(RIGHT(drep.hex, 56)))`,
+          );
       }, 'computed_vote_count')
-      
+
       .groupBy('drep.drep_id')
       .addGroupBy('drep.hex');
 
     // Consolidate duplicates: Filter to keep only the latest (priority by length, then createdAt)
     // We group by the last 56 chars of hex (removing potential 2-char prefix like '22' or '23')
     queryBuilder.andWhere((qb) => {
-        const subQuery = qb.subQuery()
-            .select('DISTINCT ON (LOWER(RIGHT(d.hex, 56))) d.drep_id')
-            .from(Drep, 'd')
-            .orderBy('LOWER(RIGHT(d.hex, 56))')
-            .addOrderBy('LENGTH(d.hex)', 'DESC') // Prioritize CIP-129 (longer)
-            .addOrderBy('d.created_at', 'DESC')
-            .getQuery();
-        return 'drep.drep_id IN ' + subQuery;
+      const subQuery = qb
+        .subQuery()
+        .select('DISTINCT ON (LOWER(RIGHT(d.hex, 56))) d.drep_id')
+        .from(Drep, 'd')
+        .orderBy('LOWER(RIGHT(d.hex, 56))')
+        .addOrderBy('LENGTH(d.hex)', 'DESC') // Prioritize CIP-129 (longer)
+        .addOrderBy('d.created_at', 'DESC')
+        .getQuery();
+      return 'drep.drep_id IN ' + subQuery;
     });
 
     // Apply search filter
     if (query) {
       queryBuilder.andWhere(
         "(drep.drepId ILIKE :search OR drep.metadata->'json_metadata'->'body'->>'givenName' ILIKE :search OR drep.hex ILIKE :search OR drep.metadata->'json_metadata'->'body'->>'paymentAddress' ILIKE :search)",
-        { search: `%${query}%` }
+        { search: `%${query}%` },
       );
     }
 
@@ -200,9 +209,13 @@ export class DRepRepository extends Repository<VoltaireDrep> {
     // Apply campaign status (claimed/unclaimed)
     if (dRepViews && dRepViews.length > 0) {
       if (campaignStatus === 'claimed') {
-        queryBuilder.andWhere('drep.drepId IN (:...views)', { views: dRepViews });
+        queryBuilder.andWhere('drep.drepId IN (:...views)', {
+          views: dRepViews,
+        });
       } else if (campaignStatus === 'unclaimed') {
-        queryBuilder.andWhere('drep.drepId NOT IN (:...views)', { views: dRepViews });
+        queryBuilder.andWhere('drep.drepId NOT IN (:...views)', {
+          views: dRepViews,
+        });
       }
     }
 
@@ -213,16 +226,20 @@ export class DRepRepository extends Repository<VoltaireDrep> {
 
     // Apply sorting
     const sortColumnMap = {
-      'delegation_vote_count': 'drep.delegationVoteCount',
-      'live_stake': 'drep.votingPowerAda',
-      'voting_power': 'drep.votingPowerAda', 
-      'governance_vote_count': 'computed_vote_count',
+      delegation_vote_count: 'drep.delegationVoteCount',
+      live_stake: 'drep.votingPowerAda',
+      voting_power: 'drep.votingPowerAda',
+      governance_vote_count: 'computed_vote_count',
     };
 
     const dbSortColumn = sortColumnMap[sortColumn] || 'drep.votingPowerAda';
-    const dbSortOrder = (sortOrder?.toUpperCase() === 'ASC') ? 'ASC' : 'DESC';
-    
-    queryBuilder.orderBy(dbSortColumn, dbSortOrder, sortOrder === 'DESC' ? 'NULLS LAST' : 'NULLS FIRST');
+    const dbSortOrder = sortOrder?.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+
+    queryBuilder.orderBy(
+      dbSortColumn,
+      dbSortOrder,
+      sortOrder === 'DESC' ? 'NULLS LAST' : 'NULLS FIRST',
+    );
 
     // Get total count for pagination
     const totalItems = await queryBuilder.getCount();
@@ -235,27 +252,32 @@ export class DRepRepository extends Repository<VoltaireDrep> {
 
     // Transform to expected format
     const transformedData = entities.map((drep) => {
-      const rawResult = raw.find(r => r.drep_drep_id === drep.drepId);
+      const rawResult = raw.find((r) => r.drep_drep_id === drep.drepId);
       const liveCount = parseInt(rawResult?.live_delegation_count || '0');
       const liveStakeLovelace = rawResult?.live_stake_lovelace || '0';
       const liveStakeAda = parseInt(liveStakeLovelace) / 1000000;
       const voteCount = parseInt(rawResult?.computed_vote_count || '0');
-      
+
       let givenName = drep.metadata?.json_metadata?.body?.givenName || null;
       // Handle doubly-encoded JSON or JSON string in givenName field
-      if (givenName && typeof givenName === 'string' && givenName.trim().startsWith('{')) {
+      if (
+        givenName &&
+        typeof givenName === 'string' &&
+        givenName.trim().startsWith('{')
+      ) {
         try {
-           const parsed = JSON.parse(givenName);
-           // Try to extract name from parsed object if it has likely keys, or use parsed itself if it turned out to be a simple string (less likely)
-           if (parsed.givenName) givenName = parsed.givenName;
+          const parsed = JSON.parse(givenName);
+          // Try to extract name from parsed object if it has likely keys, or use parsed itself if it turned out to be a simple string (less likely)
+          if (parsed.givenName) givenName = parsed.givenName;
         } catch (e) {
-           // If parse fails, keep original string
+          // If parse fails, keep original string
         }
       }
 
-      let imageUrl = drep.metadata?.json_metadata?.body?.image?.contentUrl || null;
+      let imageUrl =
+        drep.metadata?.json_metadata?.body?.image?.contentUrl || null;
       if (imageUrl && imageUrl.startsWith('ipfs://')) {
-          imageUrl = imageUrl.replace('ipfs://', 'https://ipfs.io/ipfs/');
+        imageUrl = imageUrl.replace('ipfs://', 'https://ipfs.io/ipfs/');
       }
 
       return {
@@ -288,9 +310,9 @@ export class DRepRepository extends Repository<VoltaireDrep> {
     const drepData = await this.voltaireDb
       .getRepository(Drep)
       .findOne({ where: { drepId: drepVoterId } });
-    
+
     if (!drepData) return null;
-    
+
     return {
       view: drepData.drepId,
       chain_id: drepData.hex,
@@ -301,12 +323,15 @@ export class DRepRepository extends Repository<VoltaireDrep> {
       delegation_vote_count: drepData.delegationVoteCount,
       governance_vote_count: drepData.governanceVoteCount,
       given_name: drepData.metadata?.json_metadata?.body?.givenName || null,
-      image_url: drepData.metadata?.json_metadata?.body?.image?.contentUrl || null,
+      image_url:
+        drepData.metadata?.json_metadata?.body?.image?.contentUrl || null,
       metadata_url: drepData.metadata?.url || null,
-      payment_address: drepData.metadata?.json_metadata?.body?.paymentAddress || null,
+      payment_address:
+        drepData.metadata?.json_metadata?.body?.paymentAddress || null,
       objectives: drepData.metadata?.json_metadata?.body?.objectives || null,
       motivations: drepData.metadata?.json_metadata?.body?.motivations || null,
-      qualifications: drepData.metadata?.json_metadata?.body?.qualifications || null,
+      qualifications:
+        drepData.metadata?.json_metadata?.body?.qualifications || null,
     };
   }
 
@@ -314,13 +339,15 @@ export class DRepRepository extends Repository<VoltaireDrep> {
     const drepData = await this.voltaireDb
       .getRepository(Drep)
       .findOne({ where: { drepId: drepVoterId } });
-    
-    return [{ 
-      drep_hash_id: 0,
-      reg_tx_hash: '',
-      date_of_registration: drepData?.createdAt || null,
-      epoch_of_registration: 0
-    }];
+
+    return [
+      {
+        drep_hash_id: 0,
+        reg_tx_hash: '',
+        date_of_registration: drepData?.createdAt || null,
+        epoch_of_registration: 0,
+      },
+    ];
   }
 
   async getEpochs(startingTime: Date, endingTime: Date) {
@@ -342,9 +369,12 @@ export class DRepRepository extends Repository<VoltaireDrep> {
       .orderBy('event.timestamp', 'DESC')
       .getMany();
 
-    return votingEvents.map(event => ({
+    return votingEvents.map((event) => ({
       view: drepVoterId,
-      gov_action_proposal_id: event.metadata?.gov_action_proposal_id || event.metadata?.proposalId || 'unknown',
+      gov_action_proposal_id:
+        event.metadata?.gov_action_proposal_id ||
+        event.metadata?.proposalId ||
+        'unknown',
       prop_inception: event.timestamp,
       type: 'voting_activity',
       description: event.metadata?.description || 'Voting activity',
@@ -379,7 +409,7 @@ export class DRepRepository extends Repository<VoltaireDrep> {
     const drepRecord = await this.voltaireDb
       .getRepository(Drep)
       .findOne({ where: { drepId: drepVoterId } });
-    
+
     if (!drepRecord) {
       return {
         data: [],
@@ -391,24 +421,30 @@ export class DRepRepository extends Repository<VoltaireDrep> {
     }
 
     // Use raw query to check what's actually in the database
-    const rawDelegatorCheck = await this.voltaireDb.query(`
+    const rawDelegatorCheck = await this.voltaireDb.query(
+      `
       SELECT COUNT(*) as count 
       FROM drep_delegators dd 
       WHERE dd.drep_id = $1
-    `, [drepVoterId]);
-    
+    `,
+      [drepVoterId],
+    );
+
     const rawCount = parseInt(rawDelegatorCheck[0]?.count || '0');
-    
+
     if (rawCount === 0) {
       // Try with hex format if bech32 didn't work
-      const hexDelegatorCheck = await this.voltaireDb.query(`
+      const hexDelegatorCheck = await this.voltaireDb.query(
+        `
         SELECT COUNT(*) as count 
         FROM drep_delegators dd 
         WHERE dd.drep_id = $1
-      `, [drepRecord.hex]);
-      
+      `,
+        [drepRecord.hex],
+      );
+
       const hexCount = parseInt(hexDelegatorCheck[0]?.count || '0');
-      
+
       if (hexCount > 0) {
         // Use hex format for the main query
         const queryBuilder = this.voltaireDb
@@ -430,10 +466,15 @@ export class DRepRepository extends Repository<VoltaireDrep> {
     const queryBuilder = this.voltaireDb
       .getRepository(DrepDelegator)
       .createQueryBuilder('delegator')
-      .where('delegator.drepId = :drepId', { drepId: rawCount > 0 ? drepVoterId : drepRecord.hex });
+      .where('delegator.drepId = :drepId', {
+        drepId: rawCount > 0 ? drepVoterId : drepRecord.hex,
+      });
 
     // Apply sorting
-    const sortColumn = sort === 'power' ? 'delegator.votingPowerLovelace' : 'delegator.updatedAt';
+    const sortColumn =
+      sort === 'power'
+        ? 'delegator.votingPowerLovelace'
+        : 'delegator.updatedAt';
     const sortOrder = order?.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
     queryBuilder.orderBy(sortColumn, sortOrder);
 
@@ -451,7 +492,9 @@ export class DRepRepository extends Repository<VoltaireDrep> {
       data: delegators.map((delegator) => ({
         stakeAddress: delegator.stakeAddress,
         delegationEpoch: null,
-        votingPower: delegator.votingPowerLovelace ? (parseInt(delegator.votingPowerLovelace) / 1_000_000).toString() : '0',
+        votingPower: delegator.votingPowerLovelace
+          ? (parseInt(delegator.votingPowerLovelace) / 1_000_000).toString()
+          : '0',
       })),
       totalItems,
       currentPage,
@@ -474,19 +517,24 @@ export class DRepRepository extends Repository<VoltaireDrep> {
     }
 
     // Use raw query to get accurate delegator count
-    const rawDelegatorCheck = await this.voltaireDb.query(`
+    const rawDelegatorCheck = await this.voltaireDb.query(
+      `
       SELECT COUNT(*) as count 
       FROM drep_delegators dd 
       WHERE dd.drep_id = $1 OR dd.drep_id = $2
-    `, [drepVoterId, drepData.hex]);
-    
+    `,
+      [drepVoterId, drepData.hex],
+    );
+
     const drepDelegatorsCount = parseInt(rawDelegatorCheck[0]?.count || '0');
 
     const drepVotesCount = await this.voltaireDb
       .getRepository(ProposalVote)
       .count({ where: { voter: drepVoterId } });
 
-    const votingPower = drepData.votingPowerAda ? parseFloat(drepData.votingPowerAda) : 0;
+    const votingPower = drepData.votingPowerAda
+      ? parseFloat(drepData.votingPowerAda)
+      : 0;
 
     return {
       delegators: drepDelegatorsCount,
@@ -509,8 +557,8 @@ export class DRepRepository extends Repository<VoltaireDrep> {
       .andWhere('tle.timestamp <= :endTime', { endTime: endingTime })
       .orderBy('tle.timestamp', 'DESC')
       .getRawMany();
-    
-    return timelineEvents.map(event => ({
+
+    return timelineEvents.map((event) => ({
       stake_address: event.stake_address,
       target_drep: event.target_drep,
       current_drep: event.current_drep,
@@ -536,7 +584,7 @@ export class DRepRepository extends Repository<VoltaireDrep> {
     const drepData = await this.voltaireDb
       .getRepository(Drep)
       .findOne({ where: { drepId: voterId } });
-    
+
     return {
       registered: drepData && !drepData.retired,
       deposit: null,
@@ -544,30 +592,34 @@ export class DRepRepository extends Repository<VoltaireDrep> {
     };
   }
 
-
   async getDrepMetadata(voterId: string) {
     const drepData = await this.voltaireDb
       .getRepository(Drep)
       .findOne({ where: { drepId: voterId } });
-    
+
     if (!drepData) return [];
-    
-    return [{
-      given_name: drepData.metadata?.json_metadata?.body?.givenName || null,
-      image_url: drepData.metadata?.json_metadata?.body?.image?.contentUrl || null,
-      metadata_url: drepData.metadata?.url || null,
-      objectives: drepData.metadata?.json_metadata?.body?.objectives || null,
-      motivations: drepData.metadata?.json_metadata?.body?.motivations || null,
-      qualifications: drepData.metadata?.json_metadata?.body?.qualifications || null,
-      metadata: drepData.metadata
-    }];
+
+    return [
+      {
+        given_name: drepData.metadata?.json_metadata?.body?.givenName || null,
+        image_url:
+          drepData.metadata?.json_metadata?.body?.image?.contentUrl || null,
+        metadata_url: drepData.metadata?.url || null,
+        objectives: drepData.metadata?.json_metadata?.body?.objectives || null,
+        motivations:
+          drepData.metadata?.json_metadata?.body?.motivations || null,
+        qualifications:
+          drepData.metadata?.json_metadata?.body?.qualifications || null,
+        metadata: drepData.metadata,
+      },
+    ];
   }
 
   async getDrepMetadataUrl(voterId: string) {
     const drepData = await this.voltaireDb
       .getRepository(Drep)
       .findOne({ where: { drepId: voterId } });
-    
+
     return [{ metadata_url: drepData?.metadata?.url || null }];
   }
 
@@ -579,20 +631,24 @@ export class DRepRepository extends Repository<VoltaireDrep> {
     const drepData = await this.voltaireDb
       .getRepository(Drep)
       .findOne({ where: { drepId: voterId } });
-    
+
     if (drepData) {
       return {
         governance_vote_count: drepData.governanceVoteCount || 0,
         delegation_vote_count: drepData.delegationVoteCount || 0,
       };
     }
-    
+
     // Fallback: count directly from proposal_votes and drep_delegators tables
     const [governanceVoteCount, delegationVoteCount] = await Promise.all([
-      this.voltaireDb.getRepository(ProposalVote).count({ where: { voter: voterId } }),
-      this.voltaireDb.getRepository(DrepDelegator).count({ where: { drepId: voterId } })
+      this.voltaireDb
+        .getRepository(ProposalVote)
+        .count({ where: { voter: voterId } }),
+      this.voltaireDb
+        .getRepository(DrepDelegator)
+        .count({ where: { drepId: voterId } }),
     ]);
-    
+
     return {
       governance_vote_count: governanceVoteCount,
       delegation_vote_count: delegationVoteCount,
@@ -619,20 +675,27 @@ export class DRepRepository extends Repository<VoltaireDrep> {
     const votes = await queryBuilder.skip(offset).take(itemsPerPage).getMany();
 
     return {
-      data: votes.map(vote => ({
+      data: votes.map((vote) => ({
         tx_hash: vote.txHash,
         vote: vote.vote.charAt(0).toUpperCase() + vote.vote.slice(1),
         proposal_id: vote.proposalId,
-        gov_action_proposal_id: vote.proposalId, 
+        gov_action_proposal_id: vote.proposalId,
         time_voted: vote.createdAt?.toISOString() || new Date().toISOString(),
         type: (vote as any).proposal?.governanceType || 'InfoAction',
-        description: { tag: (vote as any).proposal?.governanceType || 'InfoAction' },
+        description: {
+          tag: (vote as any).proposal?.governanceType || 'InfoAction',
+        },
         proposal: {
-          title: (vote as any).proposal?.metadata?.jsonMetadata?.body?.title || null,
-          abstract: (vote as any).proposal?.metadata?.jsonMetadata?.body?.abstract || null,
-          rationale: (vote as any).proposal?.metadata?.jsonMetadata?.body?.rationale || null,
-          type: (vote as any).proposal?.governanceType || null
-        }
+          title:
+            (vote as any).proposal?.metadata?.jsonMetadata?.body?.title || null,
+          abstract:
+            (vote as any).proposal?.metadata?.jsonMetadata?.body?.abstract ||
+            null,
+          rationale:
+            (vote as any).proposal?.metadata?.jsonMetadata?.body?.rationale ||
+            null,
+          type: (vote as any).proposal?.governanceType || null,
+        },
       })),
       totalItems,
       currentPage,
@@ -671,11 +734,29 @@ export class DRepRepository extends Repository<VoltaireDrep> {
 
   async getSingleDrepViaVoterIDOptimized(drepVoterId: string) {
     // Get from enhanced dreps table
-    const drepData = await this.voltaireDb
-      .getRepository(Drep)
-      .findOne({
-        where: { drepId: ILike(drepVoterId.trim()) }
-      });
+    // Get from enhanced dreps table
+    let drepData = await this.voltaireDb.getRepository(Drep).findOne({
+      where: { drepId: ILike(drepVoterId.trim()) },
+    });
+
+    if (!drepData) {
+        // Fallback: Check for ID format mismatch (CIP-105 vs CIP-129)
+        // The DB might store the Long ID (CIP-129, with '22' prefix), while we received the Short ID (CIP-105)
+        try {
+            const decoded = bech32.decode(drepVoterId);
+            const data = bech32.fromWords(decoded.words);
+            const hex = Buffer.from(data).toString('hex');
+
+            // validation: ensure hex is at least 56 chars
+            if (hex.length >= 56) {
+                 drepData = await this.voltaireDb.getRepository(Drep).createQueryBuilder('drep')
+                .where('LOWER(RIGHT(drep.hex, 56)) = LOWER(RIGHT(:hex, 56))', { hex })
+                .getOne();
+            }
+        } catch (e) {
+            // Ignore decoding errors
+        }
+    }
 
     if (!drepData) {
       throw new NotFoundException('DRep not found in database!');
@@ -699,11 +780,14 @@ export class DRepRepository extends Repository<VoltaireDrep> {
       metadata_url: drepData.metadata?.url || null,
       has_script: drepData.hasScript,
       given_name: drepData.metadata?.json_metadata?.body?.givenName || null,
-      image_url: drepData.metadata?.json_metadata?.body?.image?.contentUrl || null,
-      payment_address: drepData.metadata?.json_metadata?.body?.paymentAddress || null,
+      image_url:
+        drepData.metadata?.json_metadata?.body?.image?.contentUrl || null,
+      payment_address:
+        drepData.metadata?.json_metadata?.body?.paymentAddress || null,
       objectives: drepData.metadata?.json_metadata?.body?.objectives || null,
       motivations: drepData.metadata?.json_metadata?.body?.motivations || null,
-      qualifications: drepData.metadata?.json_metadata?.body?.qualifications || null,
+      qualifications:
+        drepData.metadata?.json_metadata?.body?.qualifications || null,
       governance_vote_count: drepData.governanceVoteCount,
       // Set defaults for missing fields
       deposit: null,
