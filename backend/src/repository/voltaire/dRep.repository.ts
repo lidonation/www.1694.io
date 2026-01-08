@@ -432,39 +432,16 @@ export class DRepRepository extends Repository<VoltaireDrep> {
       };
     }
 
-    // Use raw query to check what's actually in the database
-    const rawDelegatorCheck = await this.voltaireDb.query(
-      `
-      SELECT COUNT(*) as count 
-      FROM drep_delegators dd 
-      WHERE dd.drep_id = $1
-    `,
-      [drepVoterId],
-    );
+    // Use getAllDrepIds to find all aliases
+    const canonicalIds = await this.getAllDrepIds(drepVoterId);
+    
+    // Also include HEX in the lookup if available, as some records might use it
+    const searchIds = [...canonicalIds];
+    if (drepRecord.hex) {
+        searchIds.push(drepRecord.hex);
+    }
 
-    const rawCount = parseInt(rawDelegatorCheck[0]?.count || '0');
-
-    if (rawCount === 0) {
-      // Try with hex format if bech32 didn't work
-      const hexDelegatorCheck = await this.voltaireDb.query(
-        `
-        SELECT COUNT(*) as count 
-        FROM drep_delegators dd 
-        WHERE dd.drep_id = $1
-      `,
-        [drepRecord.hex],
-      );
-
-      const hexCount = parseInt(hexDelegatorCheck[0]?.count || '0');
-
-      if (hexCount > 0) {
-        // Use hex format for the main query
-        const queryBuilder = this.voltaireDb
-          .getRepository(DrepDelegator)
-          .createQueryBuilder('delegator')
-          .where('delegator.drepId = :drepId', { drepId: drepRecord.hex });
-      } else {
-        // No delegators found with either format
+    if (searchIds.length === 0) {
         return {
           data: [],
           totalItems: 0,
@@ -472,15 +449,12 @@ export class DRepRepository extends Repository<VoltaireDrep> {
           itemsPerPage,
           totalPages: 0,
         };
-      }
     }
 
     const queryBuilder = this.voltaireDb
       .getRepository(DrepDelegator)
       .createQueryBuilder('delegator')
-      .where('delegator.drepId = :drepId', {
-        drepId: rawCount > 0 ? drepVoterId : drepRecord.hex,
-      });
+      .where('delegator.drepId IN (:...ids)', { ids: searchIds });
 
     // Apply sorting
     const sortColumn =
