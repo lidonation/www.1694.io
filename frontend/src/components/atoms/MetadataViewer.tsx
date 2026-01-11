@@ -25,7 +25,7 @@ const MetadataViewer = ({
     return result.charAt(0).toUpperCase() + result.slice(1);
   };
 
-  const hiddenKeys = ['image', 'paymentAddress'];
+  const hiddenKeys = ['image', 'paymentAddress', 'givenName', 'dRepName'];
 
   const renderContent = () => {
     if (isMetadataLoading) {
@@ -83,7 +83,7 @@ const MetadataViewer = ({
               key={key}
               className="flex flex-col items-start justify-center gap-1 text-sm"
             >
-              <Typography variant="h6">References</Typography>
+              <Typography variant="h6" className="font-bold text-gray-800 mt-2">References</Typography>
               <div className="w-full space-y-1 pl-2">
                 {links.length > 0 ? links : 'Empty'}
               </div>
@@ -95,8 +95,10 @@ const MetadataViewer = ({
             key={key}
             className="flex w-full flex-col items-start justify-center gap-1 text-sm"
           >
-            <Typography variant="h6">{capitalizeFirstLetter(key)}</Typography>
-            <p className="w-full break-words whitespace-pre-wrap pl-2">
+            <Typography variant="h6" className="font-bold text-gray-800 mt-2">
+              {capitalizeFirstLetter(key)}
+            </Typography>
+            <p className="w-full break-words whitespace-pre-wrap pl-1 text-gray-600 leading-relaxed">
               {valueString}
             </p>
           </div>
