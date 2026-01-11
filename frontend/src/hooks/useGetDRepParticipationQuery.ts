@@ -12,8 +12,7 @@ export const useGetDRepParticipationQuery = (voterId: string) => {
       return await getDRepParticipation(cip105Id);
     },
     enabled: !!voterId,
-    refetchOnWindowFocus: false,
-  });
+    refetchOnWindowFocus: false,  });
 
   return {
     participationData: data,

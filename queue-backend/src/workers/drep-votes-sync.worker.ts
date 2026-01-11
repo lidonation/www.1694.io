@@ -69,9 +69,21 @@ export class DrepVotesSyncWorker extends WorkerHost {
                       }
                     });
                     
-                    if (existingVote) {
-                      continue; // Skip if already exists
+                    if (existingVote && existingVote.blockTime) {
+                      continue; // Skip if already exists and has blockTime
                     }
+                  }
+
+                  // Fetch block time from transaction
+                  let blockTime: Date | null = null;
+                  try {
+                    const txData = await this.blockfrostService.getTransaction(voteData.tx_hash);
+                    if (txData && txData.block_time) {
+                      blockTime = new Date(txData.block_time * 1000);
+                    }
+                  } catch (txError) {
+                    // Ignore error, just log debug, proceed without blockTime
+                    this.logger.debug(`Could not fetch tx time for vote ${voteData.tx_hash}: ${txError.message}`);
                   }
 
                   await votesRepository.upsert({
@@ -81,6 +93,7 @@ export class DrepVotesSyncWorker extends WorkerHost {
                     voterRole: 'drep',
                     voter: drep.drepId,
                     vote: voteData.vote,
+                    blockTime: blockTime,
                   }, {
                     conflictPaths: ['proposalId', 'voter'],
                     skipUpdateIfNoValuesChanged: true,
@@ -88,6 +101,9 @@ export class DrepVotesSyncWorker extends WorkerHost {
 
                   drepVotesCount++;
                   totalVotesCount++;
+
+                  // Rate limiting for inner loop
+                  await new Promise(resolve => setTimeout(resolve, 50));
                 } catch (voteError) {
                   this.logger.warn(`Failed to upsert vote for DRep ${drep.drepId}: ${voteError.message}`);
                 }

@@ -89,9 +89,9 @@ export const GovActionVoteCard = ({ action }) => {
               <h3 className="mb-1 text-base font-bold text-gray-800 break-words">
                 {title || '-'}
               </h3>
-              {action?.proposal?.rationale && (
+              {action?.proposal?.abstract && (
                 <p className="mb-2 text-sm text-gray-600 line-clamp-3">
-                  {action.proposal.rationale}
+                  {parseContent(action.proposal.abstract)}
                 </p>
               )}
               <p className="mb-1 text-sm text-gray-500 md:mb-1">
@@ -117,11 +117,10 @@ export const GovActionVoteCard = ({ action }) => {
                 >
                   <MarkdownParser
                     text={
-                      rationaleData &&
-                      typeof rationaleData?.comment === 'string'
-                        ? parseContent(rationaleData?.comment)
-                        : parseContent(rationaleData?.comment?.['@value']) ||
-                          'Not provided.'
+                      action?.proposal?.rationale &&
+                      typeof action?.proposal?.rationale === 'string'
+                        ? parseContent(action?.proposal?.rationale)
+                        : 'Not provided.'
                     }
                   />
                 </Box>

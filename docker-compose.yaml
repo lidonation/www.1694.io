@@ -43,6 +43,8 @@ services:
       - "./queue-backend:/app"
     ports:
       - "9999:9999"
+    env_file:
+      - ./queue-backend/.env
     networks:
       - io-1694
     depends_on:
@@ -144,35 +146,35 @@ services:
     - CHOKIDAR_USEPOLLING=true
     - NODE_ENV=development
 
-  cardano-node:
-    image: ghcr.io/intersectmbo/cardano-node:10.1.4
-    command: [
-      "run",
-      "--config", "/config/config.json",
-      "--database-path", "/data/db",
-      "--socket-path", "/ipc/node.socket",
-      "--topology", "/config/topology.json"
-    ]
-    volumes:
-      - ./cardanonode/config/network/${CARDANO_NETWORK:-preview}/cardano-node:/config
-      - ./cardanonode/config/network/${CARDANO_NETWORK:-preview}/genesis:/genesis
-      - node-db:/data
-      - node-ipc:/ipc
-    restart: on-failure
-    environment:
-      CARDANO_NODE_SOCKET_PATH: /ipc/node.socket
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "400k"
-        max-file: "20"
-    healthcheck:
-      test: [ "CMD", "stat", "/ipc/node.socket" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    networks:
-      - io-1694
+  # cardano-node:
+  #   image: ghcr.io/intersectmbo/cardano-node:10.1.4
+  #   command: [
+  #     "run",
+  #     "--config", "/config/config.json",
+  #     "--database-path", "/data/db",
+  #     "--socket-path", "/ipc/node.socket",
+  #     "--topology", "/config/topology.json"
+  #   ]
+  #   volumes:
+  #     - ./cardanonode/config/network/${CARDANO_NETWORK:-preview}/cardano-node:/config
+  #     - ./cardanonode/config/network/${CARDANO_NETWORK:-preview}/genesis:/genesis
+  #     - node-db:/data
+  #     - node-ipc:/ipc
+  #   restart: on-failure
+  #   environment:
+  #     CARDANO_NODE_SOCKET_PATH: /ipc/node.socket
+  #   logging:
+  #     driver: "json-file"
+  #     options:
+  #       max-size: "400k"
+  #       max-file: "20"
+  #   healthcheck:
+  #     test: [ "CMD", "stat", "/ipc/node.socket" ]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #   networks:
+  #     - io-1694
 
   # cardano-db-sync:
   #   image: ghcr.io/intersectmbo/cardano-db-sync:13.6.0.5

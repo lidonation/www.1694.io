@@ -30,6 +30,7 @@ import { SyncTriggerController } from "./sync-trigger.controller";
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: ['.env', '.env.development', '.env.production'],
     }),
     JobSchedulerModule,
     BlockfrostModule,

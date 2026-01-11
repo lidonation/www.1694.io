@@ -52,6 +52,10 @@ build:
 sh-backend:
 	docker-compose exec backend sh
 
+.PHONY: sh-queue
+sh-queue:
+	docker-compose exec queue-backend sh
+
 generate-migration:
 	@if [ -z "$(MIGRATION_NAME)" ]; then \
 		echo "Error: MIGRATION_NAME is required. Usage: make generate-migration MIGRATION_NAME=YourMigrationName"; \
@@ -95,6 +99,10 @@ logs-frontend:
 .PHONY: logs-backend
 logs-backend:
 	docker-compose logs -f backend
+
+.PHONY: logs-queue
+logs-queue:
+	docker-compose logs -f queue-backend
 
 .PHONY: image-build-frontend
 image-build-frontend:

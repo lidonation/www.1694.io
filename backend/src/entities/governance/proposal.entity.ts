@@ -58,4 +58,7 @@ export class Proposal {
 
   @OneToOne(() => ProposalMetadata, (metadata) => metadata.proposal)
   metadata: ProposalMetadata;
+
+  @Column({ name: 'block_time', type: 'timestamptz', nullable: true })
+  blockTime: Date | null;
 }

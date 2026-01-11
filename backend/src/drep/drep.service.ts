@@ -1073,7 +1073,7 @@ export class DrepService {
       const participation = await this.drepRepository.getGovernanceParticipation(voterId);
       
       // If both counts are zero, the DRep might not be in our database - try to fetch from Blockfrost
-      if (participation.governance_vote_count === 0 && participation.delegation_vote_count === 0) {
+      if (participation.participation === 0 && participation.delegation_vote_count === 0) {
         await this.fetchAndUpsertMissingDRep(voterId);
         
         // Re-query after potential upsert
@@ -1266,6 +1266,10 @@ export class DrepService {
       
       let insertedVotes = 0;
       
+      
+      // Cache for tx times to avoid duplicate requests
+      const txTimeCache = new Map<string, Date>();
+
       // Upsert votes
       for (const vote of allVotes) {
         try {
@@ -1276,8 +1280,22 @@ export class DrepService {
           
           if (!proposalExists) {
             // Skip votes for proposals that don't exist in our database
-
             continue;
+          }
+
+          let blockTime = txTimeCache.get(vote.tx_hash);
+          if (!blockTime) {
+             try {
+               const tx = await this.blockfrostService.getTransaction(vote.tx_hash);
+               if (tx && tx.block_time) {
+                 blockTime = new Date(tx.block_time * 1000);
+                 txTimeCache.set(vote.tx_hash, blockTime);
+               }
+               // Rate limiting for tx fetch
+               await new Promise(resolve => setTimeout(resolve, 50)); 
+             } catch (e) {
+               console.warn(`Failed to fetch tx ${vote.tx_hash}`, e);
+             }
           }
           
           await votesRepository.upsert({
@@ -1287,6 +1305,7 @@ export class DrepService {
             voterRole: 'drep',
             voter: voterId,
             vote: vote.vote,
+            blockTime: blockTime || null,
           }, {
             conflictPaths: ['proposalId', 'voter'],
             skipUpdateIfNoValuesChanged: true,

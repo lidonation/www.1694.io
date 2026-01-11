@@ -10,6 +10,7 @@ export const AnimatedOdometer = ({
   height = 40,
   className = '',
   isLoading = false,
+  format = "(,ddd).dd"
 }) => {
   const [isClientLoaded, setIsClientLoaded] = useState(false);
   const [displayValue, setDisplayValue] = useState(0);
@@ -40,7 +41,7 @@ export const AnimatedOdometer = ({
         <div className="flex items-center justify-center gap-0.5">
           <AnimatedCounter
             value={shortNumberWithAnnotation(displayValue).numValue}
-            format="(,ddd).dd"
+            format={format}
             duration={duration}
             className="font-black"
           />

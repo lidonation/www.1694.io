@@ -336,6 +336,21 @@ export class DRepRepository extends Repository<VoltaireDrep> {
   }
 
   async getDrepDateOfRegistration(drepVoterId: string) {
+    // First try to find registration event in timeline
+    const regEvent = await this.voltaireDb.getRepository(DrepTimelineEvent).findOne({
+      where: { drepId: drepVoterId, eventType: 'registration' },
+      order: { timestamp: 'ASC' }
+    });
+
+    if (regEvent) {
+      return [{
+        drep_hash_id: 0,
+        reg_tx_hash: regEvent.txHash,
+        date_of_registration: regEvent.timestamp,
+        epoch_of_registration: regEvent.epoch
+      }];
+    }
+
     const drepData = await this.voltaireDb
       .getRepository(Drep)
       .findOne({ where: { drepId: drepVoterId } });
@@ -643,16 +658,23 @@ export class DRepRepository extends Repository<VoltaireDrep> {
       .getRepository(Drep)
       .findOne({ where: { drepId: lookupId } });
 
+    const totalProposals = await this.voltaireDb.getRepository(Proposal).count();
+
     if (drepData) {
+      const participation = drepData.governanceVoteCount || 0;
       return {
-        governance_vote_count: drepData.governanceVoteCount || 0,
+        participation: participation,
+        total_actions: totalProposals,
+        non_participation: totalProposals - participation,
         delegation_vote_count: drepData.delegationVoteCount || 0,
       };
     }
 
     if (canonicalIds.length === 0) {
         return {
-            governance_vote_count: 0,
+            participation: 0,
+            total_actions: totalProposals,
+            non_participation: totalProposals,
             delegation_vote_count: 0,
         };
     }
@@ -668,7 +690,9 @@ export class DRepRepository extends Repository<VoltaireDrep> {
     ]);
 
     return {
-      governance_vote_count: governanceVoteCount,
+      participation: governanceVoteCount,
+      total_actions: totalProposals,
+      non_participation: totalProposals - governanceVoteCount,
       delegation_vote_count: delegationVoteCount,
     };
   }
@@ -681,50 +705,80 @@ export class DRepRepository extends Repository<VoltaireDrep> {
     const canonicalIds = await this.getAllDrepIds(voterId);
 
     if (canonicalIds.length === 0) {
-        return {
-            data: [],
-            totalItems: 0,
-            currentPage,
-            itemsPerPage,
-            totalPages: 0,
-        };
+      return {
+        data: [],
+        totalItems: 0,
+        currentPage,
+        itemsPerPage,
+        totalPages: 0,
+      };
     }
 
-    const queryBuilder = this.voltaireDb
-      .getRepository(ProposalVote)
-      .createQueryBuilder('vote')
-      .leftJoinAndSelect('vote.proposal', 'proposal')
-      .leftJoinAndSelect('proposal.metadata', 'meta')
-      .where('vote.voter IN (:...voterIds)', { voterIds: canonicalIds })
-      .orderBy('vote.createdAt', 'DESC');
+    // specific handling for array parameters in raw query
+    // we manually construct the IN clause placeholders
+    const placeholders = canonicalIds.map((_, index) => `$${index + 1}`).join(', ');
 
-    const totalItems = await queryBuilder.getCount();
+    // 1. Get total distinct items count
+    const countQuery = `
+      SELECT COUNT(DISTINCT tx_hash) as count
+      FROM proposal_votes
+      WHERE voter IN (${placeholders})
+    `;
+    
+    const countResult = await this.voltaireDb.query(countQuery, canonicalIds);
+    const totalItems = parseInt(countResult[0].count, 10);
     const totalPages = Math.ceil(totalItems / itemsPerPage);
 
+    // 2. Get paginated and deduplicated data
     const offset = (currentPage - 1) * itemsPerPage;
-    const votes = await queryBuilder.skip(offset).take(itemsPerPage).getMany();
+    
+    // We add offset and limit to the params list
+    const queryParams = [...canonicalIds, itemsPerPage, offset];
+    const limitIndex = canonicalIds.length + 1;
+    const offsetIndex = canonicalIds.length + 2;
+
+    const dataQuery = `
+      SELECT * FROM (
+        SELECT 
+          v.tx_hash,
+          v.vote,
+          v.proposal_id,
+          v.block_time,
+          v.created_at,
+          p.governance_type,
+          m.json_metadata,
+          ROW_NUMBER() OVER (
+            PARTITION BY v.tx_hash 
+            ORDER BY v.block_time DESC NULLS LAST, v.created_at DESC
+          ) as row_num
+        FROM proposal_votes v
+        LEFT JOIN proposals p ON v.proposal_id = p.id
+        LEFT JOIN proposal_metadata m ON p.id = m.proposal_id
+        WHERE v.voter IN (${placeholders})
+      ) t
+      WHERE row_num = 1
+      ORDER BY COALESCE(block_time, created_at) DESC
+      LIMIT $${limitIndex} OFFSET $${offsetIndex}
+    `;
+
+    const rawVotes = await this.voltaireDb.query(dataQuery, queryParams);
 
     return {
-      data: votes.map((vote) => ({
-        tx_hash: vote.txHash,
+      data: rawVotes.map((vote) => ({
+        tx_hash: vote.tx_hash,
         vote: vote.vote.charAt(0).toUpperCase() + vote.vote.slice(1),
-        proposal_id: vote.proposalId,
-        gov_action_proposal_id: vote.proposalId,
-        time_voted: vote.createdAt?.toISOString() || new Date().toISOString(),
-        type: (vote as any).proposal?.governanceType || 'InfoAction',
+        proposal_id: vote.proposal_id,
+        gov_action_proposal_id: vote.proposal_id,
+        time_voted: vote.block_time ? new Date(vote.block_time).toISOString() : (vote.created_at ? new Date(vote.created_at).toISOString() : new Date().toISOString()),
+        type: vote.governance_type || 'InfoAction',
         description: {
-          tag: (vote as any).proposal?.governanceType || 'InfoAction',
+          tag: vote.governance_type || 'InfoAction',
         },
         proposal: {
-          title:
-            (vote as any).proposal?.metadata?.jsonMetadata?.body?.title || null,
-          abstract:
-            (vote as any).proposal?.metadata?.jsonMetadata?.body?.abstract ||
-            null,
-          rationale:
-            (vote as any).proposal?.metadata?.jsonMetadata?.body?.rationale ||
-            null,
-          type: (vote as any).proposal?.governanceType || null,
+          title: vote.json_metadata?.body?.title || null,
+          abstract: vote.json_metadata?.body?.abstract || null,
+          rationale: vote.json_metadata?.body?.rationale || null,
+          type: vote.governance_type || null,
         },
       })),
       totalItems,

@@ -50,4 +50,7 @@ export class Proposal {
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt: Date;
+
+  @Column({ name: 'block_time', type: 'timestamptz', nullable: true })
+  blockTime: Date | null;
 }

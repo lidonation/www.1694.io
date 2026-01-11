@@ -20,7 +20,9 @@ const MetadataViewer = ({
 }: MetadataViewerProps) => {
   const capitalizeFirstLetter = (str: string) => {
     if (!str) return '';
-    return str.charAt(0).toUpperCase() + str.slice(1);
+    // Split camelCase with spaces and capitalize first letter
+    const result = str.replace(/([A-Z])/g, ' $1').trim();
+    return result.charAt(0).toUpperCase() + result.slice(1);
   };
 
   const hiddenKeys = ['image', 'paymentAddress'];
@@ -94,7 +96,9 @@ const MetadataViewer = ({
             className="flex w-full flex-col items-start justify-center gap-1 text-sm"
           >
             <Typography variant="h6">{capitalizeFirstLetter(key)}</Typography>
-            <p className="w-full break-words pl-2">{valueString}</p>
+            <p className="w-full break-words whitespace-pre-wrap pl-2">
+              {valueString}
+            </p>
           </div>
         );
       });

@@ -84,6 +84,17 @@ export class ProposalsSyncWorker extends WorkerHost {
             const proposalData = await this.blockfrostService.getProposal(proposalListItem.tx_hash, proposalListItem.cert_index);
             
             if (proposalData) {
+              // Fetch transaction to get block time
+              let blockTime: Date | null = null;
+              try {
+                const txData = await this.blockfrostService.getTransaction(proposalData.tx_hash);
+                if (txData && txData.block_time) {
+                  blockTime = new Date(txData.block_time * 1000);
+                }
+              } catch (txError) {
+                this.logger.warn(`Failed to fetch tx time for proposal ${proposalData.tx_hash}: ${txError.message}`);
+              }
+
               await proposalsRepository.upsert({
                 id: proposalData.id,
                 txHash: proposalData.tx_hash,
@@ -97,6 +108,7 @@ export class ProposalsSyncWorker extends WorkerHost {
                 droppedEpoch: proposalData.dropped_epoch || null,
                 expiredEpoch: proposalData.expired_epoch || null,
                 expirationEpoch: proposalData.expiration || null,
+                blockTime: blockTime,
               }, {
                 conflictPaths: ['id'],
                 skipUpdateIfNoValuesChanged: true,
@@ -109,7 +121,7 @@ export class ProposalsSyncWorker extends WorkerHost {
             }
             
             // Rate limiting between individual proposal requests
-            await new Promise(resolve => setTimeout(resolve, 50));
+            await new Promise(resolve => setTimeout(resolve, 100)); // Increased delay for extra calls
           } catch (proposalError) {
             this.logger.warn(`Failed to upsert proposal ${proposalListItem.tx_hash}/${proposalListItem.cert_index}: ${proposalError.message}`);
           }
