@@ -1069,18 +1069,7 @@ export class DrepService {
     if (!voterId) return null;
     
     try {
-      // First try to get from repository (with fallback counting)
-      const participation = await this.drepRepository.getGovernanceParticipation(voterId);
-      
-      // If both counts are zero, the DRep might not be in our database - try to fetch from Blockfrost
-      if (participation.participation === 0 && participation.delegation_vote_count === 0) {
-        await this.fetchAndUpsertMissingDRep(voterId);
-        
-        // Re-query after potential upsert
-        return await this.drepRepository.getGovernanceParticipation(voterId);
-      }
-      
-      return participation;
+      return await this.drepRepository.getGovernanceParticipation(voterId);
     } catch (error) {
       console.error(`Error getting governance participation for ${voterId}:`, error);
       return {
@@ -1283,21 +1272,6 @@ export class DrepService {
             continue;
           }
 
-          let blockTime = txTimeCache.get(vote.tx_hash);
-          if (!blockTime) {
-             try {
-               const tx = await this.blockfrostService.getTransaction(vote.tx_hash);
-               if (tx && tx.block_time) {
-                 blockTime = new Date(tx.block_time * 1000);
-                 txTimeCache.set(vote.tx_hash, blockTime);
-               }
-               // Rate limiting for tx fetch
-               await new Promise(resolve => setTimeout(resolve, 50)); 
-             } catch (e) {
-               console.warn(`Failed to fetch tx ${vote.tx_hash}`, e);
-             }
-          }
-          
           await votesRepository.upsert({
             proposalId: vote.proposal_id,
             txHash: vote.tx_hash,
@@ -1305,7 +1279,6 @@ export class DrepService {
             voterRole: 'drep',
             voter: voterId,
             vote: vote.vote,
-            blockTime: blockTime || null,
           }, {
             conflictPaths: ['proposalId', 'voter'],
             skipUpdateIfNoValuesChanged: true,
