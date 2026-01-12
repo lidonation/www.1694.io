@@ -113,15 +113,7 @@ export const formatNumberTimeToReadable = (time: number) => {
     time = parseInt(time);
   };
   
-  if (!time || isNaN(new Date(time).getTime())) {
-    return '...';
-  }
-  console.log(new Date(time).toLocaleString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  }));
-  
+
   return new Date(time).toLocaleString('en-US', {
     year: 'numeric',
     month: 'long',
