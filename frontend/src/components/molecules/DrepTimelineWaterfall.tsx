@@ -130,13 +130,21 @@ const DrepTimelineWaterfall = ({
             {item.type === 'voting_activity' && (
               <TimelineItem>
                 <TimelineSeparator>
+                  <TimelineConnector
+                    className="border-2 border-dotted border-gray-300"
+                    sx={{
+                      backgroundColor: 'white',
+                      height: '24px',
+                      flexGrow: 0,
+                    }}
+                  />
                   <TimelineDot />
                   <TimelineConnector
                     className="h-10 border-2 border-dotted border-gray-300"
                     sx={{ backgroundColor: 'white' }}
                   />
                 </TimelineSeparator>
-                <TimelineContent>
+                <TimelineContent sx={{ minWidth: 0 }}>
                   <DrepVoteTimelineCard item={item} isVoteOwner={isOwner} />
                 </TimelineContent>
               </TimelineItem>
@@ -150,7 +158,7 @@ const DrepTimelineWaterfall = ({
                     sx={{ backgroundColor: 'white' }}
                   />
                 </TimelineSeparator>
-                <TimelineContent>
+                <TimelineContent sx={{ minWidth: 0 }}>
                   <DrepDelegatorCard item={item} />
                 </TimelineContent>
               </TimelineItem>

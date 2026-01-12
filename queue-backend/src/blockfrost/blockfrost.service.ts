@@ -78,12 +78,18 @@ export class BlockfrostService {
     }
   }
 
-  private async retryRequest<T>(requestFn: () => Promise<T>, retries = 3, delay = 1000): Promise<T> {
+    async retryRequest<T>(requestFn: () => Promise<T>, retries = 3, delay = 1000): Promise<T> {
     try {
       return await requestFn();
     } catch (error) {
-      if (retries > 0 && error.status === 429) {
-        this.logger.warn(`Rate limit hit (429). Retrying in ${delay}ms... (${retries} attempts left)`);
+      const isRetryable = 
+        error.code === 'ECONNRESET' ||
+        error.code === 'ETIMEDOUT' ||
+        error.status === 429 ||
+        (error.status >= 500 && error.status < 600);
+
+      if (retries > 0 && isRetryable) {
+        this.logger.warn(`Request failed with ${error.code || error.status}. Retrying in ${delay}ms... (${retries} attempts left)`);
         await new Promise((resolve) => setTimeout(resolve, delay));
         return this.retryRequest(requestFn, retries - 1, delay * 2);
       }

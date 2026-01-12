@@ -212,7 +212,7 @@ const DrepVoteTimelineCard = ({
                   alt={`${actionDetais.actionName} icon`}
                   className="h-5 w-5"
                 />
-                <p>{actionDetais.actionName}</p>
+                <p className="whitespace-normal break-words text-left">{actionDetais.actionName}</p>
               </Box>
             </Box>
           )}
