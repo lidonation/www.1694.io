@@ -25,12 +25,22 @@ export class StakeSyncWorker extends WorkerHost {
     this.logger.log(`Starting stake sync job: ${job.id}`);
 
     try {
-      const latestEpoch = await this.blockfrostService.getLatestEpoch();
+      let latestEpoch;
+      try {
+        latestEpoch = await this.blockfrostService.getLatestEpoch();
+      } catch (epochError) {
+        this.logger.error(`Failed to fetch latest epoch: ${epochError.message}`);
+        // Return success=false but don't crash uncaught
+        return { success: false, message: `Failed to fetch epoch: ${epochError.message}` };
+      }
+      
       const currentEpochNo = latestEpoch.epoch;
 
       const drepsRepository = this.dataSource.getRepository(Drep);
       const delegatorsRepository = this.dataSource.getRepository(DrepDelegator);
       const allDReps = await drepsRepository.find();
+      
+      this.logger.log(`Found ${allDReps.length} DReps to sync stake for.`);
 
       let updatedCount = 0;
       let updatedDelegatorsCount = 0;
@@ -57,6 +67,8 @@ export class StakeSyncWorker extends WorkerHost {
             );
             updatedCount++;
           }
+          // minimal rate limit
+          await new Promise(r => setTimeout(r, 20));
         } catch (drepError) {
           this.logger.warn(`Failed to update stake for DRep ${drep.drepId}: ${drepError.message}`);
         }

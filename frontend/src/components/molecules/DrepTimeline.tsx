@@ -132,7 +132,7 @@ const DRepTimeline = ({ drep }: { drep: any }) => {
     setLoadDirection('older');
     const newEndTime = timelineStartTime - 1 * 24 * 60 * 60 * 1000;
 
-    const newStartTime = newEndTime - 3 * 24 * 60 * 60 * 1000;
+    const newStartTime = newEndTime - 30 * 24 * 60 * 60 * 1000;
 
     setQueryEndTime(newEndTime);
     setQueryStartTime(newStartTime);
@@ -154,7 +154,7 @@ const DRepTimeline = ({ drep }: { drep: any }) => {
     const newStartTime = timelineEndTime + 1 * 24 * 60 * 60 * 1000;
 
     const newEndTime = Math.min(
-      newStartTime + 3 * 24 * 60 * 60 * 1000,
+      newStartTime + 30 * 24 * 60 * 60 * 1000,
       currentTime,
     );
 

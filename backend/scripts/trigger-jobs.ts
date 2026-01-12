@@ -52,7 +52,7 @@ async function main() {
     process.exit(1);
   }
 
-  console.log(`🚀 Triggering ${jobType} job...`);
+  console.log(`[INFO] Triggering ${jobType} job...`);
   
   try {
     const app = await NestFactory.createApplicationContext(JobTriggerModule);
@@ -61,50 +61,50 @@ async function main() {
     if (jobType === 'governance-sync' || jobType === 'all') {
       const forceRefresh = args.includes('--force');
       
-      console.log(`📊 Triggering governance sync (forceRefresh: ${forceRefresh})...`);
+      console.log(`[INFO] Triggering governance sync (forceRefresh: ${forceRefresh})...`);
       const job = await queueService.addToQueue(Queues.GOVERNANCE_SYNC, {
         name: `${JobTypes.GOVERNANCE_SYNC}-manual`,
         data: { forceRefresh }
       });
-      console.log(`✅ Governance sync job queued with ID: ${job.id}`);
+      console.log(`[SUCCESS] Governance sync job queued with ID: ${job.id}`);
     }
     
     if (jobType === 'stake-sync' || jobType === 'all') {
-      console.log('💰 Triggering stake sync...');
+      console.log('[INFO] Triggering stake sync...');
       const job = await queueService.addToQueue(Queues.STAKE_SYNC, {
         name: `${JobTypes.STAKE_SYNC}-manual`,
         data: {}
       });
-      console.log(`✅ Stake sync job queued with ID: ${job.id}`);
+      console.log(`[SUCCESS] Stake sync job queued with ID: ${job.id}`);
     }
     
     if (jobType === 'proposals-sync' || jobType === 'all') {
       const forceRefresh = args.includes('--force');
       
-      console.log(`📋 Triggering proposals sync (forceRefresh: ${forceRefresh})...`);
+      console.log(`[INFO] Triggering proposals sync (forceRefresh: ${forceRefresh})...`);
       const job = await queueService.addToQueue(Queues.PROPOSALS_SYNC, {
         name: `${JobTypes.PROPOSALS_SYNC}-manual`,
         data: { forceRefresh }
       });
-      console.log(`✅ Proposals sync job queued with ID: ${job.id}`);
+      console.log(`[SUCCESS] Proposals sync job queued with ID: ${job.id}`);
     }
     
     if (jobType === 'drep-votes-sync' || jobType === 'all') {
       const forceRefresh = args.includes('--force');
       
-      console.log(`🗳️ Triggering DRep votes sync (forceRefresh: ${forceRefresh})...`);
+      console.log(`[INFO] Triggering DRep votes sync (forceRefresh: ${forceRefresh})...`);
       const job = await queueService.addToQueue(Queues.DREP_VOTES_SYNC, {
         name: `${JobTypes.DREP_VOTES_SYNC}-manual`,
         data: { forceRefresh }
       });
-      console.log(`✅ DRep votes sync job queued with ID: ${job.id}`);
+      console.log(`[SUCCESS] DRep votes sync job queued with ID: ${job.id}`);
     }
     
     await app.close();
-    console.log('🎉 Jobs queued successfully!');
+    console.log('[SUCCESS] Jobs queued successfully!');
     
   } catch (error) {
-    console.error('❌ Error triggering jobs:', error.message);
+    console.error('[ERROR] Error triggering jobs:', error.message);
     console.error(error.stack);
     process.exit(1);
   }

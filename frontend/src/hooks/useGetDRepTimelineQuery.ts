@@ -30,7 +30,7 @@ export const useGetDRepTimelineQuery = (
   const now = Date.now();
   const [queryEndTime, setQueryEndTime] = useState(now);
   const [queryStartTime, setQueryStartTime] = useState(
-    now - 3 * 24 * 60 * 60 * 1000,
+    now - 30 * 24 * 60 * 60 * 1000,
   );
 
   const [timelineEndTime, setTimelineEndTime] = useState(queryEndTime);

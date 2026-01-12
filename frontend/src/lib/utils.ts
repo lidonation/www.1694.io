@@ -109,7 +109,12 @@ export const handleCopyText = (
 };
 
 export const formatNumberTimeToReadable = (time: number) => {
-  return new Date().toLocaleString('en-US', {
+  if (typeof time !== 'number'){
+    time = parseInt(time);
+  };
+  
+
+  return new Date(time).toLocaleString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',

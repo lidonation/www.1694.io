@@ -74,8 +74,6 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
   const { participationData, isParticipationDataLoading } =
     useGetDRepParticipationQuery(voterId);
 
-console.log({participationData});
-
   const isDelegated = compareDRepIDs(drep?.view, currentDelegation?.drep_view);
   const isClaimed =
     drep?.type === 'scripted' ||
