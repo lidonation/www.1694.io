@@ -205,73 +205,146 @@ export class GovernanceSyncWorker extends WorkerHost {
     let totalSynced = 0;
 
     for (const drep of allDreps) {
-      try {
-        await delegatorsRepository.delete({ drepId: drep.drepId });
+      // 1. Fetch Phase: Get all new delegators from API
+      const newDelegatorsMap = new Map<string, any>(); 
+      let fetchFailed = false;
 
-        let page = 1;
-        let hasMore = true;
+      let page = 1;
+      let hasMore = true;
 
-        while (hasMore) {
-          try {
-            const delegatorsData =
-              await this.blockfrostService.getDRepDelegators(
-                drep.drepId,
-                page,
-                100,
-                'asc',
-              );
-
-            if (!delegatorsData || delegatorsData.length === 0) {
-              hasMore = false;
-              break;
-            }
-
-            for (const delegatorData of delegatorsData) {
-              try {
-   
-                const votingPowerLovelace = delegatorData.amount;
-
-                await delegatorsRepository.upsert(
-                  {
-                    drepId: drep.drepId,
-                    stakeAddress: delegatorData.address,
-                    amountLovelace: delegatorData.amount,
-                    votingPowerLovelace,
-                  },
-                  {
-                    conflictPaths: ['drepId', 'stakeAddress'],
-                    skipUpdateIfNoValuesChanged: true,
-                  },
-                );
-                totalSynced++;
-              } catch (delegatorError) {
-                this.logger.warn(
-                  `Failed to upsert delegator ${delegatorData.address}: ${delegatorError.message}`,
-                );
-              }
-            }
-
-            await new Promise((resolve) => setTimeout(resolve, 100));
-
-            if (delegatorsData.length < 100) {
-              hasMore = false;
-            } else {
-              page++;
-            }
-          } catch (pageError) {
-            this.logger.warn(
-              `Failed to fetch delegators page ${page} for DRep ${drep.drepId}: ${pageError.message}`,
+      this.logger.debug(`Fetching delegators for DRep ${drep.drepId}...`);
+      
+      while (hasMore) {
+        try {
+          const delegatorsData =
+            await this.blockfrostService.getDRepDelegators(
+              drep.drepId,
+              page,
+              100,
+              'asc',
             );
+
+          if (!delegatorsData || delegatorsData.length === 0) {
             hasMore = false;
+            break;
           }
+
+          for (const d of delegatorsData) {
+            newDelegatorsMap.set(d.address, d);
+          }
+
+          // Rate limiting - wait 100ms between pages
+          await new Promise((resolve) => setTimeout(resolve, 100));
+
+          if (delegatorsData.length < 100) {
+            hasMore = false;
+          } else {
+            page++;
+          }
+        } catch (pageError) {
+          this.logger.warn(
+            `Failed to fetch delegators page ${page} for DRep ${drep.drepId}: ${pageError.message}`,
+          );
+          fetchFailed = true;
+          hasMore = false;
         }
-      } catch (drepError) {
-        this.logger.warn(
-          `Failed to sync delegators for DRep ${drep.drepId}: ${drepError.message}`,
+      }
+
+      if (fetchFailed) {
+        this.logger.warn(`Skipping update for DRep ${drep.drepId} due to fetch errors. Existing data preserved.`);
+        continue;
+      }
+
+      // 2. Load Phase: Get all existing delegators from DB
+      const existingDelegators = await delegatorsRepository.find({
+        where: { drepId: drep.drepId }
+      });
+      const existingDelegatorsMap = new Map(existingDelegators.map(d => [d.stakeAddress, d]));
+
+      // 3. Diff Phase
+      const toInsert: any[] = [];
+      const toUpdate: any[] = [];
+      const toDeleteIds: string[] = [];
+
+      // Find inserts and updates
+      for (const [address, newData] of newDelegatorsMap) {
+        const existing = existingDelegatorsMap.get(address);
+        if (!existing) {
+          toInsert.push({
+            drepId: drep.drepId,
+            stakeAddress: address,
+            amountLovelace: newData.amount,
+            votingPowerLovelace: newData.amount, // Initial value
+          });
+        } else if (existing.amountLovelace !== newData.amount) {
+          toUpdate.push({
+            drepId: drep.drepId,
+            stakeAddress: address,
+            amountLovelace: newData.amount,
+            votingPowerLovelace: newData.amount, // Reset VP if amount changes
+          });
+        }
+      }
+
+      // Find deletes
+      for (const [address, existing] of existingDelegatorsMap) {
+        if (!newDelegatorsMap.has(address)) {
+          toDeleteIds.push(address);
+        }
+      }
+
+      // 4. Execute Phase
+      try {
+        await this.dataSource.transaction(async (manager) => {
+          const txRepo = manager.getRepository(DrepDelegator);
+
+          // Batch Deletes
+          if (toDeleteIds.length > 0) {
+             // Delete in chunks
+             const chunkSize = 1000;
+             for (let i = 0; i < toDeleteIds.length; i += chunkSize) {
+               const chunk = toDeleteIds.slice(i, i + chunkSize);
+               await txRepo
+                 .createQueryBuilder()
+                 .delete()
+                 .where("drepId = :drepId", { drepId: drep.drepId })
+                 .andWhere("stakeAddress IN (:...ids)", { ids: chunk })
+                 .execute();
+             }
+          }
+
+          // Batch Inserts
+          if (toInsert.length > 0) {
+            const chunkSize = 1000;
+            for (let i = 0; i < toInsert.length; i += chunkSize) {
+              await txRepo.insert(toInsert.slice(i, i + chunkSize));
+            }
+          }
+
+          // Batch Updates
+          if (toUpdate.length > 0) {
+             const chunkSize = 1000;
+             for (let i = 0; i < toUpdate.length; i += chunkSize) {
+                await txRepo.upsert(toUpdate.slice(i, i + chunkSize), {
+                    conflictPaths: ['drepId', 'stakeAddress'],
+                    skipUpdateIfNoValuesChanged: true 
+                });
+             }
+          }
+        });
+
+        const syncedCount = newDelegatorsMap.size;
+        totalSynced += syncedCount;
+        this.logger.log(`Synced DRep ${drep.drepId}: ${toInsert.length} inserted, ${toUpdate.length} updated, ${toDeleteIds.length} deleted.`);
+
+      } catch (txError) {
+        this.logger.error(
+          `Transaction failed for DRep ${drep.drepId}: ${txError.message}`,
+          txError.stack
         );
       }
       
-      // Rate limiting - wait 200ms between DReps to avoid 429s
+      //  200ms between DReps
       await new Promise((resolve) => setTimeout(resolve, 200));
     }
 
@@ -339,7 +412,7 @@ export class GovernanceSyncWorker extends WorkerHost {
           }
         }
 
-        // Rate limiting - wait 100ms between pages
+        //wait 100ms between pages
         await new Promise((resolve) => setTimeout(resolve, 100));
 
         if (proposalsListData.length < 100) {
@@ -400,53 +473,81 @@ export class GovernanceSyncWorker extends WorkerHost {
 
         // Sync votes
         try {
-          // Clear existing votes for this proposal
-          await votesRepository.delete({ proposalId: proposal.id });
-
+          // 1. Fetch Phase
+          const newVotesMap = new Map<string, any>(); // txHash:certIndex -> voteData
+          let fetchFailed = false;
           let page = 1;
           let hasMore = true;
 
           while (hasMore) {
-            const votesData = await this.blockfrostService.getProposalVotes(
-              proposal.txHash,
-              proposal.certIndex,
-              page,
-              100,
-              'asc',
-            );
+            try {
+              const votesData = await this.blockfrostService.getProposalVotes(
+                proposal.txHash,
+                proposal.certIndex,
+                page,
+                100,
+                'asc',
+              );
 
-            if (!votesData || votesData.length === 0) {
-              hasMore = false;
-              break;
-            }
-
-            for (const voteData of votesData) {
-              try {
-                await votesRepository.insert({
-                  proposalId: proposal.id,
-                  txHash: voteData.tx_hash,
-                  certIndex: voteData.cert_index,
-                  voterRole: voteData.voter_role,
-                  voter: voteData.voter,
-                  vote: voteData.vote,
-                });
-                totalVotesSynced++;
-              } catch (voteError) {
-                this.logger.warn(
-                  `Failed to insert vote for proposal ${proposal.id}: ${voteError.message}`,
-                );
+              if (!votesData || votesData.length === 0) {
+                hasMore = false;
+                break;
               }
-            }
 
-            // Rate limiting - wait 100ms between pages
-            await new Promise((resolve) => setTimeout(resolve, 100));
+              for (const v of votesData) {
+                // key: txHash + certIndex (unique for a vote on a specific proposal)
+                const uniqueKey = `${v.tx_hash}:${v.cert_index}`;
+                newVotesMap.set(uniqueKey, v);
+              }
 
-            if (votesData.length < 100) {
+              // wait 100ms between pages
+              await new Promise((resolve) => setTimeout(resolve, 100));
+
+              if (votesData.length < 100) {
+                hasMore = false;
+              } else {
+                page++;
+              }
+            } catch (pageError) {
+              this.logger.warn(
+                  `Failed to fetch votes page ${page} for proposal ${proposal.id}: ${pageError.message}`
+              );
+              fetchFailed = true;
               hasMore = false;
-            } else {
-              page++;
             }
           }
+
+          if (fetchFailed) {
+            this.logger.warn(`Skipping vote update for proposal ${proposal.id} due to fetch errors.`);
+            continue; 
+          }
+
+          // We assume votes are immutable.          
+          if (newVotesMap.size > 0) {
+             const votesToUpsert = Array.from(newVotesMap.values()).map(vData => ({
+                proposalId: proposal.id,
+                txHash: vData.tx_hash,
+                certIndex: vData.cert_index,
+                voterRole: vData.voter_role,
+                voter: vData.voter,
+                vote: vData.vote,
+             }));
+
+             await this.dataSource.transaction(async (manager) => {
+                const txRepo = manager.getRepository(ProposalVote);
+                
+                // Process in chunks
+                const chunkSize = 1000;
+                for(let i=0; i<votesToUpsert.length; i+=chunkSize) {
+                   await txRepo.upsert(votesToUpsert.slice(i, i+chunkSize), {
+                      conflictPaths: ['proposalId', 'voter'],
+                      skipUpdateIfNoValuesChanged: true 
+                   });
+                }
+             });
+             this.logger.log(`Synced votes for proposal ${proposal.id}: ${votesToUpsert.length} votes upserted.`);
+          }
+
         } catch (votesError) {
           this.logger.warn(
             `Failed to sync votes for proposal ${proposal.id}: ${votesError.message}`,

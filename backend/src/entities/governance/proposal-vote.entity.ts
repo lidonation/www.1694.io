@@ -38,4 +38,7 @@ export class ProposalVote {
   @ManyToOne(() => Proposal, (proposal) => proposal.votes)
   @JoinColumn({ name: 'proposal_id' })
   proposal: Proposal;
+
+  @Column({ name: 'block_time', type: 'timestamptz', nullable: true })
+  blockTime: Date | null;
 }

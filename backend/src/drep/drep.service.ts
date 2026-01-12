@@ -159,13 +159,7 @@ export class DrepService {
     return this.drepRepository.getDrepDetails(drepVoterId);
   }
 
-  getDrepDateOfRegistration(
-    drepVoterId: string,
-  ): Observable<DRepRegistrationData | null> {
-    return from(
-      this.drepRepository.getDrepDateOfRegistration(drepVoterId),
-    ).pipe(map((data) => data[0] || null));
-  }
+
 
   private getFilters(filterValues?: string[] | undefined): TimelineFilters {
     const showAll = !filterValues || filterValues?.length === 0;
@@ -505,9 +499,6 @@ export class DrepService {
     // Setting up observables for parallel data fetching
     const queries: Record<string, Observable<any>> = {
       epochs: this.getEpochs(startingTime, endingTime),
-      regData: filters.includeRegistration
-        ? this.getDrepDateOfRegistration(voterId)
-        : of(null),
       votingHistory: filters.includeVotingActivity
         ? this.getDrepVotingActivity(voterId, startingTime, endingTime)
         : of<VotingActivityHistory[]>([]),
@@ -588,21 +579,6 @@ export class DrepService {
             timestamp: dRep.drep_createdAt,
             claimingId: drepId,
             claimedDRepId: voterId,
-          });
-        }
-
-        // Process registration data
-        const regDate = results.regData?.date_of_registration;
-        if (
-          filters.includeRegistration &&
-          regDate &&
-          this.isWithinTimeRange(regDate, startingTime, endingTime)
-        ) {
-          timelineEntries.push({
-            type: 'registration',
-            timestamp: regDate,
-            tx_hash: results.regData.reg_tx_hash,
-            epoch_no: results.regData.epoch_of_registration,
           });
         }
 
@@ -1069,18 +1045,7 @@ export class DrepService {
     if (!voterId) return null;
     
     try {
-      // First try to get from repository (with fallback counting)
-      const participation = await this.drepRepository.getGovernanceParticipation(voterId);
-      
-      // If both counts are zero, the DRep might not be in our database - try to fetch from Blockfrost
-      if (participation.governance_vote_count === 0 && participation.delegation_vote_count === 0) {
-        await this.fetchAndUpsertMissingDRep(voterId);
-        
-        // Re-query after potential upsert
-        return await this.drepRepository.getGovernanceParticipation(voterId);
-      }
-      
-      return participation;
+      return await this.drepRepository.getGovernanceParticipation(voterId);
     } catch (error) {
       console.error(`Error getting governance participation for ${voterId}:`, error);
       return {
@@ -1090,228 +1055,8 @@ export class DrepService {
     }
   }
   
-  private async fetchAndUpsertMissingDRep(voterId: string) {
-    try {
 
-      
-      // Check if DRep exists on Blockfrost
-      const blockfrostDrep = await this.blockfrostService.getDRepInfo(voterId);
-      if (!blockfrostDrep) {
-
-        return;
-      }
-      
-      // Get metadata if available
-      let metadata = null;
-      try {
-        metadata = await this.blockfrostService.getDRepMetadata(voterId);
-      } catch (metadataError) {
-
-      }
-      
-      // Upsert DRep data using DataSource (since drepRepository extends from Voltaire DRep, not enhanced Drep)
-      const { Drep } = await import('../entities/governance/drep.entity');
-      
-      // We need to access the voltaire DB from the repository
-      const drepsRepository = this.drepRepository['voltaireDb'].getRepository(Drep);
-      await drepsRepository.upsert({
-        drepId: blockfrostDrep.drep_id,
-        hex: blockfrostDrep.hex,
-        amountLovelace: blockfrostDrep.amount || '0',
-        active: blockfrostDrep.active,
-        activeEpoch: blockfrostDrep.active_epoch,
-        hasScript: blockfrostDrep.has_script,
-        retired: blockfrostDrep.retired,
-        expired: blockfrostDrep.expired,
-        lastActiveEpoch: blockfrostDrep.last_active_epoch,
-        metadata: metadata || null,
-        votingPowerAda: blockfrostDrep.amount ? (parseInt(blockfrostDrep.amount) / 1_000_000).toString() : '0',
-        governanceVoteCount: 0, 
-        delegationVoteCount: 0, 
-      }, {
-        conflictPaths: ['drepId'],
-        skipUpdateIfNoValuesChanged: true,
-      });
-      
-
-      
-      // Fetch and upsert delegators (in background, don't wait)
-      this.fetchAndUpsertDelegators(voterId).catch(error => 
-        console.error(`Error fetching delegators for ${voterId}:`, error)
-      );
-      
-      // Fetch and upsert votes (in background, don't wait)
-      this.fetchAndUpsertVotes(voterId).catch(error => 
-        console.error(`Error fetching votes for ${voterId}:`, error)
-      );
-      
-    } catch (error) {
-      console.error(`Error fetching and upserting DRep ${voterId}:`, error);
-    }
-  }
   
-  private async fetchAndUpsertDelegators(voterId: string) {
-    try {
-
-      
-      const { DrepDelegator } = await import('../entities/governance/drep-delegator.entity');
-      const delegatorsRepository = this.drepRepository['voltaireDb'].getRepository(DrepDelegator);
-      
-      // Get delegators from Blockfrost
-      const blockfrostDelegators = await this.blockfrostService.getDRepDelegators(voterId);
-      
-      if (!blockfrostDelegators || blockfrostDelegators.length === 0) {
-
-        return;
-      }
-      
-
-      
-      // Clear existing delegators for this DRep
-      await delegatorsRepository.delete({ drepId: voterId });
-      
-      // Upsert new delegators
-      for (const delegator of blockfrostDelegators) {
-        try {
-          // Get voting power (controlled stake) for this delegator
-          let votingPowerLovelace: string | null = null;
-          try {
-            const stakeInfo = await this.blockfrostService.getStakeAddressInfo(delegator.address);
-            votingPowerLovelace = stakeInfo?.controlled_amount || null;
-            
-            // Rate limiting
-            await new Promise(resolve => setTimeout(resolve, 50));
-          } catch (stakeInfoError) {
-            console.warn(`Failed to get stake info for ${delegator.address}:`, stakeInfoError.message);
-          }
-          
-          await delegatorsRepository.upsert({
-            drepId: voterId,
-            stakeAddress: delegator.address,
-            amountLovelace: delegator.amount,
-            votingPowerLovelace,
-          }, {
-            conflictPaths: ['drepId', 'stakeAddress'],
-            skipUpdateIfNoValuesChanged: true,
-          });
-        } catch (delegatorError) {
-          console.warn(`Failed to upsert delegator ${delegator.address}:`, delegatorError.message);
-        }
-      }
-      
-      // Update delegation count in dreps table
-      const { Drep } = await import('../entities/governance/drep.entity');
-      const drepsRepository = this.drepRepository['voltaireDb'].getRepository(Drep);
-      await drepsRepository.update(
-        { drepId: voterId },
-        { delegationVoteCount: blockfrostDelegators.length }
-      );
-      
-
-      
-    } catch (error) {
-      console.error(`Error fetching and upserting delegators for ${voterId}:`, error);
-    }
-  }
-  
-  private async fetchAndUpsertVotes(voterId: string) {
-    try {
-
-      
-      const { ProposalVote } = await import('../entities/governance/proposal-vote.entity');
-      const { Proposal } = await import('../entities/governance/proposal.entity');
-      const votesRepository = this.drepRepository['voltaireDb'].getRepository(ProposalVote);
-      const proposalsRepository = this.drepRepository['voltaireDb'].getRepository(Proposal);
-      
-      // Get votes from Blockfrost
-      let allVotes = [];
-      let page = 1;
-      let hasMore = true;
-      
-      while (hasMore) {
-        try {
-          const blockfrostVotes = await this.blockfrostService.getDRepVotes(voterId, page, 100, 'asc');
-          
-          if (!blockfrostVotes || blockfrostVotes.length === 0) {
-            hasMore = false;
-            break;
-          }
-          
-          allVotes.push(...blockfrostVotes);
-          
-          if (blockfrostVotes.length < 100) {
-            hasMore = false;
-          } else {
-            page++;
-          }
-          
-          // Rate limiting
-          await new Promise(resolve => setTimeout(resolve, 100));
-          
-        } catch (pageError) {
-          console.warn(`Failed to fetch votes page ${page} for ${voterId}:`, pageError.message);
-          hasMore = false;
-        }
-      }
-      
-      if (allVotes.length === 0) {
-
-        return;
-      }
-      
-
-      
-      // Clear existing votes for this DRep
-      await votesRepository.delete({ voter: voterId });
-      
-      let insertedVotes = 0;
-      
-      // Upsert votes
-      for (const vote of allVotes) {
-        try {
-          // Check if the proposal exists in our database
-          const proposalExists = await proposalsRepository.findOne({
-            where: { id: vote.proposal_id }
-          });
-          
-          if (!proposalExists) {
-            // Skip votes for proposals that don't exist in our database
-
-            continue;
-          }
-          
-          await votesRepository.upsert({
-            proposalId: vote.proposal_id,
-            txHash: vote.tx_hash,
-            certIndex: vote.cert_index,
-            voterRole: 'drep',
-            voter: voterId,
-            vote: vote.vote,
-          }, {
-            conflictPaths: ['proposalId', 'voter'],
-            skipUpdateIfNoValuesChanged: true,
-          });
-          
-          insertedVotes++;
-        } catch (voteError) {
-          console.warn(`Failed to upsert vote ${vote.tx_hash}:`, voteError.message);
-        }
-      }
-      
-      // Update governance vote count in dreps table
-      const { Drep } = await import('../entities/governance/drep.entity');
-      const drepsRepository = this.drepRepository['voltaireDb'].getRepository(Drep);
-      await drepsRepository.update(
-        { drepId: voterId },
-        { governanceVoteCount: insertedVotes }
-      );
-      
-
-      
-    } catch (error) {
-      console.error(`Error fetching and upserting votes for ${voterId}:`, error);
-    }
-  }
 
   async getDRepVotedGovActions(
     voterId: string,

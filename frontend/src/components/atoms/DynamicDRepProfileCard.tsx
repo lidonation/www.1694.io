@@ -74,6 +74,7 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
   const { participationData, isParticipationDataLoading } =
     useGetDRepParticipationQuery(voterId);
 
+console.log({participationData});
 
   const isDelegated = compareDRepIDs(drep?.view, currentDelegation?.drep_view);
   const isClaimed =
@@ -326,6 +327,7 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
                   isLoading={isParticipationDataLoading}
                   width={undefined}
                   height={undefined}
+                  format="(,ddd)"
                 />
               </Box>
               <Typography sx={{ fontSize: 13, color: 'text.secondary', fontWeight: 500 }}>
