@@ -26,7 +26,9 @@ import { useWallet } from '@/context/globalContext';
 
 const DRepTimeline = ({ drep }: { drep: any }) => {
   const { drepid } = useParams();
-  const [filterValues, setFilterValues] = useState<string[]>(null);
+  const [filterValues, setFilterValues] = useState<string[] | undefined>(
+    undefined,
+  );
   const {
     DRepActivity,
     isDRepActivityLoading,
@@ -85,9 +87,13 @@ const DRepTimeline = ({ drep }: { drep: any }) => {
       if (params.get('category')) {
         const itemFilters = params.get('category');
         const activeItems = itemFilters.split(',');
-        setFilterValues(activeItems);
+        if (JSON.stringify(activeItems) !== JSON.stringify(filterValues)) {
+          setFilterValues(activeItems);
+        }
       } else {
-        setFilterValues(undefined);
+        if (filterValues !== undefined) {
+          setFilterValues(undefined);
+        }
       }
     }
   }, [searchParams]);

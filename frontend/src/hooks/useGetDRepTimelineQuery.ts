@@ -5,7 +5,6 @@ import { useEffect, useRef, useState } from 'react';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { convertDrepPhraseToCIP105, formatNumberTimeToReadable } from '@/lib';
 import { useWallet } from '@/context/globalContext';
-import { useRouter } from 'next/navigation';
 
 export const useGetDRepTimelineQuery = (
   idOrVoterId: string | string[] | undefined,
@@ -14,7 +13,6 @@ export const useGetDRepTimelineQuery = (
 ) => {
   const [timeLineData, setTimeLineData] = useState([]);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
-  const router = useRouter();
   const {
     wallet: { stakeKey, stakeKeyBech32 },
   } = useWallet();
@@ -36,20 +34,6 @@ export const useGetDRepTimelineQuery = (
   const [timelineEndTime, setTimelineEndTime] = useState(queryEndTime);
   const [timelineStartTime, setTimelineStartTime] = useState(queryStartTime);
   const [loadDirection, setLoadDirection] = useState('older');
-
-  const updateUrlParams = (newStart?: number, newEnd?: number) => {
-    const searchParams = new URLSearchParams(window.location.search);
-
-    if (newStart !== undefined) {
-      searchParams.set('start', newStart.toString());
-    }
-    if (newEnd !== undefined) {
-      searchParams.set('end', newEnd.toString());
-    }
-
-    const newUrl = `${window.location.pathname}?${searchParams.toString()}`;
-    router.push(newUrl, { scroll: false });
-  };
 
   useEffect(() => {
     const prevQueryParams = queryParamsRef.current;
@@ -142,10 +126,8 @@ export const useGetDRepTimelineQuery = (
 
       if (loadDirection === 'older') {
         setTimelineStartTime(newData?.appliedStartTime);
-        updateUrlParams(newData?.appliedStartTime, undefined);
       } else if (loadDirection === 'newer') {
         setTimelineEndTime(newData?.appliedEndTime);
-        updateUrlParams(undefined, newData?.appliedEndTime);
       }
     },
   });
