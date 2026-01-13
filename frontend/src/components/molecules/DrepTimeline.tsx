@@ -178,7 +178,8 @@ const DRepTimeline = ({ drep }: { drep: any }) => {
     if (endTime) {
       params.set('end', String(endTime));
     }
-    replace(`${pathName}?${params.toString()}`, { scroll: false });
+    const newUrl = `${pathName}?${params.toString()}`;
+    window.history.replaceState(null, '', newUrl);
   };
 
 
