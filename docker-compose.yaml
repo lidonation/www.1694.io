@@ -17,6 +17,8 @@ services:
       NODE_ENV: development
       REDIS_HOST: 1694-redis
       REDIS_PORT: 6379
+    env_file:
+      - ./backend/.env
     volumes:
       - "./backend:/app"
     ports:
