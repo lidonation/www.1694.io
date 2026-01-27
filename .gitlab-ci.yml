@@ -320,12 +320,9 @@ production:
       cat $ENV_FILE_FRONTEND > frontend/.env.production
       cp backend/.env.production ./chart/backend_env
 
-      cat $ENV_FILE_FRONTEND > frontend/.env.production
-      cp frontend/.env.production ./chart/frontend_env
       cp $ENV_FILE_FRONTEND ./chart/frontend_env
 
       cat $ENV_FILE_QUEUE > queue-backend/.env.production
-      cp frontend/.env.production ./chart/frontend_env
       cp $ENV_FILE_QUEUE ./chart/queue_env
 
       helm upgrade $DEPLOYMENT_NAME ./chart --install \
