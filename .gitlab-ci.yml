@@ -82,8 +82,6 @@ services:
         $DEPLOYMENT_NAME-web-db \
         bitnami/postgresql
 
-
-
 .redis: &redis_template
   image: "${CI_TEMPLATE_REGISTRY_HOST}/gitlab-org/cluster-integration/auto-deploy-image:${AUTO_DEPLOY_IMAGE_VERSION}"
   retry: 0
@@ -117,7 +115,8 @@ build_frontend:
   script:
     - |
       set -xev
-      cp $ENV_FILE_NEXT_PUBLIC_TEMPLATE frontend/.env.production
+
+      cat $ENV_FILE_NEXT_PUBLIC_TEMPLATE > frontend/.env.production
 
       docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
       echo "Building Dockerfile with tags $CI_APPLICATION_REPOSITORY/1694.io-frontend:$CI_APPLICATION_TAG and $CI_APPLICATION_REPOSITORY/www.1694.io-frontend:latest ..."
@@ -176,7 +175,6 @@ build_queue_backend:
   rules:
     - if: '$DEPLOY_WEBSITE == "true"'
 
-
 .deploy_postgres_web: &deploy_postgres_web
   <<: *deploy_template
   script:
@@ -195,7 +193,6 @@ postgres-app-preview:
   needs: []
   environment:
     name: preview
-
 
 redis_preview:
   <<: *redis_template
@@ -238,7 +235,7 @@ app-preview:
         --docker-email=$REGISTRY_EMAIL
 
       kubectl delete secret gitlab-registry-token --ignore-not-found --namespace="$KUBE_NAMESPACE"
-      
+
       kubectl create secret docker-registry gitlab-registry-token \
         --namespace="$KUBE_NAMESPACE" \
         --docker-server=gitlab.2lovelaces.io \
@@ -287,7 +284,6 @@ postgres-app-production:
     - job: postgres-app-preview
   environment:
     name: production
-
 
 redis_production:
   <<: *redis_template
