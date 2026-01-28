@@ -119,7 +119,7 @@ governanceIndexer:
     tag: preview
   
   databaseUrl: "postgres://voltaire:postgres@postgresql:5432/1694"
-  relayAddress: "backbone.mainnet.emurgornd.com:3001"
+  relayAddress: "relay1.lidonation.com:3011"
   networkMagic: "764824073"
   maxConcurrentWorkers: "8"
   batchSize: "100"

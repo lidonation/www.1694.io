@@ -8,7 +8,9 @@ printenv | grep NEXT_PUBLIC_ | awk -F= '{ print length($0), $0 }' | sort -rn | c
 
     echo "Replacing $key with $value..."
 
-    find /app/.next/ -type f -exec sed -i "s|$key|$safe_value|g" {} +
+    # Replace both double and single quoted placeholders to avoid replacing property names
+    find /app/.next/ -type f -exec sed -i "s|\"$key\"|\"$safe_value\"|g" {} +
+    find /app/.next/ -type f -exec sed -i "s|'$key'|'$safe_value'|g" {} +
   fi
 done
 
