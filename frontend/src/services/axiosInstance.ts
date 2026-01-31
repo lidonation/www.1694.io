@@ -5,6 +5,9 @@ import { LOGIN_TOKEN_1694 } from '@/constants/storage';
 
 const baseURL = urls.baseServerUrl;
 
+console.log({urls});
+
+
 const axiosInstance = axios.create({
   baseURL,
   timeout: 30000,
