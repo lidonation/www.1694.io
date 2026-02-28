@@ -650,44 +650,38 @@ export class DRepRepository extends Repository<VoltaireDrep> {
 
   async getGovernanceParticipation(voterId: string) {
     const canonicalIds = await this.getAllDrepIds(voterId);
-    // Use the first resolved ID for the main DRep lookup, or the input if none found
-    const lookupId = canonicalIds.length > 0 ? canonicalIds[canonicalIds.length - 1] : voterId;
     
-    // We use the lookupId for the main DRep lookup
+    // We still use lookupId to find delegationVoteCount if needed
+    const lookupId = canonicalIds.length > 0 ? canonicalIds[canonicalIds.length - 1] : voterId;
     const drepData = await this.voltaireDb
       .getRepository(Drep)
-      .findOne({ where: { drepId: lookupId } });
+      .findOne({ where: { drepId: lookupId }, select: ['delegationVoteCount'] });
 
     const totalProposals = await this.voltaireDb.getRepository(Proposal).count();
-
-    if (drepData) {
-      const participation = drepData.governanceVoteCount || 0;
-      return {
-        participation: participation,
-        total_actions: totalProposals,
-        non_participation: totalProposals - participation,
-        delegation_vote_count: drepData.delegationVoteCount || 0,
-      };
-    }
-
+    
     if (canonicalIds.length === 0) {
         return {
             participation: 0,
             total_actions: totalProposals,
             non_participation: totalProposals,
-            delegation_vote_count: 0,
+            delegation_vote_count: drepData?.delegationVoteCount || 0,
         };
     }
 
-    // Fallback: count directly from proposal_votes and drep_delegators tables
-    const [governanceVoteCount, delegationVoteCount] = await Promise.all([
-      this.voltaireDb
-        .getRepository(ProposalVote)
-        .count({ where: { voter: In(canonicalIds) } }),
-      this.voltaireDb
-        .getRepository(DrepDelegator)
-        .count({ where: { drepId: In(canonicalIds) } }),
-    ]);
+    // specific handling for array parameters in raw query
+    const placeholders = canonicalIds.map((_, index) => `$${index + 1}`).join(', ');
+
+    // Calculate DISTINCT participation dynamically
+    const countQuery = `
+      SELECT COUNT(DISTINCT proposal_id) as count
+      FROM proposal_votes
+      WHERE voter IN (${placeholders})
+    `;
+    
+    const countResult = await this.voltaireDb.query(countQuery, canonicalIds);
+    const governanceVoteCount = parseInt(countResult[0]?.count || '0', 10);
+
+    const delegationVoteCount = drepData?.delegationVoteCount || 0;
 
     return {
       participation: governanceVoteCount,
@@ -720,7 +714,7 @@ export class DRepRepository extends Repository<VoltaireDrep> {
 
     // 1. Get total distinct items count
     const countQuery = `
-      SELECT COUNT(DISTINCT tx_hash) as count
+      SELECT COUNT(DISTINCT proposal_id) as count
       FROM proposal_votes
       WHERE voter IN (${placeholders})
     `;
@@ -748,7 +742,7 @@ export class DRepRepository extends Repository<VoltaireDrep> {
           p.governance_type,
           m.json_metadata,
           ROW_NUMBER() OVER (
-            PARTITION BY v.tx_hash 
+            PARTITION BY v.proposal_id 
             ORDER BY v.block_time DESC NULLS LAST, v.created_at DESC
           ) as row_num
         FROM proposal_votes v
