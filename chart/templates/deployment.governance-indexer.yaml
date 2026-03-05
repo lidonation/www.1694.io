@@ -42,6 +42,8 @@ spec:
               value: "{{ .Values.governanceIndexer.batchSize }}"
             - name: RUST_LOG
               value: "{{ .Values.governanceIndexer.rustLog }}"
+            - name: RELAY_ADDRESSES
+              value: "{{ .Values.governanceIndexer.relayAddresses }}"
           resources:
             limits:
               memory: {{ .Values.governanceIndexer.resources.limits.memory }}
