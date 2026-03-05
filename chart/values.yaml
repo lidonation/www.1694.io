@@ -117,9 +117,10 @@ governanceIndexer:
   image:
     repository: registry.2lovelaces.io/voltaire/governance-indexer
     tag: preview
+  relayAddresses: "backbone.mainnet.emurgornd.com:3001,relays-new.cardano-mainnet.iohk.io:3001,relay1.lidonation.com:3011"
+  relayAddress: "backbone.mainnet.emurgornd.com:3001"
   
   databaseUrl: "postgres://voltaire:postgres@postgresql:5432/1694"
-  relayAddress: "relay1.lidonation.com:3011"
   networkMagic: "764824073"
   maxConcurrentWorkers: "8"
   batchSize: "100"
