@@ -184,7 +184,7 @@ const DRepsTable = ({
                       </Box>
                     )}
 
-                    <Box className="w-30 flex flex-row items-center gap-1.5">
+                    <Box className="flex flex-row items-center gap-1.5">
                       {typeof drep?.given_name === 'string' && drep.given_name.trim() ? (
                         <Tooltip title="DRep given name">
                           <Link
@@ -221,7 +221,7 @@ const DRepsTable = ({
 
                       <Tooltip title="DRep onchain status" disableFocusListener>
                         <span>
-                          <button className="flex gap-2 hover:cursor-default">
+                          <button className="flex gap-2 shrink-0 hover:cursor-default">
                             <StatusChip
                               status={
                                 drep?.type === 'voting_option'
@@ -236,18 +236,22 @@ const DRepsTable = ({
                         </span>
                       </Tooltip>
 
-                      {drep.governance_vote_count && (
-                        <Tooltip title="Governance votes">
-                          <span className="inline-block text-nowrap rounded-full border border-blue-200 bg-blue-50 px-1.5 py-0.5 text-center text-xs font-normal text-black">
-                            Votes: {drep.governance_vote_count}
+                      {drep.type === 'scripted' && (
+                        <Tooltip title="Scripted DRep" disableFocusListener>
+                          <span>
+                            <button className="flex gap-2 shrink-0 hover:cursor-default">
+                              <StatusChip status="Scripted" />
+                            </button>
                           </span>
                         </Tooltip>
                       )}
-                    </Box>
 
-                    <Box className="w-30 flex flex-row gap-1 overflow-hidden text-ellipsis">
-                      {drep.type === 'scripted' && (
-                        <StatusChip status="Scripted" />
+                      {drep.governance_vote_count && (
+                        <Tooltip title="Governance votes">
+                          <span className="inline-block text-nowrap rounded-full border border-blue-200 bg-blue-50 px-1.5 py-0.5 text-center text-xs font-normal text-black shrink-0">
+                            Votes: {drep.governance_vote_count}
+                          </span>
+                        </Tooltip>
                       )}
                     </Box>
                   </Box>
