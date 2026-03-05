@@ -22,15 +22,14 @@ export class MiscellaneousService {
     private blockfrostService: BlockfrostService,
     private ipfsService: IpfsService,
     private httpService: HttpService,
-  ) {}
+  ) { }
   async getFirstEpoch() {
     try {
-      // Return latest epoch data instead of first epoch
       return await this.blockfrostService.getLatestEpoch();
     } catch (error) {
       console.log(error);
       throw new HttpException(
-        'Failed to get epoch data',
+        'Failed to get first epoch data',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -45,25 +44,7 @@ export class MiscellaneousService {
     }
   }
 
-  async getNodeStatus() {
-    try {
-      // Just return Blockfrost latest block as node status
-      const confirmationLatestBlock: BlockfrostBlockRes =
-        await this.blockfrostService.getLatestBlock();
 
-      return {
-        block_no: confirmationLatestBlock.height,
-        slot_no: confirmationLatestBlock.slot.toString(),
-        epoch_no: confirmationLatestBlock.epoch,
-        time: new Date(confirmationLatestBlock.time * 1000).toISOString(),
-        comparedLatestSlotNo: confirmationLatestBlock.slot,
-        behindBy: 0, // Assume we're synced since using Blockfrost
-      };
-    } catch (error) {
-      console.log(error);
-      throw new HttpException('Failed to get the node sync tip status', 500);
-    }
-  }
 
   async getProposalMetadataByHash(hash: string) {
     // Use Blockfrost to get proposal metadata

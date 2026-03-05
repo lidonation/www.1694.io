@@ -8,7 +8,6 @@ import { notFound } from 'next/navigation';
 import '@/assets/styles/globals.css';
 import { ThemeProvider } from '@mui/material';
 import theme from '@/assets/theme';
-import PageBanner from '@/components/atoms/PageBanner';
 import ClientAnalyticsWrapper from '@/components/analytics/ClientAnalyticsWrapper';
 
 const poppins = Poppins({
@@ -58,7 +57,6 @@ async function RootLayout({ children, params }) {
           <AppRouterCacheProvider>
             <ThemeProvider theme={theme}>
               <AppContextProvider>
-                {/* <PageBanner /> */}
                 {children}
               </AppContextProvider>
             </ThemeProvider>

@@ -3,7 +3,7 @@ import { MiscellaneousService } from './miscellaneous.service';
 
 @Controller('misc')
 export class MiscellaneousController {
-  constructor(private miscService: MiscellaneousService) {}
+  constructor(private miscService: MiscellaneousService) { }
 
   @Get('epochs/first')
   getFirstEpoch() {
@@ -22,10 +22,6 @@ export class MiscellaneousController {
   @Get('stake-addr/:address/payment')
   getRelatedPaymentAddrFromStakeAddr(@Param('address') address: string) {
     return this.miscService.getAddressesRelatedToStakeAddress(address);
-  }
-  @Get('node/status')
-  getNodeStatus() {
-    return this.miscService.getNodeStatus();
   }
   @Get('/metrics')
   getMetrics() {

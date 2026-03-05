@@ -27,7 +27,6 @@ import {
   VotingBuilder,
 } from '@emurgo/cardano-serialization-lib-asmjs';
 import { useCallback, useEffect, useState } from 'react';
-import { useGetNodeStatusQuery } from './useGetNodeStatusQuery';
 import { getItemFromLocalStorage } from '@/lib';
 import { getAddressUtxos } from '@/services/requests/getAddressUtxos';
 import { usePostSubmitTransaction } from './usePostSubmitTransaction';
@@ -218,7 +217,6 @@ export function useTransactionHandler({
     } as TransactionHandler);
   }, [txnModalState, isLoading, userActionState]);
 
-  const { refetch } = useGetNodeStatusQuery({ disablePolling: true });
   const { mutateAsync } = usePostSubmitTransaction();
 
   const getUtxos = async (
@@ -427,14 +425,13 @@ export function useTransactionHandler({
       if (!utxos?.length) throw new Error('No UTXOs available');
 
       const txUnspentOutputs = await getTxUnspentOutputs(utxos);
-      const { data } = await refetch();
-      let currentNodeStatus = data;
-      const currentSlot = parseInt(
-        Number(currentNodeStatus?.behindBy) > 100
-          ? currentNodeStatus.comparedLatestSlotNo?.toString()
-          : currentNodeStatus?.slot_no,
-      );
-      const ttl = currentSlot + DEFAULT_TXN_TTL;
+
+      const currentNetworkTime = Date.now() / 1000;
+      const mainnetShelleyStart = 1591566291; // UNIX timestamp
+      const estimatedMainnetSlot = Math.floor(currentNetworkTime - mainnetShelleyStart) + 4492800; // Byron slots offset
+      const currentSlot = estimatedMainnetSlot; // Fallback estimate
+      const ttl = currentSlot + (DEFAULT_TXN_TTL * 10); // Generous 10x TTL
+
 
       const finalTxBuilder = TransactionBuilder.new(
         TransactionBuilderConfigBuilder.new()
