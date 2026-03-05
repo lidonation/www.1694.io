@@ -351,6 +351,9 @@ export class CardanoWalletProvider implements AuthenticationProvider {
       const network = await enabledApi.getNetworkId();
       const requiredNetwork = CONFIGURED_NETWORK_ID;
 
+      console.log('network', network);
+      console.log('requiredNetwork', requiredNetwork);
+
       if (requiredNetwork !== network) {
         if (requiredNetwork == 1) {
           throw new Error(
@@ -362,6 +365,7 @@ export class CardanoWalletProvider implements AuthenticationProvider {
           );
         }
       }
+
       this.enabledNetwork = network;
       await this.getChangeAddress(enabledApi);
       await this.getUsedAddresses(enabledApi);
