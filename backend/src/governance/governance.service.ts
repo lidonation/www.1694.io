@@ -46,9 +46,9 @@ export class GovernanceService {
       queryBuilder.andWhere('drep.isClaimed = false');
     }
 
-    if (!includeRetired) {
-      queryBuilder.andWhere('drep.retired = false');
-    }
+    // if (!includeRetired) {
+    //   queryBuilder.andWhere('drep.retired = false');
+    // }
 
     if (type === 'has_script') {
       queryBuilder.andWhere('drep.hasScript = true');
