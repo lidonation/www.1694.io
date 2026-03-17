@@ -48,8 +48,8 @@ const DrepTimelineWaterfall = ({
     >
       {activity &&
         activity.length > 0 &&
-        activity.map((item: DRepTimelineItem, epochIndex) => (
-          <React.Fragment key={epochIndex}>
+        activity.map((item: DRepTimelineItem) => (
+          <React.Fragment key={item.id}>
             {item.type === 'note' && (
               <div className="flex w-full flex-col items-center space-y-2">
                 <TimelineSeparator>
@@ -108,6 +108,15 @@ const DrepTimelineWaterfall = ({
                   <div className="flex flex-row items-center justify-center gap-2 text-nowrap text-gray-500 hover:cursor-pointer hover:text-gray-800">
                     <img src="/svgs/external-link.svg" alt="" />
                     <p>Registered, Epoch {item?.epoch_no}</p>
+                    <p className="text-[10px] text-gray-400 font-medium">
+                      {new Date(item.timestamp).toLocaleString(undefined, { 
+                        month: 'short', 
+                        day: 'numeric', 
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
                   </div>
                 </Link>
               </div>
