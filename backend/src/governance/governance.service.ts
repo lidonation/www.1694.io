@@ -214,8 +214,7 @@ export class GovernanceService {
     }
 
     queryBuilder
-      .orderBy('event.timestamp', 'DESC')
-      .limit(options.minItems || 20);
+      .orderBy('event.timestamp', 'DESC');
 
     const { entities, raw } = await queryBuilder.getRawAndEntities();
 
@@ -263,16 +262,13 @@ export class GovernanceService {
       return bTime - aTime;
     });
     
-    // Limit to requested number of items
-    const limitedEvents = timelineEvents.slice(0, options.minItems || 20);
-
     return {
-      entries: limitedEvents,
-      hasMore: limitedEvents.length === (options.minItems || 20),
-      cursor: limitedEvents.length > 0 ? 
-        (limitedEvents[limitedEvents.length - 1].timestamp instanceof Date ? 
-         limitedEvents[limitedEvents.length - 1].timestamp.getTime() : 
-         new Date(limitedEvents[limitedEvents.length - 1].timestamp).getTime()) : null,
+      entries: timelineEvents,
+      hasMore: timelineEvents.length > 0, // Since we don't limit, hasMore is just if we fetched anything, or we rely on frontend time boundaries
+      cursor: timelineEvents.length > 0 ? 
+        (timelineEvents[timelineEvents.length - 1].timestamp instanceof Date ? 
+         timelineEvents[timelineEvents.length - 1].timestamp.getTime() : 
+         new Date(timelineEvents[timelineEvents.length - 1].timestamp).getTime()) : null,
     };
   }
 
