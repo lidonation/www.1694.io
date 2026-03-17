@@ -7,25 +7,19 @@ type EpochTimelineCardProps = {
 };
 
 const EpochTimelineCard = ({ epoch }: EpochTimelineCardProps) => {
-  const getEpochDates = (epochNo: number) => {
-    const CONWAY_EPOCH = 507;
-    const CONWAY_START_UNIX = 1726003091 * 1000; // ms
-    const EPOCH_DURATION = 432000 * 1000; // ms
+  const EPOCH_DURATION_MS = 432000 * 1000;
+  const startTimeMs = epoch?.start_time ? new Date(epoch.start_time).getTime() : 0;
+  const endTimeMs = epoch?.end_time ? new Date(epoch.end_time).getTime() : (startTimeMs ? startTimeMs + EPOCH_DURATION_MS : 0);
+  const duration = endTimeMs - startTimeMs;
 
-    const diff = epochNo - CONWAY_EPOCH;
-    const startTimeMs = CONWAY_START_UNIX + diff * EPOCH_DURATION;
-    const endTimeMs = startTimeMs + EPOCH_DURATION;
+  const dates = startTimeMs && (endTimeMs || startTimeMs) ? {
+    start: new Date(startTimeMs),
+    end: new Date(endTimeMs),
+    startTimeMs,
+    endTimeMs,
+    duration
+  } : null;
 
-    return {
-      start: new Date(startTimeMs),
-      end: new Date(endTimeMs),
-      startTimeMs,
-      endTimeMs,
-      duration: EPOCH_DURATION
-    };
-  };
-
-  const dates = epoch?.no ? getEpochDates(epoch.no) : null;
   const now = Date.now();
   const isCurrent = dates && now >= dates.startTimeMs && now <= dates.endTimeMs;
   const progress = isCurrent ? ((now - dates.startTimeMs) / dates.duration) * 100 : (dates && now > dates.endTimeMs ? 100 : 0);
