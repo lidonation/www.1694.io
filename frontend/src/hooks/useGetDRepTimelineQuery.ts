@@ -109,19 +109,24 @@ export const useGetDRepTimelineQuery = (
       }
 
       setTimeLineData((prevData) => {
+        const incomingEntries = newData?.entries || [];
         if (prevData.length < 1) {
           setIsInitialLoad(false);
-          return newData?.entries;
+          return incomingEntries;
         }
 
-        const isNewer =
-          newData?.entries?.[newData?.entries?.length - 1]?.timestamp >
-          prevData?.[0]?.timestamp;
-        if (isNewer) {
-          return [...newData?.entries, ...prevData];
-        } else {
-          return [...prevData, ...newData?.entries];
-        }
+        const combined =
+          loadDirection === 'newer'
+            ? [...incomingEntries, ...prevData]
+            : [...prevData, ...incomingEntries];
+
+        // Deduplicate by ID
+        const seenIds = new Set();
+        return combined.filter((item) => {
+          if (seenIds.has(item.id)) return false;
+          seenIds.add(item.id);
+          return true;
+        });
       });
 
       if (loadDirection === 'older') {

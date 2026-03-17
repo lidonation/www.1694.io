@@ -30,9 +30,19 @@ const VoteStatusChip = ({ date, vote }: { date: string; vote: string }) => {
         className={`flex w-fit flex-row items-center gap-1 rounded-full ${bgcolor} px-2 py-1 text-sm`}
       >
         <img src="/svgs/file-check.svg" className="h-5 w-5" alt="Vote icon" />
-        <p>{vote}</p>
       </div>
-      <p className="text-sm">{new Date(date).toLocaleDateString('en-GB')}</p>
+      <div className="flex flex-col items-end">
+        <p className="text-[9px] uppercase font-bold text-gray-400 leading-none">Voted at</p>
+        <p className="text-[11px] font-medium text-gray-500">
+          {new Date(date).toLocaleString(undefined, {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          })}
+        </p>
+      </div>
     </div>
   );
 };
@@ -45,8 +55,8 @@ const DrepVoteTimelineCard = ({
     useState<VoteRationaleModalProps>({
       mode: 'view',
       open: false,
-      onClose: () => {},
-      onEdit: () => {},
+      onClose: () => { },
+      onEdit: () => { },
       rationaleUrl: item?.vote_rationale,
     });
   const { latestEpoch } = useWallet();
@@ -171,6 +181,9 @@ const DrepVoteTimelineCard = ({
         return null;
     }
   };
+  
+  //@ts-ignore
+  const submittedAt = item?.proposal.submitted_at;
 
   return (
     <Box
@@ -179,7 +192,7 @@ const DrepVoteTimelineCard = ({
     >
       <VoteStatusChip date={item?.time_voted} vote={item?.vote} />
       <VoteRationaleModal {...rationaleModalOptions} />
-      <hr />
+      <hr className="border-gray-100" />
       <Box
         sx={{
           display: 'flex',
@@ -218,15 +231,34 @@ const DrepVoteTimelineCard = ({
           )}
         </Box>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          <Box className="flex w-fit items-center gap-2 rounded-full border px-3 py-1 text-sm">
-            <p className="">Action ID:</p>
-            <CopyToClipboard text={item?.gov_action_proposal_id} truncate>
-              <img src="/svgs/copy.svg" alt="copy" />
-            </CopyToClipboard>
-          </Box>
+          <div className="flex flex-wrap items-center gap-2 items-end justify-between">
+            <Box className="flex w-fit items-center gap-2 rounded-full border px-3 py-1 text-xs text-gray-500">
+              <p className="">Action ID:</p>
+              <CopyToClipboard text={item?.gov_action_proposal_id} truncate>
+                <img src="/svgs/copy.svg" alt="copy" className="opacity-50" />
+              </CopyToClipboard>
+            </Box>
 
-          {renderRationaleButton()}
-          <ViewExternalGovAction actionId={item?.gov_action_proposal_id} />
+            {submittedAt && (
+              <div className="flex flex-col items-end px-1">
+                <p className="text-[9px] uppercase font-bold text-gray-400">Submitted at</p>
+                <p className="text-[10px] font-medium text-gray-500">
+                  {new Date(submittedAt).toLocaleString(undefined, {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 mt-2">
+            {renderRationaleButton()}
+            <ViewExternalGovAction actionId={item?.gov_action_proposal_id} />
+          </div>
         </Box>
       </Box>
     </Box>

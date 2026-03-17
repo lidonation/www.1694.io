@@ -271,7 +271,7 @@ export class DrepService {
     return {
       appliedStartTime: options.startTimeCursor || Date.now() - 432000000, // 5 days ago default
       appliedEndTime: options.endTimeCursor || Date.now(),
-      entries: result.events,
+      entries: result.entries,
     };
   }
 
@@ -411,7 +411,7 @@ export class DrepService {
       map(result => ({
         appliedStartTime: startTimeCursor || Date.now(),
         appliedEndTime: endTimeCursor || Date.now(),
-        entries: result.events
+        entries: result.entries
       }))
     );
   }
@@ -434,7 +434,8 @@ export class DrepService {
       });
 
       // Convert governance indexer timeline to expected format
-      const entries = timelineData.events.map(event => ({
+      const entries = timelineData.entries.map(event => ({
+        id: event.id,
         timestamp: event.timestamp,
         type: event.type,
         epochNo: event.epochNo,

@@ -86,7 +86,18 @@ const DrepDelegatorCard = ({ item }: { item: DelegationData }) => {
   return (
     <div className="flex w-full flex-col gap-2 text-center">
       {Number(total_stake) > 0 && <p className="text-sm font-bold">{formatTotalStake(total_stake, added_power)} ₳</p>}
-      <StakeAddressLink stakeAddress={stake_address} addressLength={addressLength} />
+      <div className="flex flex-col items-center">
+        <StakeAddressLink stakeAddress={stake_address} addressLength={addressLength} />
+        <p className="text-[10px] text-gray-400 font-medium">
+          {new Date((item as any).timestamp).toLocaleString(undefined, { 
+            month: 'short', 
+            day: 'numeric', 
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          })}
+        </p>
+      </div>
       <div className="flex w-full items-center justify-center">
         {previous_drep ? (
           <DrepLink

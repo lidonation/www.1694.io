@@ -172,8 +172,18 @@ export class GovernanceService {
       loadDirection?: 'older' | 'newer';
     } = {},
   ) {
-    const startTime = options.startTimeCursor ? new Date(options.startTimeCursor) : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000); // 7 days ago
-    const endTime = options.endTimeCursor ? new Date(options.endTimeCursor) : new Date();
+    const now = Date.now();
+    let startTime = new Date(now - 7 * 24 * 60 * 60 * 1000); // 7 days ago
+    let endTime = new Date(now);
+
+    if (options.startTimeCursor) {
+      const d = new Date(Number(options.startTimeCursor));
+      if (!isNaN(d.getTime())) startTime = d;
+    }
+    if (options.endTimeCursor) {
+      const d = new Date(Number(options.endTimeCursor));
+      if (!isNaN(d.getTime())) endTime = d;
+    }
     
     // Build query for timeline events
     const queryBuilder = this.governanceDataSource
@@ -181,7 +191,9 @@ export class GovernanceService {
       .createQueryBuilder('event')
       .leftJoin('proposals', 'proposal', "proposal.tx_hash = event.metadata->>'gov_action_proposal_id' AND proposal.cert_index = (event.metadata->>'proposal_index')::int")
       .leftJoin('proposal_metadata', 'meta', 'meta.proposal_id = proposal.id')
-      .addSelect(['proposal.governanceType', 'meta.jsonMetadata'])
+      .addSelect('proposal.governance_type', 'proposal_governance_type')
+      .addSelect('proposal.block_time', 'proposal_block_time')
+      .addSelect('meta.json_metadata', 'meta_json_metadata')
       .where('event.drepId = :voterId', { voterId });
 
     if (options.loadDirection === 'older') {
@@ -212,6 +224,7 @@ export class GovernanceService {
       const formatted = this.formatTimelineEventForAPI(event);
       
       let proposal = null;
+      let propInception = null;
 
       // Inject proposal metadata for voting events
       if (formatted.type === 'voting_activity') {
@@ -221,12 +234,14 @@ export class GovernanceService {
             title: rawData.meta_json_metadata?.body?.title || null,
             abstract: rawData.meta_json_metadata?.body?.abstract || null,
             rationale: rawData.meta_json_metadata?.body?.rationale || null,
-            type: rawData.proposal_governance_type || null
+            type: rawData.proposal_governance_type || null,
+            submitted_at: rawData.proposal_block_time,
           };
         }
       }
       return {
         ...formatted,
+        prop_inception: propInception,
         proposal
       };
     });
@@ -252,7 +267,7 @@ export class GovernanceService {
     const limitedEvents = timelineEvents.slice(0, options.minItems || 20);
 
     return {
-      events: limitedEvents,
+      entries: limitedEvents,
       hasMore: limitedEvents.length === (options.minItems || 20),
       cursor: limitedEvents.length > 0 ? 
         (limitedEvents[limitedEvents.length - 1].timestamp instanceof Date ? 
@@ -365,10 +380,11 @@ export class GovernanceService {
     
     for (let epoch = Math.max(startEpoch, 0); epoch <= endEpoch; epoch++) {
       const epochStartTime = 1506203091000 + (epoch * 5 * 24 * 60 * 60 * 1000);
-      if (epochStartTime >= startTime.getTime() && epochStartTime <= endTime.getTime()) {
+      if (epochStartTime >= startTime.getTime() && epochStartTime < endTime.getTime()) {
         epochEvents.push({
+          id: `epoch-${epoch}`,
           type: 'epoch',
-          timestamp: new Date(epochStartTime + (5 * 24 * 60 * 60 * 1000)),
+          timestamp: new Date(epochStartTime),
           no: epoch,
           epochNo: epoch,
           start_time: new Date(epochStartTime).toISOString(),

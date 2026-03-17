@@ -1,4 +1,5 @@
 export type Epoch = {
+  id: string;
   start_time: string;
   end_time: string;
   no: number;
@@ -7,6 +8,7 @@ export type Epoch = {
 };
 
 export type DrepVote = {
+  id: string | number;
   view: string;
   gov_action_proposal_id: string;
   gov_action_proposal_index: string;
@@ -32,6 +34,7 @@ export type DrepVote = {
 };
 
 export type Delegation = {
+  id: string | number;
   stake_address: string;
   target_drep: string;
   current_drep: string;
@@ -49,6 +52,7 @@ export type Delegation = {
 };
 
 export type DRepNote = {
+  id: string | number;
   note_deletedAt: null;
   note_id: number;
   note_createdAt: string;
@@ -70,12 +74,14 @@ export type DRepNote = {
 };
 
 export type DRepClaimProfile = {
+  id: string | number;
   type: 'claimed_profile';
   timestamp: string;
   claimingId: number;
   claimedDRepId: string;
 };
 export type Registration = {
+  id: string | number;
   type: 'registration';
   timestamp: string;
   tx_hash: string;
