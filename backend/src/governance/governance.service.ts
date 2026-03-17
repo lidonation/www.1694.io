@@ -368,7 +368,7 @@ export class GovernanceService {
       if (epochStartTime >= startTime.getTime() && epochStartTime <= endTime.getTime()) {
         epochEvents.push({
           type: 'epoch',
-          timestamp: new Date(epochStartTime + (5 * 24 * 60 * 60 * 1000)),
+          timestamp: new Date(epochStartTime),
           no: epoch,
           epochNo: epoch,
           start_time: new Date(epochStartTime).toISOString(),
