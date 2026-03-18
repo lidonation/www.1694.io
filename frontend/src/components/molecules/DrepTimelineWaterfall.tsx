@@ -71,44 +71,126 @@ const DrepTimelineWaterfall = ({
   }, [activity]);
 
   const processedActivity = React.useMemo(() => {
-    const result: any[] = [];
-    let currentBundle: any[] = [];
+    try {
+      if (!activity || !Array.isArray(activity)) return [];
 
-    activity.forEach((item, index) => {
-      if (item.type === 'delegation') {
-        currentBundle.push(item);
-      } else {
+      // 1. Separate epoch boundaries and sort them DESC by epoch number
+      const epochBoundaries = [...activity.filter(item => item && item.type === 'epoch')]
+        .sort((a, b) => (b.no || 0) - (a.no || 0));
+      const otherActivities = activity.filter(item => item && item.type !== 'epoch');
+      
+      const EPOCH_DURATION = 432000000; // 5 days in ms
+
+      // 2. Pre-calculate epoch windows for robust timestamp matching
+      const epochWindows = epochBoundaries.map(e => {
+        const start = e.start_time ? new Date(e.start_time).getTime() : 0;
+        const end = e.end_time ? new Date(e.end_time).getTime() : (start ? start + EPOCH_DURATION : 0);
+        return { no: e.no, header: e, start, end };
+      });
+
+      // 2b. Prepare reference for mathematical calculation if headers are missing
+      const refHeader = epochWindows[0];
+
+      // 3. Group non-epoch items by their epoch number
+      const groups = new Map<number, any[]>();
+      let currentBundle: any[] = [];
+
+      const getEffectiveEpochNo = (item: any) => {
+        if (!item) return null;
+        
+        // Priority 1: Direct epoch_no on item or proposal
+        const explicit = item.epoch_no || item.proposal?.epoch_no;
+        if (explicit) return explicit;
+
+        // Priority 2: Timestamp-based matching against existing windows
+        const tsString = item.timestamp || item.voted_at || item.submitted_at || (item.items && item.items[0]?.timestamp);
+        if (tsString) {
+          const ts = new Date(tsString).getTime();
+          if (!isNaN(ts)) {
+            const matched = epochWindows.find(w => ts >= w.start && ts <= w.end);
+            if (matched) return matched.no;
+
+            // Priority 3: Mathematical calculation relative to first header
+            if (refHeader) {
+               return refHeader.no + Math.floor((ts - refHeader.start) / EPOCH_DURATION);
+            }
+          }
+        }
+        
+        return null;
+      };
+
+      const pushToGroup = (item: any) => {
+        if (!item) return;
+        const epochNo = getEffectiveEpochNo(item);
+        
+        // If we still can't find an epoch, use a dummy or skip grouping
+        const finalEpochNo = epochNo !== null ? epochNo : -1;
+
+        if (!groups.has(finalEpochNo)) groups.set(finalEpochNo, []);
+        groups.get(finalEpochNo)?.push(item);
+      };
+
+      const finalizeBundle = () => {
         if (currentBundle.length > 0) {
           if (currentBundle.length > 1) {
-            result.push({
+            pushToGroup({
               type: 'bundled_delegations',
               items: [...currentBundle],
               id: `bundle-${currentBundle[0].id}`,
-              timestamp: currentBundle[0].timestamp
+              timestamp: currentBundle[0].timestamp,
+              epoch_no: currentBundle[0].epoch_no
             });
           } else {
-            result.push(currentBundle[0]);
+            pushToGroup(currentBundle[0]);
           }
           currentBundle = [];
         }
-        result.push(item);
-      }
+      };
 
-      if (index === activity.length - 1 && currentBundle.length > 0) {
-        if (currentBundle.length > 1) {
-          result.push({
-            type: 'bundled_delegations',
-            items: [...currentBundle],
-            id: `bundle-${currentBundle[0].id}`,
-            timestamp: currentBundle[0].timestamp
-          });
+      otherActivities.forEach((item) => {
+        if (item.type === 'delegation') {
+          currentBundle.push(item);
         } else {
-          result.push(currentBundle[0]);
+          finalizeBundle();
+          pushToGroup(item);
         }
-      }
-    });
+      });
+      finalizeBundle();
 
-    return result;
+      // 4. Build final interleaved list: Newest Epoch Header -> Newest Epoch Events -> ...
+      const result: any[] = [];
+      const usedEpochs = new Set<number>();
+
+      epochBoundaries.forEach(header => {
+        result.push(header);
+        usedEpochs.add(header.no);
+        
+        const items = groups.get(header.no);
+        if (items) {
+          result.push(...items);
+        }
+      });
+
+      // 5. Catch-all for items whose epoch headers might be missing from the 'activity' array
+      const remainingEpochNos = Array.from(groups.keys()).sort((a, b) => b - a);
+      remainingEpochNos.forEach(no => {
+        if (!usedEpochs.has(no) && no !== -1) {
+          // Push items from missing epochs separately
+          const items = groups.get(no);
+          if (items) result.push(...items);
+        }
+      });
+
+      // 6. Handle items that failed all epoch detection (-1 group)
+      const unmapped = groups.get(-1);
+      if (unmapped) result.push(...unmapped);
+
+      return result;
+    } catch (err) {
+      console.error('Error processing timeline activity:', err);
+      return activity;
+    }
   }, [activity]);
 
   const stickyPos = React.useMemo(() => {

@@ -87,6 +87,17 @@ const EpochTimelineCard = ({ epoch, minimal = false }: EpochTimelineCardProps) =
             style={{ width: `${progress}%` }}
           />
         </div>
+
+        {/* Section Header Hint */}
+        <div className={`${minimal ? 'mt-2.5 pt-2.5' : 'mt-4 pt-4'} border-t ${isCurrent ? 'border-[#56c9c2]/30' : 'border-gray-200/50'} flex items-center justify-between`}>
+          <div className="flex items-center gap-2 opacity-80">
+            <div className={`h-1.5 w-1.5 rounded-full ${isCurrent ? 'bg-[#156e69] animate-pulse' : 'bg-[#84c3c0]'}`} />
+            <p className={`${minimal ? 'text-[8px]' : 'text-[9px]'} font-bold uppercase tracking-widest ${isCurrent ? 'text-[#156e69]' : 'text-[#649c99]'}`}>
+              Events in this Epoch
+            </p>
+          </div>
+          <img src="/svgs/chevron-down.svg" className={`h-3 w-3 opacity-40 ${isCurrent ? 'text-[#156e69]' : 'text-[#649c99]'}`} alt="Below" />
+        </div>
       </div>
     </div>
   );
