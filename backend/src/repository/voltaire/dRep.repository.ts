@@ -572,33 +572,37 @@ export class DRepRepository extends Repository<VoltaireDrep> {
     const timelineEvents = await this.voltaireDb
       .createQueryBuilder()
       .select('*')
-      .from('timeline_delegations_enriched', 'tle')
-      .where('tle.target_drep IN (:...drepIds)', { drepIds: canonicalIds })
-      .andWhere('tle.timestamp >= :startTime', { startTime: startingTime })
-      .andWhere('tle.timestamp <= :endTime', { endTime: endingTime })
-      .orderBy('tle.timestamp', 'DESC')
+      .from('drep_timeline_event', 'dte')
+      .where('dte.drep_id IN (:...drepIds)', { drepIds: canonicalIds })
+      .andWhere("dte.event_type = 'delegation'")
+      .andWhere('dte.timestamp >= :startTime', { startTime: startingTime })
+      .andWhere('dte.timestamp <= :endTime', { endTime: endingTime })
+      .orderBy('dte.timestamp', 'DESC')
       .getRawMany();
 
-    return timelineEvents.map((event) => ({
-      stake_address: event.stake_address,
-      target_drep: event.target_drep,
-      current_drep: event.current_drep,
-      previous_drep: event.previous_drep,
-      timestamp: event.timestamp,
-      delegation_epoch: event.delegation_epoch || event.epoch,
-      tx_hash: event.tx_hash,
-      type: 'delegation' as const,
-      total_stake: event.best_stake_lovelace || '0',
-      total_stake_ada: parseFloat(event.best_stake_ada) || 0,
-      voting_power_lovelace: event.current_voting_power_lovelace || '0',
-      voting_power_ada: parseFloat(event.current_voting_power_ada) || 0,
-      added_power: event.added_power,
-      delegation_status: event.delegation_status,
-      current_delegated_drep: event.current_delegated_drep,
-      epochNo: event.epoch,
-      epoch: event.epoch,
-      slot: event.slot,
-    }));
+    return timelineEvents.map((event) => {
+      const meta = typeof event.metadata === 'string' ? JSON.parse(event.metadata) : event.metadata;
+      return {
+        stake_address: event.stake_address,
+        target_drep: event.drep_id,
+        current_drep: meta?.current_drep || event.drep_id,
+        previous_drep: meta?.previous_drep || event.previous_drep,
+        timestamp: event.timestamp,
+        delegation_epoch: meta?.delegation_epoch || event.epoch,
+        tx_hash: event.tx_hash,
+        type: 'delegation' as const,
+        total_stake: meta?.total_stake || '0',
+        total_stake_ada: (parseFloat(meta?.total_stake) / 1_000_000) || 0,
+        voting_power_lovelace: meta?.total_stake || '0',
+        voting_power_ada: (parseFloat(meta?.total_stake) / 1_000_000) || 0,
+        added_power: meta?.added_power,
+        delegation_status: meta?.delegation_status,
+        current_delegated_drep: meta?.current_drep,
+        epochNo: event.epoch,
+        epoch: event.epoch,
+        slot: event.slot,
+      };
+    });
   }
 
   async isDrepRegistered(voterId: string) {

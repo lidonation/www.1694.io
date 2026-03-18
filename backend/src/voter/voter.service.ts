@@ -92,38 +92,97 @@ export class VoterService {
         }));
 
       } else if (voterIdentity.includes('stake')) {
-        // Get stake address info from Blockfrost
+        // 1. Get stake address info from Blockfrost (Optional)
+        let stakeInfo: any = null;
         try {
-          const stakeInfo = await this.blockfrostService.getStakeAddressInfo(voterIdentity);
+          stakeInfo = await this.blockfrostService.getStakeAddressInfo(voterIdentity);
+        } catch (blockfrostError) {
+          console.warn('Blockfrost error for stake address (continuing with DB):', blockfrostError?.message);
+        }
 
-          // Get delegation info from the timeline to get full history
-          const delegationData = await this.voltaireDb.query(
-            `SELECT tle.target_drep as drep_id, tle.current_voting_power_lovelace as amount_lovelace, tle.timestamp as updated_at, d.metadata->'json_metadata'->'body'->>'givenName' as given_name
-             FROM timeline_delegations_enriched tle
-             LEFT JOIN dreps d ON d.drep_id = tle.target_drep
-             WHERE tle.stake_address = $1
-             ORDER BY tle.timestamp DESC`,
+        // 2. Get delegation info from the local DB (History & Snapshot)
+        try {
+          const historicalDelegations = await this.voltaireDb.query(
+            `SELECT 
+              dte.drep_id, 
+              dte.metadata->>'total_stake' as amount_lovelace, 
+              dte.timestamp, 
+              d.metadata->'json_metadata'->'body'->>'givenName' as given_name,
+              d.has_script,
+              d.hex as chain_id,
+              dte.tx_hash,
+              dte.epoch as delegation_epoch
+             FROM drep_timeline_event dte
+             LEFT JOIN dreps d ON d.drep_id = dte.drep_id
+             WHERE dte.stake_address = $1 AND dte.event_type = 'delegation'
+             ORDER BY dte.timestamp DESC`,
             [voterIdentity]
           );
 
+          const currentDelegationRecord = await this.voltaireDb.query(
+            `SELECT 
+              dd.drep_id, 
+              d.metadata->'json_metadata'->'body'->>'givenName' as given_name, 
+              d.has_script, 
+              d.hex as chain_id,
+              dd.amount_lovelace, 
+              dd.updated_at as timestamp
+             FROM drep_delegators dd
+             LEFT JOIN dreps d ON d.drep_id = dd.drep_id
+             WHERE dd.stake_address = $1
+             LIMIT 1`,
+            [voterIdentity]
+          );
+
+          const currentSnapshot = currentDelegationRecord[0];
+
           voterData = {
             address: voterIdentity,
-            total_stake: parseFloat(stakeInfo?.controlled_amount || '0') / 1000000, // Convert from lovelace
-            drep_id: delegationData[0]?.drep_id || null, // Most recent delegation
+            // Prefer Blockfrost for balance, fallback to DB snapshot if available
+            total_stake: stakeInfo 
+              ? (parseFloat(stakeInfo.controlled_amount || '0') / 1000000)
+              : (currentSnapshot ? (parseFloat(currentSnapshot.amount_lovelace || '0') / 1000000) : 0),
+            drep_id: currentSnapshot?.drep_id || historicalDelegations[0]?.drep_id || null,
             stake_address: voterIdentity,
           };
 
-          delegationHistory = delegationData.map((d: any) => ({
+          delegationHistory = historicalDelegations.map((d: any) => ({
             drep_id: d.drep_id,
-            drep_name: d.given_name,
+            drep_name: d.given_name || 'DRep',
             amount: d.amount_lovelace,
-            timestamp: d.updated_at,
+            timestamp: d.timestamp,
+            has_script: d.has_script,
+            chain_id: d.chain_id,
+            tx_hash: d.tx_hash,
+            delegation_epoch: d.delegation_epoch,
             type: 'delegation'
           }));
 
-        } catch (blockfrostError) {
-          console.error('Blockfrost error:', blockfrostError);
-          return null;
+          // Merge current delegation if missing from history (sync lag)
+          if (currentSnapshot && !delegationHistory.some(h => h.drep_id === currentSnapshot.drep_id)) {
+            delegationHistory.unshift({
+              drep_id: currentSnapshot.drep_id,
+              drep_name: currentSnapshot.given_name || 'DRep',
+              amount: currentSnapshot.amount_lovelace,
+              timestamp: currentSnapshot.timestamp,
+              has_script: currentSnapshot.has_script,
+              chain_id: currentSnapshot.chain_id,
+              type: 'delegation',
+              is_current: true
+            });
+          }
+        } catch (dbError) {
+          console.error('Database error in getVoter history:', dbError);
+          // If DB fails but we have stakeInfo, return at least that
+          if (stakeInfo) {
+            voterData = {
+              address: voterIdentity,
+              total_stake: parseFloat(stakeInfo.controlled_amount || '0') / 1000000,
+              stake_address: voterIdentity,
+            };
+          } else {
+            return null;
+          }
         }
 
       } else {
