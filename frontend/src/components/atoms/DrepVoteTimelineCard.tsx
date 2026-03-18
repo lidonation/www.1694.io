@@ -1,5 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { Box } from '@mui/material';
+import { Box, Typography, Tooltip } from '@mui/material';
+import { keyframes } from '@emotion/react';
+
+const highlightAnimation = keyframes`
+  0% {
+    box-shadow: 0 0 0 0px var(--highlight-glow), 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    border-color: transparent;
+  }
+  20% {
+    box-shadow: 0 0 0 4px var(--highlight-glow), 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+    border-color: var(--highlight-border);
+  }
+  100% {
+    box-shadow: 0 0 0 0px var(--highlight-glow), 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    border-color: transparent;
+  }
+`;
+
 import CopyToClipboard from './CopyToClipboard';
 import { DrepVote } from '../../../types/timeline';
 import Button from './Button';
@@ -14,27 +31,42 @@ import { ViewExternalGovAction } from '@/components/atoms/ViewExternalGovAction'
 interface DrepVoteTimelineCardProps {
   item: DrepVote | GovAction;
   isVoteOwner?: boolean;
+  minimal?: boolean;
 }
 
-const VoteStatusChip = ({ date, vote }: { date: string; vote: string }) => {
+const VoteStatusChip = ({ date, vote, minimal }: { date: string; vote: string; minimal?: boolean }) => {
   const [bgcolor, setBgColor] = useState('complementary-100');
+  const [icon, setIcon] = useState('/svgs/file-check.svg');
 
   useEffect(() => {
-    if (vote === 'No') setBgColor('bg-red-100');
-    else if (vote === 'Yes') setBgColor('bg-green-100');
-    else if (vote === 'Abstain') setBgColor('bg-complementary-100');
-  }, []);
+    if (vote === 'No') {
+      setBgColor('bg-red-100');
+      setIcon('/svgs/close.svg');
+    } else if (vote === 'Yes') {
+      setBgColor('bg-green-100');
+      setIcon('/svgs/check.svg');
+    } else if (vote === 'Abstain') {
+      setBgColor('bg-complementary-100');
+      setIcon('/svgs/alert-circle.svg');
+    }
+  }, [vote]);
+
   return (
     <div className="flex flex-row items-center justify-between">
       <div
-        className={`flex w-fit flex-row items-center gap-1 rounded-full ${bgcolor} px-2 py-1 text-sm`}
+        className={`flex w-fit flex-row items-center gap-1 rounded-full ${bgcolor} ${minimal ? 'p-0.5 px-1.5' : 'px-2 py-1'} text-sm`}
       >
-        <img src="/svgs/file-check.svg" className="h-5 w-5" alt="Vote icon" />
+        <img src={icon} className={`${minimal ? 'h-3.5 w-3.5' : 'h-5 w-5'}`} alt="Vote icon" />
+        {minimal && <span className={`text-[10px] font-bold ${vote === 'Yes' ? 'text-green-700' : vote === 'No' ? 'text-red-700' : 'text-gray-600'}`}>{vote}</span>}
       </div>
       <div className="flex flex-col items-end">
-        <p className="text-[9px] uppercase font-bold text-gray-400 leading-none">Voted at</p>
-        <p className="text-[11px] font-medium text-gray-500">
-          {new Date(date).toLocaleString(undefined, {
+        {!minimal && <p className="text-[9px] uppercase font-bold text-gray-400 leading-none">Voted at</p>}
+        <p className={`${minimal ? 'text-[10px]' : 'text-[11px]'} font-medium text-gray-500`}>
+          {new Date(date).toLocaleString(undefined, minimal ? {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+          } : {
             month: 'short',
             day: 'numeric',
             year: 'numeric',
@@ -49,8 +81,44 @@ const VoteStatusChip = ({ date, vote }: { date: string; vote: string }) => {
 
 const DrepVoteTimelineCard = ({
   item,
-  isVoteOwner,
+  isVoteOwner = false,
+  minimal = false,
 }: DrepVoteTimelineCardProps) => {
+  const [isHighlighted, setIsHighlighted] = useState(false);
+  const elementId = `vote-${(item as any)?.id || (item as any)?.vote_tx_hash || (item as any)?.gov_action_proposal_id}`;
+
+  const highlightStyles = {
+    Yes: {
+      glow: 'rgba(52, 211, 153, 0.4)',
+      border: '#10b981',
+    },
+    No: {
+      glow: 'rgba(239, 68, 68, 0.4)',
+      border: '#ef4444',
+    },
+    Abstain: {
+      glow: 'rgba(156, 163, 175, 0.4)',
+      border: '#9ca3af',
+    },
+  };
+
+  const currentHighlight = highlightStyles[item.vote as keyof typeof highlightStyles] || highlightStyles.Abstain;
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (hash === `#${elementId}`) {
+        setIsHighlighted(true);
+        setTimeout(() => setIsHighlighted(false), 2000);
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    handleHashChange(); // Check on mount
+
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [elementId]);
+
   const [rationaleModalOptions, setRationalModalOptions] =
     useState<VoteRationaleModalProps>({
       mode: 'view',
@@ -142,7 +210,7 @@ const DrepVoteTimelineCard = ({
             color="primary"
             size="small"
           >
-            View Rationale
+            {minimal ? 'Rationale' : 'View Rationale'}
           </Button>
         );
 
@@ -168,7 +236,7 @@ const DrepVoteTimelineCard = ({
             color="primary"
             size="small"
           >
-            Add Rationale
+            {minimal ? '+ Rationale' : 'Add Rationale'}
           </Button>
         );
 
@@ -187,10 +255,19 @@ const DrepVoteTimelineCard = ({
 
   return (
     <Box
-      id="epoch-card"
-      className="flex w-full flex-col gap-3 rounded-xl bg-white p-3 shadow-lg"
+      id={elementId}
+      className={`flex w-full flex-col ${minimal ? 'gap-2 p-2.5' : 'gap-3 p-3'} rounded-xl bg-white shadow-lg`}
+      sx={{
+        border: '2px solid transparent',
+        transition: 'all 0.3s ease',
+        '--highlight-glow': currentHighlight.glow,
+        '--highlight-border': currentHighlight.border,
+        ...(isHighlighted && {
+          animation: `${highlightAnimation} 2s ease-out forwards`,
+        })
+      }}
     >
-      <VoteStatusChip date={item?.time_voted} vote={item?.vote} />
+      <VoteStatusChip date={item?.time_voted} vote={item?.vote} minimal={minimal} />
       <VoteRationaleModal {...rationaleModalOptions} />
       <hr className="border-gray-100" />
       <Box
@@ -200,15 +277,15 @@ const DrepVoteTimelineCard = ({
           justifyContent: 'space-between',
           height: '100%',
           flex: '1',
-          gap: '1rem',
+          gap: minimal ? '0.5rem' : '1rem',
         }}
       >
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           <Box>
-            <p className="overflow-hidden text-ellipsis text-sm font-bold">
+            <p className={`overflow-hidden text-ellipsis ${minimal ? 'text-xs' : 'text-sm'} font-bold`}>
               {title || '-'}
             </p>
-            {(item as DrepVote).proposal?.rationale && (
+            {!minimal && (item as DrepVote).proposal?.rationale && (
               <p className="mt-2 line-clamp-3 text-xs text-gray-500">
                 {(item as DrepVote).proposal?.rationale}
               </p>
@@ -218,28 +295,28 @@ const DrepVoteTimelineCard = ({
           {actionDetais.actionName !== '' && (
             <Box>
               <Box
-                className={`flex w-fit items-center gap-2 rounded-full bg-slate-200 p-1 px-3 py-1 text-sm`}
+                className={`flex w-fit items-center gap-2 rounded-full bg-slate-200 ${minimal ? 'px-2 py-0.5 text-[10px]' : 'px-3 py-1 text-sm'}`}
               >
                 <img
                   src={actionDetais.imgSrc}
                   alt={`${actionDetais.actionName} icon`}
-                  className="h-5 w-5"
+                  className={minimal ? 'h-3 w-3' : 'h-5 w-5'}
                 />
-                <p className="whitespace-normal break-words text-left">{actionDetais.actionName}</p>
+                <p className="whitespace-normal break-words text-left">{minimal && actionDetais.actionName.length > 30 ? actionDetais.actionName.substring(0, 30) + '...' : actionDetais.actionName}</p>
               </Box>
             </Box>
           )}
         </Box>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           <div className="flex flex-wrap items-center gap-2 items-end justify-between">
-            <Box className="flex w-fit items-center gap-2 rounded-full border px-3 py-1 text-xs text-gray-500">
+            <Box className={`flex w-fit items-center gap-1 rounded-full border ${minimal ? 'px-2 py-0.5 text-[9px]' : 'px-3 py-1 text-xs'} text-gray-500`}>
               <p className="">Action ID:</p>
               <CopyToClipboard text={item?.gov_action_proposal_id} truncate>
-                <img src="/svgs/copy.svg" alt="copy" className="opacity-50" />
+                <img src="/svgs/copy.svg" alt="copy" className="h-3 w-3 opacity-50" />
               </CopyToClipboard>
             </Box>
 
-            {submittedAt && (
+            {!minimal && submittedAt && (
               <div className="flex flex-col items-end px-1">
                 <p className="text-[9px] uppercase font-bold text-gray-400">Submitted at</p>
                 <p className="text-[10px] font-medium text-gray-500">
@@ -255,9 +332,9 @@ const DrepVoteTimelineCard = ({
             )}
           </div>
 
-          <div className="flex items-center gap-2 mt-2">
+          <div className={`flex items-center gap-2 ${minimal ? 'mt-1' : 'mt-2'}`}>
             {renderRationaleButton()}
-            <ViewExternalGovAction actionId={item?.gov_action_proposal_id} />
+            <ViewExternalGovAction actionId={item?.gov_action_proposal_id} minimal={minimal} />
           </div>
         </Box>
       </Box>

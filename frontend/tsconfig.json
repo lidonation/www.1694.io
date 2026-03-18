@@ -36,7 +36,8 @@
     "src/context/context.js",
     ".next/types/**/*.ts",
     "src/app/[locale]/layout.js",
-    "src/app/[locale]/page.js"
+    "src/app/[locale]/page.js",
+    ".next/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"
