@@ -220,18 +220,6 @@ const DRepTimeline = ({ drep }: { drep: any }) => {
         >
           <div className="flex w-full flex-col gap-2">
             <Box className="flex w-full flex-col items-center gap-2">
-              {!isAtLatestPoint && (
-                <div
-                  className="flex cursor-pointer items-center gap-2 rounded border px-2 py-1 hover:bg-gray-200"
-                  onClick={loadNewerData}
-                >
-                  <ReloadIcon color="black" width={20} height={18} />
-                  <p className="text-base font-medium text-orange-500 ">
-                    Load Newer
-                  </p>
-                </div>
-              )}
-
               <Box className="flex flex-col items-center">
                 {isAtLatestPoint && DRepActivity.length > 0 && (
                   <Typography
@@ -281,6 +269,10 @@ const DRepTimeline = ({ drep }: { drep: any }) => {
               <DrepTimelineWaterfall
                 activity={DRepActivity}
                 drepId={drepid as string}
+                isAtLatestPoint={isAtLatestPoint}
+                isAtOldestPoint={isAtOldestPoint}
+                onLoadNewer={loadNewerData}
+                onLoadOlder={loadMoreData}
               />
             )}
 
@@ -311,17 +303,6 @@ const DRepTimeline = ({ drep }: { drep: any }) => {
                   <p className="text-gray-500">You're all caught up!</p>
                 )}
               </Box>
-              {!isAtOldestPoint && (
-                <Box
-                  className="flex cursor-pointer items-center gap-2 rounded border px-2 py-1 hover:bg-gray-200"
-                  onClick={loadMoreData}
-                >
-                  <ReloadIcon color="black" width={20} height={18} />
-                  <p className="text-base font-medium text-orange-500 ">
-                    Load Older
-                  </p>
-                </Box>
-              )}
             </Box>
           </div>
         </Fade>

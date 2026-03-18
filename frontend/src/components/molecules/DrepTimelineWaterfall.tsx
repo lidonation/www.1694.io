@@ -1,30 +1,29 @@
-import * as React from 'react';
-import Timeline from '@mui/lab/Timeline';
-import TimelineItem, { timelineItemClasses } from '@mui/lab/TimelineItem';
-import TimelineSeparator from '@mui/lab/TimelineSeparator';
-import TimelineConnector from '@mui/lab/TimelineConnector';
-import TimelineContent from '@mui/lab/TimelineContent';
-import TimelineDot from '@mui/lab/TimelineDot';
+'use client';
+import React from 'react';
 import { useScreenDimension } from '@/hooks';
-import SingleNote from '../dreps/notes/SingleNote';
-import EpochTimelineCard from '../atoms/EpochTimelineCard';
-import DrepVoteTimelineCard from '../atoms/DrepVoteTimelineCard';
-import Link from 'next/link';
-import { urls } from '@/constants';
-import { ProfileClaimedChip } from './ProfileClaimedChip';
-import DrepDelegatorCard from '../atoms/DrepDelegatorCard';
-import { TimelineItem as DRepTimelineItem } from '../../../types/timeline';
 import { useWallet } from '@/context/globalContext';
 import { convertDrepPhraseToCIP105Legacy } from '@/lib';
+import { Tooltip } from '@mui/material';
+import DrepTimelineMobile from './DrepTimelineMobile';
+import DrepTimelineDesktop from './DrepTimelineDesktop';
 
 const DrepTimelineWaterfall = ({
   activity = [],
   drepId,
+  isAtLatestPoint,
+  isAtOldestPoint,
+  onLoadNewer,
+  onLoadOlder,
 }: {
   activity: any[];
   drepId: string;
+  isAtLatestPoint?: boolean;
+  isAtOldestPoint?: boolean;
+  onLoadNewer?: () => void;
+  onLoadOlder?: () => void;
 }) => {
   const { isMobile, screenWidth } = useScreenDimension();
+  const timelineRef = React.useRef<HTMLDivElement>(null);
   const {
     wallet: { stakeKeyBech32, isConnected },
     user: { dRepProfilesClaimed },
@@ -34,147 +33,166 @@ const DrepTimelineWaterfall = ({
       drep.claimedDRepBech32 === convertDrepPhraseToCIP105Legacy(drepId),
   );
 
+  const [stickyTargetId, setStickyTargetId] = React.useState<{ newer: string | null; older: string | null }>({
+    newer: null,
+    older: null
+  });
+
+  React.useEffect(() => {
+    const handleScroll = () => {
+      const votes = document.querySelectorAll('[id^="vote-"]');
+      let currentVoteId: string | null = null;
+      let minDistance = Infinity;
+
+      votes.forEach((v) => {
+        const rect = v.getBoundingClientRect();
+        const distance = Math.abs(rect.top - window.innerHeight / 2);
+        if (distance < minDistance) {
+          minDistance = distance;
+          currentVoteId = v.id.replace('vote-', '');
+        }
+      });
+
+      if (currentVoteId) {
+        const index = activity.findIndex(i => i.id === currentVoteId || i.vote_tx_hash === currentVoteId || i.gov_action_proposal_id === currentVoteId);
+        const newer = activity.slice(0, index).reverse().find(i => i.type === 'voting_activity');
+        const older = activity.slice(index + 1).find(i => i.type === 'voting_activity');
+        
+        setStickyTargetId({
+          newer: (newer as any)?.id || (newer as any)?.vote_tx_hash || (newer as any)?.gov_action_proposal_id || null,
+          older: (older as any)?.id || (older as any)?.vote_tx_hash || (older as any)?.gov_action_proposal_id || null
+        });
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [activity]);
+
+  const processedActivity = React.useMemo(() => {
+    const result: any[] = [];
+    let currentBundle: any[] = [];
+
+    activity.forEach((item, index) => {
+      if (item.type === 'delegation') {
+        currentBundle.push(item);
+      } else {
+        if (currentBundle.length > 0) {
+          if (currentBundle.length > 1) {
+            result.push({
+              type: 'bundled_delegations',
+              items: [...currentBundle],
+              id: `bundle-${currentBundle[0].id}`,
+              timestamp: currentBundle[0].timestamp
+            });
+          } else {
+            result.push(currentBundle[0]);
+          }
+          currentBundle = [];
+        }
+        result.push(item);
+      }
+
+      if (index === activity.length - 1 && currentBundle.length > 0) {
+        if (currentBundle.length > 1) {
+          result.push({
+            type: 'bundled_delegations',
+            items: [...currentBundle],
+            id: `bundle-${currentBundle[0].id}`,
+            timestamp: currentBundle[0].timestamp
+          });
+        } else {
+          result.push(currentBundle[0]);
+        }
+      }
+    });
+
+    return result;
+  }, [activity]);
+
+  const stickyPos = React.useMemo(() => {
+    if (screenWidth >= 1400) return { right: 'calc(50% - 700px)', left: 'auto' };
+    if (screenWidth >= 1024) return { right: '16px', left: 'auto' };
+    return { right: 'auto', left: '8px' };
+  }, [screenWidth]);
+
+  const commonProps = {
+    processedActivity,
+    isAtLatestPoint,
+    isAtOldestPoint,
+    onLoadNewer,
+    onLoadOlder,
+    stakeKeyBech32,
+    isConnected,
+    isOwner,
+  };
+
   return (
-    <Timeline
-      sx={{
-        ...((isMobile || screenWidth < 1024) && {
-          [`& .${timelineItemClasses.root}:before`]: {
-            flex: 0,
-            padding: 0,
-          },
-        }),
-      }}
-      position={screenWidth < 1024 ? 'right' : 'alternate-reverse'}
-    >
-      {activity &&
-        activity.length > 0 &&
-        activity.map((item: DRepTimelineItem) => (
-          <React.Fragment key={item.id}>
-            {item.type === 'note' && (
-              <div className="flex w-full flex-col items-center space-y-2">
-                <TimelineSeparator>
-                  <TimelineDot />
-                  <TimelineConnector
-                    className="h-10 border-2 border-dotted border-gray-300"
-                    sx={{ backgroundColor: 'white' }}
-                  />
-                </TimelineSeparator>
-                <div className="w-full">
-                  <SingleNote
-                    note={item}
-                    currentVoter={stakeKeyBech32}
-                    isConnected={isConnected}
-                  />
-                </div>
-                <TimelineSeparator>
-                  <TimelineConnector
-                    className="h-10 border-2 border-dotted border-gray-300"
-                    sx={{ backgroundColor: 'white' }}
-                  />
-                </TimelineSeparator>
-              </div>
-            )}
-            {item.type === 'epoch' && (
-              <div className="flex w-full flex-col items-center space-y-2">
-                <TimelineSeparator>
-                  <TimelineDot />
-                  <TimelineConnector
-                    className="h-10 border-2 border-dotted border-gray-300"
-                    sx={{ backgroundColor: 'white' }}
-                  />
-                </TimelineSeparator>
-                <EpochTimelineCard epoch={item} />
-                <TimelineSeparator>
-                  <TimelineConnector
-                    className="h-10 border-2 border-dotted border-gray-300"
-                    sx={{ backgroundColor: 'white' }}
-                  />
-                </TimelineSeparator>
-              </div>
-            )}
-            {item.type === 'registration' && (
-              <div className="flex w-full flex-col items-center space-y-2">
-                <TimelineSeparator>
-                  <TimelineDot />
-                  <TimelineConnector
-                    className="h-10 border-2 border-dotted border-gray-300"
-                    sx={{ backgroundColor: 'white' }}
-                  />
-                </TimelineSeparator>
-                <Link
-                  href={`${urls.cexplorerUrl}/tx/${item?.tx_hash}`}
-                  target="_blank"
-                >
-                  <div className="flex flex-row items-center justify-center gap-2 text-nowrap text-gray-500 hover:cursor-pointer hover:text-gray-800">
-                    <img src="/svgs/external-link.svg" alt="" />
-                    <p>Registered, Epoch {item?.epoch_no}</p>
-                    <p className="text-[10px] text-gray-400 font-medium">
-                      {new Date(item.timestamp).toLocaleString(undefined, { 
-                        month: 'short', 
-                        day: 'numeric', 
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </p>
-                  </div>
-                </Link>
-              </div>
-            )}
-            {item.type === 'claimed_profile' && (
-              <div className="flex w-full flex-col items-center space-y-2">
-                <TimelineSeparator>
-                  <TimelineDot />
-                  <TimelineConnector
-                    className="h-10 border-2 border-dotted border-gray-300"
-                    sx={{ backgroundColor: 'white' }}
-                  />
-                </TimelineSeparator>
-                <ProfileClaimedChip
-                  claimedAddress={item.claimedDRepId}
-                  dateOfClaim={item.timestamp}
-                />
-              </div>
-            )}
-            {item.type === 'voting_activity' && (
-              <TimelineItem>
-                <TimelineSeparator>
-                  <TimelineConnector
-                    className="border-2 border-dotted border-gray-300"
-                    sx={{
-                      backgroundColor: 'white',
-                      height: '24px',
-                      flexGrow: 0,
-                    }}
-                  />
-                  <TimelineDot />
-                  <TimelineConnector
-                    className="h-10 border-2 border-dotted border-gray-300"
-                    sx={{ backgroundColor: 'white' }}
-                  />
-                </TimelineSeparator>
-                <TimelineContent sx={{ minWidth: 0 }}>
-                  <DrepVoteTimelineCard item={item} isVoteOwner={isOwner} />
-                </TimelineContent>
-              </TimelineItem>
-            )}
-            {item.type === 'delegation' && (
-              <TimelineItem>
-                <TimelineSeparator>
-                  <TimelineDot />
-                  <TimelineConnector
-                    className="h-10 border-2 border-dotted border-gray-300"
-                    sx={{ backgroundColor: 'white' }}
-                  />
-                </TimelineSeparator>
-                <TimelineContent sx={{ minWidth: 0 }}>
-                  <DrepDelegatorCard item={item} />
-                </TimelineContent>
-              </TimelineItem>
-            )}
-          </React.Fragment>
-        ))}
-    </Timeline>
+    <div className="relative w-full" ref={timelineRef}>
+      <div 
+        className="fixed z-50 flex flex-col gap-2"
+        style={{ 
+          top: '50%', 
+          right: stickyPos.right, 
+          left: stickyPos.left,
+          transform: 'translateY(-50%)' 
+        }}
+      >
+        <Tooltip title={stickyTargetId.newer ? "Jump to Newer Vote" : isAtLatestPoint ? "No more newer votes" : "Load Newer History"} placement="left">
+          <button 
+            onClick={() => {
+              if (stickyTargetId.newer) {
+                const targetId = `vote-${stickyTargetId.newer}`;
+                // Update URL without jumping
+                window.history.pushState(null, '', `#${targetId}`);
+                // Manually trigger hashchange for highlight animation
+                window.dispatchEvent(new HashChangeEvent('hashchange'));
+                // Smooth scroll
+                document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              } else if (onLoadNewer && !isAtLatestPoint) {
+                onLoadNewer();
+              } else {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+            }}
+            className={`p-1.5 sm:p-2 rounded-full bg-white border border-gray-200 text-gray-500 transition-all shadow-lg hover:bg-gray-50 hover:scale-110 ${!stickyTargetId.newer && isAtLatestPoint ? 'opacity-30' : 'opacity-100'}`}
+          >
+            <img src="/svgs/chevron-up.svg" className="w-4 h-4 sm:w-5 sm:h-5" alt="Up" />
+          </button>
+        </Tooltip>
+
+        <Tooltip title={stickyTargetId.older ? "Jump to Older Vote" : isAtOldestPoint ? "No more older votes" : "Load Older History"} placement="left">
+          <button 
+            onClick={() => {
+              if (stickyTargetId.older) {
+                const targetId = `vote-${stickyTargetId.older}`;
+                // Update URL without jumping
+                window.history.pushState(null, '', `#${targetId}`);
+                // Manually trigger hashchange for highlight animation
+                window.dispatchEvent(new HashChangeEvent('hashchange'));
+                // Smooth scroll
+                document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              } else if (onLoadOlder && !isAtOldestPoint) {
+                onLoadOlder();
+              } else {
+                timelineRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+              }
+            }}
+            className={`p-1.5 sm:p-2 rounded-full bg-white border border-gray-200 text-gray-500 transition-all shadow-lg hover:bg-gray-50 hover:scale-110 ${!stickyTargetId.older && isAtOldestPoint ? 'opacity-30' : 'opacity-100'}`}
+          >
+            <img src="/svgs/chevron-down.svg" className="w-4 h-4 sm:w-5 sm:h-5" alt="Down" />
+          </button>
+        </Tooltip>
+      </div>
+
+      {isMobile ? (
+        <DrepTimelineMobile {...commonProps} />
+      ) : (
+        <DrepTimelineDesktop {...commonProps} /> 
+      )}
+    </div>
   );
 };
+
 export default React.memo(DrepTimelineWaterfall);
