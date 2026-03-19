@@ -14,9 +14,11 @@ import CIPPathtoactive from '@/components/1694.io/1694Pathtoactive';
 import CIPAcknowledgments from '@/components/1694.io/1694Acknowledgments';
 import { Header } from '@/components/atoms/Header';
 import Footer from '@/components/atoms/Footer';
+import TableOfContents from '../../components/molecules/table-of-contents';
 import CopyRight from '@/components/1694.io/CopyRight';
 import ScrollToTop from '@/components/atoms/ScrollToTop';
 import TranslationBlock from '@/components/1694.io/TranslationBlock';
+import GovernanceLifecycle from '../../components/molecules/Lifecycle';
 
 const Page = () => {
   const [raw, setRaw] = useState(null);
@@ -54,20 +56,24 @@ const Page = () => {
     <div className="w-full bg-[url(/img/1694-asset-1.png)] bg-auto bg-right-top bg-no-repeat">
       <Background>
         <Header />
+        <TableOfContents />
         {/* Disabled till further notice */}
         {/* <TranslationBlock/> */}
         <ScrollToTop />
-        <CIPIntro />
-        <CIPInfo />
-        <CIPMotivationInfo />
+        <div id="intro"><CIPIntro /></div>
+        <div id="lifecycle" className="base_container py-12">
+          <GovernanceLifecycle />
+        </div>
+        <div id="summary"><CIPInfo /></div>
+        <div id="motivation"><CIPMotivationInfo /></div>
         <ConversationsCard conversations={comments} />
-        <CIPSpecifications />
-        <CIPDRepInfo />
-        <CIPGovernanceActions />
-        <CIPRationale />
-        <CIPChangelog />
-        <CIPPathtoactive />
-        <CIPAcknowledgments />
+        <div id="specifications"><CIPSpecifications /></div>
+        <div id="dreps"><CIPDRepInfo /></div>
+        <div id="governance-actions"><CIPGovernanceActions /></div>
+        <div id="rationale"><CIPRationale /></div>
+        <div id="changelog"><CIPChangelog /></div>
+        <div id="path-to-active"><CIPPathtoactive /></div>
+        <div id="acknowledgments"><CIPAcknowledgments /></div>
         <CopyRight />
         <Footer />
       </Background>

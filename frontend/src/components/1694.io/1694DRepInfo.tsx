@@ -1,6 +1,7 @@
 import React from 'react';
 import ToastCard from './ToastCard';
 import Separator from './Separator';
+import VotingPowerCalculator from '../molecules/voting-power-calculator';
 
 const CIPDRepInfo = () => {
   return (
@@ -12,6 +13,9 @@ const CIPDRepInfo = () => {
         >
           <p>Delegated</p>
           <p>Representatives (DReps)</p>
+        </div>
+        <div className="mb-10 max-w-2xl">
+          <VotingPowerCalculator />
         </div>
         <div className="flex flex-col items-center justify-center gap-8">
           <ToastCard

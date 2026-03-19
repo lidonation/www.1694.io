@@ -1,5 +1,5 @@
-import React from 'react';
 import BecomeADRepButton from './BecomeADRepButton';
+import { TermTooltip } from '../atoms/term-tooltip';
 
 const CIPInfo = () => {
   return (
@@ -19,8 +19,8 @@ const CIPInfo = () => {
           transaction bodies for:
         </p>
         <ol className="ml-10 list-decimal">
-          <li>governance actions </li>
-          <li>votes</li>
+          <li><TermTooltip term="Governance Action">governance actions</TermTooltip> </li>
+          <li><TermTooltip term="Ratification">votes</TermTooltip></li>
         </ol>
 
         <p>
@@ -33,11 +33,11 @@ const CIPInfo = () => {
           <li>a constitutional committee</li>
           <li>
             a group of delegated representatives (henceforth called{' '}
-            <span className="font-bold">DReps</span>)
+            <span className="font-bold"><TermTooltip term="DRep">DReps</TermTooltip></span>)
           </li>
           <li>
             the stake pool operators (henceforth called{' '}
-            <span className="font-bold">SPOs</span>).
+            <span className="font-bold"><TermTooltip term="SPO">SPOs</TermTooltip></span>).
           </li>
         </ol>
 
@@ -53,11 +53,11 @@ const CIPInfo = () => {
           on-chain, following a set of well-defined rules.
         </p>
         <p>
-          As with stake pools, any Ada holder may register to be a DRep and so
+          As with stake pools, any Ada holder may register to be a <TermTooltip term="DRep" /> and so
           choose to represent themselves and/or others. Also, as with stake
           pools, Ada holders may, instead, delegate their voting rights to any
-          other DRep. Voting rights will be based on the total Ada that is
-          delegated, as a whole number of Lovelace.
+          other <TermTooltip term="DRep" />. Voting rights will be based on the total Ada that is
+          delegated, as a whole number of <TermTooltip term="Lovelace" />.
         </p>
 
         <p>

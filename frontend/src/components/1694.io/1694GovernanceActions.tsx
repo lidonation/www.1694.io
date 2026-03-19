@@ -3,7 +3,7 @@ import GovernanceActionsTable from './GovernanceActionsTable';
 import ToastCard from './ToastCard';
 import Separator from './Separator';
 import HotLinks from './HotLinks';
-import GovernanceActionsTypeTable from './GovernanceActionsTypeTable';
+import GovernanceExplorer from '@/components/1694.io/GovernanceExplorer';
 import GovernanceActionsDescTable from './GovernanceActionsDescTable';
 
 const CIPGovernanceActions = () => {
@@ -149,7 +149,7 @@ const CIPGovernanceActions = () => {
                 <br />A value of - means that SPO votes do not apply
               </li>
             </ul>
-            <GovernanceActionsTypeTable />
+            <GovernanceExplorer />
             <p>
               Each of these thresholds is a governance parameter. There is one
               additional threshold, Q5, related to security relevant protocol

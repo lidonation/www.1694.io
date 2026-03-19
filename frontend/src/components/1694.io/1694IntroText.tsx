@@ -1,4 +1,5 @@
 import React from 'react';
+import { TermTooltip } from '../atoms/term-tooltip';
 
 const CIPIntroText = () => {
   return (
@@ -6,7 +7,7 @@ const CIPIntroText = () => {
       <div className="text-start text-4xl lg:text-6xl font-black text-zinc-800">
         <p>CIP 1694 - An On-Chain</p>
         <p>Decentralized Governance</p>
-        <p>Mechanism for Voltaire</p>
+        <p>Mechanism for <TermTooltip term="Voltaire" /></p>
       </div>
       <div className="lg:pr-40 text-lg font-light text-gray-800 ">
         <hr className="border border-black opacity-50" />
@@ -16,7 +17,7 @@ const CIPIntroText = () => {
           governance support for protocol parameter updates and MIR certificates
           will be removed, and two new fields will be added to normal
           transaction bodies :
-          <span className="font-bold"> governance actions, votes.</span>
+          <span className="font-bold"> <TermTooltip term="Governance Action">governance actions</TermTooltip>, <TermTooltip term="Ratification">votes</TermTooltip>.</span>
         </p>
       </div>
     </div>
