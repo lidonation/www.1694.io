@@ -93,7 +93,6 @@ const DrepTimelineWaterfall = ({
 
       // 3. Group non-epoch items by their epoch number
       const groups = new Map<number, any[]>();
-      let currentBundle: any[] = [];
 
       const getEffectiveEpochNo = (item: any) => {
         if (!item) return null;
@@ -131,32 +130,14 @@ const DrepTimelineWaterfall = ({
         groups.get(finalEpochNo)?.push(item);
       };
 
-      const finalizeBundle = () => {
-        if (currentBundle.length > 0) {
-          if (currentBundle.length > 1) {
-            pushToGroup({
-              type: 'bundled_delegations',
-              items: [...currentBundle],
-              id: `bundle-${currentBundle[0].id}`,
-              timestamp: currentBundle[0].timestamp,
-              epoch_no: currentBundle[0].epoch_no
-            });
-          } else {
-            pushToGroup(currentBundle[0]);
-          }
-          currentBundle = [];
-        }
-      };
-
+      const allDelegations: any[] = [];
       otherActivities.forEach((item) => {
         if (item.type === 'delegation') {
-          currentBundle.push(item);
+          allDelegations.push(item);
         } else {
-          finalizeBundle();
           pushToGroup(item);
         }
       });
-      finalizeBundle();
 
       // 4. Build final interleaved list: Newest Epoch Header -> Newest Epoch Events -> ...
       const result: any[] = [];
@@ -176,7 +157,6 @@ const DrepTimelineWaterfall = ({
       const remainingEpochNos = Array.from(groups.keys()).sort((a, b) => b - a);
       remainingEpochNos.forEach(no => {
         if (!usedEpochs.has(no) && no !== -1) {
-          // Push items from missing epochs separately
           const items = groups.get(no);
           if (items) result.push(...items);
         }
@@ -185,6 +165,17 @@ const DrepTimelineWaterfall = ({
       // 6. Handle items that failed all epoch detection (-1 group)
       const unmapped = groups.get(-1);
       if (unmapped) result.push(...unmapped);
+
+      // 7. Append all delegations as a single bundle at the end
+      if (allDelegations.length > 0) {
+        result.push({
+          type: 'bundled_delegations',
+          items: allDelegations,
+          id: `bundle-all-delegations`,
+          timestamp: allDelegations[0].timestamp,
+          epoch_no: allDelegations[0].epoch_no
+        });
+      }
 
       return result;
     } catch (err) {
