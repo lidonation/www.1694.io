@@ -346,7 +346,7 @@ production:
       when: manual
 
 ui-chrome-tests:
-  image: cypress/included:cypress-13.13.1-node-20.15.1-chrome-126.0.6478.126-1-ff-128.0-edge-126.0.2592.102-1
+  image: cypress/included:cypress-13.17.0-node-22.12.0-chrome-131.0.6778.139-1-ff-133.0.3-edge-131.0.2903.94-1
   stage: test
   cache:
     key: ${CI_COMMIT_REF_SLUG}

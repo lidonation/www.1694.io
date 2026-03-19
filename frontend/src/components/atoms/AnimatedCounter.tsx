@@ -21,17 +21,14 @@ export const AnimatedCounter = ({
   // Move formatNumber function before it's used
   const formatNumber = (num: number, formatStr: string): string => {
     if (formatStr.includes('(,ddd)')) {
-      const parts = num.toString().split('.');
+      const dotIndex = formatStr.indexOf('.');
+      const decimalCount = dotIndex !== -1 ? formatStr.substring(dotIndex + 1).length : 0;
+      
+      const fixedNum = num.toFixed(decimalCount);
+      const parts = fixedNum.split('.');
       parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
       
-      if (formatStr.includes('.d')) {
-        return parts.length > 1 ? parts.join('.') : parts[0] + '.0';
-      } else if (formatStr.includes('.dd')) {
-        const decimal = parts.length > 1 ? parts[1].padEnd(2, '0').substring(0, 2) : '00';
-        return parts[0] + '.' + decimal;
-      }
-      
-      return parts[0];
+      return parts.length > 1 ? parts.join('.') : parts[0];
     }
     
     return num.toString();
@@ -44,7 +41,7 @@ export const AnimatedCounter = ({
   });
   
   const display = useTransform(spring, (current) =>
-    formatNumber(Math.round(current), format)
+    formatNumber(current, format)
   );
 
   useEffect(() => {
