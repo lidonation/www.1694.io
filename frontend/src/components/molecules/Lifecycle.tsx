@@ -12,7 +12,9 @@ import { StepConnector, stepConnectorClasses, styled } from '@mui/material';
 
 const ColorlibConnector = styled(StepConnector)(({ theme }) => ({
   [`&.${stepConnectorClasses.alternativeLabel}`]: {
-    top: 22,
+    top: 24,
+    left: 'calc(-50% + 24px)',
+    right: 'calc(50% + 24px)',
   },
   [`&.${stepConnectorClasses.active}`]: {
     [`& .${stepConnectorClasses.line}`]: {
@@ -38,6 +40,8 @@ const ColorlibConnector = styled(StepConnector)(({ theme }) => ({
     backgroundColor: '#eaeaf0',
     borderRadius: 1,
     marginLeft: 12, // Offset to align with the center of the 48px icon box
+    marginTop: 8,
+    marginBottom: 8,
   },
 }));
 
