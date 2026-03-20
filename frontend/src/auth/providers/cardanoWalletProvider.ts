@@ -400,13 +400,18 @@ export class CardanoWalletProvider implements AuthenticationProvider {
       this.addressBech32 = Address.from_hex(this.address).to_bech32();
 
       console.log('Fetching stake keys (cip95)...');
-      const registeredStakeKeysList =
-        await enabledApi.cip95.getRegisteredPubStakeKeys();
-      this.registeredStakeKeysListState = registeredStakeKeysList;
-      const unregisteredStakeKeysList =
-        await enabledApi.cip95.getUnregisteredPubStakeKeys();
+      let registeredStakeKeysList: string[] = [];
+      let unregisteredStakeKeysList: string[] = [];
+      
+      if (enabledApi.cip95) {
+        registeredStakeKeysList = await enabledApi.cip95.getRegisteredPubStakeKeys() || [];
+        this.registeredStakeKeysListState = registeredStakeKeysList;
+        unregisteredStakeKeysList = await enabledApi.cip95.getUnregisteredPubStakeKeys() || [];
+      } else {
+        console.warn('CIP-95 API not found on enabled wallet, even though it was expected.');
+      }
 
-      let stakeKeysList;
+      let stakeKeysList: string[] = [];
       if (registeredStakeKeysList.length > 0) {
         stakeKeysList = registeredStakeKeysList.map((stakeKey) => {
           const stakeKeyHash = PublicKey.from_hex(stakeKey).hash();
@@ -416,7 +421,7 @@ export class CardanoWalletProvider implements AuthenticationProvider {
           else
             return RewardAddress.new(0, stakeCredential).to_address().to_hex();
         });
-      } else {
+      } else if (unregisteredStakeKeysList.length > 0) {
         console.warn('warnings.usingUnregisteredStakeKeys');
         stakeKeysList = unregisteredStakeKeysList.map((stakeKey) => {
           const stakeKeyHash = PublicKey.from_hex(stakeKey).hash();
@@ -427,7 +432,7 @@ export class CardanoWalletProvider implements AuthenticationProvider {
             return RewardAddress.new(0, stakeCredential).to_address().to_hex();
         });
       }
-
+      
       this.stakeKeys = stakeKeysList;
 
       let stakeKeySet = false;
