@@ -367,19 +367,24 @@ export class CardanoWalletProvider implements AuthenticationProvider {
       }
 
       this.enabledNetwork = network;
+      console.log('Fetching change address...');
       await this.getChangeAddress(enabledApi);
+      console.log('Fetching used addresses...');
       await this.getUsedAddresses(enabledApi);
       this.isEnabled = true;
       this.walletApi = enabledApi;
       // Check if wallet has enabled the CIP-95 extension
+      console.log('Checking extensions...');
       const enabledExtensions = await enabledApi.getExtensions();
       if (!enabledExtensions.some((item) => item.cip === 95)) {
         throw new Error('Wallet does not support CIP-95 extensions');
       }
 
       //Check and set wallet balance
+      console.log('Checking balance...');
       await this.getBalance(enabledApi);
       // Check and set wallet address
+      console.log('Checking used/unused addresses...');
       const usedAddresses = await enabledApi.getUsedAddresses();
       const unusedAddresses = await enabledApi.getUnusedAddresses();
       if (!usedAddresses.length && !unusedAddresses.length) {
@@ -387,12 +392,14 @@ export class CardanoWalletProvider implements AuthenticationProvider {
       }
       if (!usedAddresses.length) {
         this.address = unusedAddresses[0];
-        this.addressBech32 = Address.from_hex(this.address).to_bech32();
+        console.log('Using unused address:', this.address);
       } else {
         this.address = usedAddresses[0];
-        this.addressBech32 = Address.from_hex(this.address).to_bech32();
+        console.log('Using used address:', this.address);
       }
+      this.addressBech32 = Address.from_hex(this.address).to_bech32();
 
+      console.log('Fetching stake keys (cip95)...');
       const registeredStakeKeysList =
         await enabledApi.cip95.getRegisteredPubStakeKeys();
       this.registeredStakeKeysListState = registeredStakeKeysList;
@@ -443,22 +450,37 @@ export class CardanoWalletProvider implements AuthenticationProvider {
         setItemToLocalStorage(`${WALLET_LS_KEY}_stake_key`, stakeKeysList[0]);
         stakeKeySet = true;
       }
+      console.log('Fetching PubDRepID...');
       const dRepIDs = await getPubDRepID(enabledApi);
       this.pubDRepKey = dRepIDs?.dRepKey || '';
       this.dRepID = dRepIDs?.dRepID || '';
       this.dRepIDBech32 = dRepIDs?.dRepIDBech32 || '';
+
+      console.log('Setting epoch params...');
       await setEpochParams();
+      console.log('Fetching DRep registration status...');
       await this.getDRepRegistration();
+
       setItemToLocalStorage(`${WALLET_LS_KEY}_name`, walletName);
       setItemToLocalStorage(`${WALLET_LS_KEY}_api`, enabledApi);
       this.isEnabling = false;
       this.isEnableLoading = null;
       this.isEnabled = true;
+      console.log('Wallet enable successful');
       return { status: 'ok', stakeKey: stakeKeySet };
     } catch (e) {
-      console.error(e);
+      console.error('Error during enable wallet:', e);
       this.resetProviderState();
-      throw new Error(e?.info?.error || e?.message || 'Error enabling wallet');
+      // Try to extract a meaningful error message
+      let errorMsg = 'Error enabling wallet';
+      if (typeof e === 'string') {
+        errorMsg = e;
+      } else if (e instanceof Error) {
+        errorMsg = e.message;
+      } else if (e && typeof e === 'object') {
+        errorMsg = e.info?.error || e.message || JSON.stringify(e);
+      }
+      throw new Error(errorMsg);
     }
   }
 }
