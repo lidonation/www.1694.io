@@ -48,6 +48,7 @@ export interface AuthenticationProvider {
 
 export enum AuthMethod {
   HOT_WALLET = 'hot_wallet',
+  MESH_HOT_WALLET = 'mesh_hot_wallet',
   LOGIN_FILE = 'login_file',
 }
 

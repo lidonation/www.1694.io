@@ -1,8 +1,9 @@
-import { Box, Typography } from '@mui/material';
-import { useMemo } from 'react';
+import { Box, Typography, FormControlLabel, Switch } from '@mui/material';
+import { useMemo, useState } from 'react';
 import { ModalContents, ModalHeader, ModalWrapper } from '../atoms';
 import type { WalletOption } from '../molecules';
 import { WalletOptionButton } from '../molecules';
+import { AuthMethod as ExtendedAuthMethod } from '../../../types/auth';
 
 interface ChooseWalletModalProps {
   hideCloseButton: boolean;
@@ -15,6 +16,8 @@ export function ChooseWalletModal({
   onClose,
   open,
 }: ChooseWalletModalProps) {
+  const [useMesh, setUseMesh] = useState(false);
+
   if (!open) return null;
 
   const walletOptions: WalletOption[] = useMemo(() => {
@@ -22,24 +25,27 @@ export function ChooseWalletModal({
     const keys = Object.keys(window.cardano);
     const resultWallets: WalletOption[] = [];
     keys.forEach((k: string) => {
-      const { icon, name, supportedExtensions } = window.cardano[k];
-      if (icon && name && supportedExtensions) {
-        // Check if the name already exists in resultWallets
-        const isNameDuplicate = resultWallets.some(
-          (wallet) => wallet.label === name,
-        );
-        // Check if the supportedExtensions array contains an entry with cip === 95
-        const isCip95Available = Boolean(
-          supportedExtensions?.find((i) => i.cip === 95),
-        );
-        // If the name is not a duplicate and cip === 95 is available, add it to resultWallets
-        if (!isNameDuplicate && isCip95Available) {
-          resultWallets.push({
-            icon,
-            label: name,
-            name: k,
-            cip95Available: true,
-          });
+      const cardanoWallet = window.cardano[k];
+      if (cardanoWallet) {
+        const { icon, name, supportedExtensions } = cardanoWallet;
+        if (icon && name) {
+          // Check if the name already exists in resultWallets
+          const isNameDuplicate = resultWallets.some(
+            (wallet) => wallet.label === name,
+          );
+          // Check if the supportedExtensions array contains an entry with cip === 95
+          const isCip95Available = Boolean(
+            supportedExtensions?.find((i) => i.cip === 95),
+          );
+          // If the name is not a duplicate and cip === 95 is available, add it to resultWallets
+          if (!isNameDuplicate && isCip95Available) {
+            resultWallets.push({
+              icon,
+              label: name,
+              name: k,
+              cip95Available: true,
+            });
+          }
         }
       }
     });
@@ -58,12 +64,29 @@ export function ChooseWalletModal({
           sx={{
             fontSize: '16px',
             fontWeight: '500',
-            marginBottom: '24px',
             textAlign: 'center',
           }}
         >
           Choose Wallet
         </Typography>
+
+        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={useMesh}
+                onChange={(e) => setUseMesh(e.target.checked)}
+                size="small"
+              />
+            }
+            label={
+              <Typography sx={{ fontSize: '14px', fontWeight: '500' }}>
+                Use Mesh SDK (Experimental)
+              </Typography>
+            }
+          />
+        </Box>
+
         <Box
           sx={{
             display: 'flex',
@@ -93,6 +116,11 @@ export function ChooseWalletModal({
                   label={label}
                   name={name}
                   cip95Available={cip95Available}
+                  authMethod={
+                    useMesh
+                      ? ExtendedAuthMethod.MESH_HOT_WALLET
+                      : ExtendedAuthMethod.HOT_WALLET
+                  }
                 />
               );
             })

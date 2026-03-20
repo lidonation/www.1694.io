@@ -10,6 +10,7 @@ export interface WalletOption {
   name: string;
   cip95Available: boolean;
   dataTestId?: string;
+  authMethod?: ExtendedAuthMethod;
 }
 
 export const WalletOptionButton: FC<WalletOption> = ({ ...props }) => {
@@ -19,16 +20,20 @@ export const WalletOptionButton: FC<WalletOption> = ({ ...props }) => {
   const { closeModal } = useModals();
   const { addErrorAlert } = useGlobalNotifications();
   const { connectWallet } = useWallet();
-  const { dataTestId, icon, label, name, cip95Available } = props;
+  const {
+    dataTestId,
+    icon,
+    label,
+    name,
+    cip95Available,
+    authMethod = ExtendedAuthMethod.HOT_WALLET,
+  } = props;
 
   const enableByWalletName = useCallback(async () => {
     try {
       if (isConnecting) return;
 
-      const { success, error } = await connectWallet(
-        ExtendedAuthMethod.HOT_WALLET,
-        name,
-      );
+      const { success, error } = await connectWallet(authMethod, name);
 
       if (success) {
         closeModal(ModalType.LOGIN);
@@ -41,7 +46,7 @@ export const WalletOptionButton: FC<WalletOption> = ({ ...props }) => {
       addErrorAlert(String(error?.error ? error?.error : error));
       console.log(error);
     }
-  }, [isConnecting, name]);
+  }, [isConnecting, name, authMethod]);
 
   return (
     <Box

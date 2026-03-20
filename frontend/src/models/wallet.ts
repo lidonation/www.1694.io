@@ -84,28 +84,28 @@ export interface Protocol {
 }
 
 export interface CardanoApiWallet {
-  experimental: any;
-  cip95: {
+  experimental: {
+    getCollateral(): Promise<string[] | undefined>;
+    signTxs?(txs: any[], partialSign: boolean): Promise<string[]>;
+  };
+  cip95?: {
     getPubDRepKey(): Promise<string>;
     getRegisteredPubStakeKeys(): Promise<string[]>;
     getUnregisteredPubStakeKeys(): Promise<string[]>;
-    signData(): Promise<any>;
+    signData(address: string, payload: string): Promise<any>;
   };
   isEnabled(): Promise<boolean>;
   getBalance(): Promise<string>;
-  getUtxos(): Promise<string[]>;
-  getCollateral?(): Promise<string[]>;
+  getUtxos(): Promise<string[] | undefined>;
+  getCollateral?(): Promise<string[] | undefined>;
   getUsedAddresses(): Promise<string[]>;
   getUnusedAddresses(): Promise<string[]>;
   getChangeAddress(): Promise<string>;
-  getRewardAddress(): Promise<string>;
+  getRewardAddresses(): Promise<string[]>;
   getNetworkId(): Promise<number>;
-  signData(arg0: any, arg1?: any): Promise<any>;
-  signTx(arg0: any, arg1?: any): Promise<any>;
-  submitTx(arg0: any): Promise<any>;
-  onAccountChange(arg0: (addresses: string) => void): Promise<void>;
-  onNetworkChange(arg0: (network: number) => void): Promise<void>;
-  getActivePubStakeKeys(): Promise<string[]>;
+  signData(address: string, payload: string): Promise<any>;
+  signTx(tx: string, partialSign?: boolean): Promise<string>;
+  submitTx(tx: string): Promise<string>;
   getExtensions(): Promise<Extension[]>;
 }
 
