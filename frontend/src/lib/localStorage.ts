@@ -10,14 +10,30 @@ export const PROPOSAL_FILTERS_LS_KEY = 'proposal_filters';
 export const PROPOSAL_SORT_LS_KEY = 'proposal_sort';
 
 export function getItemFromLocalStorage(key: string) {
-  const item = window.localStorage.getItem(key);
-  return item ? JSON.parse(item) : null;
+  if (typeof window === 'undefined') return null;
+  try {
+    const item = window.localStorage.getItem(key);
+    return item ? JSON.parse(item) : null;
+  } catch (error) {
+    console.error('Error getting item from localStorage:', error);
+    return null;
+  }
 }
 
 export function setItemToLocalStorage(key: string, data: any) {
-  window.localStorage.setItem(key, JSON.stringify(data));
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(key, JSON.stringify(data));
+  } catch (error) {
+    console.error('Error setting item in localStorage:', error);
+  }
 }
 
 export function removeItemFromLocalStorage(key: string) {
-  window.localStorage.removeItem(key);
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.removeItem(key);
+  } catch (error) {
+    console.error('Error removing item from localStorage:', error);
+  }
 }

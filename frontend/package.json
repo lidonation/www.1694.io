@@ -58,6 +58,7 @@
     "js-cookie": "^3.0.5",
     "jsonld": "^8.3.3",
     "jwt-decode": "^4.0.0",
+    "lightningcss": "^1.28.2",
     "lodash": "^4.17.21",
     "marked": "^13.0.2",
     "next": "^15.3.4",

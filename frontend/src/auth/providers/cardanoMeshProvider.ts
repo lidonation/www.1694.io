@@ -1,4 +1,3 @@
-import { BrowserWallet } from '@meshsdk/core';
 import {
   AuthenticationProvider,
   AccountInfo,
@@ -12,13 +11,12 @@ import {
   removeItemFromLocalStorage,
   setItemToLocalStorage,
   WALLET_LS_KEY,
-  ACTIVE_PROVIDER_LS_KEY,
 } from '@/lib';
 import { CONFIGURED_NETWORK_ID } from '@/constants';
 import { getDRepRegStatus } from '@/services/requests/getDRepRegStatus';
 
 export class CardanoMeshProvider implements AuthenticationProvider {
-  private wallet: BrowserWallet | null = null;
+  private wallet: any | null = null;
   private walletName: string | null = null;
   private connected: boolean = false;
   private accountInfo: AccountInfo | null = null;
@@ -28,7 +26,8 @@ export class CardanoMeshProvider implements AuthenticationProvider {
 
   async connect(walletName: string): Promise<AuthResult> {
     try {
-      console.log(`Connecting to wallet: ${walletName} via MeshJS`);
+      
+      const { BrowserWallet } = await import('@meshsdk/core');
       
       // Enable wallet with CIP-95 extension
       this.wallet = await BrowserWallet.enable(walletName, [{ cip: 95 }]);
@@ -95,15 +94,26 @@ export class CardanoMeshProvider implements AuthenticationProvider {
   private async fetchAccountInfo(): Promise<AccountInfo> {
     if (!this.wallet) throw new Error('Wallet not enabled');
 
-    const address = await this.wallet.getChangeAddress();
+    const { convertAddressToBech32 } = await import('@/lib');
+    
+    // Use the low-level wallet API for signing to avoid Bech32 issues in high-level SDKs
+    const walletApi = await window.cardano[this.walletName!].enable();
+    
+    const rawAddress = await walletApi.getChangeAddress();
+    const address = convertAddressToBech32(rawAddress);
+    
     const balance = await this.wallet.getLovelace();
-    const rewardAddresses = await this.wallet.getRewardAddresses();
-    const stakeKeyBech32 = rewardAddresses[0];
+    const hexRewardAddresses = await walletApi.getRewardAddresses();
+
+    if (!hexRewardAddresses || hexRewardAddresses.length === 0) {
+      throw new Error('No reward addresses found in wallet');
+    }
+    const stakeKeyHex = hexRewardAddresses[0];
+    const stakeKeyBech32 = convertAddressToBech32(stakeKeyHex);
 
     // CIP-95 specific data
-    // In MeshJS, CIP-95 methods are accessed via the enabled wallet's internal API
-    const walletApi = await window.cardano[this.walletName!].enable();
-    const dRepIDBech32 = walletApi.cip95?.getPubDRepKey() // This is hex, need to convert
+    const dRepKey = await walletApi.cip95?.getPubDRepKey();
+    const dRepIDBech32 = dRepKey
       ? await this.getDRepIdentifier(walletApi)
       : '';
     
@@ -111,9 +121,17 @@ export class CardanoMeshProvider implements AuthenticationProvider {
 
     // Fetch DRep registration status from backend
     let dRepRegistration = null;
-    if (dRepIDBech32) {
+    if (dRepIDBech32 && dRepIDBech32.includes('1')) {
       dRepRegistration = await getDRepRegStatus(dRepIDBech32);
     }
+
+    // Backend authentication credentials
+    // IMPORTANT: The backend expects this exact message
+    const message = 'Please verify your identity';
+    const payloadHex = Buffer.from(message).toString('hex');
+    
+    // Sign using the low-level API with the hex address
+    const signedData = await walletApi.signData(stakeKeyHex, payloadHex);
 
     return {
       address: '', 
@@ -121,9 +139,13 @@ export class CardanoMeshProvider implements AuthenticationProvider {
       stakeKeyBech32: stakeKeyBech32,
       registeredStakeKeysListState: registeredStakeKeys,
       balance: balance,
+      loginCredentials: {
+        signature: signedData.signature,
+        key: signedData.key,
+      },
       dRepInfo: {
         isDRep: !!dRepRegistration?.registered,
-        dRepId: dRepIDBech32 ? fromBech32ToHex(dRepIDBech32) : null,
+        dRepId: (dRepIDBech32 && dRepIDBech32.includes('1')) ? fromBech32ToHex(dRepIDBech32) : null,
         dRepIdBech32: dRepIDBech32,
         votingPower: dRepRegistration?.voting_power || '0',
         delegatedTo: dRepRegistration?.delegated_to || '',
@@ -137,7 +159,7 @@ export class CardanoMeshProvider implements AuthenticationProvider {
       const dRepIDs = await getPubDRepID(walletApi);
       return dRepIDs.dRepIDBech32;
     } catch (e) {
-      console.error('Error getting DRep ID in Mesh provider:', e);
+      console.error('Error getting DRep ID:', e);
       return '';
     }
   }
