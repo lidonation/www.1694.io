@@ -19,16 +19,19 @@ export const WalletOptionButton: FC<WalletOption> = ({ ...props }) => {
   const { closeModal } = useModals();
   const { addErrorAlert } = useGlobalNotifications();
   const { connectWallet } = useWallet();
-  const { dataTestId, icon, label, name, cip95Available } = props;
+  const {
+    dataTestId,
+    icon,
+    label,
+    name,
+    cip95Available,
+  } = props;
 
   const enableByWalletName = useCallback(async () => {
     try {
       if (isConnecting) return;
 
-      const { success, error } = await connectWallet(
-        ExtendedAuthMethod.HOT_WALLET,
-        name,
-      );
+      const { success, error } = await connectWallet(ExtendedAuthMethod.HOT_WALLET, name);
 
       if (success) {
         closeModal(ModalType.LOGIN);

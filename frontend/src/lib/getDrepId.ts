@@ -39,7 +39,7 @@ export const getPubDRepID = async (walletApi: CardanoApiWallet) => {
       dRepIDBech32,
     };
   } catch (err) {
-    console.error(err);
+    console.error('Error in getPubDRepID:', err);
     return {
       dRepKey: undefined,
       dRepID: undefined,

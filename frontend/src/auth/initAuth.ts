@@ -1,8 +1,7 @@
 import { AuthMethod as ExtendedAuthMethod } from '../../types/auth';
 import { authService } from './authService';
-import { CardanoWalletProvider } from './providers/cardanoWalletProvider';
+import { CardanoMeshProvider } from './providers/cardanoMeshProvider';
 import { LoginFileProvider } from './providers/loginViaFileProvider';
-
 
 /**
  * Initialize the authentication service with providers
@@ -11,9 +10,9 @@ import { LoginFileProvider } from './providers/loginViaFileProvider';
 export function initializeAuthentication() {
   authService.registerProvider(
     ExtendedAuthMethod.HOT_WALLET,
-    new CardanoWalletProvider()
+    new CardanoMeshProvider()
   );
-  
+
   authService.registerProvider(
     ExtendedAuthMethod.LOGIN_FILE,
     new LoginFileProvider()
