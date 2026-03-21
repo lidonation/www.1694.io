@@ -1,9 +1,8 @@
-import { Box, Typography, FormControlLabel, Switch } from '@mui/material';
-import { useMemo, useState } from 'react';
+import { Box, Typography } from '@mui/material';
+import { useMemo } from 'react';
 import { ModalContents, ModalHeader, ModalWrapper } from '../atoms';
 import type { WalletOption } from '../molecules';
 import { WalletOptionButton } from '../molecules';
-import { AuthMethod as ExtendedAuthMethod } from '../../../types/auth';
 
 interface ChooseWalletModalProps {
   hideCloseButton: boolean;
@@ -16,8 +15,6 @@ export function ChooseWalletModal({
   onClose,
   open,
 }: ChooseWalletModalProps) {
-  const [useMesh, setUseMesh] = useState(false);
-
   if (!open) return null;
 
   const walletOptions: WalletOption[] = useMemo(() => {
@@ -65,27 +62,11 @@ export function ChooseWalletModal({
             fontSize: '16px',
             fontWeight: '500',
             textAlign: 'center',
+            marginBottom: '24px',
           }}
         >
           Choose Wallet
         </Typography>
-
-        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={useMesh}
-                onChange={(e) => setUseMesh(e.target.checked)}
-                size="small"
-              />
-            }
-            label={
-              <Typography sx={{ fontSize: '14px', fontWeight: '500' }}>
-                Use Mesh SDK (Experimental)
-              </Typography>
-            }
-          />
-        </Box>
 
         <Box
           sx={{
@@ -116,11 +97,6 @@ export function ChooseWalletModal({
                   label={label}
                   name={name}
                   cip95Available={cip95Available}
-                  authMethod={
-                    useMesh
-                      ? ExtendedAuthMethod.MESH_HOT_WALLET
-                      : ExtendedAuthMethod.HOT_WALLET
-                  }
                 />
               );
             })
