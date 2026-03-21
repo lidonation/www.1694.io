@@ -26,7 +26,6 @@ export class CardanoMeshProvider implements AuthenticationProvider {
 
   async connect(walletName: string): Promise<AuthResult> {
     try {
-      console.log(`Connecting to wallet: ${walletName} via MeshJS`);
       
       const { BrowserWallet } = await import('@meshsdk/core');
       
@@ -105,7 +104,7 @@ export class CardanoMeshProvider implements AuthenticationProvider {
     
     const balance = await this.wallet.getLovelace();
     const hexRewardAddresses = await walletApi.getRewardAddresses();
-    console.log('Hex reward addresses:', hexRewardAddresses);
+
     if (!hexRewardAddresses || hexRewardAddresses.length === 0) {
       throw new Error('No reward addresses found in wallet');
     }
