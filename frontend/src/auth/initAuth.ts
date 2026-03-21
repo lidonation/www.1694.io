@@ -8,6 +8,8 @@ import { LoginFileProvider } from './providers/loginViaFileProvider';
  * @returns Initialized authentication service
  */
 export function initializeAuthentication() {
+  if (typeof window === 'undefined') return authService;
+
   authService.registerProvider(
     ExtendedAuthMethod.HOT_WALLET,
     new CardanoMeshProvider()
