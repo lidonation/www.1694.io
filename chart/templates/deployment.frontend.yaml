@@ -40,13 +40,15 @@ spec:
           livenessProbe:
             tcpSocket:
               port: 3000
-            initialDelaySeconds: 5
-            periodSeconds: 10
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            failureThreshold: 3
           readinessProbe:
             tcpSocket:
               port: 3000
-            initialDelaySeconds: 1
-            periodSeconds: 10
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            failureThreshold: 3
           resources:
             limits:
               memory: 4192Mi
