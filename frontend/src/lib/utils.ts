@@ -426,10 +426,52 @@ export const formatIsoTime = (timestamp: string): string => {
 };
 
 export const convertAddressToBech32 = (address: string) => {
+  if (!address) return '';
   if (address.includes('addr') || address.includes('stake')) {
     return address;
   } else if (address.includes('drep')) {
     return convertDrepPhraseToCIP105(address)
-  } else
-    return Address.from_bytes(Buffer.from(address, 'hex') as any).to_bech32();
+  }
+
+  // Pure JS hex to bytes helper for browser compatibility
+  const hexToBytes = (hex: string) => {
+    const bytes = new Uint8Array(hex.length / 2);
+    for (let i = 0; i < bytes.length; i++) {
+      bytes[i] = parseInt(hex.substring(i * 2, i * 2 + 2), 16);
+    }
+    return bytes;
+  };
+
+  try {
+    // Attempt to use cardano-serialization-lib if available
+    if (typeof Address !== 'undefined') {
+      return Address.from_bytes(hexToBytes(address)).to_bech32();
+    }
+    throw new Error('Address class not found');
+  } catch (error) {
+    console.warn('[Utils] Address conversion fallback triggered for:', address);
+    
+    // Manual fallback using bech32 library (pure JS)
+    try {
+      const bytes = hexToBytes(address);
+      if (bytes.length === 0) return '';
+
+      const firstByte = bytes[0];
+      const networkId = firstByte & 0x0f;  // 0 = testnet, 1 = mainnet
+      const type = firstByte >> 4;         // 14 = stake, 0-3 = payment
+
+      let prefix = '';
+      if (type === 14) {
+        prefix = networkId === 0 ? 'stake_test' : 'stake';
+      } else {
+        prefix = networkId === 0 ? 'addr_test' : 'addr';
+      }
+
+      const words = bech32.toWords(bytes);
+      return bech32.encode(prefix, words);
+    } catch (manualError) {
+      console.error('[Utils] Manual address conversion failed:', manualError);
+      throw error || manualError;
+    }
+  }
 };
