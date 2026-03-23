@@ -32,6 +32,8 @@ export class CardanoMeshProvider implements AuthenticationProvider {
 
       const { BrowserWallet } = await import('@meshsdk/core');
       
+      console.log(`[MeshProvider] Connecting with Network ID: ${CONFIGURED_NETWORK_ID}`);
+      
       try {
         this.wallet = await BrowserWallet.enable(walletName, [{ cip: 95 }]);
       } catch (e) {
@@ -44,6 +46,8 @@ export class CardanoMeshProvider implements AuthenticationProvider {
       this.walletName = walletName;
 
       const network = await this.wallet.getNetworkId();
+      console.log(`[MeshProvider] Wallet reported network ID: ${network}`);
+      
       if (network !== CONFIGURED_NETWORK_ID) {
         const networkName = CONFIGURED_NETWORK_ID === 1 ? 'Mainnet' : 'Testnet/Preview';
         throw new Error(`Wallet network mismatch. Please switch your wallet to ${networkName}.`);
@@ -61,6 +65,7 @@ export class CardanoMeshProvider implements AuthenticationProvider {
         walletApi: (await window.cardano[walletName].enable()) as CardanoApiWallet,
       };
     } catch (error) {
+      console.error('[MeshProvider] Connection error full object:', error);
       const errorMessage = error instanceof Error 
         ? error.message 
         : (error && typeof error === 'object' ? JSON.stringify(error) : String(error));
@@ -107,16 +112,33 @@ export class CardanoMeshProvider implements AuthenticationProvider {
     const walletApi = await window.cardano[this.walletName!].enable();
     
     const rawAddress = await walletApi.getChangeAddress();
-    const address = convertAddressToBech32(rawAddress);
+    console.log('[MeshProvider] Raw Change Address:', rawAddress);
+    
+    let address = '';
+    try {
+      address = convertAddressToBech32(rawAddress);
+    } catch (e) {
+      console.error(`[MeshProvider] Failed to convert change address: ${rawAddress}`, e);
+      throw new Error(`Invalid change address: ${String(e)}`);
+    }
     
     const balance = await this.wallet.getLovelace();
     const hexRewardAddresses = await walletApi.getRewardAddresses();
-
+    console.log('[MeshProvider] Raw Reward Addresses:', hexRewardAddresses);
+    
     if (!hexRewardAddresses || hexRewardAddresses.length === 0) {
       throw new Error('No reward addresses found in wallet');
     }
-    const stakeKeyHex = hexRewardAddresses[0];
-    const stakeKeyBech32 = convertAddressToBech32(stakeKeyHex);
+    
+    let stakeKeyHex = hexRewardAddresses[0];
+    let stakeKeyBech32 = '';
+    
+    try {
+      stakeKeyBech32 = convertAddressToBech32(stakeKeyHex);
+    } catch (e) {
+      console.error(`[MeshProvider] Failed to convert stake address: ${stakeKeyHex}`, e);
+      throw new Error(`Invalid stake address: ${String(e)}`);
+    }
 
     // CIP-95 specific data
     const dRepKey = await walletApi.cip95?.getPubDRepKey();
