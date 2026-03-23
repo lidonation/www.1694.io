@@ -26,30 +26,34 @@ export class CardanoMeshProvider implements AuthenticationProvider {
 
   async connect(walletName: string): Promise<AuthResult> {
     try {
-      
-      const { BrowserWallet } = await import('@meshsdk/core');
-      
-      // Enable wallet with CIP-95 extension
-      this.wallet = await BrowserWallet.enable(walletName, [{ cip: 95 }]);
-      this.walletName = walletName;
-
-      // Validate network
-      const network = await this.wallet.getNetworkId();
-      if (network !== CONFIGURED_NETWORK_ID) {
-        const errorMsg = CONFIGURED_NETWORK_ID === 1 
-          ? 'Mainnet network wallet required' 
-          : 'Testnet network wallet required';
-        throw new Error(errorMsg);
+      if (typeof window === 'undefined') {
+        throw new Error('Connection must be initiated from the browser');
       }
 
-      // Get account info
+      const { BrowserWallet } = await import('@meshsdk/core');
+      
+      try {
+        this.wallet = await BrowserWallet.enable(walletName, [{ cip: 95 }]);
+      } catch (e) {
+        this.wallet = await BrowserWallet.enable(walletName);
+      }
+
+      if (!this.wallet) {
+        throw new Error(`Failed to enable wallet: ${walletName}`);
+      }
+      this.walletName = walletName;
+
+      const network = await this.wallet.getNetworkId();
+      if (network !== CONFIGURED_NETWORK_ID) {
+        const networkName = CONFIGURED_NETWORK_ID === 1 ? 'Mainnet' : 'Testnet/Preview';
+        throw new Error(`Wallet network mismatch. Please switch your wallet to ${networkName}.`);
+      }
+
       const info = await this.fetchAccountInfo();
       this.accountInfo = info;
       this.connected = true;
 
-      // Save to local storage for reconnection
       setItemToLocalStorage(`${WALLET_LS_KEY}_name`, walletName);
-      // Note: we don't save the API object itself as Mesh handles it
 
       return {
         success: true,
@@ -57,10 +61,13 @@ export class CardanoMeshProvider implements AuthenticationProvider {
         walletApi: (await window.cardano[walletName].enable()) as CardanoApiWallet,
       };
     } catch (error) {
-      console.error('MeshJS connection error:', error);
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : (error && typeof error === 'object' ? JSON.stringify(error) : String(error));
+        
       return {
         success: false,
-        error: error instanceof Error ? error.message : String(error),
+        error: errorMessage === 'undefined' ? 'Unknown wallet error (connection rejected or timed out)' : errorMessage,
       };
     }
   }
