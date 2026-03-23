@@ -310,8 +310,8 @@ const DrepVoteTimelineCard = ({
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           <div className="flex flex-wrap items-center gap-2 items-end justify-between">
             <Box className={`flex w-fit items-center gap-1 rounded-full border ${minimal ? 'px-2 py-0.5 text-[9px]' : 'px-3 py-1 text-xs'} text-gray-500`}>
-              <p className="">Action ID:</p>
-              <CopyToClipboard text={item?.gov_action_proposal_id} truncate>
+              <p className="">Action Hash:</p>
+              <CopyToClipboard text={item?.txHash || (item as any)?.tx_hash} truncate>
                 <img src="/svgs/copy.svg" alt="copy" className="h-3 w-3 opacity-50" />
               </CopyToClipboard>
             </Box>
@@ -334,7 +334,12 @@ const DrepVoteTimelineCard = ({
 
           <div className={`flex items-center gap-2 ${minimal ? 'mt-1' : 'mt-2'}`}>
             {renderRationaleButton()}
-            <ViewExternalGovAction actionId={item?.gov_action_proposal_id} minimal={minimal} />
+            <ViewExternalGovAction 
+              actionId={item?.gov_action_proposal_id} 
+              txHash={item?.txHash || (item as any)?.tx_hash}
+              txIndex={Number((item as any)?.gov_action_proposal_index) || 0}
+              minimal={minimal} 
+            />
           </div>
         </Box>
       </Box>

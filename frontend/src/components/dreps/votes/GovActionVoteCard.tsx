@@ -67,7 +67,11 @@ export const GovActionVoteCard = ({ action }) => {
           <p className="mb-1 block text-sm font-medium text-gray-800">
             {formatIsoTime(action?.time_voted) || '-'}
           </p>
-          <ViewExternalGovAction actionId={action?.gov_action_proposal_id} />
+          <ViewExternalGovAction 
+            actionId={action?.gov_action_proposal_id} 
+            txHash={action?.txHash || action?.tx_hash || action?.vote_tx_hash}
+            txIndex={Number(action?.gov_action_proposal_index) || 0}
+          />
         </div>
       </td>
 
@@ -81,7 +85,11 @@ export const GovActionVoteCard = ({ action }) => {
             <p className="mb-1 block text-sm font-medium text-gray-800">
               {formatIsoTime(action?.time_voted) || '-'}
             </p>
-            <ViewExternalGovAction actionId={action?.gov_action_proposal_id} />
+            <ViewExternalGovAction 
+              actionId={action?.gov_action_proposal_id} 
+              txHash={action?.txHash || action?.tx_hash || action?.vote_tx_hash}
+              txIndex={Number(action?.gov_action_proposal_index) || 0}
+            />
           </Box>
 
           <Box className="flex flex-col md:flex-row md:items-center md:justify-between md:gap-2">

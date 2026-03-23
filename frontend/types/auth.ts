@@ -37,7 +37,7 @@ export interface SignatureData {
 
 export interface AuthenticationProvider {
   connect(params?: any): Promise<AuthResult>;
-  reconnect?(): Promise<AuthResult>;
+  reconnect?(params?: any): Promise<AuthResult>;
   disconnect(): Promise<void>;
 
   getAccountInfo(): Promise<AccountInfo | null>;

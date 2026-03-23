@@ -3,6 +3,13 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource, SelectQueryBuilder } from 'typeorm';
 import { Drep } from '../entities/governance/drep.entity';
 import { DrepTimelineEvent } from '../entities/governance/drep-timeline-event.entity';
+import { 
+  EpochGroup, 
+  BundledDelegations, 
+  StructuredTimelineResponse,
+  TimelineEntry,
+  TimelineResponse 
+} from 'src/common/types';
 
 @Injectable()
 export class GovernanceService {
@@ -165,27 +172,167 @@ export class GovernanceService {
   async getDRepTimeline(
     voterId: string,
     options: {
-      startTimeCursor?: number;
-      endTimeCursor?: number;
+      cursor?: string;
       filterValues?: string[];
       minItems?: number;
       loadDirection?: 'older' | 'newer';
     } = {},
   ) {
-    const now = Date.now();
-    let startTime = new Date(now - 7 * 24 * 60 * 60 * 1000); // 7 days ago
-    let endTime = new Date(now);
-
-    if (options.startTimeCursor) {
-      const d = new Date(Number(options.startTimeCursor));
-      if (!isNaN(d.getTime())) startTime = d;
-    }
-    if (options.endTimeCursor) {
-      const d = new Date(Number(options.endTimeCursor));
-      if (!isNaN(d.getTime())) endTime = d;
-    }
+    const direction = options.loadDirection || 'older';
+    const currentEpoch = this.getEpochNo(Date.now());
+    const epochsPerPage = 4;
     
-    // Build query for timeline events
+    // 1. Determine Epoch Range
+    let startEpoch: number;
+    let endEpoch: number;
+
+    const rawCursor = options.cursor ? options.cursor.split('_')[0] : '';
+    let cursorEpoch = Number(rawCursor);
+
+    // If cursor is a legacy timestamp (e.g. 1700000000000), it's not a valid epoch
+    if (isNaN(cursorEpoch) || cursorEpoch > 10000) {
+        cursorEpoch = NaN;
+    }
+
+    if (!isNaN(cursorEpoch)) {
+      if (direction === 'older') {
+        endEpoch = cursorEpoch;
+        startEpoch = endEpoch - (epochsPerPage - 1);
+      } else {
+        startEpoch = cursorEpoch;
+        endEpoch = startEpoch + (epochsPerPage - 1);
+      }
+    } else {
+      // Initial Load: Show current epoch and 3 previous
+      endEpoch = currentEpoch;
+      startEpoch = endEpoch - (epochsPerPage - 1);
+    }
+
+    if (startEpoch < 0) startEpoch = 0;
+    if (endEpoch > currentEpoch) endEpoch = currentEpoch;
+    if (endEpoch < startEpoch) endEpoch = startEpoch + (epochsPerPage - 1);
+
+    // 2. Fetch all data for this Epoch Range
+    const startTimeStr = this.getEpochStartTime(startEpoch);
+    const endTimeStr = this.getEpochEndTime(endEpoch);
+    
+    if (!startTimeStr || !endTimeStr) {
+        return { epochs: [], nextCursor: null, prevCursor: null, entries: [], appliedStartTime: 0, appliedEndTime: 0 };
+    }
+
+    const startTime = new Date(startTimeStr);
+    const endTime = new Date(endTimeStr);
+
+    const [timelineEntities, rawVotes, rawNotes] = await Promise.all([
+        this.fetchTimelineEventsInRange(voterId, startTime, endTime, options.filterValues),
+        this.fetchVotesInRange(voterId, startTime, endTime, options.filterValues),
+        this.fetchNotesInRange(voterId, startTime, endTime, options.filterValues),
+    ]);
+
+    // 3. Aggregate all events
+    const allEvents: any[] = [];
+
+    timelineEntities.entities.forEach(event => {
+        const formatted: any = this.formatTimelineEventForAPI(event);
+        if (formatted.type === 'voting_activity') {
+            const rawData = timelineEntities.raw.find(r => r.event_id === event.id);
+            if (rawData) {
+                formatted.proposal = {
+                    title: rawData.meta_json_metadata?.body?.title || null,
+                    abstract: rawData.meta_json_metadata?.body?.abstract || null,
+                    type: rawData.proposal_governance_type || null,
+                    submitted_at: rawData.proposal_block_time,
+                };
+            }
+        }
+        allEvents.push(formatted);
+    });
+
+    const seenTxHashes = new Set(allEvents.filter(e => e.txHash).map(e => e.txHash));
+    rawVotes.forEach(vote => {
+        if (!seenTxHashes.has(vote.tx_hash)) {
+            const epoch = this.getEpochNo(new Date(vote.block_time).getTime());
+            allEvents.push({
+                id: `vote-${vote.id}`,
+                type: 'voting_activity',
+                eventType: 'vote',
+                timestamp: vote.block_time,
+                epoch,
+                epochNo: epoch,
+                txHash: vote.tx_hash,
+                vote: vote.vote,
+                gov_action_proposal_id: vote.proposal_id,
+                time_voted: vote.block_time,
+                proposal: { title: vote.title, abstract: vote.abstract, type: vote.governance_type, submitted_at: vote.block_time }
+            });
+        }
+    });
+
+    rawNotes.forEach(note => {
+        const timestamp = note.updatedAt || note.createdAt;
+        const epoch = this.getEpochNo(new Date(timestamp).getTime());
+        allEvents.push({
+            id: `note-${note.id}`,
+            type: 'note',
+            eventType: 'note',
+            timestamp,
+            epoch,
+            epochNo: epoch,
+            title: note.title,
+            content: note.content,
+            tag: note.tag,
+        });
+    });
+
+    // 4. Group EVERY Epoch in range (DESC)
+    const epochGroups: EpochGroup[] = [];
+    for (let e = endEpoch; e >= startEpoch; e--) {
+        const epochEvents = allEvents.filter(ev => ev.epochNo === e);
+        // Sort events within epoch (DESC)
+        epochEvents.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime() || b.id.localeCompare(a.id));
+
+        const items = [];
+        let currentDelegationBundle: BundledDelegations | null = null;
+
+        for (const ev of epochEvents) {
+            if (ev.type === 'delegation') {
+                if (!currentDelegationBundle) {
+                    currentDelegationBundle = {
+                        type: 'bundled_delegations',
+                        id: `bundle-del-e${e}-${ev.id}`,
+                        timestamp: ev.timestamp,
+                        items: [ev],
+                        epochNo: e,
+                    };
+                    items.push(currentDelegationBundle);
+                } else {
+                    currentDelegationBundle.items.push(ev);
+                }
+            } else {
+                currentDelegationBundle = null;
+                items.push(ev);
+            }
+        }
+
+        epochGroups.push({
+            epochNo: e,
+            startTime: this.getEpochStartTime(e),
+            endTime: this.getEpochEndTime(e),
+            items,
+        });
+    }
+
+    return {
+      epochs: direction === 'newer' ? [...epochGroups].reverse() : epochGroups,
+      nextCursor: startEpoch > 0 ? `${startEpoch - 1}_older` : null,
+      prevCursor: endEpoch < currentEpoch ? `${endEpoch + 1}_newer` : null,
+      appliedStartTime: startTime.getTime(),
+      appliedEndTime: endTime.getTime(),
+      entries: [],
+    };
+  }
+
+  private async fetchTimelineEventsInRange(voterId: string, startTime: Date, endTime: Date, filterValues?: string[]) {
     const queryBuilder = this.governanceDataSource
       .getRepository(DrepTimelineEvent)
       .createQueryBuilder('event')
@@ -194,82 +341,64 @@ export class GovernanceService {
       .addSelect('proposal.governance_type', 'proposal_governance_type')
       .addSelect('proposal.block_time', 'proposal_block_time')
       .addSelect('meta.json_metadata', 'meta_json_metadata')
-      .where('event.drepId = :voterId', { voterId });
+      .where('event.drepId = :voterId', { voterId })
+      .andWhere('event.timestamp >= :startTime AND event.timestamp < :endTime', { startTime, endTime });
 
-    if (options.loadDirection === 'older') {
-      queryBuilder.andWhere('event.timestamp < :endTime', { endTime });
-    } else {
-      queryBuilder.andWhere('event.timestamp > :startTime', { startTime });
-    }
-    
-    queryBuilder.andWhere('event.timestamp >= :startTime', { startTime });
-    queryBuilder.andWhere('event.timestamp <= :endTime', { endTime });
-
-    // Map frontend filter values to database event types
-    if (options.filterValues && options.filterValues.length > 0) {
-      const mappedTypes = this.mapFilterValuesToEventTypes(options.filterValues);
-      if (mappedTypes.length > 0) {
-        queryBuilder.andWhere('event.eventType IN (:...types)', { types: mappedTypes });
-      }
+    if (filterValues && filterValues.length > 0) {
+        const types = this.mapFilterValuesToEventTypes(filterValues);
+        if (types.length > 0) queryBuilder.andWhere('event.eventType IN (:...types)', { types });
     }
 
-    queryBuilder
-      .orderBy('event.timestamp', 'DESC');
+    return await queryBuilder.getRawAndEntities();
+  }
 
-    const { entities, raw } = await queryBuilder.getRawAndEntities();
+  private async fetchVotesInRange(voterId: string, startTime: Date, endTime: Date, filterValues?: string[]) {
+    if (filterValues && filterValues.length > 0 && !filterValues.includes('voting_activity')) return [];
+    const query = `
+        SELECT v.*, p.governance_type, m.json_metadata->'body'->>'title' as title, m.json_metadata->'body'->>'abstract' as abstract
+        FROM proposal_votes v
+        LEFT JOIN proposals p ON p.tx_hash = v.tx_hash AND p.cert_index = v.cert_index
+        LEFT JOIN proposal_metadata m ON m.proposal_id = p.id
+        WHERE v.voter = $1 AND v.block_time >= $2 AND v.block_time < $3
+    `;
+    return await this.governanceDataSource.query(query, [voterId, startTime, endTime]);
+  }
 
-    // Convert events to timeline format
-    const timelineEvents = entities.map((event) => {
-      const formatted = this.formatTimelineEventForAPI(event);
-      
-      let proposal = null;
-      let propInception = null;
+  private async fetchNotesInRange(voterId: string, startTime: Date, endTime: Date, filterValues?: string[]) {
+    if (filterValues && filterValues.length > 0 && !filterValues.includes('note')) return [];
+    const query = `
+        SELECT n.* FROM note n
+        LEFT JOIN signature s ON s."drepId" = n."drepId"
+        WHERE (s.drep_bech32 = $1 OR s."voterId" = $1) AND n.\"updatedAt\" >= $2 AND n.\"updatedAt\" < $3
+    `;
+    return await this.governanceDataSource.query(query, [voterId, startTime, endTime]);
+  }
 
-      // Inject proposal metadata for voting events
-      if (formatted.type === 'voting_activity') {
-        const rawData = raw.find(r => r.event_id === event.id);
-        if (rawData) {
-          proposal = {
-            title: rawData.meta_json_metadata?.body?.title || null,
-            abstract: rawData.meta_json_metadata?.body?.abstract || null,
-            rationale: rawData.meta_json_metadata?.body?.rationale || null,
-            type: rawData.proposal_governance_type || null,
-            submitted_at: rawData.proposal_block_time,
-          };
-        }
-      }
-      return {
-        ...formatted,
-        prop_inception: propInception,
-        proposal
-      };
-    });
-    
-    // Add epoch markers if not filtering for specific types or if epochs are requested
-    const shouldIncludeEpochs = !options.filterValues || 
-      options.filterValues.length === 0 || 
-      options.filterValues.includes('epoch');
-      
-    if (shouldIncludeEpochs) {
-      const epochEvents = await this.getEpochEventsInRange(startTime, endTime);
-      timelineEvents.push(...epochEvents);
+  private getEpochNo(timestamp: number): number {
+    const anchor = 1506203091000;
+    const duration = 432000000;
+    return Math.floor((timestamp - anchor) / duration);
+  }
+
+  // Absolute Epoch Boundary Helpers
+  private getEpochStartTime(epoch: number): string | null {
+    try {
+      const anchor = 1506203091000; // Mainnet Epoch 0 Start
+      const duration = 432000000;   // 5 days in ms
+      return new Date(anchor + (epoch * duration)).toISOString();
+    } catch (e) {
+      return null;
     }
+  }
 
-    // Sort all events by timestamp descending
-    timelineEvents.sort((a, b) => {
-      const aTime = a.timestamp instanceof Date ? a.timestamp.getTime() : new Date(a.timestamp).getTime();
-      const bTime = b.timestamp instanceof Date ? b.timestamp.getTime() : new Date(b.timestamp).getTime();
-      return bTime - aTime;
-    });
-    
-    return {
-      entries: timelineEvents,
-      hasMore: timelineEvents.length > 0, // Since we don't limit, hasMore is just if we fetched anything, or we rely on frontend time boundaries
-      cursor: timelineEvents.length > 0 ? 
-        (timelineEvents[timelineEvents.length - 1].timestamp instanceof Date ? 
-         timelineEvents[timelineEvents.length - 1].timestamp.getTime() : 
-         new Date(timelineEvents[timelineEvents.length - 1].timestamp).getTime()) : null,
-    };
+  private getEpochEndTime(epoch: number): string | null {
+    try {
+      const anchor = 1506203091000;
+      const duration = 432000000;
+      return new Date(anchor + ((epoch + 1) * duration)).toISOString();
+    } catch (e) {
+      return null;
+    }
   }
 
   async getDRepStats(voterId: string) {
@@ -408,7 +537,7 @@ export class GovernanceService {
       id: event.id,
       eventType: event.eventType,
       type: mappedType, 
-      timestamp: event.timestamp, 
+      timestamp: event.timestamp instanceof Date ? event.timestamp.toISOString() : event.timestamp, 
       epoch: event.epoch,
       epochNo: event.epoch, 
       slot: event.slot,
@@ -429,7 +558,7 @@ export class GovernanceService {
       ...(mappedType === 'voting_activity' && event.metadata ? {
         vote: event.metadata.vote,
         gov_action_proposal_id: event.metadata.gov_action_proposal_id,
-        time_voted: event.timestamp,
+        time_voted: event.timestamp instanceof Date ? event.timestamp.toISOString() : event.timestamp,
         voting_epoch: event.epoch,
         url: event.metadata.url,
         vote_rationale: event.metadata.vote_rationale

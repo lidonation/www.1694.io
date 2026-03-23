@@ -30,57 +30,34 @@ const DRepTimeline = ({ drep }: { drep: any }) => {
     undefined,
   );
   const {
-    DRepActivity,
+    epochs,
     isDRepActivityLoading,
     isInitialLoad,
-    setQueryEndTime,
-    setQueryStartTime,
-    timelineEndTime,
-    setTimelineEndTime,
-    timelineStartTime,
-    setTimelineStartTime,
+    hasNextPage,
+    hasPrevPage,
+    nextCursor,
+    prevCursor,
+    setCursor,
     setLoadDirection,
-  } = useGetDRepTimelineQuery(drepid, filterValues, 10);
+    loadDirection,
+  } = useGetDRepTimelineQuery(drepid, filterValues, 20);
 
-  const [isAtLatestPoint, setIsAtLatestPoint] = useState(false);
-  const [isAtOldestPoint, setIsAtOldestPoint] = useState(false);
-
-  const [isLoadingNewerData, setIsLoadingNewerData] = useState(false);
-  const [isLoadingOlderData, setIsLoadingOlderData] = useState(false);
+  const isLoadingNewerData = isDRepActivityLoading && nextCursor !== null && prevCursor !== null; 
+  const isLoadingOlderData = isDRepActivityLoading && nextCursor !== null;
 
   const {
-    latestEpoch,
-    firstEpoch,
     user: { dRepProfilesClaimed },
   } = useWallet();
 
   const isOwner = dRepProfilesClaimed?.some(
-    (drep) =>
-      drep.claimedDRepBech32 ===
+    (item) =>
+      item.claimedDRepBech32 ===
       convertDrepPhraseToCIP105Legacy(drepid.toString()),
   );
+  
   const searchParams = useSearchParams();
-  const pathName = usePathname();
-  const { replace } = useRouter();
-  const params = new URLSearchParams(searchParams.toString());
   const { isMobile } = useScreenDimension();
-  const startTimeFormatted = formatNumberTimeToReadable(timelineStartTime);
-  const endTimeFormatted = formatNumberTimeToReadable(timelineEndTime);
-
-  useEffect(() => {
-    if (searchParams) {
-      if (params.get('start')) {
-        const startTime = Number(params.get('start'));
-        setQueryStartTime(startTime);
-        setTimelineStartTime(startTime);
-      }
-      if (params.get('end')) {
-        const endTime = Number(params.get('end'));
-        setQueryEndTime(endTime);
-        setTimelineEndTime(endTime);
-      }
-    }
-  }, []);
+  const params = new URLSearchParams(searchParams.toString());
 
   useEffect(() => {
     if (searchParams) {
@@ -98,92 +75,22 @@ const DRepTimeline = ({ drep }: { drep: any }) => {
     }
   }, [searchParams]);
 
-  useEffect(() => {
-    if (!isDRepActivityLoading) {
-      setIsLoadingOlderData(false);
-      setIsLoadingNewerData(false);
-    }
-  }, [isDRepActivityLoading]);
-
-  useEffect(() => {
-    if (DRepActivity?.length > 0) {
-      const epochs = DRepActivity.filter((item) => item.type === 'epoch');
-
-      if (epochs.length === 0) return;
-
-      const timelineLatestEpoch = epochs.reduce((latest, current) => {
-        return new Date(current.timestamp) > new Date(latest.timestamp)
-          ? current
-          : latest;
-      }, epochs[0]);
-
-      const timelineOldestEpoch = epochs.reduce((oldest, current) => {
-        return new Date(current.timestamp) < new Date(oldest.timestamp)
-          ? current
-          : oldest;
-      }, epochs[0]);
-
-      !!timelineLatestEpoch && timelineLatestEpoch.no === latestEpoch
-        ? setIsAtLatestPoint(true)
-        : setIsAtLatestPoint(false);
-
-      !!timelineOldestEpoch && timelineOldestEpoch.no === firstEpoch
-        ? setIsAtOldestPoint(true)
-        : setIsAtOldestPoint(false);
-    }
-  }, [DRepActivity]);
-
   const loadMoreData = () => {
-    setIsLoadingOlderData(true);
+    if (!hasNextPage || isDRepActivityLoading || !nextCursor) return;
     setLoadDirection('older');
-    const newEndTime = timelineStartTime;
-
-    const newStartTime = newEndTime - 30 * 24 * 60 * 60 * 1000;
-
-    setQueryEndTime(newEndTime);
-    setQueryStartTime(newStartTime);
-    setTimelineStartTime(newStartTime);
-
-    updateURL(newStartTime, newEndTime);
+    setCursor(nextCursor);
   };
 
   const loadNewerData = () => {
-    const currentTime = Date.now();
-
-    if (timelineEndTime >= currentTime) {
-      setIsAtLatestPoint(true);
-      return;
-    }
-    setIsLoadingNewerData(true);
+    if (!hasPrevPage || isDRepActivityLoading || !prevCursor) return;
     setLoadDirection('newer');
-
-    const newStartTime = timelineEndTime;
-
-    const newEndTime = Math.min(
-      newStartTime + 30 * 24 * 60 * 60 * 1000,
-      currentTime,
-    );
-
-    setQueryStartTime(newStartTime);
-    setQueryEndTime(newEndTime);
-    setTimelineEndTime(newEndTime);
-
-    updateURL(newStartTime, newEndTime);
+    setCursor(prevCursor);
   };
 
-  const updateURL = (startTime?: number, endTime?: number) => {
-    if (startTime) {
-      params.set('start', String(startTime));
-    }
-    if (endTime) {
-      params.set('end', String(endTime));
-    }
-    const newUrl = `${pathName}?${params.toString()}`;
-    window.history.replaceState(null, '', newUrl);
-  };
-
-
-  
+  const firstEpoch = epochs[0];
+  const lastEpoch = epochs[epochs.length - 1];
+  const latestTime = firstEpoch?.items?.[0]?.timestamp || firstEpoch?.startTime;
+  const oldestTime = lastEpoch?.items?.[lastEpoch.items.length - 1]?.timestamp || lastEpoch?.startTime;
 
   return (
     <div className="flex h-full w-full flex-col gap-5 bg-white">
@@ -221,7 +128,7 @@ const DRepTimeline = ({ drep }: { drep: any }) => {
           <div className="flex w-full flex-col gap-2">
             <Box className="flex w-full flex-col items-center gap-2">
               <Box className="flex flex-col items-center">
-                {isAtLatestPoint && DRepActivity.length > 0 && (
+                {!hasPrevPage && epochs.length > 0 && (
                   <Typography
                     variant="body1"
                     paragraph={true}
@@ -230,77 +137,69 @@ const DRepTimeline = ({ drep }: { drep: any }) => {
                     You're all caught up!
                   </Typography>
                 )}
-                <Typography
-                  variant="body1"
-                  paragraph={true}
-                  className="text-sm"
-                >
-                  Showing results from{' '}
-                  <span className="font-semibold">{startTimeFormatted}</span> to{' '}
-                  <span className="font-semibold">{endTimeFormatted}</span>
-                </Typography>
+                {epochs.length > 0 && (
+                  <Typography
+                    variant="body1"
+                    paragraph={true}
+                    className="text-sm"
+                  >
+                    Showing results from{' '}
+                    <span className="font-semibold">{formatNumberTimeToReadable(new Date(oldestTime).getTime())}</span> to{' '}
+                    <span className="font-semibold">{formatNumberTimeToReadable(new Date(latestTime).getTime())}</span>
+                  </Typography>
+                )}
               </Box>
             </Box>
-            {isLoadingNewerData && (
-              <Grow
-                in={isLoadingNewerData}
-                style={{ transformOrigin: 'top' }}
-                {...(isLoadingNewerData ? { timeout: 300 } : {})}
-              >
-                <div>
-                  <DRepTimelineLoader />
-                </div>
-              </Grow>
+            {hasPrevPage && (
+              <div className="flex justify-center py-2">
+                <button 
+                  onClick={loadNewerData}
+                  disabled={isDRepActivityLoading}
+                  className="text-sm font-semibold text-orange-500 hover:text-orange-600 disabled:opacity-50"
+                >
+                  {isDRepActivityLoading && loadDirection === 'newer' ? 'Loading...' : 'Load Newer History'}
+                </button>
+              </div>
             )}
-            {!DRepActivity ||
-              (DRepActivity.length < 1 && (
+            {!epochs ||
+              (epochs.length < 1 && (
                 <div className="flex h-[50vh] flex-col items-center justify-center">
                   <div className="my-16 flex w-full flex-col items-center rounded-lg border-2 border-dashed border-gray-300 p-12 hover:border-gray-400">
                     <DatabaseNullIcon width={60} height={50} />
                     <span className="mt-2 block text-sm font-semibold text-gray-500">
-                      No results found for this period try loading newer or
-                      older
+                      No results found for this period
                     </span>
                   </div>
                 </div>
               ))}
 
-            {DRepActivity && DRepActivity.length > 0 && (
+            {epochs && epochs.length > 0 && (
               <DrepTimelineWaterfall
-                activity={DRepActivity}
+                epochs={epochs}
                 drepId={drepid as string}
-                isAtLatestPoint={isAtLatestPoint}
-                isAtOldestPoint={isAtOldestPoint}
+                isAtLatestPoint={!hasPrevPage}
+                isAtOldestPoint={!hasNextPage}
                 onLoadNewer={loadNewerData}
                 onLoadOlder={loadMoreData}
               />
             )}
 
-            {isLoadingOlderData && (
-              <Grow
-                in={isLoadingOlderData}
-                style={{ transformOrigin: 'top' }}
-                {...(isLoadingOlderData ? { timeout: 300 } : {})}
-              >
-                <div>
-                  <DRepTimelineLoader />
-                </div>
-              </Grow>
+            {hasNextPage && (
+              <div className="flex justify-center py-4">
+                 <button 
+                  onClick={loadMoreData}
+                  disabled={isDRepActivityLoading}
+                  className="text-sm font-semibold text-orange-500 hover:text-orange-600 disabled:opacity-50"
+                >
+                  {isDRepActivityLoading && loadDirection === 'older' ? 'Loading...' : 'Load Older History'}
+                </button>
+              </div>
             )}
 
             <Box className="flex w-full flex-col items-center gap-2">
               <Box className="flex flex-col items-center">
-                <Typography
-                  variant="body1"
-                  paragraph={true}
-                  className="text-sm"
-                >
-                  Showing results from{' '}
-                  <span className="font-semibold">{startTimeFormatted}</span> to{' '}
-                  <span className="font-semibold">{endTimeFormatted}</span>
-                </Typography>
-                {isAtOldestPoint && DRepActivity.length > 0 && (
-                  <p className="text-gray-500">You're all caught up!</p>
+                {!hasNextPage && epochs.length > 0 && (
+                  <p className="text-gray-500">No more history to load</p>
                 )}
               </Box>
             </Box>

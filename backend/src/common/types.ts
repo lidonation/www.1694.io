@@ -196,14 +196,41 @@ export interface DRepTimelineParams {
 }
 export interface TimelineEntry {
   type: string;
-  timestamp: string | Date;
+  timestamp: string;
   [key: string]: any;
 }
 
-export interface TimelineResponse {
+export interface TimelineGroup {
+  type: string;
+  items: TimelineEntry[];
+  [key: string]: any;
+}
+
+export interface EpochGroup {
+  epochNo: number;
+  startTime: string;
+  endTime: string;
+  items: (TimelineEntry | BundledDelegations)[];
+}
+
+export interface BundledDelegations {
+  type: 'bundled_delegations';
+  id: string;
+  timestamp: string;
+  items: TimelineEntry[];
+  epochNo: number;
+}
+
+export interface StructuredTimelineResponse {
+  epochs?: EpochGroup[];
+  nextCursor?: string | null;
+  prevCursor?: string | null;
+}
+
+export interface TimelineResponse extends StructuredTimelineResponse {
   appliedStartTime: number;
   appliedEndTime: number;
-  entries: TimelineEntry[];
+  entries: TimelineEntry[]; // Keep for backward compatibility if needed, but we'll use epochs
 }
 
 export interface TimelineFilters {

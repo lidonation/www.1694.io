@@ -7,6 +7,7 @@ export const getDRepTimeline = async (
   stakeKeyBech32?: string,
   endTime?: number,
   startTime?: number,
+  cursor?: string,
   filterValues?: string[] | undefined,
   minItems?: number,
   loadDirection?: string,
@@ -16,6 +17,7 @@ export const getDRepTimeline = async (
     stakeKeyBech32: stakeKeyBech32,
     endTimeCursor: endTime,
     startTimeCursor: startTime,
+    cursor: cursor,
     minItems: minItems,
     loadDirection,
   };
