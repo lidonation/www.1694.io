@@ -26,30 +26,38 @@ export class CardanoMeshProvider implements AuthenticationProvider {
 
   async connect(walletName: string): Promise<AuthResult> {
     try {
-      
-      const { BrowserWallet } = await import('@meshsdk/core');
-      
-      // Enable wallet with CIP-95 extension
-      this.wallet = await BrowserWallet.enable(walletName, [{ cip: 95 }]);
-      this.walletName = walletName;
-
-      // Validate network
-      const network = await this.wallet.getNetworkId();
-      if (network !== CONFIGURED_NETWORK_ID) {
-        const errorMsg = CONFIGURED_NETWORK_ID === 1 
-          ? 'Mainnet network wallet required' 
-          : 'Testnet network wallet required';
-        throw new Error(errorMsg);
+      if (typeof window === 'undefined') {
+        throw new Error('Connection must be initiated from the browser');
       }
 
-      // Get account info
+      const { BrowserWallet } = await import('@meshsdk/core');
+      
+      console.log(`[MeshProvider] Connecting with Network ID: ${CONFIGURED_NETWORK_ID}`);
+      
+      try {
+        this.wallet = await BrowserWallet.enable(walletName, [{ cip: 95 }]);
+      } catch (e) {
+        this.wallet = await BrowserWallet.enable(walletName);
+      }
+
+      if (!this.wallet) {
+        throw new Error(`Failed to enable wallet: ${walletName}`);
+      }
+      this.walletName = walletName;
+
+      const network = await this.wallet.getNetworkId();
+      console.log(`[MeshProvider] Wallet reported network ID: ${network}`);
+      
+      if (network !== CONFIGURED_NETWORK_ID) {
+        const networkName = CONFIGURED_NETWORK_ID === 1 ? 'Mainnet' : 'Testnet/Preview';
+        throw new Error(`Wallet network mismatch. Please switch your wallet to ${networkName}.`);
+      }
+
       const info = await this.fetchAccountInfo();
       this.accountInfo = info;
       this.connected = true;
 
-      // Save to local storage for reconnection
       setItemToLocalStorage(`${WALLET_LS_KEY}_name`, walletName);
-      // Note: we don't save the API object itself as Mesh handles it
 
       return {
         success: true,
@@ -57,10 +65,14 @@ export class CardanoMeshProvider implements AuthenticationProvider {
         walletApi: (await window.cardano[walletName].enable()) as CardanoApiWallet,
       };
     } catch (error) {
-      console.error('MeshJS connection error:', error);
+      console.error('[MeshProvider] Connection error full object:', error);
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : (error && typeof error === 'object' ? JSON.stringify(error) : String(error));
+        
       return {
         success: false,
-        error: error instanceof Error ? error.message : String(error),
+        error: errorMessage === 'undefined' ? 'Unknown wallet error (connection rejected or timed out)' : errorMessage,
       };
     }
   }
@@ -100,16 +112,33 @@ export class CardanoMeshProvider implements AuthenticationProvider {
     const walletApi = await window.cardano[this.walletName!].enable();
     
     const rawAddress = await walletApi.getChangeAddress();
-    const address = convertAddressToBech32(rawAddress);
+    console.log('[MeshProvider] Raw Change Address:', rawAddress);
+    
+    let address = '';
+    try {
+      address = convertAddressToBech32(rawAddress);
+    } catch (e) {
+      console.error(`[MeshProvider] Failed to convert change address: ${rawAddress}`, e);
+      throw new Error(`Invalid change address: ${String(e)}`);
+    }
     
     const balance = await this.wallet.getLovelace();
     const hexRewardAddresses = await walletApi.getRewardAddresses();
-
+    console.log('[MeshProvider] Raw Reward Addresses:', hexRewardAddresses);
+    
     if (!hexRewardAddresses || hexRewardAddresses.length === 0) {
       throw new Error('No reward addresses found in wallet');
     }
-    const stakeKeyHex = hexRewardAddresses[0];
-    const stakeKeyBech32 = convertAddressToBech32(stakeKeyHex);
+    
+    let stakeKeyHex = hexRewardAddresses[0];
+    let stakeKeyBech32 = '';
+    
+    try {
+      stakeKeyBech32 = convertAddressToBech32(stakeKeyHex);
+    } catch (e) {
+      console.error(`[MeshProvider] Failed to convert stake address: ${stakeKeyHex}`, e);
+      throw new Error(`Invalid stake address: ${String(e)}`);
+    }
 
     // CIP-95 specific data
     const dRepKey = await walletApi.cip95?.getPubDRepKey();
