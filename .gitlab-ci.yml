@@ -110,7 +110,7 @@ services:
 
 build_frontend:
   stage: build
-  image: docker:27-git
+  image: docker:27-cli
   retry: 1
   script:
     - |
@@ -131,7 +131,7 @@ build_frontend:
 
 build_backend:
   stage: build
-  image: docker:27-git
+  image: docker:27-cli
   retry: 1
   script:
     - |
@@ -155,7 +155,7 @@ build_backend:
 
 build_queue_backend:
   stage: build
-  image: docker:27-git
+  image: docker:27-cli
   retry: 1
   script:
     - |
