@@ -9,6 +9,8 @@ app: {
   APP_URL: "https://www.1694.io"
 }
 
+
+
 certmanager:
   issuer: letsencrypt-prod-issuer
   email: webmaster@lidonation.io
