@@ -6,11 +6,13 @@ import React from 'react';
 export const ViewExternalGovAction = ({ 
   actionId, 
   txHash,
+  govActionHash,
   txIndex = 0,
   minimal = false 
 }: { 
   actionId: string, 
   txHash?: string,
+  govActionHash?: string,
   txIndex?: number,
   minimal?: boolean 
 }) => {

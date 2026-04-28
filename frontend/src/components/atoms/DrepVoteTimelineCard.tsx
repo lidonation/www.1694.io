@@ -39,15 +39,20 @@ const VoteStatusChip = ({ date, vote, minimal }: { date: string; vote: string; m
   const [icon, setIcon] = useState('/svgs/file-check.svg');
 
   useEffect(() => {
-    if (vote === 'No') {
+    const normalizedVote = vote?.toLowerCase();
+    if (normalizedVote === 'no') {
       setBgColor('bg-red-100');
       setIcon('/svgs/close.svg');
-    } else if (vote === 'Yes') {
+    } else if (normalizedVote === 'yes') {
       setBgColor('bg-green-100');
       setIcon('/svgs/check.svg');
-    } else if (vote === 'Abstain') {
+    } else if (normalizedVote === 'abstain') {
       setBgColor('bg-complementary-100');
       setIcon('/svgs/alert-circle.svg');
+    } else {
+      // Fallback for unknown states
+      setBgColor('bg-gray-100');
+      setIcon('/svgs/file-check.svg');
     }
   }, [vote]);
 
@@ -102,7 +107,7 @@ const DrepVoteTimelineCard = ({
     },
   };
 
-  const currentHighlight = highlightStyles[item.vote as keyof typeof highlightStyles] || highlightStyles.Abstain;
+  const currentHighlight = highlightStyles[item.vote?.charAt(0).toUpperCase() + item.vote?.slice(1).toLowerCase() as keyof typeof highlightStyles] || highlightStyles.Abstain;
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -311,7 +316,7 @@ const DrepVoteTimelineCard = ({
           <div className="flex flex-wrap items-center gap-2 items-end justify-between">
             <Box className={`flex w-fit items-center gap-1 rounded-full border ${minimal ? 'px-2 py-0.5 text-[9px]' : 'px-3 py-1 text-xs'} text-gray-500`}>
               <p className="">Action Hash:</p>
-              <CopyToClipboard text={item?.txHash || (item as any)?.tx_hash} truncate>
+              <CopyToClipboard text={(item as any)?.govActionHash || (item as any)?.gov_action_hash || item?.txHash || (item as any)?.tx_hash} truncate>
                 <img src="/svgs/copy.svg" alt="copy" className="h-3 w-3 opacity-50" />
               </CopyToClipboard>
             </Box>
@@ -337,6 +342,7 @@ const DrepVoteTimelineCard = ({
             <ViewExternalGovAction 
               actionId={item?.gov_action_proposal_id} 
               txHash={item?.txHash || (item as any)?.tx_hash}
+              govActionHash={(item as any)?.govActionHash || (item as any)?.gov_action_hash || (item as any)?.proposal?.anchorHash}
               txIndex={Number((item as any)?.gov_action_proposal_index) || 0}
               minimal={minimal} 
             />

@@ -150,17 +150,6 @@ const DRepTimeline = ({ drep }: { drep: any }) => {
                 )}
               </Box>
             </Box>
-            {hasPrevPage && (
-              <div className="flex justify-center py-2">
-                <button 
-                  onClick={loadNewerData}
-                  disabled={isDRepActivityLoading}
-                  className="text-sm font-semibold text-orange-500 hover:text-orange-600 disabled:opacity-50"
-                >
-                  {isDRepActivityLoading && loadDirection === 'newer' ? 'Loading...' : 'Load Newer History'}
-                </button>
-              </div>
-            )}
             {!epochs ||
               (epochs.length < 1 && (
                 <div className="flex h-[50vh] flex-col items-center justify-center">
@@ -184,17 +173,6 @@ const DRepTimeline = ({ drep }: { drep: any }) => {
               />
             )}
 
-            {hasNextPage && (
-              <div className="flex justify-center py-4">
-                 <button 
-                  onClick={loadMoreData}
-                  disabled={isDRepActivityLoading}
-                  className="text-sm font-semibold text-orange-500 hover:text-orange-600 disabled:opacity-50"
-                >
-                  {isDRepActivityLoading && loadDirection === 'older' ? 'Loading...' : 'Load Older History'}
-                </button>
-              </div>
-            )}
 
             <Box className="flex w-full flex-col items-center gap-2">
               <Box className="flex flex-col items-center">

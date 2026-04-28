@@ -422,15 +422,15 @@ export class DRepRepository extends Repository<VoltaireDrep> {
   ) {
     // First verify the DRep exists and get its canonical ID
     const canonicalId = await this.resolveDrepId(drepVoterId);
-    
+
     if (!canonicalId) {
-        return {
+      return {
         data: [],
         totalItems: 0,
         currentPage,
         itemsPerPage,
         totalPages: 0,
-        };
+      };
     }
 
     const drepRecord = await this.voltaireDb
@@ -449,21 +449,21 @@ export class DRepRepository extends Repository<VoltaireDrep> {
 
     // Use getAllDrepIds to find all aliases
     const canonicalIds = await this.getAllDrepIds(drepVoterId);
-    
+
     // Also include HEX in the lookup if available, as some records might use it
     const searchIds = [...canonicalIds];
     if (drepRecord.hex) {
-        searchIds.push(drepRecord.hex);
+      searchIds.push(drepRecord.hex);
     }
 
     if (searchIds.length === 0) {
-        return {
-          data: [],
-          totalItems: 0,
-          currentPage,
-          itemsPerPage,
-          totalPages: 0,
-        };
+      return {
+        data: [],
+        totalItems: 0,
+        currentPage,
+        itemsPerPage,
+        totalPages: 0,
+      };
     }
 
     const queryBuilder = this.voltaireDb
@@ -506,7 +506,7 @@ export class DRepRepository extends Repository<VoltaireDrep> {
 
   async getDrepStats(drepVoterId: string) {
     const canonicalId = await this.resolveDrepId(drepVoterId);
-    
+
     if (!canonicalId) {
       return {
         delegators: 0,
@@ -542,7 +542,7 @@ export class DRepRepository extends Repository<VoltaireDrep> {
     const canonicalIds = await this.getAllDrepIds(drepVoterId);
     let drepVotesCount = 0;
     if (canonicalIds.length > 0) {
-        drepVotesCount = await this.voltaireDb
+      drepVotesCount = await this.voltaireDb
         .getRepository(ProposalVote)
         .count({ where: { voter: In(canonicalIds) } });
     }
@@ -564,9 +564,9 @@ export class DRepRepository extends Repository<VoltaireDrep> {
     endingTime: Date,
   ) {
     const canonicalIds = await this.getAllDrepIds(drepVoterId);
-    
+
     if (canonicalIds.length === 0) {
-        return [];
+      return [];
     }
 
     const timelineEvents = await this.voltaireDb
@@ -654,7 +654,7 @@ export class DRepRepository extends Repository<VoltaireDrep> {
 
   async getGovernanceParticipation(voterId: string) {
     const canonicalIds = await this.getAllDrepIds(voterId);
-    
+
     // We still use lookupId to find delegationVoteCount if needed
     const lookupId = canonicalIds.length > 0 ? canonicalIds[canonicalIds.length - 1] : voterId;
     const drepData = await this.voltaireDb
@@ -662,14 +662,14 @@ export class DRepRepository extends Repository<VoltaireDrep> {
       .findOne({ where: { drepId: lookupId }, select: ['delegationVoteCount'] });
 
     const totalProposals = await this.voltaireDb.getRepository(Proposal).count();
-    
+
     if (canonicalIds.length === 0) {
-        return {
-            participation: 0,
-            total_actions: totalProposals,
-            non_participation: totalProposals,
-            delegation_vote_count: drepData?.delegationVoteCount || 0,
-        };
+      return {
+        participation: 0,
+        total_actions: totalProposals,
+        non_participation: totalProposals,
+        delegation_vote_count: drepData?.delegationVoteCount || 0,
+      };
     }
 
     // specific handling for array parameters in raw query
@@ -681,7 +681,7 @@ export class DRepRepository extends Repository<VoltaireDrep> {
       FROM proposal_votes
       WHERE voter IN (${placeholders})
     `;
-    
+
     const countResult = await this.voltaireDb.query(countQuery, canonicalIds);
     const governanceVoteCount = parseInt(countResult[0]?.count || '0', 10);
 
@@ -722,14 +722,14 @@ export class DRepRepository extends Repository<VoltaireDrep> {
       FROM proposal_votes
       WHERE voter IN (${placeholders})
     `;
-    
+
     const countResult = await this.voltaireDb.query(countQuery, canonicalIds);
     const totalItems = parseInt(countResult[0].count, 10);
     const totalPages = Math.ceil(totalItems / itemsPerPage);
 
     // 2. Get paginated and deduplicated data
     const offset = (currentPage - 1) * itemsPerPage;
-    
+
     // We add offset and limit to the params list
     const queryParams = [...canonicalIds, itemsPerPage, offset];
     const limitIndex = canonicalIds.length + 1;
@@ -738,13 +738,17 @@ export class DRepRepository extends Repository<VoltaireDrep> {
     const dataQuery = `
       SELECT * FROM (
         SELECT 
-          v.tx_hash,
+          v.tx_hash as vote_tx_hash,
+          p.tx_hash as proposal_tx_hash,
           v.vote,
           v.proposal_id,
           v.block_time,
           v.created_at,
           p.governance_type,
-          m.json_metadata,
+          m.json_metadata->'body'->>'title' as title,
+          m.json_metadata->'body'->>'abstract' as abstract,
+          m.json_metadata->'body'->>'rationale' as rationale,
+          m.hash as proposal_anchor_hash,
           ROW_NUMBER() OVER (
             PARTITION BY v.proposal_id 
             ORDER BY v.block_time DESC NULLS LAST, v.created_at DESC
@@ -763,20 +767,25 @@ export class DRepRepository extends Repository<VoltaireDrep> {
 
     return {
       data: rawVotes.map((vote) => ({
-        tx_hash: vote.tx_hash,
+        tx_hash: vote.proposal_tx_hash || vote.vote_tx_hash,
+        vote_tx_hash: vote.vote_tx_hash,
+        proposal_tx_hash: vote.proposal_tx_hash,
         vote: vote.vote.charAt(0).toUpperCase() + vote.vote.slice(1),
         proposal_id: vote.proposal_id,
         gov_action_proposal_id: vote.proposal_id,
+        gov_action_hash: vote.proposal_anchor_hash,
         time_voted: vote.block_time ? new Date(vote.block_time).toISOString() : (vote.created_at ? new Date(vote.created_at).toISOString() : new Date().toISOString()),
         type: vote.governance_type || 'InfoAction',
         description: {
           tag: vote.governance_type || 'InfoAction',
         },
         proposal: {
-          title: vote.json_metadata?.body?.title || null,
-          abstract: vote.json_metadata?.body?.abstract || null,
-          rationale: vote.json_metadata?.body?.rationale || null,
+          title: vote.title || null,
+          abstract: vote.abstract || null,
+          rationale: vote.rationale || null,
           type: vote.governance_type || null,
+          anchorHash: vote.proposal_anchor_hash,
+          txHash: vote.proposal_tx_hash,
         },
       })),
       totalItems,
@@ -816,9 +825,9 @@ export class DRepRepository extends Repository<VoltaireDrep> {
 
   async getSingleDrepViaVoterIDOptimized(drepVoterId: string) {
     const canonicalId = await this.resolveDrepId(drepVoterId);
-    
+
     if (!canonicalId) {
-       throw new NotFoundException('DRep not found in database!');
+      throw new NotFoundException('DRep not found in database!');
     }
 
     // Get from enhanced dreps table
@@ -891,33 +900,33 @@ export class DRepRepository extends Repository<VoltaireDrep> {
    * Handles CIP-105 (Short) to CIP-129 (Long) resolution via Hex fallback.
    */
   async resolveDrepId(voterId: string): Promise<string | null> {
-      if (!voterId) return null;
-      
-      // 1. Try direct lookup
-      const directMatch = await this.voltaireDb.getRepository(Drep).findOne({
-          where: { drepId: ILike(voterId.trim()) },
-          select: ['drepId'] 
-      });
-      if (directMatch) return directMatch.drepId;
+    if (!voterId) return null;
 
-      // 2. Try Hex Fallback
-      try {
-          const decoded = bech32.decode(voterId);
-          const data = bech32.fromWords(decoded.words);
-          const hex = Buffer.from(data).toString('hex');
+    // 1. Try direct lookup
+    const directMatch = await this.voltaireDb.getRepository(Drep).findOne({
+      where: { drepId: ILike(voterId.trim()) },
+      select: ['drepId']
+    });
+    if (directMatch) return directMatch.drepId;
 
-          if (hex.length >= 56) {
-              const hexMatch = await this.voltaireDb.getRepository(Drep).createQueryBuilder('drep')
-              .where('LOWER(RIGHT(drep.hex, 56)) = LOWER(RIGHT(:hex, 56))', { hex })
-              .getOne();
-              
-              if (hexMatch) return hexMatch.drepId;
-          }
-      } catch (e) {
-          // Ignore decoding errors
+    // 2. Try Hex Fallback
+    try {
+      const decoded = bech32.decode(voterId);
+      const data = bech32.fromWords(decoded.words);
+      const hex = Buffer.from(data).toString('hex');
+
+      if (hex.length >= 56) {
+        const hexMatch = await this.voltaireDb.getRepository(Drep).createQueryBuilder('drep')
+          .where('LOWER(RIGHT(drep.hex, 56)) = LOWER(RIGHT(:hex, 56))', { hex })
+          .getOne();
+
+        if (hexMatch) return hexMatch.drepId;
       }
-      
-      return null;
+    } catch (e) {
+      // Ignore decoding errors
+    }
+
+    return null;
   }
 
   /**
@@ -926,34 +935,34 @@ export class DRepRepository extends Repository<VoltaireDrep> {
    * by any of the valid aliases (CIP-105 or CIP-129).
    */
   async getAllDrepIds(voterId: string): Promise<string[]> {
-      const ids = new Set<string>();
-      
-      // 1. Add input ID
-      if (voterId) ids.add(voterId);
+    const ids = new Set<string>();
 
-      // 2. Try to derive Hex
-      try {
-          const decoded = bech32.decode(voterId);
-          const data = bech32.fromWords(decoded.words);
-          const hex = Buffer.from(data).toString('hex');
+    // 1. Add input ID
+    if (voterId) ids.add(voterId);
 
-          if (hex.length >= 56) {
-              // Find ALL Dreps with this hex suffix
-              const matches = await this.voltaireDb.getRepository(Drep).createQueryBuilder('drep')
-              .where('LOWER(RIGHT(drep.hex, 56)) = LOWER(RIGHT(:hex, 56))', { hex })
-              .select('drep.drepId')
-              .getMany();
-              
-              matches.forEach(m => ids.add(m.drepId));
-          }
-      } catch (e) {
-         // ignore
+    // 2. Try to derive Hex
+    try {
+      const decoded = bech32.decode(voterId);
+      const data = bech32.fromWords(decoded.words);
+      const hex = Buffer.from(data).toString('hex');
+
+      if (hex.length >= 56) {
+        // Find ALL Dreps with this hex suffix
+        const matches = await this.voltaireDb.getRepository(Drep).createQueryBuilder('drep')
+          .where('LOWER(RIGHT(drep.hex, 56)) = LOWER(RIGHT(:hex, 56))', { hex })
+          .select('drep.drepId')
+          .getMany();
+
+        matches.forEach(m => ids.add(m.drepId));
       }
+    } catch (e) {
+      // ignore
+    }
 
-      // 3. Also check if the input ID resolves to a canonical ID (reverse lookup)
-      const canonical = await this.resolveDrepId(voterId);
-      if (canonical) ids.add(canonical);
+    // 3. Also check if the input ID resolves to a canonical ID (reverse lookup)
+    const canonical = await this.resolveDrepId(voterId);
+    if (canonical) ids.add(canonical);
 
-      return Array.from(ids);
+    return Array.from(ids);
   }
 }
