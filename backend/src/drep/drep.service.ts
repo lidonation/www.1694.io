@@ -388,79 +388,63 @@ export class DrepService {
   }
 
   getDrepTimelineWithMinItems({
-    dRep,
     voterId,
-    stakeKeyBech32,
-    delegation,
-    endTimeCursor,
-    startTimeCursor,
+    cursor,
     filterValues,
     minItems = 10,
-    recursionDepth = 0,
-    maxRecursionDepth = 3,
     loadDirection = 'older',
-  }): Observable<TimelineResponse> {
-    // Use governance indexer timeline with proper event type mapping
+  }: any): Observable<TimelineResponse> {
+    // Directly expose the structured epoch grouping from governance service
     return from(this.governanceService.getDRepTimeline(voterId, {
-      startTimeCursor: Number(startTimeCursor),
-      endTimeCursor: Number(endTimeCursor),
+      cursor,
       filterValues,
       minItems,
       loadDirection: loadDirection as 'older' | 'newer'
     })).pipe(
       map(result => ({
-        appliedStartTime: startTimeCursor || Date.now(),
-        appliedEndTime: endTimeCursor || Date.now(),
-        entries: result.entries
+        appliedStartTime: 0,
+        appliedEndTime: 0,
+        epochs: result.epochs,
+        nextCursor: result.nextCursor,
+        prevCursor: result.prevCursor,
+        entries: [], // Legacy compat
       }))
     );
   }
 
   async getOptimizedDrepTimeline({
     voterId,
-    startTimeCursor,
-    endTimeCursor,
+    cursor,
     filterValues,
     minItems = 10,
     loadDirection = 'older'
-  }): Promise<TimelineResponse> {
+  }: any): Promise<TimelineResponse> {
     try {
-      const timelineData = await this.governanceService.getDRepTimeline(voterId, {
-        startTimeCursor,
-        endTimeCursor,
+      const result = await this.governanceService.getDRepTimeline(voterId, {
+        cursor,
         filterValues,
         minItems,
         loadDirection: loadDirection as 'older' | 'newer'
       });
 
-      // Convert governance indexer timeline to expected format
-      const entries = timelineData.entries.map(event => ({
-        id: event.id,
-        timestamp: event.timestamp,
-        type: event.type,
-        epochNo: event.epochNo,
-        ...event.payload
-      }));
-
-      // Enrich delegation activities with current stake information
-      const enrichedEntries = await this.enrichDelegationActivitiesWithStake(entries);
-
       return {
-        appliedStartTime: startTimeCursor || Date.now(),
-        appliedEndTime: endTimeCursor || Date.now(), 
-        entries: enrichedEntries
+        epochs: result.epochs,
+        nextCursor: result.nextCursor,
+        prevCursor: result.prevCursor,
+        appliedStartTime: 0,
+        appliedEndTime: 0,
+        entries: [],
       };
     } catch (error) {
       console.error('Error fetching optimized timeline:', error);
-      // Fallback to legacy method
-      return this.getLegacyDrepTimelineWithMinItems({
-        voterId,
-        startTimeCursor,
-        endTimeCursor,
-        filterValues,
-        minItems,
-        loadDirection
-      });
+      return {
+        epochs: [],
+        nextCursor: null,
+        prevCursor: null,
+        appliedStartTime: 0,
+        appliedEndTime: 0,
+        entries: []
+      };
     }
   }
 

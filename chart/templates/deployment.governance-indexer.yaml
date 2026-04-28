@@ -22,6 +22,10 @@ spec:
       labels:
         app: "governance-indexer"
         service: "{{ .Values.governanceIndexer.labels.service }}"
+      annotations:
+        # Unique SHA per commit — changes on every deploy so K8s always does a
+        # rolling restart and pulls the new image even if the tag name is the same.
+        deploy-sha: "{{ .Values.governanceIndexer.image.sha }}"
     spec:
       imagePullSecrets:
         - name: gitlab-registry-token

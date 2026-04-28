@@ -1,0 +1,21 @@
+namespace: voltaire-mainnet
+
+ingress:
+  hosts:
+    - 1694.io
+  api: api.1694.io
+
+governanceIndexer:
+  image:
+    tag: latest   # mutable — always points to latest main build
+    sha: ""       # set at deploy time: --set governanceIndexer.image.sha=$CI_COMMIT_SHORT_SHA
+  networkMagic: "764824073"
+  maxConcurrentWorkers: "16"
+  databaseUrl: "postgres://voltaire:postgres@postgresql:5432/1694_mainnet"
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      memory: 2048Mi
+      cpu: 1000m

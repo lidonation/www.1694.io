@@ -8,14 +8,14 @@ import DrepTimelineMobile from './DrepTimelineMobile';
 import DrepTimelineDesktop from './DrepTimelineDesktop';
 
 const DrepTimelineWaterfall = ({
-  activity = [],
+  epochs = [],
   drepId,
   isAtLatestPoint,
   isAtOldestPoint,
   onLoadNewer,
   onLoadOlder,
 }: {
-  activity: any[];
+  epochs: any[];
   drepId: string;
   isAtLatestPoint?: boolean;
   isAtOldestPoint?: boolean;
@@ -32,6 +32,20 @@ const DrepTimelineWaterfall = ({
     (drep) =>
       drep.claimedDRepBech32 === convertDrepPhraseToCIP105Legacy(drepId),
   );
+
+  const stickyPos = React.useMemo(() => {
+    if (screenWidth >= 1400) return { right: 'calc(50% - 700px)', left: 'auto' };
+    if (screenWidth >= 1024) return { right: '16px', left: 'auto' };
+    return { right: 'auto', left: '8px' };
+  }, [screenWidth]);
+
+  // Use a flattened list for the sticky vote navigation logic - MUST BE BEFORE useEffect
+  const activity = React.useMemo(() => {
+    return epochs.flatMap(epoch => [
+      { type: 'epoch', ...epoch },
+      ...epoch.items
+    ]);
+  }, [epochs]);
 
   const [stickyTargetId, setStickyTargetId] = React.useState<{ newer: string | null; older: string | null }>({
     newer: null,
@@ -70,128 +84,8 @@ const DrepTimelineWaterfall = ({
     return () => window.removeEventListener('scroll', handleScroll);
   }, [activity]);
 
-  const processedActivity = React.useMemo(() => {
-    try {
-      if (!activity || !Array.isArray(activity)) return [];
-
-      // 1. Separate epoch boundaries and sort them DESC by epoch number
-      const epochBoundaries = [...activity.filter(item => item && item.type === 'epoch')]
-        .sort((a, b) => (b.no || 0) - (a.no || 0));
-      const otherActivities = activity.filter(item => item && item.type !== 'epoch');
-      
-      const EPOCH_DURATION = 432000000; // 5 days in ms
-
-      // 2. Pre-calculate epoch windows for robust timestamp matching
-      const epochWindows = epochBoundaries.map(e => {
-        const start = e.start_time ? new Date(e.start_time).getTime() : 0;
-        const end = e.end_time ? new Date(e.end_time).getTime() : (start ? start + EPOCH_DURATION : 0);
-        return { no: e.no, header: e, start, end };
-      });
-
-      // 2b. Prepare reference for mathematical calculation if headers are missing
-      const refHeader = epochWindows[0];
-
-      // 3. Group non-epoch items by their epoch number
-      const groups = new Map<number, any[]>();
-
-      const getEffectiveEpochNo = (item: any) => {
-        if (!item) return null;
-        
-        // Priority 1: Direct epoch_no on item or proposal
-        const explicit = item.epoch_no || item.proposal?.epoch_no;
-        if (explicit) return explicit;
-
-        // Priority 2: Timestamp-based matching against existing windows
-        const tsString = item.timestamp || item.voted_at || item.submitted_at || (item.items && item.items[0]?.timestamp);
-        if (tsString) {
-          const ts = new Date(tsString).getTime();
-          if (!isNaN(ts)) {
-            const matched = epochWindows.find(w => ts >= w.start && ts <= w.end);
-            if (matched) return matched.no;
-
-            // Priority 3: Mathematical calculation relative to first header
-            if (refHeader) {
-               return refHeader.no + Math.floor((ts - refHeader.start) / EPOCH_DURATION);
-            }
-          }
-        }
-        
-        return null;
-      };
-
-      const pushToGroup = (item: any) => {
-        if (!item) return;
-        const epochNo = getEffectiveEpochNo(item);
-        
-        // If we still can't find an epoch, use a dummy or skip grouping
-        const finalEpochNo = epochNo !== null ? epochNo : -1;
-
-        if (!groups.has(finalEpochNo)) groups.set(finalEpochNo, []);
-        groups.get(finalEpochNo)?.push(item);
-      };
-
-      const allDelegations: any[] = [];
-      otherActivities.forEach((item) => {
-        if (item.type === 'delegation') {
-          allDelegations.push(item);
-        } else {
-          pushToGroup(item);
-        }
-      });
-
-      // 4. Build final interleaved list: Newest Epoch Header -> Newest Epoch Events -> ...
-      const result: any[] = [];
-      const usedEpochs = new Set<number>();
-
-      epochBoundaries.forEach(header => {
-        result.push(header);
-        usedEpochs.add(header.no);
-        
-        const items = groups.get(header.no);
-        if (items) {
-          result.push(...items);
-        }
-      });
-
-      // 5. Catch-all for items whose epoch headers might be missing from the 'activity' array
-      const remainingEpochNos = Array.from(groups.keys()).sort((a, b) => b - a);
-      remainingEpochNos.forEach(no => {
-        if (!usedEpochs.has(no) && no !== -1) {
-          const items = groups.get(no);
-          if (items) result.push(...items);
-        }
-      });
-
-      // 6. Handle items that failed all epoch detection (-1 group)
-      const unmapped = groups.get(-1);
-      if (unmapped) result.push(...unmapped);
-
-      // 7. Append all delegations as a single bundle at the end
-      if (allDelegations.length > 0) {
-        result.push({
-          type: 'bundled_delegations',
-          items: allDelegations,
-          id: `bundle-all-delegations`,
-          timestamp: allDelegations[0].timestamp,
-          epoch_no: allDelegations[0].epoch_no
-        });
-      }
-
-      return result;
-    } catch (err) {
-      console.error('Error processing timeline activity:', err);
-      return activity;
-    }
-  }, [activity]);
-
-  const stickyPos = React.useMemo(() => {
-    if (screenWidth >= 1400) return { right: 'calc(50% - 700px)', left: 'auto' };
-    if (screenWidth >= 1024) return { right: '16px', left: 'auto' };
-    return { right: 'auto', left: '8px' };
-  }, [screenWidth]);
-
   const commonProps = {
-    processedActivity,
+    epochs,
     isAtLatestPoint,
     isAtOldestPoint,
     onLoadNewer,

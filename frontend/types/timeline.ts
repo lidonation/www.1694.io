@@ -25,6 +25,8 @@ export type DrepVote = {
   url: string;
   vote_rationale: string;
   timestamp: string;
+  txHash?: string;
+  tx_hash?: string;
   proposal?: {
     title: string | null;
     abstract: string | null;

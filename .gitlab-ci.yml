@@ -345,6 +345,54 @@ production:
     - if: '$CI_COMMIT_BRANCH == "main" && ($DEPLOY_WEBSITE == "true")'
       when: manual
 
+# ---------------------------------------------------------------------------
+# Governance indexer auto-deploy (triggered by governance-indexer CI)
+# Runs helm upgrade --reuse-values so only the indexer image changes —
+# all other stack config (backend, frontend, queue) is left untouched.
+# ---------------------------------------------------------------------------
+
+deploy-indexer-preview:
+  stage: preview
+  image: "${CI_TEMPLATE_REGISTRY_HOST}/gitlab-org/cluster-integration/auto-deploy-image:${AUTO_DEPLOY_IMAGE_VERSION}"
+  environment:
+    name: preview
+  script:
+    - |
+      DEPLOYMENT_NAME="www-1694.$CI_ENVIRONMENT_SLUG"
+      echo "Deploying governance-indexer $INDEXER_TAG ($INDEXER_SHA) to preview..."
+      helm upgrade $DEPLOYMENT_NAME ./chart \
+        --reuse-values \
+        --timeout 120s \
+        --wait \
+        --namespace="$KUBE_NAMESPACE" \
+        --set governanceIndexer.image.tag="$INDEXER_TAG" \
+        --set governanceIndexer.image.sha="$INDEXER_SHA"
+      echo "Done."
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "pipeline" && $INDEXER_TAG && $INDEXER_SHA'
+
+deploy-indexer-production:
+  stage: production
+  image: "${CI_TEMPLATE_REGISTRY_HOST}/gitlab-org/cluster-integration/auto-deploy-image:${AUTO_DEPLOY_IMAGE_VERSION}"
+  environment:
+    name: production
+  script:
+    - |
+      DEPLOYMENT_NAME="www-1694.$CI_ENVIRONMENT_SLUG"
+      echo "Deploying governance-indexer $INDEXER_TAG ($INDEXER_SHA) to production..."
+      helm upgrade $DEPLOYMENT_NAME ./chart \
+        --reuse-values \
+        --timeout 120s \
+        --wait \
+        --namespace="$KUBE_NAMESPACE" \
+        --set governanceIndexer.image.tag="$INDEXER_TAG" \
+        --set governanceIndexer.image.sha="$INDEXER_SHA"
+      echo "Done."
+  needs:
+    - job: deploy-indexer-preview
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "pipeline" && $INDEXER_TAG && $INDEXER_SHA && $INDEXER_TAG == "latest"'
+
 ui-chrome-tests:
   image: cypress/included:cypress-13.17.0-node-22.12.0-chrome-131.0.6778.139-1-ff-133.0.3-edge-131.0.2903.94-1
   stage: test

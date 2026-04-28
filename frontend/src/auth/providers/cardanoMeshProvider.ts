@@ -24,15 +24,13 @@ export class CardanoMeshProvider implements AuthenticationProvider {
   supportsMessageSigning = true;
   supportsColdWallet = false;
 
-  async connect(walletName: string): Promise<AuthResult> {
+  async connect(walletName: string, params?: any): Promise<AuthResult> {
     try {
       if (typeof window === 'undefined') {
         throw new Error('Connection must be initiated from the browser');
       }
 
       const { BrowserWallet } = await import('@meshsdk/core');
-      
-      console.log(`[MeshProvider] Connecting with Network ID: ${CONFIGURED_NETWORK_ID}`);
       
       try {
         this.wallet = await BrowserWallet.enable(walletName, [{ cip: 95 }]);
@@ -46,14 +44,13 @@ export class CardanoMeshProvider implements AuthenticationProvider {
       this.walletName = walletName;
 
       const network = await this.wallet.getNetworkId();
-      console.log(`[MeshProvider] Wallet reported network ID: ${network}`);
       
       if (network !== CONFIGURED_NETWORK_ID) {
         const networkName = CONFIGURED_NETWORK_ID === 1 ? 'Mainnet' : 'Testnet/Preview';
         throw new Error(`Wallet network mismatch. Please switch your wallet to ${networkName}.`);
       }
 
-      const info = await this.fetchAccountInfo();
+      const info = await this.fetchAccountInfo(params);
       this.accountInfo = info;
       this.connected = true;
 
@@ -65,7 +62,6 @@ export class CardanoMeshProvider implements AuthenticationProvider {
         walletApi: (await window.cardano[walletName].enable()) as CardanoApiWallet,
       };
     } catch (error) {
-      console.error('[MeshProvider] Connection error full object:', error);
       const errorMessage = error instanceof Error 
         ? error.message 
         : (error && typeof error === 'object' ? JSON.stringify(error) : String(error));
@@ -77,10 +73,10 @@ export class CardanoMeshProvider implements AuthenticationProvider {
     }
   }
 
-  async reconnect(): Promise<AuthResult> {
+  async reconnect(params?: any): Promise<AuthResult> {
     const savedName = getItemFromLocalStorage(`${WALLET_LS_KEY}_name`);
     if (savedName) {
-      return this.connect(savedName);
+      return this.connect(savedName, params);
     }
     return { success: false, error: 'No saved wallet found' };
   }
@@ -103,7 +99,7 @@ export class CardanoMeshProvider implements AuthenticationProvider {
     return this.accountInfo;
   }
 
-  private async fetchAccountInfo(): Promise<AccountInfo> {
+  private async fetchAccountInfo(params?: any): Promise<AccountInfo> {
     if (!this.wallet) throw new Error('Wallet not enabled');
 
     const { convertAddressToBech32 } = await import('@/lib');
@@ -112,7 +108,6 @@ export class CardanoMeshProvider implements AuthenticationProvider {
     const walletApi = await window.cardano[this.walletName!].enable();
     
     const rawAddress = await walletApi.getChangeAddress();
-    console.log('[MeshProvider] Raw Change Address:', rawAddress);
     
     let address = '';
     try {
@@ -124,7 +119,6 @@ export class CardanoMeshProvider implements AuthenticationProvider {
     
     const balance = await this.wallet.getLovelace();
     const hexRewardAddresses = await walletApi.getRewardAddresses();
-    console.log('[MeshProvider] Raw Reward Addresses:', hexRewardAddresses);
     
     if (!hexRewardAddresses || hexRewardAddresses.length === 0) {
       throw new Error('No reward addresses found in wallet');
@@ -155,12 +149,20 @@ export class CardanoMeshProvider implements AuthenticationProvider {
     }
 
     // Backend authentication credentials
-    // IMPORTANT: The backend expects this exact message
-    const message = 'Please verify your identity';
-    const payloadHex = Buffer.from(message).toString('hex');
+    let loginCredentials = null;
     
-    // Sign using the low-level API with the hex address
-    const signedData = await walletApi.signData(stakeKeyHex, payloadHex);
+    if (!params?.silent) {
+        // IMPORTANT: The backend expects this exact message
+        const message = 'Please verify your identity';
+        const payloadHex = Buffer.from(message).toString('hex');
+        
+        // Sign using the low-level API with the hex address
+        const signedData = await walletApi.signData(stakeKeyHex, payloadHex);
+        loginCredentials = {
+          signature: signedData.signature,
+          key: signedData.key,
+        };
+    }
 
     return {
       address: '', 
@@ -168,10 +170,7 @@ export class CardanoMeshProvider implements AuthenticationProvider {
       stakeKeyBech32: stakeKeyBech32,
       registeredStakeKeysListState: registeredStakeKeys,
       balance: balance,
-      loginCredentials: {
-        signature: signedData.signature,
-        key: signedData.key,
-      },
+      loginCredentials,
       dRepInfo: {
         isDRep: !!dRepRegistration?.registered,
         dRepId: (dRepIDBech32 && dRepIDBech32.includes('1')) ? fromBech32ToHex(dRepIDBech32) : null,
