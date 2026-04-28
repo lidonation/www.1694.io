@@ -7,7 +7,7 @@ metadata:
     app: "governance-indexer-reconcile"
     service: "governance-indexer"
 spec:
-  schedule: {{ .Values.governanceIndexer.reconciler.schedule | quote }}
+  schedule: "0 */3 * * *"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
@@ -27,7 +27,7 @@ spec:
             - name: reconciler
               image: "{{ .Values.governanceIndexer.image.repository }}:{{ .Values.governanceIndexer.image.tag }}"
               imagePullPolicy: Always
-              command: ["indexer", "reconcile", "--sql-only"]
+              command: ["indexer", "reconcile"]
               env:
                 - name: DATABASE_URL
                   value: "{{ .Values.governanceIndexer.databaseUrl }}"
@@ -39,14 +39,10 @@ spec:
                   value: "{{ .Values.governanceIndexer.networkMagic }}"
                 - name: RUST_LOG
                   value: "{{ .Values.governanceIndexer.rustLog }}"
-                {{- if .Values.governanceIndexer.reconciler.blockfrostKey }}
-                - name: BLOCKFROST_PROJECT_ID
-                  value: "{{ .Values.governanceIndexer.reconciler.blockfrostKey }}"
-                {{- end }}
               resources:
                 limits:
-                  memory: {{ .Values.governanceIndexer.reconciler.resources.limits.memory }}
-                  cpu: {{ .Values.governanceIndexer.reconciler.resources.limits.cpu }}
+                  memory: "256Mi"
+                  cpu: "200m"
                 requests:
-                  cpu: {{ .Values.governanceIndexer.reconciler.resources.requests.cpu }}
-                  memory: {{ .Values.governanceIndexer.reconciler.resources.requests.memory }}
+                  cpu: "50m"
+                  memory: "128Mi"

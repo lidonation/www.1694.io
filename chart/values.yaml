@@ -138,7 +138,6 @@ governanceIndexer:
   # Set scanOrphans: true and provide a blockfrostKey to also verify tx existence via Blockfrost.
   reconciler:
     schedule: "0 2 * * *"   # 2 AM UTC daily
-    blockfrostKey: ""        # Set to BLOCKFROST_PROJECT_ID to enable orphan scanning
     resources:
       requests:
         cpu: 50m
