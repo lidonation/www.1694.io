@@ -136,15 +136,4 @@ governanceIndexer:
       memory: 1024Mi
       cpu: 500m
 
-  # Reconciler CronJob — runs SQL Fix 1 + Fix 2 nightly to patch data discrepancies.
-  # Set scanOrphans: true and provide a blockfrostKey to also verify tx existence via Blockfrost.
-  reconciler:
-    schedule: "0 2 * * *"   # 2 AM UTC daily
-    resources:
-      requests:
-        cpu: 50m
-        memory: 128Mi
-      limits:
-        memory: 256Mi
-        cpu: 200m
 
