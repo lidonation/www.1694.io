@@ -14,7 +14,7 @@ import {
   CardContent,
   CardActions,
 } from '@mui/material';
-import ReactMarkdown from 'react-markdown';
+import MarkdownParser from '@/components/atoms/MarkdownParser';
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import {
@@ -191,34 +191,18 @@ function ProposalCard({ proposal }: { proposal: any }) {
               >
                 Proposal Benefit
               </Typography>
-              <Box
-                sx={{
-                  display: '-webkit-box',
-                  WebkitBoxOrient: 'vertical',
-                  WebkitLineClamp: 3,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  wordWrap: 'break-word',
-                }}
-              >
-                <ReactMarkdown
-                  components={{
-                    p({ children }) {
-                      return (
-                        <Typography
-                          variant="body2"
-                          component="span"
-                          sx={{ display: 'inline' }}
-                        >
-                          {children}
-                        </Typography>
-                      );
-                    },
+                <Box
+                  sx={{
+                    display: '-webkit-box',
+                    WebkitBoxOrient: 'vertical',
+                    WebkitLineClamp: 3,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    wordWrap: 'break-word',
                   }}
                 >
-                  {proposalBenefit?.toString() || '-'}
-                </ReactMarkdown>
-              </Box>
+                  <MarkdownParser text={proposalBenefit?.toString() || '-'} />
+                </Box>
             </Box>
           )}
           <Box className="mt-auto">

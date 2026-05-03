@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { Box, Typography, Tooltip } from '@mui/material';
+import MarkdownParser from './MarkdownParser';
 import { keyframes } from '@emotion/react';
 
 const highlightAnimation = keyframes`
@@ -310,9 +311,9 @@ const DrepVoteTimelineCard = ({
               {title || '-'}
             </p>
             {!minimal && description && (
-              <p className="mt-2 line-clamp-3 text-xs text-gray-500">
-                {description}
-              </p>
+              <Box className="mt-2 line-clamp-3 text-xs text-gray-500">
+                <MarkdownParser text={description} />
+              </Box>
             )}
           </Box>
 
