@@ -54,12 +54,14 @@ export const AnimatedCounter = ({
     ...(height && { height: `${height}px` }),
   };
 
+  const MotionSpan = motion.span as any;
+
   return (
-    <motion.span 
+    <MotionSpan 
       className={className || undefined}
       style={style}
     >
-      {display as any}
-    </motion.span>
+      {display}
+    </MotionSpan>
   );
 };

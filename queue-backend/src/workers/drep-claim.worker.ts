@@ -40,7 +40,7 @@ export class DrepClaimWorker extends WorkerHost {
 
       const response = await this.autoClaimDRep(claimDto);
       return { success: true, message: 'DRep claimed', isRegistered: true, stakeKey, view: response.view, drepId: response.drepId };
-    } catch (e) {
+    } catch (e: any) {
       this.logger.error(`Job ${job.id} failed: ${e.message}`);
       throw e;
     }
@@ -61,7 +61,7 @@ export class DrepClaimWorker extends WorkerHost {
     try {
       const { insertedDrep, insertedSig } = await this.registerDrep(dto);
       return { success: true, message: "Auto-claimed", isRegistered: true, view: insertedSig?.drep_bech32, stakeKey: insertedSig?.stakeKey, drepId: insertedDrep?.id };
-    } catch (e) {
+    } catch (e: any) {
       this.logger.error(`Registration failed: ${e.message}`);
       return { success: false, message: "Registration failed", error: e.message };
     }
@@ -92,4 +92,5 @@ export class DrepClaimWorker extends WorkerHost {
       }
       return { insertedDrep: inserted.raw[0], insertedSig: resultSig, isUpdate: !!existingSig };
     });
+  }
 }
