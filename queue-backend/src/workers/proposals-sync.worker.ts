@@ -138,7 +138,7 @@ export class ProposalsSyncWorker extends WorkerHost {
         if (e.status !== 429) {
           await metadataRepository.upsert({
             proposalId: p.id,
-            error: { message: e.message, status: e.status, ts: new Date().toISOString() },
+            error: { message: e.message, status: e.status, ts: new Date().toISOString() } as any,
             version: 'v2',
           }, { conflictPaths: ['proposalId'], skipUpdateIfNoValuesChanged: false });
         }
