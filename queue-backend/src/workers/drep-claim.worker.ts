@@ -1,3 +1,4 @@
+import { Logger } from "@nestjs/common";
 import { Processor, WorkerHost } from "@nestjs/bullmq";
 import { Job } from "bullmq";
 import {
@@ -10,7 +11,6 @@ import { InjectDataSource } from "@nestjs/typeorm";
 import { DataSource } from "typeorm";
 import { Drep } from "../entities/drep.entity";
 
-@Processor(Queues.DREP_CLAIM, { concurrency: 10 })
 @Processor(Queues.DREP_CLAIM, { concurrency: 10 })
 export class DrepClaimWorker extends WorkerHost {
   private readonly logger = new Logger(DrepClaimWorker.name);
@@ -92,7 +92,4 @@ export class DrepClaimWorker extends WorkerHost {
       }
       return { insertedDrep: inserted.raw[0], insertedSig: resultSig, isUpdate: !!existingSig };
     });
-  }
-}
-
 }

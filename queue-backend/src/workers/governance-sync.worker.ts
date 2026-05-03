@@ -1,3 +1,4 @@
+import { Logger } from "@nestjs/common";
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Injectable, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
@@ -306,35 +307,6 @@ export class GovernanceSyncWorker extends WorkerHost {
         await drepsRepository.update({ drepId: c.drepId }, { delegationVoteCount: parseInt(c.count) });
       } catch (e) {
         this.logger.warn(`Count update failed (${c.drepId}): ${e.message}`);
-      }
-    }
-  }
-
-
-
-  private async updateDelegationCounts(): Promise<void> {
-    const drepsRepository = this.dataSource.getRepository(Drep);
-    const delegatorsRepository = this.dataSource.getRepository(DrepDelegator);
-
-    // Get count of delegators for each DRep
-    const delegatorCounts = await delegatorsRepository
-      .createQueryBuilder('delegator')
-      .select('delegator.drepId', 'drepId')
-      .addSelect('COUNT(*)', 'count')
-      .groupBy('delegator.drepId')
-      .getRawMany();
-
-    // Update each DRep with the delegation count
-    for (const countData of delegatorCounts) {
-      try {
-        await drepsRepository.update(
-          { drepId: countData.drepId },
-          { delegationVoteCount: parseInt(countData.count) },
-        );
-      } catch (error) {
-        this.logger.warn(
-          `Failed to update delegation count for DRep ${countData.drepId}: ${error.message}`,
-        );
       }
     }
   }
