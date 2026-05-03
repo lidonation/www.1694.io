@@ -1,3 +1,4 @@
+'use client';
 import { convertDrepPhraseToCIP105Legacy, isCip105 } from '@/lib';
 import { verifyOwnership } from '@/services/requests/verifyOwnership';
 import { useQuery } from 'react-query';

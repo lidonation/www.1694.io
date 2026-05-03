@@ -1,3 +1,4 @@
+'use client';
 import { QUERY_KEYS } from '@/constants/queryKeys';
 import { dRepPhraseProcessor } from '@/lib';
 import { getDReps } from '@/services';

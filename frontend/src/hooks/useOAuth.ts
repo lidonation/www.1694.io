@@ -1,3 +1,4 @@
+'use client';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
 import {
   CreateOAuthDto,

@@ -1,4 +1,3 @@
-import { Logger } from "@nestjs/common";
 import { Controller, Post, Body, Logger, Get, Param } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';

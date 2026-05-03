@@ -1,3 +1,4 @@
+'use client';
 import {useQuery, UseQueryResult} from 'react-query';
 import axiosInstance from "@/services/axiosInstance";
 import { CxProposalsMetrics } from '../../types/api';

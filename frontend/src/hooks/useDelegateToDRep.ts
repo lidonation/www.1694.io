@@ -1,3 +1,4 @@
+'use client';
 import { useCallback, useState } from 'react';
 import { CertificatesBuilder } from '@emurgo/cardano-serialization-lib-asmjs';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';

@@ -1,3 +1,4 @@
+'use client';
 import { getProposalByHashQueryString } from '@/services/requests/getProposalByHashQueryString';
 import { useQuery } from 'react-query';
 export type getProposalByHashQueryStringProps = {

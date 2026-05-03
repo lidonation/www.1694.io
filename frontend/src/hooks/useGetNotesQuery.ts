@@ -1,3 +1,4 @@
+'use client';
 import { QUERY_KEYS } from '@/constants/queryKeys';
 import { getNotes } from '@/services/requests/getNotes';
 import { useQuery } from 'react-query';

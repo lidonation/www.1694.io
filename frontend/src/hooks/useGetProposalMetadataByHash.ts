@@ -1,3 +1,4 @@
+'use client';
 import { getProposalMetadataByHash } from '@/services/requests/getProposalMetadataByHash';
 import { useQuery } from 'react-query';
 export type getProposalMetadataByHashQueryStringProps = {

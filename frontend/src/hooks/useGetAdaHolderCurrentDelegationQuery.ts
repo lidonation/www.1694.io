@@ -1,3 +1,4 @@
+'use client';
 import { QUERY_KEYS } from '@/constants/queryKeys';
 import { currentDelegation } from '../../types/api';
 import { getAdaHolderCurrentDelegation } from '@/services/requests/getAdaHolderCurrentDelegation';

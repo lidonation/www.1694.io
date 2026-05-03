@@ -1,3 +1,4 @@
+'use client';
 import { getVoterDataByIdentity } from '@/services/requests/getVoterDataByIdentity';
 import { useQuery } from 'react-query';
 import { VoterData } from '../../types/api';

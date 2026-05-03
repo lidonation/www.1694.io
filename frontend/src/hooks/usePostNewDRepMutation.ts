@@ -1,3 +1,4 @@
+'use client';
 import { drepInput } from '@/models/drep';
 import { postNewDRep } from '@/services/requests/postAddDRep';
 import { useMutation } from 'react-query';

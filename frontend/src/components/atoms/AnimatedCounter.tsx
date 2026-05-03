@@ -56,10 +56,10 @@ export const AnimatedCounter = ({
 
   return (
     <motion.span 
-      className={className}
+      className={className || undefined}
       style={style}
     >
-      {display}
+      {display as any}
     </motion.span>
   );
 };

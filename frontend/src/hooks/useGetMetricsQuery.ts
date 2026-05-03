@@ -1,3 +1,4 @@
+'use client';
 import { getMetrics } from '@/services/requests/getGeneralMetrics';
 import { Metrics } from '../../types/commonTypes';
 import { useQuery } from 'react-query';

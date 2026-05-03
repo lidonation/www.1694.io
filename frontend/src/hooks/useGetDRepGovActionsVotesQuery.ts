@@ -1,3 +1,4 @@
+'use client';
 import { useQuery } from 'react-query';
 import { QUERY_KEYS } from '@/constants/queryKeys';
 import { getDRepGovActionsVotes } from '@/services/requests/getDRepGovActionsVotes';

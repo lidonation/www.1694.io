@@ -1,3 +1,4 @@
+'use client';
 import { useQuery } from 'react-query';
 import { getVoterGovActions } from '@/services/requests/getVoterGovActions';
 import { QUERY_KEYS } from '@/constants/queryKeys';

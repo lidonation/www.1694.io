@@ -1,3 +1,4 @@
+'use client';
 import { getSingleNote } from '@/services/requests/getSingleNote';
 import { useQuery } from 'react-query';
 

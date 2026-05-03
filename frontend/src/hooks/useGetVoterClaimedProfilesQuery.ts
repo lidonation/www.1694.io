@@ -1,3 +1,4 @@
+'use client';
 import { QUERY_KEYS } from '@/constants/queryKeys';
 import { convertDrepPhraseToCIP105 } from '@/lib';
 import { getVoterClaimedProfiles } from '@/services/requests/getVoterClaimedProfiles';

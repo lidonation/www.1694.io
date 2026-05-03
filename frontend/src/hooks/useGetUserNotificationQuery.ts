@@ -1,3 +1,4 @@
+'use client';
 import { useQuery } from 'react-query';
 import { getUserNotifications } from '@/services/requests/getUserNotifications';
 
