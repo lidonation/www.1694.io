@@ -90,7 +90,7 @@ export const useGetDRepTimelineQuery = (
         loadDirection,
       );
     },
-    enabled: !!idOrVoterId && filterValues !== null,
+    enabled: typeof window !== "undefined" && (!!idOrVoterId && filterValues !== null),
     refetchOnWindowFocus: false,
     onSuccess: (newData) => {
       const incomingEpochs = newData?.epochs || [];

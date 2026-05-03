@@ -3,7 +3,7 @@ import DrepGovActionSubmitCard from '@/components/atoms/DrepGovActionSubmitCard'
 
 export const governanceActionProcessor = (content: string) => {
   const regex = /\[gov_action hash='(.+?)'\]/g;
-  const parts: (string | JSX.Element)[] = [];
+  const parts: (string | React.ReactNode)[] = [];
   let lastIndex = 0;
   let match;
 

@@ -11,7 +11,7 @@ export const useGetSingleDRepQuery = (drepId?: string) => {
       const cip105Id = convertDrepPhraseToCIP105(drepId);
       return await getSingleDRepViaVoterId(cip105Id);
     },
-    enabled: !!drepId,
+    enabled: typeof window !== "undefined" && (!!drepId),
     refetchOnWindowFocus: false,
   });
 

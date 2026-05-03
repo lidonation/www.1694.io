@@ -77,7 +77,7 @@ export const usePollVotes = (pollID: string) => {
       };
     },
     {
-      enabled: !!pollID,
+      enabled: typeof window !== "undefined" && (!!pollID),
       refetchOnWindowFocus: false,
     },
   );

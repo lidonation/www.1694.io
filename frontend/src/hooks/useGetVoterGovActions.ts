@@ -8,7 +8,7 @@ export const useGetVoterGovActionsQuery = (voterIdentity: string, page?: number,
   const { data, isLoading } = useQuery<VoterGovActions>({
     queryKey: [QUERY_KEYS.getVoterGovActions, voterIdentity, page],
     queryFn: async () => await getVoterGovActions(voterIdentity, page),
-    enabled: !!voterIdentity,
+    enabled: typeof window !== "undefined" && (!!voterIdentity),
     refetchOnWindowFocus: false,
   });
 

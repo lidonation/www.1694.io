@@ -8,7 +8,7 @@ export const useGetExternalMetadata = (url: string, enabled?: boolean) => {
     queryFn: async () => {
       return getExternalMetadataByUrl(url);
     },
-    enabled: enabled ? enabled && !!url : !!url,
+    enabled: typeof window !== "undefined" && (enabled ? enabled && !!url : !!url),
     refetchOnWindowFocus: false,
   });
 
