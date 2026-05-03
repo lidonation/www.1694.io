@@ -16,13 +16,15 @@ const HoverLinkChip = ({
 }: HoverLinkChipProps) => {
   const [isHovered, setIsHovered] = useState(false);
 
+  const MotionDiv = motion.div as any;
+
   return (
     <div
       className="relative flex w-full items-center justify-center"
       onClick={handleClick}
     >
       {isHovered && (
-        <motion.div
+        <MotionDiv
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
@@ -47,7 +49,7 @@ const HoverLinkChip = ({
           <div
             className={`absolute left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 transform bg-zinc-800 ${position === 'bottom' ? '-top-1' : '-bottom-1'}`}
           ></div>
-        </motion.div>
+        </MotionDiv>
       )}
 
       <div
