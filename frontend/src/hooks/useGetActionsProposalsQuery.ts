@@ -33,7 +33,7 @@ export const useGetActionsProposalsQuery = (
         sortBy,
         sortOrder
       ),
-    enabled: true,
+    enabled: typeof window !== "undefined",
     refetchOnWindowFocus: false,
     keepPreviousData: true
   });

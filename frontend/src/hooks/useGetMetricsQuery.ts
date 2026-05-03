@@ -8,6 +8,7 @@ export const useGetMetricsQuery = () => {
     queryKey: ['metrics'],
     queryFn: async () => await getMetrics(),
     refetchOnWindowFocus: false,
+    enabled: typeof window !== 'undefined',
   });
 
   return { metrics: data, isMetricsLoading: isLoading };
