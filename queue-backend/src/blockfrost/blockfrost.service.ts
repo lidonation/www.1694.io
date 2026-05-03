@@ -41,61 +41,43 @@ export class BlockfrostService {
     };
   }
 
-  private async executeWithFallback<T = any>(
-    options: RequestOptions,
-  ): Promise<T> {
+  private async executeWithFallback<T = any>(options: RequestOptions): Promise<T> {
     const { endpoint } = options;
 
     try {
       return await this.retryRequest(() => this.makeRequest<T>(this.primaryConfig, options));
-    } catch (primaryError) {
-      if (primaryError.status !== 404) {
-        this.logger.warn(
-          `Primary request failed for ${endpoint}: ${primaryError.message}. Trying fallback...`,
-        );
-      }
+    } catch (err) {
+      const status = err.status || err.response?.status;
+      if (status === 404) throw err;
+
+      this.logger.warn(`Primary failed for ${endpoint} (Status: ${status}). Trying fallback...`);
 
       try {
         return await this.retryRequest(() => this.makeRequest<T>(this.fallbackConfig, options));
-      } catch (fallbackError) {
-        if (fallbackError.status !== 404) {
-          this.logger.error(
-            `Both primary and fallback requests failed for ${endpoint}`,
-            {
-              primaryError: primaryError.message,
-              fallbackError: fallbackError.message,
-            },
-          );
+      } catch (fErr) {
+        const fStatus = fErr.status || fErr.response?.status;
+        if (fStatus !== 404) {
+          this.logger.error(`Fallback failed for ${endpoint}. Statuses: ${status} / ${fStatus}`, { endpoint });
         }
-
-        throw new HttpException(
-          fallbackError?.response?.data ||
-            fallbackError.message ||
-            'Blockfrost API unavailable',
-          fallbackError?.response?.status || 500,
-        );
+        throw new HttpException(fErr?.response?.data || fErr.message || 'API unavailable', fStatus || 500);
       }
     }
   }
 
-    async retryRequest<T>(requestFn: () => Promise<T>, retries = 3, delay = 1000): Promise<T> {
+  async retryRequest<T>(fn: () => Promise<T>, retries = 3, delay = 1000): Promise<T> {
     try {
-      return await requestFn();
-    } catch (error) {
-      const isRetryable = 
-        error.code === 'ECONNRESET' ||
-        error.code === 'ETIMEDOUT' ||
-        error.status === 429 ||
-        (error.status >= 500 && error.status < 600);
-
-      if (retries > 0 && isRetryable) {
-        this.logger.warn(`Request failed with ${error.code || error.status}. Retrying in ${delay}ms... (${retries} attempts left)`);
-        await new Promise((resolve) => setTimeout(resolve, delay));
-        return this.retryRequest(requestFn, retries - 1, delay * 2);
+      return await fn();
+    } catch (e) {
+      const retryable = e.code === 'ECONNRESET' || e.code === 'ETIMEDOUT' || e.status === 429 || (e.status >= 500 && e.status < 600);
+      if (retries > 0 && retryable) {
+        this.logger.warn(`Retry ${retries} in ${delay}ms (Code: ${e.code || e.status})`);
+        await new Promise(r => setTimeout(r, delay));
+        return this.retryRequest(fn, retries - 1, delay * 2);
       }
-      throw error;
+      throw e;
     }
   }
+
 
   private async makeRequest<T>(
     config: BlockfrostConfig,

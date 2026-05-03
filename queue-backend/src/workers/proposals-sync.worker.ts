@@ -22,39 +22,23 @@ export class ProposalsSyncWorker extends WorkerHost {
   }
 
   async process(job: Job<ProposalsSyncJobData, ProposalsSyncJobResponse>): Promise<ProposalsSyncJobResponse> {
-    this.logger.log(`Starting proposals sync job: ${job.id}`);
+    this.logger.log(`Starting proposals sync: ${job.id}`);
 
     try {
-      const { forceRefresh = false } = job.data;
-      
-      let proposalsCount = 0;
-
-      // Sync Proposals
-      this.logger.log('Syncing proposals...');
-      proposalsCount = await this.syncProposals();
-
-      // Sync Proposal Metadata
-      this.logger.log('Syncing proposal metadata...');
+      const proposalsCount = await this.syncProposals();
       const metadataCount = await this.syncProposalMetadata();
 
-      this.logger.log(
-        `Proposals sync completed: ${proposalsCount} proposals, ${metadataCount} metadata entries`
-      );
+      this.logger.log(`Sync completed: ${proposalsCount} proposals, ${metadataCount} metadata`);
 
       return {
         success: true,
-        message: `Successfully synced ${proposalsCount} proposals and ${metadataCount} metadata entries`,
+        message: `Synced ${proposalsCount} proposals, ${metadataCount} metadata`,
         proposalsCount,
         metadataCount,
       };
-
     } catch (error) {
-      this.logger.error(`Proposals sync job failed: ${error.message}`, error.stack);
-      
-      return {
-        success: false,
-        message: `Proposals sync failed: ${error.message}`,
-      };
+      this.logger.error(`Sync failed: ${error.message}`, error.stack);
+      return { success: false, message: error.message };
     }
   }
 
@@ -66,82 +50,59 @@ export class ProposalsSyncWorker extends WorkerHost {
 
     while (hasMore) {
       try {
-        this.logger.log(`Fetching proposals page ${page}...`);
-        const proposalsListData = await this.blockfrostService.getAllProposals(page, 100, 'asc');
-        
-        if (!proposalsListData || proposalsListData.length === 0) {
-          this.logger.log(`No more proposals found on page ${page}`);
-          hasMore = false;
-          break;
-        }
+        const proposalsListData = await this.blockfrostService.getAllProposals(page, 100, 'desc');
+        if (!proposalsListData || proposalsListData.length === 0) break;
 
-        this.logger.log(`Processing ${proposalsListData.length} proposals from page ${page}...`);
-
-        for (const proposalListItem of proposalsListData) {
+        for (const item of proposalsListData) {
           try {
-            // Get full proposal details using individual endpoint
-            this.logger.debug(`Fetching details for proposal ${proposalListItem.tx_hash}/${proposalListItem.cert_index}`);
-            const proposalData = await this.blockfrostService.getProposal(proposalListItem.tx_hash, proposalListItem.cert_index);
-            
-            if (proposalData) {
-              // Fetch transaction to get block time
+            const existing = await proposalsRepository.findOne({
+              where: { txHash: item.tx_hash, certIndex: item.cert_index }
+            });
+
+            if (existing?.blockTime) continue; 
+
+            const data = await this.blockfrostService.getProposal(item.tx_hash, item.cert_index);
+            if (data) {
               let blockTime: Date | null = null;
               try {
-                const txData = await this.blockfrostService.getTransaction(proposalData.tx_hash);
-                if (txData && txData.block_time) {
-                  blockTime = new Date(txData.block_time * 1000);
-                }
-              } catch (txError) {
-                this.logger.warn(`Failed to fetch tx time for proposal ${proposalData.tx_hash}: ${txError.message}`);
+                const tx = await this.blockfrostService.getTransaction(data.tx_hash);
+                if (tx?.block_time) blockTime = new Date(tx.block_time * 1000);
+              } catch (e) {
+                this.logger.debug(`Tx time fetch failed for ${data.tx_hash}`);
               }
 
               await proposalsRepository.upsert({
-                id: proposalData.id,
-                txHash: proposalData.tx_hash,
-                certIndex: proposalData.cert_index,
-                governanceType: proposalData.governance_type,
-                governanceDescription: proposalData.governance_description || null,
-                depositLovelace: proposalData.deposit || null,
-                returnStakeAddress: proposalData.return_address || null,
-                ratifiedEpoch: proposalData.ratified_epoch || null,
-                enactedEpoch: proposalData.enacted_epoch || null,
-                droppedEpoch: proposalData.dropped_epoch || null,
-                expiredEpoch: proposalData.expired_epoch || null,
-                expirationEpoch: proposalData.expiration || null,
-                blockTime: blockTime,
-              }, {
-                conflictPaths: ['id'],
-                skipUpdateIfNoValuesChanged: true,
-              });
+                id: data.id,
+                txHash: data.tx_hash,
+                certIndex: data.cert_index,
+                governanceType: data.governance_type,
+                governanceDescription: data.governance_description || null,
+                depositLovelace: data.deposit || null,
+                returnStakeAddress: data.return_address || null,
+                ratifiedEpoch: data.ratified_epoch || null,
+                enactedEpoch: data.enacted_epoch || null,
+                droppedEpoch: data.dropped_epoch || null,
+                expiredEpoch: data.expired_epoch || null,
+                expirationEpoch: data.expiration || null,
+                blockTime,
+              }, { conflictPaths: ['id'], skipUpdateIfNoValuesChanged: true });
               totalSynced++;
-              
-              if (totalSynced % 10 === 0) {
-                this.logger.log(`Synced ${totalSynced} proposals so far...`);
-              }
             }
-            
-            // Rate limiting between individual proposal requests
-            await new Promise(resolve => setTimeout(resolve, 100)); // Increased delay for extra calls
-          } catch (proposalError) {
-            this.logger.warn(`Failed to upsert proposal ${proposalListItem.tx_hash}/${proposalListItem.cert_index}: ${proposalError.message}`);
+            await new Promise(r => setTimeout(r, 50));
+          } catch (e) {
+            this.logger.warn(`Proposal sync failed (${item.tx_hash}): ${e.message}`);
           }
         }
 
-        // Rate limiting - wait 100ms between pages
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-        if (proposalsListData.length < 100) {
-          hasMore = false;
-        } else {
-          page++;
-        }
+        if (proposalsListData.length < 100) hasMore = false;
+        else page++;
 
-      } catch (pageError) {
-        this.logger.error(`Failed to fetch proposals page ${page}: ${pageError.message}`);
+        await new Promise(r => setTimeout(r, 100));
+      } catch (e) {
+        this.logger.error(`Page ${page} fetch failed: ${e.message}`);
         hasMore = false;
       }
     }
-
     return totalSynced;
   }
 
@@ -149,39 +110,43 @@ export class ProposalsSyncWorker extends WorkerHost {
     const proposalsRepository = this.dataSource.getRepository(Proposal);
     const metadataRepository = this.dataSource.getRepository(ProposalMetadata);
     
-    const allProposals = await proposalsRepository.find();
-    let totalMetadataSynced = 0;
+    const targets = await proposalsRepository.createQueryBuilder('p')
+      .leftJoin(ProposalMetadata, 'm', 'm.proposalId = p.id')
+      .where('m.proposalId IS NULL OR m.error IS NOT NULL')
+      .limit(200)
+      .getMany();
 
-    this.logger.log(`Syncing metadata for ${allProposals.length} proposals...`);
+    if (targets.length === 0) return 0;
 
-    for (const proposal of allProposals) {
+    let synced = 0;
+    for (const p of targets) {
       try {
-        const metadataData = await this.blockfrostService.getProposalMetadata(proposal.txHash, proposal.certIndex);
-        
-        if (metadataData) {
+        const meta = await this.blockfrostService.getProposalMetadata(p.txHash, p.certIndex);
+        if (meta) {
           await metadataRepository.upsert({
-            proposalId: proposal.id,
-            url: metadataData.url,
-            hash: metadataData.hash,
-            jsonMetadata: metadataData.json_metadata,
-            bytes: metadataData.bytes,
-            version: 'v2', // Assume v2 by default
-            error: metadataData.error || null,
-          }, {
-            conflictPaths: ['proposalId'],
-            skipUpdateIfNoValuesChanged: true,
-          });
-          totalMetadataSynced++;
+            proposalId: p.id,
+            url: meta.url,
+            hash: meta.hash,
+            jsonMetadata: meta.json_metadata,
+            bytes: meta.bytes,
+            version: 'v2',
+            error: null,
+          }, { conflictPaths: ['proposalId'], skipUpdateIfNoValuesChanged: true });
+          synced++;
         }
-        
-        // Rate limiting
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-      } catch (metadataError) {
-        this.logger.warn(`Failed to sync metadata for proposal ${proposal.id}: ${metadataError.message}`);
+      } catch (e) {
+        if (e.status !== 429) {
+          await metadataRepository.upsert({
+            proposalId: p.id,
+            error: { message: e.message, status: e.status, ts: new Date().toISOString() },
+            version: 'v2',
+          }, { conflictPaths: ['proposalId'], skipUpdateIfNoValuesChanged: false });
+        }
       }
+      await new Promise(r => setTimeout(r, 100));
     }
-
-    return totalMetadataSynced;
+    return synced;
   }
+
+
 }

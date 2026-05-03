@@ -27,6 +27,7 @@ import {
 import { GovAction } from '../../../types/api';
 import { useWallet } from '@/context/globalContext';
 import { ViewExternalGovAction } from '@/components/atoms/ViewExternalGovAction';
+import { useGetProposalMetadataByHashQuery } from '@/hooks/useGetProposalMetadataByHash';
 
 interface DrepVoteTimelineCardProps {
   item: DrepVote | GovAction;
@@ -133,11 +134,28 @@ const DrepVoteTimelineCard = ({
       rationaleUrl: item?.vote_rationale,
     });
   const { latestEpoch } = useWallet();
-  const title = (item as DrepVote).proposal?.title || (item as DrepVote).proposal?.abstract || (item as any)?.metadata?.body?.title;
+  const { proposalMetadata } = useGetProposalMetadataByHashQuery({
+    hashQueryString: (item as any)?.gov_action_proposal_id || (item as any)?.govActionHash || (item as any)?.gov_action_hash || item?.txHash || (item as any)?.tx_hash,
+    isRequired: !((item as DrepVote).proposal?.title || (item as DrepVote).proposal?.abstract || (item as any)?.metadata?.body?.title),
+  });
+
+  const title = (item as DrepVote).proposal?.title || 
+                (item as DrepVote).proposal?.abstract || 
+                (item as any)?.metadata?.body?.title ||
+                proposalMetadata?.body?.title ||
+                proposalMetadata?.title;
+
+  const description = (item as DrepVote).proposal?.rationale || 
+                      (item as DrepVote).proposal?.abstract ||
+                      proposalMetadata?.body?.abstract ||
+                      proposalMetadata?.abstract ||
+                      proposalMetadata?.body?.rationale ||
+                      proposalMetadata?.rationale;
+
   const isEnacted = item?.enacted_epoch && latestEpoch > item?.enacted_epoch;
   const isExpired =
     item?.expiration_epoch && latestEpoch > item?.expiration_epoch;
-  const tag = (item as DrepVote).proposal?.type || (item?.type as string);
+  const tag = (item as DrepVote).proposal?.type || (item?.type as string) || proposalMetadata?.type || proposalMetadata?.body?.type;
 
   let actionDetais: { imgSrc: string; actionName: string } = {
     imgSrc: '/svgs/exchange.svg',
@@ -290,9 +308,9 @@ const DrepVoteTimelineCard = ({
             <p className={`overflow-hidden text-ellipsis ${minimal ? 'text-xs' : 'text-sm'} font-bold`}>
               {title || '-'}
             </p>
-            {!minimal && (item as DrepVote).proposal?.rationale && (
+            {!minimal && description && (
               <p className="mt-2 line-clamp-3 text-xs text-gray-500">
-                {(item as DrepVote).proposal?.rationale}
+                {description}
               </p>
             )}
           </Box>
