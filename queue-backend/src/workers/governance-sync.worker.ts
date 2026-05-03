@@ -14,6 +14,10 @@ import { DrepDelegator } from '../entities/governance/drep-delegator.entity';
 import { Proposal } from '../entities/governance/proposal.entity';
 import { ProposalMetadata } from '../entities/governance/proposal-metadata.entity';
 import { ProposalVote } from '../entities/governance/proposal-vote.entity';
+import { DrepTimelineEvent } from '../entities/governance/drep-timeline-event.entity';
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
+import * as blake from 'blakejs';
 
 @Injectable()
 @Processor(Queues.GOVERNANCE_SYNC)
@@ -22,6 +26,7 @@ export class GovernanceSyncWorker extends WorkerHost {
 
   constructor(
     private readonly blockfrostService: BlockfrostService,
+    private readonly httpService: HttpService,
     @InjectDataSource('default')
     private readonly dataSource: DataSource,
   ) {
@@ -129,8 +134,6 @@ export class GovernanceSyncWorker extends WorkerHost {
           if (!data || data.length === 0) break;
 
           for (const d of data) newDelegatorsMap.set(d.address, d);
-          await new Promise(r => setTimeout(r, 100));
-
           if (data.length < 100) hasMore = false;
           else page++;
         } catch (e) {
@@ -249,23 +252,50 @@ export class GovernanceSyncWorker extends WorkerHost {
     const targets = await proposalsRepository.createQueryBuilder('p')
       .leftJoin(ProposalMetadata, 'm', 'm.proposalId = p.id')
       .where('m.proposalId IS NULL OR m.error IS NOT NULL')
-      .limit(100).getMany();
+      .limit(500).getMany();
 
     let totalVotesSynced = 0;
     for (const p of targets) {
       try {
+        let meta: any = null;
+        let url: string | null = null;
+        let hash: string | null = null;
+        let jsonMetadata: any = null;
+
         try {
-          const meta = await this.blockfrostService.getProposalMetadata(p.txHash, p.certIndex);
+          meta = await this.blockfrostService.getProposalMetadata(p.txHash, p.certIndex);
           if (meta) {
-            await metadataRepository.upsert({
-              proposalId: p.id, url: meta.url, hash: meta.hash, jsonMetadata: meta.json_metadata,
-              bytes: meta.bytes, version: 'v2', error: null,
-            }, { conflictPaths: ['proposalId'], skipUpdateIfNoValuesChanged: true });
+            url = meta.url;
+            hash = meta.hash;
+            jsonMetadata = meta.json_metadata;
           }
         } catch (e) {
-          if (e.status !== 429) {
-            await metadataRepository.upsert({ proposalId: p.id, error: { message: e.message, status: e.status, ts: new Date().toISOString() }, version: 'v2' } as any, { conflictPaths: ['proposalId'], skipUpdateIfNoValuesChanged: false });
+          if (e.status === 429) throw e;
+          this.logger.debug(`Blockfrost metadata 404 for ${p.id}, trying fallbacks...`);
+        }
+
+        if (!jsonMetadata) {
+          const anchor = await this.getAnchorFromTimeline(p.txHash, p.certIndex);
+          if (anchor) {
+            url = anchor.url;
+            hash = anchor.hash;
+            jsonMetadata = await this.fetchMetadataManually(url, hash);
           }
+        }
+
+        if (jsonMetadata) {
+          await metadataRepository.upsert({
+            proposalId: p.id, url: url, hash: hash, jsonMetadata: jsonMetadata,
+            bytes: meta?.bytes || null, version: 'v2', error: null,
+          } as any, { conflictPaths: ['proposalId'], skipUpdateIfNoValuesChanged: true });
+        } else if (url) {
+          await metadataRepository.upsert({
+            proposalId: p.id, url, hash, error: { message: 'Metadata fetch failed', ts: new Date().toISOString() }, version: 'v2'
+          } as any, { conflictPaths: ['proposalId'], skipUpdateIfNoValuesChanged: false });
+        } else {
+          await metadataRepository.upsert({
+            proposalId: p.id, error: { message: 'No anchor found', status: 404, ts: new Date().toISOString() }, version: 'v2'
+          } as any, { conflictPaths: ['proposalId'], skipUpdateIfNoValuesChanged: false });
         }
 
         try {
@@ -291,6 +321,77 @@ export class GovernanceSyncWorker extends WorkerHost {
       }
     }
     return totalVotesSynced;
+  }
+
+  private async getAnchorFromTimeline(txHash: string, certIndex: number) {
+    try {
+      const timelineRepository = this.dataSource.getRepository(DrepTimelineEvent);
+      const actionId = `${txHash}#${certIndex}`;
+      const event = await timelineRepository.createQueryBuilder('event')
+        .where("event.eventType = 'proposal'")
+        .andWhere("event.metadata->>'action_id' = :actionId", { actionId })
+        .getOne();
+      return event?.metadata?.anchor_url ? { url: event.metadata.anchor_url, hash: event.metadata.anchor_hash } : 
+             (event?.metadata?.url ? { url: event.metadata.url, hash: event.metadata.hash } : null);
+    } catch (e) { return null; }
+  }
+
+  private async fetchMetadataManually(url: string, hash: string) {
+    const gateways = [
+      'https://ipfs.io/ipfs/',
+      'https://cloudflare-ipfs.com/ipfs/',
+      'https://dweb.link/ipfs/',
+      'https://gateway.pinata.cloud/ipfs/',
+    ];
+
+    let urlsToTry: string[] = [];
+    if (url.startsWith('ipfs://')) {
+      const ipfsHash = url.replace('ipfs://', '');
+      urlsToTry = gateways.map(g => `${g}${ipfsHash}`);
+    } else {
+      urlsToTry = [url];
+    }
+
+    for (const fetchUrl of urlsToTry) {
+      try {
+        let buffer: Buffer;
+
+        if (url.startsWith('ipfs://') && fetchUrl === urlsToTry[0]) {
+          const ipfsHash = url.replace('ipfs://', '');
+          try {
+            buffer = await this.blockfrostService.getIpfsContent(ipfsHash);
+          } catch (e) {
+            this.logger.debug(`Blockfrost IPFS fetch failed: ${e.message}`);
+            continue; 
+          }
+        } else {
+          this.logger.debug(`Fetching metadata manually from ${fetchUrl}`);
+          const response = await firstValueFrom(this.httpService.get(fetchUrl, { 
+            timeout: 10000,
+            responseType: 'arraybuffer' 
+          }));
+          buffer = Buffer.from(response.data);
+        }
+        
+        const bufferToHash = Buffer.from(buffer);
+        const hashed = blake.blake2bHex(new Uint8Array(bufferToHash), undefined, 32);
+        
+        if (hashed !== hash) {
+          this.logger.warn(`Manual metadata hash mismatch for ${fetchUrl}. Expected ${hash}, got ${hashed}`);
+          continue;
+        }
+
+        try {
+          return JSON.parse(buffer.toString('utf8'));
+        } catch (e) {
+          this.logger.warn(`Failed to parse metadata as JSON from ${fetchUrl}`);
+          return null;
+        }
+      } catch (e) { 
+        this.logger.debug(`Manual metadata fetch failed for ${fetchUrl}: ${e.message}`);
+      }
+    }
+    return null;
   }
 
   private async updateDelegationCounts(): Promise<void> {

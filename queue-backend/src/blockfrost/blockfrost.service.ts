@@ -14,6 +14,8 @@ interface RequestOptions {
   endpoint: string;
   data?: any;
   headers?: Record<string, string>;
+  baseUrl?: string;
+  responseType?: 'json' | 'arraybuffer';
 }
 
 @Injectable()
@@ -21,6 +23,7 @@ export class BlockfrostService {
   private readonly logger = new Logger(BlockfrostService.name);
   private readonly primaryConfig: BlockfrostConfig;
   private readonly fallbackConfig: BlockfrostConfig;
+  private readonly ipfsProjectId: string;
 
   constructor(
     private readonly configService: ConfigService,
@@ -39,6 +42,8 @@ export class BlockfrostService {
         'BLOCKFROST_NETWORK_PROJECT_ID_FALLBACK',
       ) || '',
     };
+    
+    this.ipfsProjectId = this.configService.get<string>('BLOCKFROST_IPFS_PROJECT_ID') || this.primaryConfig.projectId;
   }
 
   private async executeWithFallback<T = any>(options: RequestOptions): Promise<T> {
@@ -84,7 +89,7 @@ export class BlockfrostService {
     options: RequestOptions,
   ): Promise<T> {
     const { method, endpoint, data, headers = {} } = options;
-    const url = `${config.url}${endpoint}`;
+    const url = options.baseUrl ? `${options.baseUrl}${endpoint}` : `${config.url}${endpoint}`;
 
     const requestHeaders = {
       project_id: config.projectId,
@@ -96,7 +101,10 @@ export class BlockfrostService {
 
       if (method === 'GET') {
         response = await lastValueFrom(
-          this.httpService.get(url, { headers: requestHeaders }),
+          this.httpService.get(url, { 
+            headers: requestHeaders,
+            responseType: options.responseType || 'json'
+          }),
         );
       } else if (method === 'POST') {
         response = await lastValueFrom(
@@ -251,6 +259,15 @@ export class BlockfrostService {
     return this.executeWithFallback({
       method: 'GET',
       endpoint: `/epochs/${epochNumber}`,
+    });
+  }
+
+  async getIpfsContent(ipfsPath: string): Promise<Buffer> {
+    return this.makeRequest({ ...this.primaryConfig, projectId: this.ipfsProjectId }, {
+      method: 'GET',
+      endpoint: `/ipfs/get/${ipfsPath}`,
+      baseUrl: 'https://ipfs.blockfrost.io/api/v0',
+      responseType: 'arraybuffer',
     });
   }
 }

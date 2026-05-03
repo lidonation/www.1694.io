@@ -7,6 +7,10 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { Proposal } from '../entities/governance/proposal.entity';
 import { ProposalMetadata } from '../entities/governance/proposal-metadata.entity';
+import { DrepTimelineEvent } from '../entities/governance/drep-timeline-event.entity';
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
+import * as blake from 'blakejs';
 
 @Injectable()
 @Processor(Queues.PROPOSALS_SYNC)
@@ -15,6 +19,7 @@ export class ProposalsSyncWorker extends WorkerHost {
 
   constructor(
     private readonly blockfrostService: BlockfrostService,
+    private readonly httpService: HttpService,
     @InjectDataSource('default')
     private readonly dataSource: DataSource,
   ) {
@@ -109,11 +114,11 @@ export class ProposalsSyncWorker extends WorkerHost {
   private async syncProposalMetadata(): Promise<number> {
     const proposalsRepository = this.dataSource.getRepository(Proposal);
     const metadataRepository = this.dataSource.getRepository(ProposalMetadata);
-    
+
     const targets = await proposalsRepository.createQueryBuilder('p')
       .leftJoin(ProposalMetadata, 'm', 'm.proposalId = p.id')
       .where('m.proposalId IS NULL OR m.error IS NOT NULL')
-      .limit(200)
+      .limit(500)
       .getMany();
 
     if (targets.length === 0) return 0;
@@ -121,31 +126,155 @@ export class ProposalsSyncWorker extends WorkerHost {
     let synced = 0;
     for (const p of targets) {
       try {
-        const meta = await this.blockfrostService.getProposalMetadata(p.txHash, p.certIndex);
-        if (meta) {
+        let meta: any = null;
+        let url: string | null = null;
+        let hash: string | null = null;
+        let jsonMetadata: any = null;
+
+        try {
+          meta = await this.blockfrostService.getProposalMetadata(p.txHash, p.certIndex);
+          if (meta) {
+            url = meta.url;
+            hash = meta.hash;
+            jsonMetadata = meta.json_metadata;
+          }
+        } catch (e) {
+          if (e.status === 429) throw e; 
+          this.logger.debug(`Blockfrost metadata 404 for ${p.id}, trying fallbacks...`);
+        }
+
+        if (!jsonMetadata) {
+          const anchor = await this.getAnchorFromTimeline(p.txHash, p.certIndex);
+          if (anchor) {
+            url = anchor.url;
+            hash = anchor.hash;
+            jsonMetadata = await this.fetchMetadataManually(url, hash);
+          }
+        }
+
+        if (jsonMetadata) {
           await metadataRepository.upsert({
             proposalId: p.id,
-            url: meta.url,
-            hash: meta.hash,
-            jsonMetadata: meta.json_metadata,
-            bytes: meta.bytes,
+            url: url,
+            hash: hash,
+            jsonMetadata: jsonMetadata,
+            bytes: meta?.bytes || null,
             version: 'v2',
             error: null,
           } as any, { conflictPaths: ['proposalId'], skipUpdateIfNoValuesChanged: true });
           synced++;
-        }
-      } catch (e) {
-        if (e.status !== 429) {
+        } else if (url) {
+          // We have a URL but failed to fetch or validate metadata
           await metadataRepository.upsert({
             proposalId: p.id,
-            error: { message: e.message, status: e.status, ts: new Date().toISOString() } as any,
+            url: url,
+            hash: hash,
+            error: { message: 'Metadata fetch/validation failed', ts: new Date().toISOString() },
+            version: 'v2',
+          } as any, { conflictPaths: ['proposalId'], skipUpdateIfNoValuesChanged: false });
+        } else {
+          // No URL found anywhere
+          await metadataRepository.upsert({
+            proposalId: p.id,
+            error: { message: 'No anchor URL found', status: 404, ts: new Date().toISOString() },
             version: 'v2',
           } as any, { conflictPaths: ['proposalId'], skipUpdateIfNoValuesChanged: false });
         }
+      } catch (e) {
+        this.logger.warn(`Metadata sync error for ${p.id}: ${e.message}`);
       }
       await new Promise(r => setTimeout(r, 100));
     }
     return synced;
+  }
+
+  private async getAnchorFromTimeline(txHash: string, certIndex: number) {
+    try {
+      const timelineRepository = this.dataSource.getRepository(DrepTimelineEvent);
+      const actionId = `${txHash}#${certIndex}`;
+      
+      const event = await timelineRepository.createQueryBuilder('event')
+        .where("event.eventType = 'proposal'")
+        .andWhere("event.metadata->>'action_id' = :actionId", { actionId })
+        .getOne();
+        
+      if (event?.metadata?.anchor_url) {
+        return {
+          url: event.metadata.anchor_url,
+          hash: event.metadata.anchor_hash,
+        };
+      }
+      
+      // Try alternative metadata key
+      if (event?.metadata?.url) {
+         return {
+           url: event.metadata.url,
+           hash: event.metadata.hash,
+         };
+      }
+      
+      return null;
+    } catch (error) {
+      this.logger.debug(`Error getting anchor from timeline: ${error.message}`);
+      return null;
+    }
+  }
+
+  private async fetchMetadataManually(url: string, hash: string) {
+    const gateways = [
+      'https://ipfs.io/ipfs/',
+      'https://cloudflare-ipfs.com/ipfs/',
+      'https://dweb.link/ipfs/',
+      'https://gateway.pinata.cloud/ipfs/',
+    ];
+
+    let urlsToTry: string[] = [];
+    if (url.startsWith('ipfs://')) {
+      const ipfsHash = url.replace('ipfs://', '');
+      urlsToTry = gateways.map(g => `${g}${ipfsHash}`);
+    } else {
+      urlsToTry = [url];
+    }
+
+    for (const fetchUrl of urlsToTry) {
+      try {
+        let buffer: Buffer;
+
+        if (url.startsWith('ipfs://') && fetchUrl === urlsToTry[0]) {
+          const ipfsHash = url.replace('ipfs://', '');
+          try {
+            buffer = await this.blockfrostService.getIpfsContent(ipfsHash);
+          } catch (e) {
+            this.logger.debug(`Blockfrost IPFS fetch failed: ${e.message}`);
+            continue; 
+          }
+        } else {
+          this.logger.debug(`Fetching metadata manually from ${fetchUrl}`);
+          const response = await firstValueFrom(this.httpService.get(fetchUrl, { 
+            timeout: 10000,
+            responseType: 'arraybuffer' 
+          }));
+          buffer = Buffer.from(response.data);
+        }
+        
+        const hashedMetadata = blake.blake2bHex(new Uint8Array(buffer), undefined, 32);
+        
+        if (hashedMetadata !== hash) {
+          this.logger.warn(`Manual metadata hash mismatch for ${fetchUrl}. Expected ${hash}, got ${hashedMetadata}`);
+          continue; // Try next gateway or return null
+        }
+
+        try {
+          return JSON.parse(buffer.toString('utf8'));
+        } catch (e) {
+          this.logger.warn(`Failed to parse metadata as JSON from ${fetchUrl}`);
+          return null;
+        }
+      } catch (error) {
+        this.logger.debug(`Manual metadata fetch failed for ${fetchUrl}: ${error.message}`);
+      }
+    }
+    return null;
   }
 
 
