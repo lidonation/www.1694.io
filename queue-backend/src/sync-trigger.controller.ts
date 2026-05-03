@@ -18,6 +18,8 @@ export class SyncTriggerController {
     private proposalsSyncQueue: Queue,
     @InjectQueue(Queues.DREP_VOTES_SYNC)
     private drepVotesSyncQueue: Queue,
+    @InjectQueue(Queues.TIMELINE_WATCHER)
+    private timelineWatcherQueue: Queue,
     private readonly governanceMigrationService: GovernanceMigrationService,
     private readonly blockfrostService: BlockfrostService,
   ) {}
@@ -64,6 +66,13 @@ export class SyncTriggerController {
     );
     this.logger.log(`Triggered manual DRep votes sync job (forceRefresh: ${forceRefresh})`);
     return { success: true, message: 'Manual DRep votes sync triggered' };
+  }
+
+  @Post('timeline-watcher/trigger')
+  async triggerTimelineWatcher() {
+    await this.timelineWatcherQueue.add(JobTypes.TIMELINE_WATCHER, {});
+    this.logger.log('Triggered manual timeline watcher job');
+    return { success: true, message: 'Manual timeline watcher triggered' };
   }
 
   @Get('governance/status')

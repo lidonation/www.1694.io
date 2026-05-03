@@ -4,6 +4,7 @@ export enum Queues {
   GOVERNANCE_SYNC = 'governance-sync',
   DREP_VOTES_SYNC = 'drep-votes-sync',
   PROPOSALS_SYNC = 'proposals-sync',
+  TIMELINE_WATCHER = 'timeline-watcher',
 }
 
 export enum JobTypes {
@@ -12,6 +13,7 @@ export enum JobTypes {
   GOVERNANCE_SYNC = 'governance-sync-job',
   DREP_VOTES_SYNC = 'drep-votes-sync-job',
   PROPOSALS_SYNC = 'proposals-sync-job',
+  TIMELINE_WATCHER = 'timeline-watcher-job',
 }
 
 export type DRepClaimJobData = {

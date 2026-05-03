@@ -17,6 +17,8 @@ export class JobSchedulerService implements OnModuleInit {
     private proposalsSyncQueue: Queue,
     @InjectQueue(Queues.DREP_VOTES_SYNC)
     private drepVotesSyncQueue: Queue,
+    @InjectQueue(Queues.TIMELINE_WATCHER)
+    private timelineWatcherQueue: Queue,
   ) {}
 
   async onModuleInit() {
@@ -70,6 +72,17 @@ export class JobSchedulerService implements OnModuleInit {
         }
       );
       this.logger.log('Scheduled recurring DRep votes sync job (Weekly)');
+
+      // Timeline Watcher - Every minute
+      await this.timelineWatcherQueue.add(
+        JobTypes.TIMELINE_WATCHER,
+        {},
+        {
+          repeat: { pattern: '*/1 * * * *' },
+          jobId: 'timeline-watcher-recurring'
+        }
+      );
+      this.logger.log('Scheduled recurring timeline watcher job (Every minute)');
 
     } catch (error) {
       this.logger.error(`Failed to schedule recurring jobs: ${error.message}`);
