@@ -2,7 +2,7 @@
 import MarkdownParser from './MarkdownParser';
 import { renderJsonLdValue } from '@/lib';
 import { parseURL } from '@/lib/helpers';
-import { Typography } from '@mui/material';
+import { Typography, Box } from '@mui/material';
 import Link from 'next/link';
 import React from 'react';
 import RecordsNotFound from './RecordsNotFound';
