@@ -18,6 +18,9 @@ import { Queues } from '../queue.types';
     BullModule.registerQueue({
       name: Queues.DREP_VOTES_SYNC,
     }),
+    BullModule.registerQueue({
+      name: Queues.TIMELINE_WATCHER,
+    }),
   ],
   providers: [JobSchedulerService],
 })
