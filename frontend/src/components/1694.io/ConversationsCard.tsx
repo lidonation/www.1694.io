@@ -1,3 +1,4 @@
+'use client';
 import React from 'react';
 import Button from '../atoms/Button';
 import Link from 'next/link';

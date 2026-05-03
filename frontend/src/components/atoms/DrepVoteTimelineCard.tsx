@@ -1,3 +1,4 @@
+'use client';
 import React, { useEffect, useState } from 'react';
 import { Box, Typography, Tooltip } from '@mui/material';
 import { keyframes } from '@emotion/react';

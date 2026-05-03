@@ -1,3 +1,4 @@
+'use client';
 import { handleCopyText } from '@/lib';
 import { styled } from '@mui/material/styles';
 import { IconButton, Paper, Typography } from '@mui/material';

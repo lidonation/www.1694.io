@@ -1,3 +1,4 @@
+'use client';
 import React from 'react';
 import { Box, Skeleton, Typography } from '@mui/material';
 import MarkdownParser from '../atoms/MarkdownParser';

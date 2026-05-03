@@ -1,3 +1,4 @@
+'use client';
 import { Grow, Typography } from '@mui/material';
 import React, { useState } from 'react';
 

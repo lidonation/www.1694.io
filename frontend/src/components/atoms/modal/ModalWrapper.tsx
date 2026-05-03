@@ -1,3 +1,4 @@
+'use client';
 import React, { useEffect, useState } from 'react';
 import { styled, SxProps } from '@mui/material/styles';
 import { createPortal } from 'react-dom';

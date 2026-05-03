@@ -1,3 +1,4 @@
+'use client';
 import { useGetAdaHolderCurrentDelegationQuery } from '@/hooks/useGetAdaHolderCurrentDelegationQuery';
 import {
   convertHexToCIP129,

@@ -1,3 +1,4 @@
+'use client';
 import { renderJsonLdValue } from '@/lib';
 import { parseURL } from '@/lib/helpers';
 import { Typography } from '@mui/material';

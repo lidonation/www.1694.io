@@ -1,3 +1,4 @@
+'use client';
 import { Box, CircularProgress, Typography } from '@mui/material';
 import { ModalContents, ModalHeader, ModalWrapper } from '../atoms';
 import Button, { ButtonProps } from '../atoms/Button';

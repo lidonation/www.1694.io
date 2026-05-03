@@ -1,3 +1,4 @@
+'use client';
 import React, { useState, useEffect } from 'react';
 import { ModalWrapper } from './modal/ModalWrapper';
 import Button from './Button';

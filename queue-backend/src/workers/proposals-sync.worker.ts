@@ -131,7 +131,7 @@ export class ProposalsSyncWorker extends WorkerHost {
             bytes: meta.bytes,
             version: 'v2',
             error: null,
-          }, { conflictPaths: ['proposalId'], skipUpdateIfNoValuesChanged: true });
+          } as any, { conflictPaths: ['proposalId'], skipUpdateIfNoValuesChanged: true });
           synced++;
         }
       } catch (e) {
@@ -140,7 +140,7 @@ export class ProposalsSyncWorker extends WorkerHost {
             proposalId: p.id,
             error: { message: e.message, status: e.status, ts: new Date().toISOString() } as any,
             version: 'v2',
-          }, { conflictPaths: ['proposalId'], skipUpdateIfNoValuesChanged: false });
+          } as any, { conflictPaths: ['proposalId'], skipUpdateIfNoValuesChanged: false });
         }
       }
       await new Promise(r => setTimeout(r, 100));

@@ -1,3 +1,4 @@
+'use client';
 import Comment from './Comment';
 import { Typography } from '@mui/material';
 

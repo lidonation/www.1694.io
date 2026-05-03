@@ -1,3 +1,4 @@
+'use client';
 import React, { useEffect, useState, useRef } from 'react';
 import { Avatar, Box, Skeleton, Typography } from '@mui/material';
 import axios, { CancelTokenSource } from 'axios';

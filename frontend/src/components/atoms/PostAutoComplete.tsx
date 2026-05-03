@@ -1,3 +1,4 @@
+'use client';
 import React from 'react';
 import { Autocomplete, Chip, TextField } from '@mui/material';
 import { Controller } from 'react-hook-form';

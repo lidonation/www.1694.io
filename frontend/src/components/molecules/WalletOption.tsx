@@ -1,3 +1,4 @@
+'use client';
 import { FC, useCallback } from 'react';
 import { Box, CircularProgress, Typography } from '@mui/material';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';

@@ -1,3 +1,4 @@
+'use client';
 import { useScreenDimension } from '@/hooks';
 import { Box } from '@mui/material';
 interface Props {

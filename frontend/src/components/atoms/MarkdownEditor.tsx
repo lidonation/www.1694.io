@@ -1,3 +1,4 @@
+'use client';
 import React, { useState } from 'react';
 import TextEditOptions from '../molecules/TextEditOptions';
 import { Controller } from 'react-hook-form';

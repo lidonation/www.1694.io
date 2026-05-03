@@ -1,3 +1,4 @@
+'use client';
 import { Skeleton } from '@mui/material';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import React from 'react';

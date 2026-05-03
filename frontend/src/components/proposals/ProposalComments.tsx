@@ -1,3 +1,4 @@
+'use client';
 import { ChatBubbleOutline, Send } from '@mui/icons-material';
 import { Box, Button, CircularProgress, Typography } from '@mui/material';
 import React, { memo, useEffect, useRef, useState } from 'react';

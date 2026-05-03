@@ -1,3 +1,4 @@
+'use client';
 import React from 'react';
 import DrepInfoCard from '../atoms/DrepInfoCard';
 import { urls } from '@/constants';

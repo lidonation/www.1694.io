@@ -1,3 +1,4 @@
+'use client';
 import React, { useEffect, useState } from 'react';
 type TimerCountDownProps = { minutes: number };
 function TimerCountDown({ minutes }: TimerCountDownProps) {

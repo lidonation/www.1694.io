@@ -1,3 +1,4 @@
+'use client';
 import type { SnackbarOrigin } from '@mui/material/Snackbar';
 import {
   createContext,

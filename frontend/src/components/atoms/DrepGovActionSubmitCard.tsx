@@ -1,3 +1,4 @@
+'use client';
 import { urls } from '@/constants';
 import { useGetProposalsQuery } from '@/hooks/useGetProposalByHashQuery';
 import Link from 'next/link';

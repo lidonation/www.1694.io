@@ -1,3 +1,4 @@
+'use client';
 import MarkdownParser from '@/components/atoms/MarkdownParser';
 import { ViewExternalGovAction } from '@/components/atoms/ViewExternalGovAction';
 import { useGetProposalMetadataByHashQuery } from '@/hooks/useGetProposalMetadataByHash';

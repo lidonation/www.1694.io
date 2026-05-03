@@ -1,3 +1,4 @@
+'use client';
 import { Box, Skeleton, Typography } from '@mui/material';
 import React from 'react';
 import { CxProposalsMetrics } from '../../../types/api';

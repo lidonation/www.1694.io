@@ -264,7 +264,7 @@ export class GovernanceSyncWorker extends WorkerHost {
           }
         } catch (e) {
           if (e.status !== 429) {
-            await metadataRepository.upsert({ proposalId: p.id, error: { message: e.message, status: e.status, ts: new Date().toISOString() } as any, version: 'v2' }, { conflictPaths: ['proposalId'], skipUpdateIfNoValuesChanged: false });
+            await metadataRepository.upsert({ proposalId: p.id, error: { message: e.message, status: e.status, ts: new Date().toISOString() }, version: 'v2' } as any, { conflictPaths: ['proposalId'], skipUpdateIfNoValuesChanged: false });
           }
         }
 

@@ -1,3 +1,4 @@
+'use client';
 import { urls } from '@/constants';
 import { Box } from '@mui/material';
 import Link from 'next/link';

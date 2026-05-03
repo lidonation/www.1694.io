@@ -63,7 +63,7 @@ export class DrepVotesSyncWorker extends WorkerHost {
                     proposalId: v.proposal_id || `${v.tx_hash}_${v.cert_index}`,
                     txHash: v.tx_hash, certIndex: v.cert_index, voterRole: 'drep',
                     voter: d.drepId, vote: v.vote, blockTime: bt,
-                  }, { conflictPaths: ['proposalId', 'voter'], skipUpdateIfNoValuesChanged: true });
+                  } as any, { conflictPaths: ['proposalId', 'voter'], skipUpdateIfNoValuesChanged: true });
 
                   synced++; total++;
                   await new Promise(r => setTimeout(r, 50));

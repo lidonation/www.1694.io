@@ -1,3 +1,4 @@
+'use client';
 import MuiModal from '@mui/material/Modal';
 import type { JSXElementConstructor, ReactElement } from 'react';
 

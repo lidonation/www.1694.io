@@ -1,6 +1,5 @@
 'use client';
 
-import Error from 'next/error';
 import { useEffect } from 'react';
 
 export default function GlobalError({ error }) {
@@ -11,9 +10,14 @@ export default function GlobalError({ error }) {
 
   return (
     <html>
-      <body>
-        {/* Render the Next.js Error component to display a generic error page to the user. */}
-        <Error />
+      <body className="flex h-screen flex-col items-center justify-center text-center">
+        <h2 className="text-2xl font-bold">Something went wrong!</h2>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-4 rounded bg-blue-500 px-4 py-2 text-white"
+        >
+          Try again
+        </button>
       </body>
     </html>
   );

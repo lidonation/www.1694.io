@@ -1,3 +1,4 @@
+'use client';
 import { Tooltip, TooltipProps } from '@mui/material';
 import styled from '@emotion/styled';
 

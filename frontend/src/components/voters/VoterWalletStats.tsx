@@ -1,3 +1,4 @@
+'use client';
 import React, { useState } from 'react';
 import { Skeleton, Box, Typography, IconButton, Tooltip } from '@mui/material';
 import StatusChip from '../atoms/StatusChip';

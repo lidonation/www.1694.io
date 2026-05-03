@@ -1,3 +1,4 @@
+'use client';
 import React, { useEffect, useState } from 'react';
 import { MetricsCard } from './ProposalMetricsCard';
 import { useGetProposalMetricsQuery } from '@/hooks/useGetProposalMetricsQuery';

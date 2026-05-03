@@ -1,3 +1,4 @@
+'use client';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import Button from '../atoms/Button';
 import { useDebouncedCallback } from 'use-debounce';

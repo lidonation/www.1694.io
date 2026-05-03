@@ -1,3 +1,4 @@
+'use client';
 import Typography from '@mui/material/Typography';
 import type { SxProps } from '@mui/system';
 interface Props {
