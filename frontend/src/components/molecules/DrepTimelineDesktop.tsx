@@ -37,21 +37,17 @@ export default function DrepTimelineDesktop({
   isOwner,
 }: DrepTimelineDesktopProps) {
 
-  // Flatten all epochs and items into a single sequence to calculate stable parity
+  // Flatten all epochs and items into a single sequence for rendering
   const flattenedItems = React.useMemo(() => {
     const allRenderable: any[] = [];
     
-    // Reverse epochs to process from oldest to newest for stable parity
-    const reversedEpochs = [...epochs].reverse();
-    
-    reversedEpochs.forEach((epoch) => {
-      // Process items within epoch from oldest to newest
-      const items = [...epoch.items].reverse();
-      items.forEach((item) => {
+    epochs.forEach((epoch) => {
+      // Process items within epoch
+      epoch.items.forEach((item) => {
         allRenderable.push({ ...item, epochNo: epoch.epochNo });
       });
       
-      // Add epoch header AFTER its items (since we are building oldest-to-newest)
+      // Add epoch header
       allRenderable.push({ 
         type: 'epoch_header', 
         epochNo: epoch.epochNo, 
@@ -61,25 +57,21 @@ export default function DrepTimelineDesktop({
       });
     });
 
-    // Now we have [OldestItems..., EpochHeader, NewestItems...]
-    // Assign side based on index in this stable oldest-to-newest list
+    // Assign side based on index from the TOP (newest-to-oldest) for stability when loading older data
     let itemCounter = 0;
-    const itemsWithPositions = allRenderable.map((item) => {
+    return allRenderable.map((item) => {
       if (item.type === 'epoch_header') {
         return item;
       }
-      // Alternate sides for actual items
+      // First item (newest) starts on the left
       const position = itemCounter % 2 === 0 ? 'left' : 'right';
       itemCounter++;
       return { ...item, position };
     });
-
-    // Return to newest-first for rendering
-    return itemsWithPositions.reverse();
   }, [epochs]);
 
   return (
-    <Timeline position="alternate-reverse">
+    <Timeline>
       {!isAtLatestPoint && onLoadNewer && (
         <TimelineItem position="right">
           <TimelineSeparator>
@@ -165,7 +157,7 @@ export default function DrepTimelineDesktop({
       })}
 
       {!isAtOldestPoint && onLoadOlder && (
-        <TimelineItem position="left">
+        <TimelineItem position={flattenedItems.length % 2 === 0 ? 'left' : 'right'}>
           <TimelineSeparator>
             <TimelineConnector className="h-10 border-2 border-dotted border-gray-200" sx={{ backgroundColor: 'white' }} />
             <TimelineDot color="primary" />
