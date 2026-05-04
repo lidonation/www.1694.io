@@ -38,16 +38,11 @@ export default function DrepTimelineDesktop({
 }: DrepTimelineDesktopProps) {
 
   // Flatten all epochs and items into a single sequence for rendering
-  const flattenedItems = React.useMemo(() => {
+  const { flattenedItems, totalItems } = React.useMemo(() => {
     const allRenderable: any[] = [];
     
     epochs.forEach((epoch) => {
-      // Process items within epoch
-      epoch.items.forEach((item) => {
-        allRenderable.push({ ...item, epochNo: epoch.epochNo });
-      });
-      
-      // Add epoch header
+      // Add epoch header FIRST
       allRenderable.push({ 
         type: 'epoch_header', 
         epochNo: epoch.epochNo, 
@@ -55,11 +50,16 @@ export default function DrepTimelineDesktop({
         endTime: epoch.endTime,
         hasEvents: epoch.items.length > 0
       });
+
+      // Then process items within epoch
+      epoch.items.forEach((item) => {
+        allRenderable.push({ ...item, epochNo: epoch.epochNo });
+      });
     });
 
     // Assign side based on index from the TOP (newest-to-oldest) for stability when loading older data
     let itemCounter = 0;
-    return allRenderable.map((item) => {
+    const itemsWithPositions = allRenderable.map((item) => {
       if (item.type === 'epoch_header') {
         return item;
       }
@@ -68,6 +68,8 @@ export default function DrepTimelineDesktop({
       itemCounter++;
       return { ...item, position };
     });
+
+    return { flattenedItems: itemsWithPositions, totalItems: itemCounter };
   }, [epochs]);
 
   return (
@@ -157,7 +159,7 @@ export default function DrepTimelineDesktop({
       })}
 
       {!isAtOldestPoint && onLoadOlder && (
-        <TimelineItem position={flattenedItems.length % 2 === 0 ? 'left' : 'right'}>
+        <TimelineItem position={totalItems % 2 === 0 ? 'left' : 'right'}>
           <TimelineSeparator>
             <TimelineConnector className="h-10 border-2 border-dotted border-gray-200" sx={{ backgroundColor: 'white' }} />
             <TimelineDot color="primary" />
