@@ -37,150 +37,154 @@ export default function DrepTimelineDesktop({
   isOwner,
 }: DrepTimelineDesktopProps) {
 
-  return (<Timeline position="alternate-reverse">
-    {!isAtLatestPoint && onLoadNewer && (
-      <TimelineItem>
-        <TimelineSeparator>
-          <TimelineDot color="primary" />
-          <TimelineConnector className="h-10 border-2 border-dotted border-gray-200" sx={{ backgroundColor: 'white' }} />
-        </TimelineSeparator>
-        <TimelineContent>
-          <div
-            className="flex cursor-pointer items-center gap-2 rounded border border-gray-200 px-4 py-2 hover:bg-gray-50 transition-colors w-fit mx-auto shadow-sm bg-white"
-            onClick={onLoadNewer}
-          >
-            <img src="/svgs/reload.svg" alt="reload" className="w-4 h-4" />
-            <p className="text-sm font-semibold text-orange-500">
-              Load Newer History
-            </p>
-          </div>
-        </TimelineContent>
-      </TimelineItem>
-    )}
+  // Flatten all epochs and items into a single sequence to calculate stable parity
+  const flattenedItems = React.useMemo(() => {
+    const allRenderable: any[] = [];
+    
+    // Reverse epochs to process from oldest to newest for stable parity
+    const reversedEpochs = [...epochs].reverse();
+    
+    reversedEpochs.forEach((epoch) => {
+      // Process items within epoch from oldest to newest
+      const items = [...epoch.items].reverse();
+      items.forEach((item) => {
+        allRenderable.push({ ...item, epochNo: epoch.epochNo });
+      });
+      
+      // Add epoch header AFTER its items (since we are building oldest-to-newest)
+      allRenderable.push({ 
+        type: 'epoch_header', 
+        epochNo: epoch.epochNo, 
+        startTime: epoch.startTime, 
+        endTime: epoch.endTime,
+        hasEvents: epoch.items.length > 0
+      });
+    });
 
-    {epochs.map((epoch: any) => (
-      <React.Fragment key={epoch.epochNo}>
-        {/* Epoch Header */}
-        <div className="flex w-full flex-col items-center space-y-2">
+    // Now we have [OldestItems..., EpochHeader, NewestItems...]
+    // Assign side based on index in this stable oldest-to-newest list
+    let itemCounter = 0;
+    const itemsWithPositions = allRenderable.map((item) => {
+      if (item.type === 'epoch_header') {
+        return item;
+      }
+      // Alternate sides for actual items
+      const position = itemCounter % 2 === 0 ? 'left' : 'right';
+      itemCounter++;
+      return { ...item, position };
+    });
+
+    // Return to newest-first for rendering
+    return itemsWithPositions.reverse();
+  }, [epochs]);
+
+  return (
+    <Timeline position="alternate-reverse">
+      {!isAtLatestPoint && onLoadNewer && (
+        <TimelineItem position="right">
           <TimelineSeparator>
-            <TimelineConnector className="h-10 border-2 border-dotted border-gray-300" sx={{ backgroundColor: 'white' }} />
+            <TimelineDot color="primary" />
+            <TimelineConnector className="h-10 border-2 border-dotted border-gray-200" sx={{ backgroundColor: 'white' }} />
           </TimelineSeparator>
-          <div className="w-full">
-            <EpochTimelineCard 
-              hasEvents={epoch.items.length > 0}
-              epoch={{
-                epoch_no: epoch.epochNo,
-                start_time: epoch.startTime,
-                end_time: epoch.endTime,
-                type: 'epoch'
-              }} 
-            />
-          </div>
+          <TimelineContent>
+            <div
+              className="flex cursor-pointer items-center gap-2 rounded border border-gray-200 px-4 py-2 hover:bg-gray-50 transition-colors w-fit mx-auto shadow-sm bg-white"
+              onClick={onLoadNewer}
+            >
+              <img src="/svgs/reload.svg" alt="reload" className="w-4 h-4" />
+              <p className="text-sm font-semibold text-orange-500">
+                Load Newer History
+              </p>
+            </div>
+          </TimelineContent>
+        </TimelineItem>
+      )}
+
+      {flattenedItems.map((item: any, index: number) => {
+        if (item.type === 'epoch_header') {
+          return (
+            <div key={`header-${item.epochNo}`} className="flex w-full flex-col items-center space-y-2">
+              <TimelineSeparator>
+                <TimelineConnector className="h-10 border-2 border-dotted border-gray-300" sx={{ backgroundColor: 'white' }} />
+              </TimelineSeparator>
+              <div className="w-full">
+                <EpochTimelineCard 
+                  hasEvents={item.hasEvents}
+                  epoch={{
+                    epoch_no: item.epochNo,
+                    start_time: item.startTime,
+                    end_time: item.endTime,
+                    type: 'epoch'
+                  }} 
+                />
+              </div>
+              <TimelineSeparator>
+                <TimelineConnector className="h-10 border-2 border-dotted border-gray-300" sx={{ backgroundColor: 'white' }} />
+              </TimelineSeparator>
+            </div>
+          );
+        }
+
+        return (
+          <TimelineItem key={item.id} position={item.position}>
+            <TimelineSeparator>
+              {item.type === 'voting_activity' ? (
+                <TimelineConnector className="border-2 border-dotted border-gray-300" sx={{ backgroundColor: 'white', height: '24px', flexGrow: 0 }} />
+              ) : null}
+              <TimelineDot sx={item.type === 'bundled_delegations' ? { bgcolor: 'primary.main' } : {}} />
+              <TimelineConnector className="h-10 border-2 border-dotted border-gray-300" sx={{ backgroundColor: 'white' }} />
+            </TimelineSeparator>
+            <TimelineContent sx={{ minWidth: 0 }}>
+              {item.type === 'note' && (
+                <SingleNote note={item} currentVoter={stakeKeyBech32} isConnected={isConnected} />
+              )}
+              {item.type === 'registration' && (
+                <Link href={`${urls.cexplorerUrl}/tx/${item?.tx_hash}`} target="_blank">
+                  <div className="flex flex-row items-center justify-center gap-2 text-nowrap text-gray-500 hover:cursor-pointer hover:text-gray-800">
+                    <img src="/svgs/external-link.svg" alt="" />
+                    <p className="text-sm sm:text-base">Registered, Epoch {item?.epochNo}</p>
+                    <p className="text-[10px] text-gray-400 font-medium">{new Date(item.timestamp).toLocaleString()}</p>
+                  </div>
+                </Link>
+              )}
+              {item.type === 'claimed_profile' && (
+                <ProfileClaimedChip claimedAddress={item.claimedDRepId} dateOfClaim={item.timestamp} />
+              )}
+              {item.type === 'voting_activity' && (
+                <DrepVoteTimelineCard item={item} isVoteOwner={isOwner} />
+              )}
+              {item.type === 'delegation' && (
+                <DrepDelegatorCard item={item} />
+              )}
+              {item.type === 'bundled_delegations' && (
+                <BundledDelegations items={item.items} />
+              )}
+            </TimelineContent>
+          </TimelineItem>
+        );
+      })}
+
+      {!isAtOldestPoint && onLoadOlder && (
+        <TimelineItem position="left">
           <TimelineSeparator>
-            <TimelineConnector className="h-10 border-2 border-dotted border-gray-300" sx={{ backgroundColor: 'white' }} />
+            <TimelineConnector className="h-10 border-2 border-dotted border-gray-200" sx={{ backgroundColor: 'white' }} />
+            <TimelineDot color="primary" />
           </TimelineSeparator>
-        </div>
-
-        {/* Epoch Items */}
-        {epoch.items.map((item: any) => (
-          <React.Fragment key={item.id}>
-            {item.type === 'note' && (
-              <TimelineItem>
-                <TimelineSeparator>
-                  <TimelineDot />
-                  <TimelineConnector className="h-10 border-2 border-dotted border-gray-300" sx={{ backgroundColor: 'white' }} />
-                </TimelineSeparator>
-                <TimelineContent sx={{ minWidth: 0 }}>
-                  <SingleNote note={item} currentVoter={stakeKeyBech32} isConnected={isConnected} />
-                </TimelineContent>
-              </TimelineItem>
-            )}
-            {item.type === 'registration' && (
-              <TimelineItem>
-                <TimelineSeparator>
-                  <TimelineDot />
-                  <TimelineConnector className="h-10 border-2 border-dotted border-gray-300" sx={{ backgroundColor: 'white' }} />
-                </TimelineSeparator>
-                <TimelineContent sx={{ minWidth: 0 }}>
-                  <Link href={`${urls.cexplorerUrl}/tx/${item?.tx_hash}`} target="_blank">
-                    <div className="flex flex-row items-center justify-center gap-2 text-nowrap text-gray-500 hover:cursor-pointer hover:text-gray-800">
-                      <img src="/svgs/external-link.svg" alt="" />
-                      <p className="text-sm sm:text-base">Registered, Epoch {item?.epoch_no}</p>
-                      <p className="text-[10px] text-gray-400 font-medium">{new Date(item.timestamp).toLocaleString()}</p>
-                    </div>
-                  </Link>
-                </TimelineContent>
-              </TimelineItem>
-            )}
-            {item.type === 'claimed_profile' && (
-              <TimelineItem>
-                <TimelineSeparator>
-                  <TimelineDot />
-                  <TimelineConnector className="h-10 border-2 border-dotted border-gray-300" sx={{ backgroundColor: 'white' }} />
-                </TimelineSeparator>
-                <TimelineContent sx={{ minWidth: 0 }}>
-                  <ProfileClaimedChip claimedAddress={item.claimedDRepId} dateOfClaim={item.timestamp} />
-                </TimelineContent>
-              </TimelineItem>
-            )}
-            {item.type === 'voting_activity' && (
-              <TimelineItem>
-                <TimelineSeparator>
-                  <TimelineConnector className="border-2 border-dotted border-gray-300" sx={{ backgroundColor: 'white', height: '24px', flexGrow: 0 }} />
-                  <TimelineDot />
-                  <TimelineConnector className="h-10 border-2 border-dotted border-gray-300" sx={{ backgroundColor: 'white' }} />
-                </TimelineSeparator>
-                <TimelineContent sx={{ minWidth: 0 }}>
-                  <DrepVoteTimelineCard item={item} isVoteOwner={isOwner} />
-                </TimelineContent>
-              </TimelineItem>
-            )}
-            {item.type === 'delegation' && (
-              <TimelineItem>
-                <TimelineSeparator>
-                  <TimelineDot />
-                  <TimelineConnector className="h-10 border-2 border-dotted border-gray-300" sx={{ backgroundColor: 'white' }} />
-                </TimelineSeparator>
-                <TimelineContent sx={{ minWidth: 0 }}>
-                  <DrepDelegatorCard item={item} />
-                </TimelineContent>
-              </TimelineItem>
-            )}
-            {item.type === 'bundled_delegations' && (
-              <TimelineItem>
-                <TimelineSeparator>
-                  <TimelineDot sx={{ bgcolor: 'primary.main' }} />
-                  <TimelineConnector className="h-10 border-2 border-dotted border-gray-300" sx={{ backgroundColor: 'white' }} />
-                </TimelineSeparator>
-                <TimelineContent sx={{ minWidth: 0 }}>
-                  <BundledDelegations items={item.items} />
-                </TimelineContent>
-              </TimelineItem>
-            )}
-          </React.Fragment>
-        ))}
-      </React.Fragment>
-    ))}
-
-    {!isAtOldestPoint && onLoadOlder && (
-      <TimelineItem>
-        <TimelineSeparator>
-          <TimelineConnector className="h-10 border-2 border-dotted border-gray-200" sx={{ backgroundColor: 'white' }} />
-          <TimelineDot color="primary" />
-        </TimelineSeparator>
-        <TimelineContent>
-          <div
-            className="flex cursor-pointer items-center gap-2 rounded border border-gray-200 px-4 py-2 hover:bg-gray-50 transition-colors w-fit mx-auto shadow-sm bg-white"
-            onClick={onLoadOlder}
-          >
-            <img src="/svgs/reload.svg" alt="reload" className="w-4 h-4" />
-            <p className="text-sm font-semibold text-orange-500">
-              Load Older History
-            </p>
-          </div>
-        </TimelineContent>
-      </TimelineItem>
-    )}
-  </Timeline>)
-};
+          <TimelineContent>
+            <div
+              className="flex cursor-pointer items-center gap-2 rounded border border-gray-200 px-4 py-2 hover:bg-gray-50 transition-colors w-fit mx-auto shadow-sm bg-white"
+              onClick={onLoadOlder}
+            >
+              <img src="/svgs/reload.svg" alt="reload" className="w-4 h-4" />
+              <p className="text-sm font-semibold text-orange-500">
+                Load Older History
+              </p>
+            </div>
+          </TimelineContent>
+        </TimelineItem>
+      )}
+    </Timeline>
+  );
+}
+;
 
