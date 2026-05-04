@@ -1,3 +1,4 @@
+'use client';
 import { motion, useSpring, useTransform } from 'framer-motion';
 import { useEffect } from 'react';
 
@@ -53,12 +54,14 @@ export const AnimatedCounter = ({
     ...(height && { height: `${height}px` }),
   };
 
+  const MotionSpan = motion.span as any;
+
   return (
-    <motion.span 
-      className={className}
+    <MotionSpan 
+      className={className || undefined}
       style={style}
     >
       {display}
-    </motion.span>
+    </MotionSpan>
   );
 };

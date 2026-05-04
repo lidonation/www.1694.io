@@ -1,3 +1,4 @@
+'use client';
 import { QUERY_KEYS } from '@/constants/queryKeys';
 import { useQuery } from 'react-query';
 import { Delegators } from '../../types/api';
@@ -17,7 +18,7 @@ export const useGetDRepDelegatorsQuery = (
       const cip105Id = convertDrepPhraseToCIP105(voterId);
       return await getDRepDelegators(cip105Id, page, perPage, sort, order);
     },
-    enabled: !!voterId,
+    enabled: typeof window !== "undefined" && (!!voterId),
     refetchOnWindowFocus: false,
   });
 

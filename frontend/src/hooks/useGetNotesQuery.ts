@@ -1,3 +1,4 @@
+'use client';
 import { QUERY_KEYS } from '@/constants/queryKeys';
 import { getNotes } from '@/services/requests/getNotes';
 import { useQuery } from 'react-query';
@@ -15,7 +16,7 @@ export const useGetNotesQuery = ({ currentNote, request }: GetNotesProps = {}) =
     queryKey: [QUERY_KEYS.getNotesKey, stakeKeys, currentNote,request],
     queryFn: async () => await getNotes(stakeKeys, currentNote,request),
     refetchOnWindowFocus: false,
-    enabled: true,
+    enabled: typeof window !== "undefined",
     keepPreviousData: true,
   });
   return { Notes: data, isNotesLoading: isLoading, refetch, isNotesFetching: isFetching, isPreviousData };

@@ -40,6 +40,8 @@ export type GovAction = {
   vote_rationale: string | null;
   enacted_epoch: number | null;
   expiration_epoch: number | null;
+  txHash?: string;
+  tx_hash?: string;
 };
 
 export type VoterGovActions = {

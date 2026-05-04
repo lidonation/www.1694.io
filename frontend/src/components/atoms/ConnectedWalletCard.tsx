@@ -1,3 +1,4 @@
+'use client';
 import { useWallet } from '@/context/globalContext';
 import { useScreenDimension } from '@/hooks';
 import { formattedAda, shortenAddress } from '@/lib';

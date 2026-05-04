@@ -1,3 +1,4 @@
+'use client';
 import React, { useState } from 'react';
 import { Box, TextField, Typography, Paper, InputAdornment } from '@mui/material';
 import { useGetMetricsQuery } from '@/hooks/useGetMetricsQuery';

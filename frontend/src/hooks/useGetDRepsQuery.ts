@@ -1,3 +1,4 @@
+'use client';
 import { QUERY_KEYS } from '@/constants/queryKeys';
 import { dRepPhraseProcessor } from '@/lib';
 import { getDReps } from '@/services';
@@ -39,7 +40,7 @@ export const useGetDRepsQuery = (
       );
     },
     refetchOnWindowFocus: false,
-    enabled: true,
+    enabled: typeof window !== "undefined",
   });
 
   return { DReps: data, isDRepsLoading: isLoading, isError };

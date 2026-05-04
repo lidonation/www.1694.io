@@ -1,3 +1,4 @@
+'use client';
 import { getSingleNote } from '@/services/requests/getSingleNote';
 import { useQuery } from 'react-query';
 
@@ -5,7 +6,7 @@ export const useGetSingleNoteQuery = (noteId?: any, reload?: boolean) => {
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['note', noteId, reload],
     queryFn: async () => getSingleNote(noteId),
-    enabled: reload !== undefined ? Boolean(noteId && reload) : Boolean(noteId),
+    enabled: typeof window !== "undefined" && (reload !== undefined ? Boolean(noteId && reload) : Boolean(noteId)),
     refetchOnWindowFocus: false,
   });
 

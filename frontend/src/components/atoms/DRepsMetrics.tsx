@@ -1,3 +1,4 @@
+'use client';
 import { TableContainer } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { MetricCard } from './DRepMetricCard';

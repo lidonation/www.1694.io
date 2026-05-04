@@ -1,3 +1,4 @@
+'use client';
 import React, { useEffect, useRef, useState } from 'react';
 import Button from '../atoms/Button';
 import { HtmlTooltip } from '../atoms/HoverChip';

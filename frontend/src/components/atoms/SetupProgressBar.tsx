@@ -1,3 +1,4 @@
+'use client';
 import React, { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';

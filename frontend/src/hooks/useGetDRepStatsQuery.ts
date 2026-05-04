@@ -1,3 +1,4 @@
+'use client';
 import { QUERY_KEYS } from '@/constants/queryKeys';
 import { useQuery } from 'react-query';
 import { getDRepStats } from '@/services/requests/getDRepStats';
@@ -11,7 +12,7 @@ export const useGetDRepStatsQuery = (voterId: string) => {
       const cip105Id = convertDrepPhraseToCIP105(voterId);
       return await getDRepStats(cip105Id);
     },
-    enabled: !!voterId,
+    enabled: typeof window !== "undefined" && (!!voterId),
     refetchOnWindowFocus: false,
   });
 

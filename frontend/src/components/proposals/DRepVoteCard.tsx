@@ -1,3 +1,4 @@
+'use client';
 import React from 'react';
 import CopyToClipBoardIcon from '../atoms/svgs/CopyToClipBoardIcon';
 import { Box, Typography } from '@mui/material';

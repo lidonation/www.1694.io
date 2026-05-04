@@ -14,6 +14,10 @@ import { DrepDelegator } from '../entities/governance/drep-delegator.entity';
 import { Proposal } from '../entities/governance/proposal.entity';
 import { ProposalMetadata } from '../entities/governance/proposal-metadata.entity';
 import { ProposalVote } from '../entities/governance/proposal-vote.entity';
+import { DrepTimelineEvent } from '../entities/governance/drep-timeline-event.entity';
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
+import * as blake from 'blakejs';
 
 @Injectable()
 @Processor(Queues.GOVERNANCE_SYNC)
@@ -22,412 +26,221 @@ export class GovernanceSyncWorker extends WorkerHost {
 
   constructor(
     private readonly blockfrostService: BlockfrostService,
+    private readonly httpService: HttpService,
     @InjectDataSource('default')
     private readonly dataSource: DataSource,
   ) {
     super();
   }
 
-  async process(
-    job: Job<GovernanceSyncJobData, GovernanceSyncJobResponse>,
-  ): Promise<GovernanceSyncJobResponse> {
-    this.logger.log(`Starting governance sync job: ${job.id}`);
+  async process(job: Job<GovernanceSyncJobData, GovernanceSyncJobResponse>): Promise<GovernanceSyncJobResponse> {
+    this.logger.log(`Starting governance sync: ${job.id}`);
 
     try {
       const { forceRefresh = false, syncOnly } = job.data;
+      let drepsCount = 0, proposalsCount = 0, votesCount = 0, delegatorsCount = 0;
 
-      let drepsCount = 0;
-      let proposalsCount = 0;
-      let votesCount = 0;
-      let delegatorsCount = 0;
-
-      // Sync DReps
-      if (!syncOnly || syncOnly === 'dreps') {
-        this.logger.log('Syncing DReps...');
-        drepsCount = await this.syncDReps();
-      }
-
-      // Sync DRep Delegators
+      if (!syncOnly || syncOnly === 'dreps') drepsCount = await this.syncDReps();
       if (!syncOnly || syncOnly === 'delegators') {
-        this.logger.log('Syncing DRep delegators...');
         delegatorsCount = await this.syncDRepDelegators();
-
-        // Update delegation counts on DReps
-        this.logger.log('Updating delegation counts...');
         await this.updateDelegationCounts();
       }
+      if (!syncOnly || syncOnly === 'proposals') proposalsCount = await this.syncProposals();
+      if (!syncOnly || syncOnly === 'metadata-votes') votesCount = await this.syncProposalMetadataAndVotes();
 
-      // Sync Proposals
-      if (!syncOnly || syncOnly === 'proposals') {
-        this.logger.log('Syncing proposals...');
-        proposalsCount = await this.syncProposals();
-      }
-
-      // Sync Proposal Metadata and Votes
-      if (!syncOnly || syncOnly === 'metadata-votes') {
-        this.logger.log('Syncing proposal metadata and votes...');
-        votesCount = await this.syncProposalMetadataAndVotes();
-      }
-
-      this.logger.log(
-        `Governance sync completed: ${drepsCount} DReps, ${delegatorsCount} delegators, ${proposalsCount} proposals, ${votesCount} votes`,
-      );
+      this.logger.log(`Sync completed: ${drepsCount} DReps, ${delegatorsCount} delegators, ${proposalsCount} proposals, ${votesCount} votes`);
 
       return {
         success: true,
-        message: `Successfully synced governance data`,
-        drepsCount,
-        proposalsCount,
-        votesCount,
-        delegatorsCount,
+        message: 'Synced governance data',
+        drepsCount, proposalsCount, votesCount, delegatorsCount,
       };
     } catch (error) {
-      this.logger.error(
-        `Governance sync job failed: ${error.message}`,
-        error.stack,
-      );
-
-      return {
-        success: false,
-        message: `Governance sync failed: ${error.message}`,
-      };
+      this.logger.error(`Sync failed: ${error.message}`, error.stack);
+      return { success: false, message: error.message };
     }
   }
 
   private async syncDReps(): Promise<number> {
     const drepsRepository = this.dataSource.getRepository(Drep);
-    let page = 1;
-    let totalSynced = 0;
-    let hasMore = true;
+    let page = 1, totalSynced = 0, hasMore = true;
 
     while (hasMore) {
       try {
-        const drepsData =
-          await this.blockfrostService.getAllDRepsWithPagination(
-            page,
-            100,
-            'asc',
-          );
+        const drepsData = await this.blockfrostService.getAllDRepsWithPagination(page, 100, 'asc');
+        if (!drepsData || drepsData.length === 0) break;
 
-        if (!drepsData || drepsData.length === 0) {
-          hasMore = false;
-          break;
-        }
-
-        for (const drepData of drepsData) {
+        for (const d of drepsData) {
           try {
-            let detailedInfo: any = null;
-            let metadata: any = null;
+            let detailedInfo: any = null, metadata: any = null;
 
             try {
-              detailedInfo = await this.blockfrostService.getDRepInfo(
-                drepData.drep_id,
-              );
-              await new Promise((resolve) => setTimeout(resolve, 50));
-            } catch (error) {
-              this.logger.warn(
-                `Failed to get detailed info for DRep ${drepData.drep_id}: ${error.message}`,
-              );
+              detailedInfo = await this.blockfrostService.getDRepInfo(d.drep_id);
+              await new Promise(r => setTimeout(r, 50));
+            } catch (e) {
+              this.logger.warn(`DRep info failed (${d.drep_id}): ${e.message}`);
             }
 
             try {
-              metadata = await this.blockfrostService.getDRepMetadata(
-                drepData.drep_id,
-              );
-              await new Promise((resolve) => setTimeout(resolve, 50));
-            } catch (error) {
-              if (
-                !error.message?.includes('404') &&
-                !error.message?.includes('Not Found')
-              ) {
-                this.logger.warn(
-                  `Failed to get metadata for DRep ${drepData.drep_id}: ${error.message}`,
-                );
-              }
+              metadata = await this.blockfrostService.getDRepMetadata(d.drep_id);
+              await new Promise(r => setTimeout(r, 50));
+            } catch (e) {
+              if (!e.message?.includes('404')) this.logger.warn(`DRep meta failed (${d.drep_id}): ${e.message}`);
             }
 
-            const drepEntity = {
-              drepId: drepData.drep_id,
-              hex: drepData.hex,
-              amountLovelace: (
-                detailedInfo?.amount ||
-                drepData.amount ||
-                '0'
-              ).toString(),
+            await drepsRepository.upsert({
+              drepId: d.drep_id,
+              hex: d.hex,
+              amountLovelace: (detailedInfo?.amount || d.amount || '0').toString(),
               active: detailedInfo?.active ?? true,
               activeEpoch: detailedInfo?.active_epoch || null,
-              hasScript:
-                detailedInfo?.has_script ?? drepData.has_script ?? false,
-              retired: detailedInfo?.retired ?? drepData.retired ?? false,
-              expired: detailedInfo?.expired ?? drepData.expired ?? false,
+              hasScript: detailedInfo?.has_script ?? d.has_script ?? false,
+              retired: detailedInfo?.retired ?? d.retired ?? false,
+              expired: detailedInfo?.expired ?? d.expired ?? false,
               lastActiveEpoch: detailedInfo?.last_active_epoch || null,
               metadata: metadata || null,
-              votingPowerAda: detailedInfo?.amount
-                ? (parseInt(detailedInfo.amount) / 1_000_000).toString()
-                : null,
-            };
-
-            await drepsRepository.upsert(drepEntity, {
-              conflictPaths: ['drepId'],
-              skipUpdateIfNoValuesChanged: true,
-            });
+              votingPowerAda: detailedInfo?.amount ? (parseInt(detailedInfo.amount) / 1_000_000).toString() : null,
+            }, { conflictPaths: ['drepId'], skipUpdateIfNoValuesChanged: true });
             totalSynced++;
-          } catch (drepError) {
-            this.logger.warn(
-              `Failed to upsert DRep ${drepData.drep_id}: ${drepError.message}`,
-            );
+          } catch (e) {
+            this.logger.warn(`DRep upsert failed (${d.drep_id}): ${e.message}`);
           }
         }
 
-        await new Promise((resolve) => setTimeout(resolve, 100));
-
-        if (drepsData.length < 100) {
-          hasMore = false;
-        } else {
-          page++;
-        }
-      } catch (pageError) {
-        this.logger.error(
-          `Failed to fetch DReps page ${page}: ${pageError.message}`,
-        );
+        await new Promise(r => setTimeout(r, 100));
+        if (drepsData.length < 100) hasMore = false;
+        else page++;
+      } catch (e) {
+        this.logger.error(`DReps fetch failed (page ${page}): ${e.message}`);
         hasMore = false;
       }
     }
-
     return totalSynced;
   }
 
   private async syncDRepDelegators(): Promise<number> {
     const drepsRepository = this.dataSource.getRepository(Drep);
     const delegatorsRepository = this.dataSource.getRepository(DrepDelegator);
-
     const allDreps = await drepsRepository.find();
     let totalSynced = 0;
 
     for (const drep of allDreps) {
-      // 1. Fetch Phase: Get all new delegators from API
       const newDelegatorsMap = new Map<string, any>(); 
-      let fetchFailed = false;
+      let fetchFailed = false, page = 1, hasMore = true;
 
-      let page = 1;
-      let hasMore = true;
-
-      this.logger.debug(`Fetching delegators for DRep ${drep.drepId}...`);
-      
       while (hasMore) {
         try {
-          const delegatorsData =
-            await this.blockfrostService.getDRepDelegators(
-              drep.drepId,
-              page,
-              100,
-              'asc',
-            );
+          const data = await this.blockfrostService.getDRepDelegators(drep.drepId, page, 100, 'asc');
+          if (!data || data.length === 0) break;
 
-          if (!delegatorsData || delegatorsData.length === 0) {
-            hasMore = false;
-            break;
-          }
-
-          for (const d of delegatorsData) {
-            newDelegatorsMap.set(d.address, d);
-          }
-
-          // Rate limiting - wait 100ms between pages
-          await new Promise((resolve) => setTimeout(resolve, 100));
-
-          if (delegatorsData.length < 100) {
-            hasMore = false;
-          } else {
-            page++;
-          }
-        } catch (pageError) {
-          this.logger.warn(
-            `Failed to fetch delegators page ${page} for DRep ${drep.drepId}: ${pageError.message}`,
-          );
+          for (const d of data) newDelegatorsMap.set(d.address, d);
+          if (data.length < 100) hasMore = false;
+          else page++;
+        } catch (e) {
+          this.logger.warn(`Delegators fetch failed (${drep.drepId}, page ${page}): ${e.message}`);
           fetchFailed = true;
           hasMore = false;
         }
       }
 
-      if (fetchFailed) {
-        this.logger.warn(`Skipping update for DRep ${drep.drepId} due to fetch errors. Existing data preserved.`);
-        continue;
-      }
+      if (fetchFailed) continue;
 
-      // 2. Load Phase: Get all existing delegators from DB
-      const existingDelegators = await delegatorsRepository.find({
-        where: { drepId: drep.drepId }
-      });
-      const existingDelegatorsMap = new Map(existingDelegators.map(d => [d.stakeAddress, d]));
+      const existing = await delegatorsRepository.find({ where: { drepId: drep.drepId } });
+      const existingMap = new Map(existing.map(d => [d.stakeAddress, d]));
 
-      // 3. Diff Phase
-      const toInsert: any[] = [];
-      const toUpdate: any[] = [];
-      const toDeleteIds: string[] = [];
+      const toInsert: any[] = [], toUpdate: any[] = [], toDeleteIds: string[] = [];
 
-      // Find inserts and updates
       for (const [address, newData] of newDelegatorsMap) {
-        const existing = existingDelegatorsMap.get(address);
-        if (!existing) {
-          toInsert.push({
-            drepId: drep.drepId,
-            stakeAddress: address,
-            amountLovelace: newData.amount,
-            votingPowerLovelace: newData.amount, // Initial value
-          });
-        } else if (existing.amountLovelace !== newData.amount) {
-          toUpdate.push({
-            drepId: drep.drepId,
-            stakeAddress: address,
-            amountLovelace: newData.amount,
-            votingPowerLovelace: newData.amount, // Reset VP if amount changes
-          });
+        const ext = existingMap.get(address);
+        if (!ext) {
+          toInsert.push({ drepId: drep.drepId, stakeAddress: address, amountLovelace: newData.amount, votingPowerLovelace: newData.amount });
+        } else if (ext.amountLovelace !== newData.amount) {
+          toUpdate.push({ drepId: drep.drepId, stakeAddress: address, amountLovelace: newData.amount, votingPowerLovelace: newData.amount });
         }
       }
 
-      // Find deletes
-      for (const [address, existing] of existingDelegatorsMap) {
-        if (!newDelegatorsMap.has(address)) {
-          toDeleteIds.push(address);
-        }
+      for (const [address] of existingMap) {
+        if (!newDelegatorsMap.has(address)) toDeleteIds.push(address);
       }
 
-      // 4. Execute Phase
       try {
         await this.dataSource.transaction(async (manager) => {
-          const txRepo = manager.getRepository(DrepDelegator);
+          const repo = manager.getRepository(DrepDelegator);
+          const chunkSize = 1000;
 
-          // Batch Deletes
           if (toDeleteIds.length > 0) {
-             // Delete in chunks
-             const chunkSize = 1000;
              for (let i = 0; i < toDeleteIds.length; i += chunkSize) {
-               const chunk = toDeleteIds.slice(i, i + chunkSize);
-               await txRepo
-                 .createQueryBuilder()
-                 .delete()
-                 .where("drepId = :drepId", { drepId: drep.drepId })
-                 .andWhere("stakeAddress IN (:...ids)", { ids: chunk })
-                 .execute();
+               await repo.createQueryBuilder().delete().where("drepId = :dId", { dId: drep.drepId }).andWhere("stakeAddress IN (:...ids)", { ids: toDeleteIds.slice(i, i + chunkSize) }).execute();
              }
           }
 
-          // Batch Inserts
           if (toInsert.length > 0) {
-            const chunkSize = 1000;
-            for (let i = 0; i < toInsert.length; i += chunkSize) {
-              await txRepo.insert(toInsert.slice(i, i + chunkSize));
-            }
+            for (let i = 0; i < toInsert.length; i += chunkSize) await repo.insert(toInsert.slice(i, i + chunkSize));
           }
 
-          // Batch Updates
           if (toUpdate.length > 0) {
-             const chunkSize = 1000;
              for (let i = 0; i < toUpdate.length; i += chunkSize) {
-                await txRepo.upsert(toUpdate.slice(i, i + chunkSize), {
-                    conflictPaths: ['drepId', 'stakeAddress'],
-                    skipUpdateIfNoValuesChanged: true 
-                });
+                await repo.upsert(toUpdate.slice(i, i + chunkSize), { conflictPaths: ['drepId', 'stakeAddress'], skipUpdateIfNoValuesChanged: true });
              }
           }
         });
-
-        const syncedCount = newDelegatorsMap.size;
-        totalSynced += syncedCount;
-        this.logger.log(`Synced DRep ${drep.drepId}: ${toInsert.length} inserted, ${toUpdate.length} updated, ${toDeleteIds.length} deleted.`);
-
-      } catch (txError) {
-        this.logger.error(
-          `Transaction failed for DRep ${drep.drepId}: ${txError.message}`,
-          txError.stack
-        );
+        totalSynced += newDelegatorsMap.size;
+      } catch (e) {
+        this.logger.error(`Delegators sync failed (${drep.drepId}): ${e.message}`);
       }
-      
-      //  200ms between DReps
-      await new Promise((resolve) => setTimeout(resolve, 200));
+      await new Promise(r => setTimeout(r, 200));
     }
-
     return totalSynced;
   }
 
   private async syncProposals(): Promise<number> {
     const proposalsRepository = this.dataSource.getRepository(Proposal);
-    let page = 1;
-    let totalSynced = 0;
-    let hasMore = true;
+    let page = 1, totalSynced = 0, hasMore = true;
 
     while (hasMore) {
       try {
-        const proposalsListData = await this.blockfrostService.getAllProposals(
-          page,
-          100,
-          'asc',
-        );
+        const list = await this.blockfrostService.getAllProposals(page, 100, 'desc');
+        if (!list || list.length === 0) break;
 
-        if (!proposalsListData || proposalsListData.length === 0) {
-          hasMore = false;
-          break;
-        }
-
-        for (const proposalListItem of proposalsListData) {
+        for (const item of list) {
           try {
-            // Get full proposal details using individual endpoint
-            const proposalData = await this.blockfrostService.getProposal(
-              proposalListItem.tx_hash,
-              proposalListItem.cert_index,
-            );
+            const existing = await proposalsRepository.findOne({ where: { txHash: item.tx_hash, certIndex: item.cert_index } });
+            if (existing?.blockTime) continue;
 
-            if (proposalData) {
-              await proposalsRepository.upsert(
-                {
-                  id: proposalData.id,
-                  txHash: proposalData.tx_hash,
-                  certIndex: proposalData.cert_index,
-                  governanceType: proposalData.governance_type,
-                  governanceDescription:
-                    proposalData.governance_description || null,
-                  depositLovelace: proposalData.deposit || null,
-                  returnStakeAddress: proposalData.return_address || null,
-                  ratifiedEpoch: proposalData.ratified_epoch || null,
-                  enactedEpoch: proposalData.enacted_epoch || null,
-                  droppedEpoch: proposalData.dropped_epoch || null,
-                  expiredEpoch: proposalData.expired_epoch || null,
-                  expirationEpoch: proposalData.expiration || null,
-                },
-                {
-                  conflictPaths: ['id'],
-                  skipUpdateIfNoValuesChanged: true,
-                },
-              );
+            const data = await this.blockfrostService.getProposal(item.tx_hash, item.cert_index);
+            if (data) {
+              let blockTime: Date | null = null;
+              try {
+                const tx = await this.blockfrostService.getTransaction(data.tx_hash);
+                if (tx?.block_time) blockTime = new Date(tx.block_time * 1000);
+              } catch (e) {
+                this.logger.debug(`Tx time fetch failed for ${data.tx_hash}`);
+              }
+
+              await proposalsRepository.upsert({
+                id: data.id, txHash: data.tx_hash, certIndex: data.cert_index,
+                governanceType: data.governance_type, governanceDescription: data.governance_description || null,
+                depositLovelace: data.deposit || null, returnStakeAddress: data.return_address || null,
+                ratifiedEpoch: data.ratified_epoch || null, enactedEpoch: data.enacted_epoch || null,
+                droppedEpoch: data.dropped_epoch || null, expiredEpoch: data.expired_epoch || null,
+                expirationEpoch: data.expiration || null, blockTime,
+              }, { conflictPaths: ['id'], skipUpdateIfNoValuesChanged: true });
               totalSynced++;
             }
-
-            // Rate limiting between individual proposal requests
-            await new Promise((resolve) => setTimeout(resolve, 50));
-          } catch (proposalError) {
-            this.logger.warn(
-              `Failed to upsert proposal ${proposalListItem.tx_hash}/${proposalListItem.cert_index}: ${proposalError.message}`,
-            );
+            await new Promise(r => setTimeout(r, 50));
+          } catch (e) {
+            this.logger.warn(`Proposal sync failed (${item.tx_hash}): ${e.message}`);
           }
         }
 
-        //wait 100ms between pages
-        await new Promise((resolve) => setTimeout(resolve, 100));
-
-        if (proposalsListData.length < 100) {
-          hasMore = false;
-        } else {
-          page++;
-        }
-      } catch (pageError) {
-        this.logger.error(
-          `Failed to fetch proposals page ${page}: ${pageError.message}`,
-        );
+        if (list.length < 100) hasMore = false;
+        else page++;
+        await new Promise(r => setTimeout(r, 100));
+      } catch (e) {
+        this.logger.error(`Proposals fetch failed (page ${page}): ${e.message}`);
         hasMore = false;
       }
     }
-
     return totalSynced;
   }
 
@@ -436,159 +249,164 @@ export class GovernanceSyncWorker extends WorkerHost {
     const metadataRepository = this.dataSource.getRepository(ProposalMetadata);
     const votesRepository = this.dataSource.getRepository(ProposalVote);
 
-    const allProposals = await proposalsRepository.find();
+    const targets = await proposalsRepository.createQueryBuilder('p')
+      .leftJoin(ProposalMetadata, 'm', 'm.proposalId = p.id')
+      .where('m.proposalId IS NULL OR m.error IS NOT NULL')
+      .limit(500).getMany();
+
     let totalVotesSynced = 0;
-
-    for (const proposal of allProposals) {
+    for (const p of targets) {
       try {
-        // Sync metadata
-        try {
-          const metadataData = await this.blockfrostService.getProposalMetadata(
-            proposal.txHash,
-            proposal.certIndex,
-          );
+        let meta: any = null;
+        let url: string | null = null;
+        let hash: string | null = null;
+        let jsonMetadata: any = null;
 
-          if (metadataData) {
-            await metadataRepository.upsert(
-              {
-                proposalId: proposal.id,
-                url: metadataData.url,
-                hash: metadataData.hash,
-                jsonMetadata: metadataData.json_metadata,
-                bytes: metadataData.bytes,
-                version: 'v2', // Assume v2 by default
-                error: metadataData.error || null,
-              },
-              {
-                conflictPaths: ['proposalId'],
-                skipUpdateIfNoValuesChanged: true,
-              },
-            );
+        try {
+          meta = await this.blockfrostService.getProposalMetadata(p.txHash, p.certIndex);
+          if (meta) {
+            url = meta.url;
+            hash = meta.hash;
+            jsonMetadata = meta.json_metadata;
           }
-        } catch (metadataError) {
-          this.logger.warn(
-            `Failed to sync metadata for proposal ${proposal.id}: ${metadataError.message}`,
-          );
+        } catch (e) {
+          if (e.status === 429) throw e;
+          this.logger.debug(`Blockfrost metadata 404 for ${p.id}, trying fallbacks...`);
         }
 
-        // Sync votes
-        try {
-          // 1. Fetch Phase
-          const newVotesMap = new Map<string, any>(); // txHash:certIndex -> voteData
-          let fetchFailed = false;
-          let page = 1;
-          let hasMore = true;
-
-          while (hasMore) {
-            try {
-              const votesData = await this.blockfrostService.getProposalVotes(
-                proposal.txHash,
-                proposal.certIndex,
-                page,
-                100,
-                'asc',
-              );
-
-              if (!votesData || votesData.length === 0) {
-                hasMore = false;
-                break;
-              }
-
-              for (const v of votesData) {
-                // key: txHash + certIndex (unique for a vote on a specific proposal)
-                const uniqueKey = `${v.tx_hash}:${v.cert_index}`;
-                newVotesMap.set(uniqueKey, v);
-              }
-
-              // wait 100ms between pages
-              await new Promise((resolve) => setTimeout(resolve, 100));
-
-              if (votesData.length < 100) {
-                hasMore = false;
-              } else {
-                page++;
-              }
-            } catch (pageError) {
-              this.logger.warn(
-                  `Failed to fetch votes page ${page} for proposal ${proposal.id}: ${pageError.message}`
-              );
-              fetchFailed = true;
-              hasMore = false;
-            }
+        if (!jsonMetadata) {
+          const anchor = await this.getAnchorFromTimeline(p.txHash, p.certIndex);
+          if (anchor) {
+            url = anchor.url;
+            hash = anchor.hash;
+            jsonMetadata = await this.fetchMetadataManually(url, hash);
           }
-
-          if (fetchFailed) {
-            this.logger.warn(`Skipping vote update for proposal ${proposal.id} due to fetch errors.`);
-            continue; 
-          }
-
-          // We assume votes are immutable.          
-          if (newVotesMap.size > 0) {
-             const votesToUpsert = Array.from(newVotesMap.values()).map(vData => ({
-                proposalId: proposal.id,
-                txHash: vData.tx_hash,
-                certIndex: vData.cert_index,
-                voterRole: vData.voter_role,
-                voter: vData.voter,
-                vote: vData.vote,
-             }));
-
-             await this.dataSource.transaction(async (manager) => {
-                const txRepo = manager.getRepository(ProposalVote);
-                
-                // Process in chunks
-                const chunkSize = 1000;
-                for(let i=0; i<votesToUpsert.length; i+=chunkSize) {
-                   await txRepo.upsert(votesToUpsert.slice(i, i+chunkSize), {
-                      conflictPaths: ['proposalId', 'voter'],
-                      skipUpdateIfNoValuesChanged: true 
-                   });
-                }
-             });
-             this.logger.log(`Synced votes for proposal ${proposal.id}: ${votesToUpsert.length} votes upserted.`);
-          }
-
-        } catch (votesError) {
-          this.logger.warn(
-            `Failed to sync votes for proposal ${proposal.id}: ${votesError.message}`,
-          );
         }
 
-        // Rate limiting between proposals
-        await new Promise((resolve) => setTimeout(resolve, 50));
-      } catch (proposalError) {
-        this.logger.warn(
-          `Failed to sync metadata/votes for proposal ${proposal.id}: ${proposalError.message}`,
-        );
+        if (jsonMetadata) {
+          await metadataRepository.upsert({
+            proposalId: p.id, url: url, hash: hash, jsonMetadata: jsonMetadata,
+            bytes: meta?.bytes || null, version: 'v2', error: null,
+          } as any, { conflictPaths: ['proposalId'], skipUpdateIfNoValuesChanged: true });
+        } else if (url) {
+          await metadataRepository.upsert({
+            proposalId: p.id, url, hash, error: { message: 'Metadata fetch failed', ts: new Date().toISOString() }, version: 'v2'
+          } as any, { conflictPaths: ['proposalId'], skipUpdateIfNoValuesChanged: false });
+        } else {
+          await metadataRepository.upsert({
+            proposalId: p.id, error: { message: 'No anchor found', status: 404, ts: new Date().toISOString() }, version: 'v2'
+          } as any, { conflictPaths: ['proposalId'], skipUpdateIfNoValuesChanged: false });
+        }
+
+        try {
+          let page = 1, hasMore = true, count = 0;
+          while (hasMore && count < 500) {
+            const data = await this.blockfrostService.getProposalVotes(p.txHash, p.certIndex, page, 100, 'asc');
+            if (!data || data.length === 0) break;
+
+            const upserts = data.map(v => ({ proposalId: p.id, txHash: v.tx_hash, certIndex: v.cert_index, voterRole: v.voter_role, voter: v.voter, vote: v.vote }));
+            await votesRepository.upsert(upserts, { conflictPaths: ['proposalId', 'voter'], skipUpdateIfNoValuesChanged: true });
+
+            count += data.length; totalVotesSynced += data.length;
+            if (data.length < 100) hasMore = false;
+            else page++;
+            await new Promise(r => setTimeout(r, 50));
+          }
+        } catch (e) {
+          this.logger.warn(`Votes sync failed (${p.id}): ${e.message}`);
+        }
+        await new Promise(r => setTimeout(r, 100));
+      } catch (e) {
+        this.logger.warn(`Meta/Votes sync failed (${p.id}): ${e.message}`);
       }
     }
-
     return totalVotesSynced;
+  }
+
+  private async getAnchorFromTimeline(txHash: string, certIndex: number) {
+    try {
+      const timelineRepository = this.dataSource.getRepository(DrepTimelineEvent);
+      const actionId = `${txHash}#${certIndex}`;
+      const event = await timelineRepository.createQueryBuilder('event')
+        .where("event.eventType = 'proposal'")
+        .andWhere("event.metadata->>'action_id' = :actionId", { actionId })
+        .getOne();
+      return event?.metadata?.anchor_url ? { url: event.metadata.anchor_url, hash: event.metadata.anchor_hash } : 
+             (event?.metadata?.url ? { url: event.metadata.url, hash: event.metadata.hash } : null);
+    } catch (e) { return null; }
+  }
+
+  private async fetchMetadataManually(url: string, hash: string) {
+    const gateways = [
+      'https://ipfs.io/ipfs/',
+      'https://cloudflare-ipfs.com/ipfs/',
+      'https://dweb.link/ipfs/',
+      'https://gateway.pinata.cloud/ipfs/',
+    ];
+
+    let urlsToTry: string[] = [];
+    if (url.startsWith('ipfs://')) {
+      const ipfsHash = url.replace('ipfs://', '');
+      urlsToTry = gateways.map(g => `${g}${ipfsHash}`);
+    } else {
+      urlsToTry = [url];
+    }
+
+    for (const fetchUrl of urlsToTry) {
+      try {
+        let buffer: Buffer;
+
+        if (url.startsWith('ipfs://') && fetchUrl === urlsToTry[0]) {
+          const ipfsHash = url.replace('ipfs://', '');
+          try {
+            buffer = await this.blockfrostService.getIpfsContent(ipfsHash);
+          } catch (e) {
+            this.logger.debug(`Blockfrost IPFS fetch failed: ${e.message}`);
+            continue; 
+          }
+        } else {
+          this.logger.debug(`Fetching metadata manually from ${fetchUrl}`);
+          const response = await firstValueFrom(this.httpService.get(fetchUrl, { 
+            timeout: 10000,
+            responseType: 'arraybuffer' 
+          }));
+          buffer = Buffer.from(response.data);
+        }
+        
+        const bufferToHash = Buffer.from(buffer);
+        const hashed = blake.blake2bHex(new Uint8Array(bufferToHash), undefined, 32);
+        
+        if (hashed !== hash) {
+          this.logger.warn(`Manual metadata hash mismatch for ${fetchUrl}. Expected ${hash}, got ${hashed}`);
+          continue;
+        }
+
+        try {
+          return JSON.parse(buffer.toString('utf8'));
+        } catch (e) {
+          this.logger.warn(`Failed to parse metadata as JSON from ${fetchUrl}`);
+          return null;
+        }
+      } catch (e) { 
+        this.logger.debug(`Manual metadata fetch failed for ${fetchUrl}: ${e.message}`);
+      }
+    }
+    return null;
   }
 
   private async updateDelegationCounts(): Promise<void> {
     const drepsRepository = this.dataSource.getRepository(Drep);
     const delegatorsRepository = this.dataSource.getRepository(DrepDelegator);
 
-    // Get count of delegators for each DRep
-    const delegatorCounts = await delegatorsRepository
-      .createQueryBuilder('delegator')
-      .select('delegator.drepId', 'drepId')
-      .addSelect('COUNT(*)', 'count')
-      .groupBy('delegator.drepId')
-      .getRawMany();
+    const counts = await delegatorsRepository.createQueryBuilder('d')
+      .select('d.drepId', 'drepId').addSelect('COUNT(*)', 'count')
+      .groupBy('d.drepId').getRawMany();
 
-    // Update each DRep with the delegation count
-    for (const countData of delegatorCounts) {
+    for (const c of counts) {
       try {
-        await drepsRepository.update(
-          { drepId: countData.drepId },
-          { delegationVoteCount: parseInt(countData.count) },
-        );
-      } catch (error) {
-        this.logger.warn(
-          `Failed to update delegation count for DRep ${countData.drepId}: ${error.message}`,
-        );
+        await drepsRepository.update({ drepId: c.drepId }, { delegationVoteCount: parseInt(c.count) });
+      } catch (e) {
+        this.logger.warn(`Count update failed (${c.drepId}): ${e.message}`);
       }
     }
   }

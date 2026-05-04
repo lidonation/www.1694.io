@@ -1,4 +1,5 @@
 import { Module } from "@nestjs/common";
+import { HttpModule } from "@nestjs/axios";
 import { AppService } from "./app.service";
 import { BullModule } from "@nestjs/bullmq";
 import { Queues } from "./queue.types";
@@ -15,7 +16,7 @@ import { StakeSyncWorker } from "./workers/stake-sync.worker";
 import { GovernanceSyncWorker } from "./workers/governance-sync.worker";
 import { DrepVotesSyncWorker } from "./workers/drep-votes-sync.worker";
 import { ProposalsSyncWorker } from "./workers/proposals-sync.worker";
-
+import { TimelineWatcherWorker } from "./workers/timeline-watcher.worker";
 import { JobSchedulerModule } from "./scheduler/job-scheduler.module";
 import { BullBoardModule } from "@bull-board/nestjs";
 import { ExpressAdapter } from "@bull-board/express";
@@ -28,6 +29,7 @@ import { SyncTriggerController } from "./sync-trigger.controller";
 
 @Module({
   imports: [
+    HttpModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env', '.env.development', '.env.production'],
@@ -71,6 +73,9 @@ import { SyncTriggerController } from "./sync-trigger.controller";
     BullModule.registerQueue({
       name: Queues.PROPOSALS_SYNC,
     }),
+    BullModule.registerQueue({
+      name: Queues.TIMELINE_WATCHER,
+    }),
     BullBoardModule.forRoot({
       route: "/queues",
       adapter: ExpressAdapter,
@@ -104,6 +109,10 @@ import { SyncTriggerController } from "./sync-trigger.controller";
       name: Queues.PROPOSALS_SYNC,
       adapter: BullMQAdapter,
     }),
+    BullBoardModule.forFeature({
+      name: Queues.TIMELINE_WATCHER,
+      adapter: BullMQAdapter,
+    }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -127,7 +136,8 @@ import { SyncTriggerController } from "./sync-trigger.controller";
     StakeSyncWorker,
     GovernanceSyncWorker,
     DrepVotesSyncWorker,
-    ProposalsSyncWorker
+    ProposalsSyncWorker,
+    TimelineWatcherWorker
   ],
 })
 export class AppModule {}

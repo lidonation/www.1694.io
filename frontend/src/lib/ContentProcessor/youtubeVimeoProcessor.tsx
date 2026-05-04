@@ -3,7 +3,7 @@ import YouTubeEmbed from '@/components/atoms/YouTubeEmbed';
 import React from 'react';
 
 
-export const youtubeVimeoProcessor = (content: (string | JSX.Element)[]): (string | JSX.Element)[] => {
+export const youtubeVimeoProcessor = (content: (string | React.ReactNode)[]): (string | React.ReactNode)[] => {
   const youtubeRegex = /\[([^\]]+)\]\((?:<a[^>]*href=")?(https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([^\s&")]+))(?:\"[^>]*>.*?<\/a>)?\)/g;
   const vimeoRegex = /\[([^\]]+)\]\((?:<a[^>]*href=")?(https?:\/\/(?:www\.)?vimeo\.com\/([^\s)]+))(?:\"[^>]*>.*?<\/a>)?\)/g;
 
@@ -12,7 +12,7 @@ export const youtubeVimeoProcessor = (content: (string | JSX.Element)[]): (strin
       return item;
     }
 
-    const parts: (string | JSX.Element)[] = [];
+    const parts: (string | React.ReactNode)[] = [];
     let lastIndex = 0;
     let match;
 

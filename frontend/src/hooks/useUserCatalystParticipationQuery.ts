@@ -1,3 +1,4 @@
+'use client';
 import {useQuery, UseQueryResult} from 'react-query';
 import axiosInstance from "@/services/axiosInstance";
 import { CxProposalsMetrics } from '../../types/api';
@@ -10,7 +11,7 @@ export const useUserParticipationQuery = (govToolUserName: string): UseQueryResu
             const res = await axiosInstance.get(`/metrics/catalyst-proposals/${govToolUserName}`);
             return {...res.data} as CxProposalsMetrics;
         },
-        enabled: !!govToolUserName,
+        enabled: typeof window !== "undefined" && (!!govToolUserName),
         refetchOnWindowFocus: false,
     });
 };

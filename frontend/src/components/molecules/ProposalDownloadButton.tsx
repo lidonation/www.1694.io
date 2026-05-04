@@ -1,3 +1,4 @@
+'use client';
 import { Button } from '@mui/material';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import { useState } from 'react';

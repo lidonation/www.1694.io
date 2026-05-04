@@ -1,3 +1,4 @@
+'use client';
 import React, { useEffect, useRef, useState } from 'react';
 import Button from './Button';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';

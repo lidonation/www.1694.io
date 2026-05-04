@@ -1,3 +1,4 @@
+'use client';
 import { QUERY_KEYS } from '@/constants/queryKeys';
 import { useQuery } from 'react-query';
 import { getDRepMetadata } from '@/services/requests/getDRepMetadata';
@@ -10,7 +11,7 @@ export const useGetDRepMetadataQuery = (voterId: string) => {
       const cip105Id = convertDrepPhraseToCIP105(voterId);
       return await getDRepMetadata(cip105Id);
     },
-    enabled: !!voterId,
+    enabled: typeof window !== "undefined" && (!!voterId),
     retry: 2,
     refetchOnWindowFocus: false,
   });

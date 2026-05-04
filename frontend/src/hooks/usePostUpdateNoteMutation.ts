@@ -1,3 +1,4 @@
+'use client';
 import { noteInput } from '@/models/note';
 import { postUpdateDRepNote } from '@/services/requests/postUpdateDRepNote';
 import { useMutation } from 'react-query';

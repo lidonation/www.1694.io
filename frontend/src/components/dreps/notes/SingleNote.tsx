@@ -1,3 +1,4 @@
+'use client';
 import React, { memo, useEffect, useMemo, useState } from 'react';
 import { Chip, Typography } from '@mui/material';
 import Button from '@/components/atoms/Button';

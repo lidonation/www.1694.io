@@ -1,3 +1,4 @@
+'use client';
 import React, { useState } from 'react';
 import BudgetDiscussionInfoSegment from './BudgetDiscussionInfoSegment';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';

@@ -1,3 +1,4 @@
+'use client';
 import React, { useState } from 'react';
 import { ModalContents, ModalHeader, ModalWrapper } from '../atoms';
 import { Button, TextField, Typography } from '@mui/material';

@@ -1,3 +1,4 @@
+'use client';
 import Button from '@/components/atoms/Button';
 import { useScreenDimension } from '@/hooks';
 import { useRouter } from 'next/navigation';

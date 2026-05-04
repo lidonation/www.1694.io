@@ -1,3 +1,4 @@
+'use client';
 import { QUERY_KEYS } from '@/constants/queryKeys';
 import { useQuery } from 'react-query';
 import { getDRepTimeline } from '@/services/requests/getDRepTimeline';
@@ -11,7 +12,7 @@ export const useGetDRepTimelineQuery = (
   filterValues?: string[] | undefined,
   minItems: number = 10,
 ) => {
-  const [timeLineData, setTimeLineData] = useState([]);
+  const [epochs, setEpochs] = useState<any[]>([]);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const {
     wallet: { stakeKey, stakeKeyBech32 },
@@ -25,15 +26,12 @@ export const useGetDRepTimelineQuery = (
     idOrVoterId,
   });
 
-  const now = Date.now();
-  const [queryEndTime, setQueryEndTime] = useState(now);
-  const [queryStartTime, setQueryStartTime] = useState(
-    now - 30 * 24 * 60 * 60 * 1000,
-  );
-
-  const [timelineEndTime, setTimelineEndTime] = useState(queryEndTime);
-  const [timelineStartTime, setTimelineStartTime] = useState(queryStartTime);
-  const [loadDirection, setLoadDirection] = useState('older');
+  const [loadDirection, setLoadDirection] = useState<'older' | 'newer'>('older');
+  const [cursor, setCursor] = useState<string | undefined>(undefined);
+  const [hasNextPage, setHasNextPage] = useState(true);
+  const [hasPrevPage, setHasPrevPage] = useState(false);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [prevCursor, setPrevCursor] = useState<string | null>(null);
 
   useEffect(() => {
     const prevQueryParams = queryParamsRef.current;
@@ -47,10 +45,11 @@ export const useGetDRepTimelineQuery = (
         JSON.stringify(idOrVoterId);
 
     if (paramsHaveChanged) {
-      setTimeLineData([]);
+      setEpochs([]);
       setIsInitialLoad(true);
-      setTimelineEndTime(queryEndTime);
-      setTimelineStartTime(queryStartTime);
+      setCursor(undefined);
+      setHasNextPage(true);
+      setHasPrevPage(false);
     }
 
     queryParamsRef.current = {
@@ -64,16 +63,13 @@ export const useGetDRepTimelineQuery = (
     stakeKey,
     stakeKeyBech32,
     idOrVoterId,
-    queryEndTime,
-    queryStartTime,
   ]);
 
   const { isLoading } = useQuery({
     queryKey: [
       QUERY_KEYS.getDRepTimelineKey,
       idOrVoterId,
-      queryEndTime,
-      queryStartTime,
+      cursor,
       filterValues,
       stakeKey,
       stakeKeyBech32,
@@ -86,69 +82,85 @@ export const useGetDRepTimelineQuery = (
         cip105Id,
         stakeKey,
         stakeKeyBech32,
-        queryEndTime,
-        queryStartTime,
+        undefined, // endTime
+        undefined, // startTime
+        cursor,
         filterValues,
         minItems,
         loadDirection,
       );
     },
-    enabled:
-      !!idOrVoterId &&
-      !!queryEndTime &&
-      !!queryStartTime &&
-      filterValues !== null,
+    enabled: typeof window !== "undefined" && (!!idOrVoterId && filterValues !== null),
     refetchOnWindowFocus: false,
     onSuccess: (newData) => {
-      if (newData?.entries?.length === 0) {
-        addWarningAlert(
-          `No results found for period between ${formatNumberTimeToReadable(queryStartTime)} and ${formatNumberTimeToReadable(queryEndTime)}`,
-        );
+      const incomingEpochs = newData?.epochs || [];
+      
+      if (incomingEpochs.length === 0 && isInitialLoad) {
+        addWarningAlert('No activity found for this DRep.');
         setIsInitialLoad(false);
+        setHasNextPage(false);
+        setHasPrevPage(false);
         return;
       }
 
-      setTimeLineData((prevData) => {
-        const incomingEntries = newData?.entries || [];
-        if (prevData.length < 1) {
+      setNextCursor(newData.nextCursor);
+      setPrevCursor(newData.prevCursor);
+      setHasNextPage(!!newData.nextCursor);
+      setHasPrevPage(!!newData.prevCursor);
+
+      setEpochs((prevEpochs) => {
+        if (prevEpochs.length < 1) {
           setIsInitialLoad(false);
-          return incomingEntries;
+          return incomingEpochs;
         }
 
+        // Merge epochs logically
         const combined =
           loadDirection === 'newer'
-            ? [...incomingEntries, ...prevData]
-            : [...prevData, ...incomingEntries];
+            ? [...incomingEpochs, ...prevEpochs]
+            : [...prevEpochs, ...incomingEpochs];
 
-        // Deduplicate by ID
-        const seenIds = new Set();
-        return combined.filter((item) => {
-          if (seenIds.has(item.id)) return false;
-          seenIds.add(item.id);
-          return true;
-        });
+        // Deduplicate epochs by epochNo
+        const seenEpochs = new Set();
+        return combined.reduce((acc, epoch) => {
+          if (!seenEpochs.has(epoch.epochNo)) {
+            seenEpochs.add(epoch.epochNo);
+            acc.push(epoch);
+          } else {
+            // Merge items into existing epoch if it's already there
+            const existingEpoch = acc.find(e => e.epochNo === epoch.epochNo);
+            if (existingEpoch) {
+              const allItems = loadDirection === 'newer' 
+                ? [...epoch.items, ...existingEpoch.items]
+                : [...existingEpoch.items, ...epoch.items];
+              
+              // Deduplicate items by ID
+              const seenItems = new Set();
+              existingEpoch.items = allItems.filter(item => {
+                if (seenItems.has(item.id)) return false;
+                seenItems.add(item.id);
+                return true;
+              });
+            }
+          }
+          return acc;
+        }, [] as any[]).sort((a, b) => b.epochNo - a.epochNo);
       });
-
-      if (loadDirection === 'older') {
-        setTimelineStartTime(newData?.appliedStartTime);
-      } else if (loadDirection === 'newer') {
-        setTimelineEndTime(newData?.appliedEndTime);
-      }
+      setIsInitialLoad(false);
     },
   });
 
   return {
-    DRepActivity: timeLineData,
+    DRepActivity: epochs, // Map epochs to activity for existing components to start with
+    epochs,
     isDRepActivityLoading: isLoading,
     isInitialLoad: isInitialLoad,
-    queryEndTime,
-    setQueryEndTime,
-    queryStartTime,
-    setQueryStartTime,
-    timelineEndTime,
-    setTimelineEndTime,
-    timelineStartTime,
-    setTimelineStartTime,
+    hasNextPage,
+    hasPrevPage,
+    nextCursor,
+    prevCursor,
+    setCursor,
     setLoadDirection,
+    loadDirection,
   };
 };

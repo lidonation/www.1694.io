@@ -1,3 +1,4 @@
+'use client';
 import React, { useCallback, useEffect, useState } from 'react';
 import WalletConnectButton from '@/components/molecules/WalletConnectButton';
 import { WalletInfoCard } from '@/components/molecules';

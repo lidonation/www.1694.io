@@ -123,18 +123,34 @@ export class AuthenticationService {
 
   async reconnect(): Promise<AuthResult> {
     const lastProvider = getItemFromLocalStorage(ACTIVE_PROVIDER_LS_KEY);
-    let isReconnecting = false; // Flag to prevent spamming reconnections
+    const { getDataFromSession } = await import('@/lib');
+    const existingToken = getDataFromSession(LOGIN_TOKEN_1694);
 
     if (lastProvider && this.providers[lastProvider]) {
       const provider = this.providers[lastProvider];
 
-      if (provider.reconnect && !isReconnecting) {
-        isReconnecting = true;
+      if (provider.reconnect) {
         try {
-          const result = await provider.reconnect();
+          const result = await provider.reconnect({ silent: !!existingToken });
+          
           if (result.success) {
             this.setActiveProvider(lastProvider);
-            isReconnecting = false;
+            if (result.walletApi) {
+              this.walletApi = result.walletApi;
+            }
+
+            if (!existingToken && result.accountInfo?.loginCredentials) {
+              const loginRes = await this.login({
+                signature: result.accountInfo.loginCredentials.signature!,
+                signatureKey: result.accountInfo.loginCredentials.key!,
+                stakeKey: result.accountInfo.stakeKeyBech32!,
+                method: lastProvider as AuthMethod,
+              });
+              if (loginRes.success) {
+                saveDataInSession(LOGIN_TOKEN_1694, loginRes.response.access_token);
+              }
+            }
+            
             return result;
           }
         } catch (error) {

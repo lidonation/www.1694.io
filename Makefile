@@ -141,47 +141,47 @@ governance-indexer-status:
 .PHONY: sync-governance
 sync-governance:
 	@echo "🔄 Triggering governance sync..."
-	docker-compose exec backend npm run job:trigger:governance
+	docker-compose exec queue-backend npm run job:trigger:governance
 
 .PHONY: sync-governance-force
 sync-governance-force:
 	@echo "🔄 Triggering governance sync (force refresh)..."
-	docker-compose exec backend npm run job:trigger:governance-force
+	docker-compose exec queue-backend npm run job:trigger:governance-force
 
 .PHONY: sync-proposals
 sync-proposals:
 	@echo "🔄 Triggering proposals sync..."
-	docker-compose exec backend npm run job:trigger:proposals
+	docker-compose exec queue-backend npm run job:trigger:proposals
 
 .PHONY: sync-proposals-force
 sync-proposals-force:
 	@echo "🔄 Triggering proposals sync (force refresh)..."
-	docker-compose exec backend npm run job:trigger:proposals-force
+	docker-compose exec queue-backend npm run job:trigger:proposals-force
 
 .PHONY: sync-drep-votes
 sync-drep-votes:
 	@echo "🔄 Triggering DRep votes sync..."
-	docker-compose exec backend npm run job:trigger:drep-votes
+	docker-compose exec queue-backend npm run job:trigger:drep-votes
 
 .PHONY: sync-drep-votes-force
 sync-drep-votes-force:
 	@echo "🔄 Triggering DRep votes sync (force refresh)..."
-	docker-compose exec backend npm run job:trigger:drep-votes-force
+	docker-compose exec queue-backend npm run job:trigger:drep-votes-force
 
 .PHONY: sync-stake
 sync-stake:
 	@echo "🔄 Triggering stake sync..."
-	docker-compose exec backend npm run job:trigger:stake
+	docker-compose exec queue-backend npm run job:trigger:stake
 
 .PHONY: sync-all
 sync-all:
 	@echo "🚀 Running all sync jobs in sequence..."
-	docker-compose exec backend npm run job:trigger:all
+	docker-compose exec queue-backend npm run job:trigger:all
 
 .PHONY: sync-all-force
 sync-all-force:
 	@echo "🚀 Running all sync jobs in sequence (force refresh)..."
-	docker-compose exec backend npm run job:trigger:all-force
+	docker-compose exec queue-backend npm run job:trigger:all-force
 
 .PHONY: clean-db-and-sync
 clean-db-and-sync:

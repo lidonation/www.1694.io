@@ -1,3 +1,4 @@
+'use client';
 import MarkdownParser from '@/components/atoms/MarkdownParser';
 import { ViewExternalGovAction } from '@/components/atoms/ViewExternalGovAction';
 import { useGetProposalMetadataByHashQuery } from '@/hooks/useGetProposalMetadataByHash';
@@ -19,25 +20,31 @@ export const GovActionVoteCard = ({ action }) => {
     useState<RationaleDataVariants | null>(null);
   const rationaleRef = useRef(null);
 
-  /*
   const { proposalMetadata } = useGetProposalMetadataByHashQuery({
     hashQueryString: action?.gov_action_proposal_id,
-    isRequired: !Boolean(action?.title),
+    isRequired: !Boolean(action?.proposal?.title || action?.proposal?.abstract || action?.metadata?.body?.title || action?.title),
   });
-  */
 
   const { metadata, isMetadataLoading, metadataError } = useGetExternalMetadata(
     action?.vote_rationale,
     true,
   );
-  
 
   const title =
     action?.proposal?.title ||
     action?.proposal?.abstract ||
     action?.metadata?.body?.title ||
+    proposalMetadata?.body?.title ||
+    proposalMetadata?.title ||
     action?.title ||
     '-';
+
+  const abstract =
+    action?.proposal?.abstract ||
+    proposalMetadata?.body?.abstract ||
+    proposalMetadata?.abstract ||
+    proposalMetadata?.body?.rationale ||
+    proposalMetadata?.rationale;
 
   useEffect(() => {
     setRationaleData(null);
@@ -67,7 +74,11 @@ export const GovActionVoteCard = ({ action }) => {
           <p className="mb-1 block text-sm font-medium text-gray-800">
             {formatIsoTime(action?.time_voted) || '-'}
           </p>
-          <ViewExternalGovAction actionId={action?.gov_action_proposal_id} />
+          <ViewExternalGovAction 
+            actionId={action?.gov_action_proposal_id} 
+            txHash={action?.txHash || action?.tx_hash || action?.vote_tx_hash}
+            txIndex={Number(action?.gov_action_proposal_index) || 0}
+          />
         </div>
       </td>
 
@@ -81,7 +92,11 @@ export const GovActionVoteCard = ({ action }) => {
             <p className="mb-1 block text-sm font-medium text-gray-800">
               {formatIsoTime(action?.time_voted) || '-'}
             </p>
-            <ViewExternalGovAction actionId={action?.gov_action_proposal_id} />
+            <ViewExternalGovAction 
+              actionId={action?.gov_action_proposal_id} 
+              txHash={action?.txHash || action?.tx_hash || action?.vote_tx_hash}
+              txIndex={Number(action?.gov_action_proposal_index) || 0}
+            />
           </Box>
 
           <Box className="flex flex-col md:flex-row md:items-center md:justify-between md:gap-2">
@@ -89,10 +104,10 @@ export const GovActionVoteCard = ({ action }) => {
               <h3 className="mb-1 text-base font-bold text-gray-800 break-words">
                 {title || '-'}
               </h3>
-              {action?.proposal?.abstract && (
-                <p className="mb-2 text-sm text-gray-600 line-clamp-3">
-                  {parseContent(action.proposal.abstract)}
-                </p>
+              {abstract && (
+                <Box className="mb-2 text-sm text-gray-600 line-clamp-3">
+                  <MarkdownParser text={abstract} />
+                </Box>
               )}
               <p className="mb-1 text-sm text-gray-500 md:mb-1">
                 Type:{' '}
@@ -117,9 +132,8 @@ export const GovActionVoteCard = ({ action }) => {
                 >
                   <MarkdownParser
                     text={
-                      action?.proposal?.rationale &&
                       typeof action?.proposal?.rationale === 'string'
-                        ? parseContent(action?.proposal?.rationale)
+                        ? action.proposal.rationale
                         : 'Not provided.'
                     }
                   />

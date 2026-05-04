@@ -9,6 +9,8 @@ app: {
   APP_URL: "https://www.1694.io"
 }
 
+
+
 certmanager:
   issuer: letsencrypt-prod-issuer
   email: webmaster@lidonation.io
@@ -116,10 +118,11 @@ governanceIndexer:
     service: governance-indexer
   image:
     repository: registry.2lovelaces.io/voltaire/governance-indexer
-    tag: preview
+    tag: dev      # mutable branch tag — always points to latest build on this branch
+    sha: initial  # overwritten by CI with $CI_COMMIT_SHORT_SHA on every deploy
   relayAddresses: "backbone.mainnet.emurgornd.com:3001,relays-new.cardano-mainnet.iohk.io:3001,relay1.lidonation.com:3011"
   relayAddress: "backbone.mainnet.emurgornd.com:3001"
-  
+
   databaseUrl: "postgres://voltaire:postgres@postgresql:5432/1694"
   networkMagic: "764824073"
   maxConcurrentWorkers: "8"
@@ -132,3 +135,5 @@ governanceIndexer:
     limits:
       memory: 1024Mi
       cpu: 500m
+
+

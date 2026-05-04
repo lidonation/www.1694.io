@@ -41,6 +41,7 @@
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/typeorm": "^11.0.0",
     "axios": "^1.9.0",
+    "blakejs": "^1.2.1",
     "bullmq": "^5.53.0",
     "pg": "^8.16.0",
     "reflect-metadata": "^0.2.2",

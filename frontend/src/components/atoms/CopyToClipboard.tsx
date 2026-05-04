@@ -1,3 +1,4 @@
+'use client';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { convertString } from '@/lib';
 import React from 'react';

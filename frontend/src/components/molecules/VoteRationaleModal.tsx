@@ -1,3 +1,4 @@
+'use client';
 import {
   Typography,
   CircularProgress,
@@ -183,8 +184,8 @@ export function VoteRationaleModal({
           <MarkdownParser
             text={
               rationaleData && typeof rationaleData?.comment === 'string'
-                ? parseContent(rationaleData?.comment)
-                : parseContent(rationaleData?.comment?.['@value']) ||
+                ? rationaleData.comment
+                : rationaleData?.comment?.['@value'] ||
                   'Not provided.'
             }
           />

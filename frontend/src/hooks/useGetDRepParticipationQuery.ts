@@ -1,3 +1,4 @@
+'use client';
 import { QUERY_KEYS } from '@/constants/queryKeys';
 import { useQuery } from 'react-query';
 import { convertDrepPhraseToCIP105 } from '@/lib';
@@ -11,7 +12,7 @@ export const useGetDRepParticipationQuery = (voterId: string) => {
       const cip105Id = convertDrepPhraseToCIP105(voterId);
       return await getDRepParticipation(cip105Id);
     },
-    enabled: !!voterId,
+    enabled: typeof window !== "undefined" && (!!voterId),
     refetchOnWindowFocus: false,  });
 
   return {

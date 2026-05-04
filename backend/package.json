@@ -25,7 +25,7 @@
     "migrate:up": "yarn run typeorm migration:run -d src/typeorm.config.ts",
     "migrate:down": "yarn run typeorm migration:revert -d src/typeorm.config.ts",
     "migrate:fake": "yarn run typeorm migration:run --fake -d src/typeorm.config.ts",
-    "job:trigger": "node scripts/trigger-jobs.js",
+    "job:trigger": "npx ts-node scripts/trigger-jobs.ts",
     "job:trigger:governance": "npm run job:trigger governance-sync",
     "job:trigger:governance-force": "npm run job:trigger governance-sync -- --force",
     "job:trigger:stake": "npm run job:trigger stake-sync",

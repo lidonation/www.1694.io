@@ -1,3 +1,4 @@
+'use client';
 import { useGetDRepStatsQuery } from '@/hooks/useGetDRepStatsQuery';
 import { formattedAda } from '@/lib';
 import { Skeleton } from '@mui/material';

@@ -1,3 +1,4 @@
+'use client';
 import React from 'react';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
@@ -5,9 +6,10 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 type EpochTimelineCardProps = {
   epoch: any;
   minimal?: boolean;
+  hasEvents?: boolean;
 };
 
-const EpochTimelineCard = ({ epoch, minimal = false }: EpochTimelineCardProps) => {
+const EpochTimelineCard = ({ epoch, minimal = false, hasEvents = true }: EpochTimelineCardProps) => {
   const EPOCH_DURATION_MS = 432000 * 1000;
   const startTimeMs = epoch?.start_time ? new Date(epoch.start_time).getTime() : 0;
   const endTimeMs = epoch?.end_time ? new Date(epoch.end_time).getTime() : (startTimeMs ? startTimeMs + EPOCH_DURATION_MS : 0);
@@ -26,7 +28,7 @@ const EpochTimelineCard = ({ epoch, minimal = false }: EpochTimelineCardProps) =
   const progress = isCurrent ? ((now - dates.startTimeMs) / dates.duration) * 100 : (dates && now > dates.endTimeMs ? 100 : 0);
 
   return (
-    <div className={`w-full rounded-2xl ${minimal ? 'p-3' : 'p-4'} shadow-sm border transition-all duration-300 ${isCurrent ? 'bg-gradient-to-br from-[#6FDFD8] to-[#98ece7] border-[#56c9c2] shadow-[0_4px_20px_rgba(111,223,216,0.3)]' : 'bg-[#f8ffff] border-[#d6f2f1]'}`}>
+    <div className={`w-full rounded-2xl ${minimal ? 'p-3' : (hasEvents || isCurrent ? 'p-4' : 'p-2.5')} shadow-sm border transition-all duration-300 ${isCurrent ? 'bg-gradient-to-br from-[#6FDFD8] to-[#98ece7] border-[#56c9c2] shadow-[0_4px_20px_rgba(111,223,216,0.3)]' : 'bg-[#f8ffff] border-[#d6f2f1]'}`}>
       <div className="w-full">
         <div className="flex w-full items-start justify-between">
           <div className="flex flex-col gap-2">
@@ -53,7 +55,7 @@ const EpochTimelineCard = ({ epoch, minimal = false }: EpochTimelineCardProps) =
           <div className="text-right">
             {dates ? (
               <div className="flex flex-col items-end">
-                <p className={`${minimal ? 'text-[10px]' : 'text-[11px]'} font-bold ${isCurrent ? 'text-[#1a6e69]' : 'text-[#649c99]'}`}>
+                <p className={`${minimal ? 'text-[10px]' : (hasEvents || isCurrent ? 'text-[11px]' : 'text-[10px]')} font-bold ${isCurrent ? 'text-[#1a6e69]' : 'text-[#649c99]'}`}>
                   {dates.start.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                 </p>
                 <p className={`${minimal ? 'text-[9px]' : 'text-[10px]'} font-medium opacity-60 ${isCurrent ? 'text-[#1a6e69]' : 'text-[#649c99]'}`}>
@@ -66,11 +68,11 @@ const EpochTimelineCard = ({ epoch, minimal = false }: EpochTimelineCardProps) =
           </div>
         </div>
         
-        <div className={`${minimal ? 'mt-2' : 'mt-4'} flex items-baseline justify-between`}>
+        <div className={`${minimal ? 'mt-2' : (hasEvents || isCurrent ? 'mt-4' : 'mt-2')} flex items-baseline justify-between`}>
           <div className={`${isCurrent ? 'text-[#0a4d48]' : 'text-[#447a77]'}`}>
-            <p className={`${minimal ? 'text-2xl' : 'text-3xl'} font-black tracking-tighter`}>
+            <p className={`${minimal ? 'text-2xl' : (hasEvents || isCurrent ? 'text-3xl' : 'text-xl')} font-black tracking-tighter`}>
               <span className={`${minimal ? 'text-[10px]' : 'text-sm'} font-bold opacity-60 mr-1 uppercase`}>No.</span>
-              {epoch?.no}
+              {epoch?.epoch_no || epoch?.epochNo || epoch?.no}
             </p>
           </div>
           {isCurrent && (
@@ -81,23 +83,25 @@ const EpochTimelineCard = ({ epoch, minimal = false }: EpochTimelineCardProps) =
         </div>
 
         {/* Improved Progress Bar Container */}
-        <div className={`${minimal ? 'mt-2 h-2' : 'mt-3 h-2.5'} w-full rounded-full overflow-hidden border ${isCurrent ? 'bg-white/40 border-black/5 shadow-inner' : 'bg-gray-100 border-gray-100'}`}>
+        <div className={`${minimal ? 'mt-2 h-2' : (hasEvents || isCurrent ? 'mt-3 h-2.5' : 'mt-2 h-1.5')} w-full rounded-full overflow-hidden border ${isCurrent ? 'bg-white/40 border-black/5 shadow-inner' : 'bg-gray-100 border-gray-100'}`}>
           <div 
             className={`h-full rounded-full transition-all duration-1000 ease-out shadow-sm ${isCurrent ? 'bg-gradient-to-r from-[#26948e] to-[#3dbfb7]' : 'bg-[#bce6e4]'}`}
             style={{ width: `${progress}%` }}
           />
         </div>
 
-        {/* Section Header Hint */}
-        <div className={`${minimal ? 'mt-2.5 pt-2.5' : 'mt-4 pt-4'} border-t ${isCurrent ? 'border-[#56c9c2]/30' : 'border-gray-200/50'} flex items-center justify-between`}>
-          <div className="flex items-center gap-2 opacity-80">
-            <div className={`h-1.5 w-1.5 rounded-full ${isCurrent ? 'bg-[#156e69] animate-pulse' : 'bg-[#84c3c0]'}`} />
-            <p className={`${minimal ? 'text-[8px]' : 'text-[9px]'} font-bold uppercase tracking-widest ${isCurrent ? 'text-[#156e69]' : 'text-[#649c99]'}`}>
-              Events in this Epoch
-            </p>
+        {/* Section Header Hint - Only visible if has events or is current */}
+        {(hasEvents || isCurrent) && (
+          <div className={`${minimal ? 'mt-2.5 pt-2.5' : 'mt-4 pt-4'} border-t ${isCurrent ? 'border-[#56c9c2]/30' : 'border-gray-200/50'} flex items-center justify-between`}>
+            <div className="flex items-center gap-2 opacity-80">
+              <div className={`h-1.5 w-1.5 rounded-full ${isCurrent ? 'bg-[#156e69] animate-pulse' : 'bg-[#84c3c0]'}`} />
+              <p className={`${minimal ? 'text-[8px]' : 'text-[9px]'} font-bold uppercase tracking-widest ${isCurrent ? 'text-[#156e69]' : 'text-[#649c99]'}`}>
+                Events in this Epoch
+              </p>
+            </div>
+            <img src="/svgs/chevron-down.svg" className={`h-3 w-3 opacity-40 ${isCurrent ? 'text-[#156e69]' : 'text-[#649c99]'}`} alt="Below" />
           </div>
-          <img src="/svgs/chevron-down.svg" className={`h-3 w-3 opacity-40 ${isCurrent ? 'text-[#156e69]' : 'text-[#649c99]'}`} alt="Below" />
-        </div>
+        )}
       </div>
     </div>
   );

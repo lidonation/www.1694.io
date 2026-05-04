@@ -33,24 +33,19 @@ export const metadata = {
 async function RootLayout({ children, params }) {
   // Root layout component, sets up locale, loads messages, and wraps the app with providers.
   const { locale } = await params;
-  unstable_setRequestLocale(locale); // Set the locale for the request, use with caution due to unstable API.
-  if (!locales.variants.includes(locale)) notFound(); // Check if the locale is supported, otherwise trigger a 404.
+  unstable_setRequestLocale(locale); 
+  if (!locales.variants.includes(locale)) notFound(); 
 
   let messages;
   try {
-    // Attempt to dynamically load the message bundle for the current locale.
     messages = (await import(`../../../messages/${locale}.json`)).default;
   } catch (error) {
-    notFound(); // Trigger a 404 if the message bundle cannot be loaded.
+    notFound(); 
   }
 
   return (
     // Set the document language
     <html lang={locale} className={poppins.variable}>
-      <head>
-        <title>{metadata.title}</title>
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-      </head>
       {/* Apply font class and suppress hydration warning. */}
       <body suppressHydrationWarning={true}>
         <NextIntlClientProvider locale={locale} messages={messages}>
@@ -58,10 +53,10 @@ async function RootLayout({ children, params }) {
             <ThemeProvider theme={theme}>
               <AppContextProvider>
                 {children}
+                <ClientAnalyticsWrapper />
               </AppContextProvider>
             </ThemeProvider>
           </AppRouterCacheProvider>
-          <ClientAnalyticsWrapper />
         </NextIntlClientProvider>
       </body>
     </html>

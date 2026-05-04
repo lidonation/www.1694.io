@@ -1,3 +1,4 @@
+'use client';
 import { Box, Typography, CircularProgress } from '@mui/material';
 import { ThumbUp, ThumbDown } from '@mui/icons-material';
 import { useGetUserProposalVoteQuery } from '@/hooks/useGetUserProposalVoteQuery';

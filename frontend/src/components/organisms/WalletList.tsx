@@ -1,3 +1,4 @@
+'use client';
 import { Box, Typography } from '@mui/material';
 import { useMemo } from 'react';
 import { ModalContents, ModalHeader, ModalWrapper } from '../atoms';

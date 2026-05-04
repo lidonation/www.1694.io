@@ -1,3 +1,4 @@
+'use client';
 import { shortNumberWithAnnotation } from '@/lib';
 import { Skeleton } from '@mui/material';
 import { useEffect, useState } from 'react';

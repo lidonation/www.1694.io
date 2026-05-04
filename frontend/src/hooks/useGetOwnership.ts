@@ -1,3 +1,4 @@
+'use client';
 import { convertDrepPhraseToCIP105Legacy, isCip105 } from '@/lib';
 import { verifyOwnership } from '@/services/requests/verifyOwnership';
 import { useQuery } from 'react-query';
@@ -26,7 +27,7 @@ export const useGetOwnership = ({ drepId, voterId }: UseGetOwnershipProps) => {
         voterId: convertedVoterId,
       });
     },
-    enabled: !!drepId && !!voterId,
+    enabled: typeof window !== "undefined" && (!!drepId && !!voterId),
     refetchOnWindowFocus: false,
   });
 

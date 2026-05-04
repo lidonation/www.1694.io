@@ -1,6 +1,8 @@
+'use client';
+import MarkdownParser from './MarkdownParser';
 import { renderJsonLdValue } from '@/lib';
 import { parseURL } from '@/lib/helpers';
-import { Typography } from '@mui/material';
+import { Typography, Box } from '@mui/material';
 import Link from 'next/link';
 import React from 'react';
 import RecordsNotFound from './RecordsNotFound';
@@ -98,9 +100,9 @@ const MetadataViewer = ({
             <Typography variant="h6" className="font-bold text-gray-800 mt-2">
               {capitalizeFirstLetter(key)}
             </Typography>
-            <p className="w-full break-words whitespace-pre-wrap pl-1 text-gray-600 leading-relaxed">
-              {valueString}
-            </p>
+            <Box className="w-full break-words pl-1 text-gray-600 leading-relaxed">
+              <MarkdownParser text={valueString} />
+            </Box>
           </div>
         );
       });

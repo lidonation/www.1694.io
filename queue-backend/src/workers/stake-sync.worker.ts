@@ -22,116 +22,73 @@ export class StakeSyncWorker extends WorkerHost {
   }
 
   async process(job: Job<StakeSyncJobData, StakeSyncJobResponse>): Promise<StakeSyncJobResponse> {
-    this.logger.log(`Starting stake sync job: ${job.id}`);
+    this.logger.log(`Starting stake sync: ${job.id}`);
 
     try {
       let latestEpoch;
       try {
         latestEpoch = await this.blockfrostService.getLatestEpoch();
-      } catch (epochError) {
-        this.logger.error(`Failed to fetch latest epoch: ${epochError.message}`);
-        // Return success=false but don't crash uncaught
-        return { success: false, message: `Failed to fetch epoch: ${epochError.message}` };
+      } catch (e) {
+        return { success: false, message: `Epoch fetch failed: ${e.message}` };
       }
       
-      const currentEpochNo = latestEpoch.epoch;
-
-      const drepsRepository = this.dataSource.getRepository(Drep);
-      const delegatorsRepository = this.dataSource.getRepository(DrepDelegator);
-      const allDReps = await drepsRepository.find();
+      const epochNo = latestEpoch.epoch;
+      const drepsRepo = this.dataSource.getRepository(Drep);
+      const delegatorsRepo = this.dataSource.getRepository(DrepDelegator);
+      const dreps = await drepsRepo.find();
       
-      this.logger.log(`Found ${allDReps.length} DReps to sync stake for.`);
-
-      let updatedCount = 0;
-      let updatedDelegatorsCount = 0;
-
-      for (const drep of allDReps) {
+      let updated = 0;
+      for (const d of dreps) {
         try {
-          const drepInfo = await this.blockfrostService.getDRepInfo(drep.drepId);
-          
-          if (drepInfo && drepInfo.amount) {
-            const liveStakeLovelace = parseInt(drepInfo.amount);
-            const votingPowerAda = (liveStakeLovelace / 1_000_000).toString();
-
-            await drepsRepository.update(
-              { drepId: drep.drepId },
-              { 
-                votingPowerAda,
-                active: drepInfo.active || false,
-                retired: drepInfo.retired || false,
-                expired: drepInfo.expired || false,
-                lastActiveEpoch: drepInfo.last_active_epoch,
-                snapshotEpochNo: currentEpochNo,
-                updatedAt: new Date()
-              }
-            );
-            updatedCount++;
+          const info = await this.blockfrostService.getDRepInfo(d.drepId);
+          if (info?.amount) {
+            await drepsRepo.update({ drepId: d.drepId }, { 
+              votingPowerAda: (parseInt(info.amount) / 1_000_000).toString(),
+              active: info.active || false, retired: info.retired || false, expired: info.expired || false,
+              lastActiveEpoch: info.last_active_epoch, snapshotEpochNo: epochNo, updatedAt: new Date()
+            });
+            updated++;
           }
-          // minimal rate limit
           await new Promise(r => setTimeout(r, 20));
-        } catch (drepError) {
-          this.logger.warn(`Failed to update stake for DRep ${drep.drepId}: ${drepError.message}`);
+        } catch (e) {
+          this.logger.warn(`DRep stake failed (${d.drepId}): ${e.message}`);
         }
       }
 
-      // Also sync delegator voting power for existing delegators
-      this.logger.log('Syncing delegator voting power...');
-      updatedDelegatorsCount = await this.syncDelegatorVotingPower(delegatorsRepository);
-
-      this.logger.log(`Stake sync completed: updated ${updatedCount}/${allDReps.length} DReps, ${updatedDelegatorsCount} delegators`);
+      const updatedDelegators = await this.syncDelegatorVotingPower(delegatorsRepo);
+      this.logger.log(`Stake sync completed: ${updated} DReps, ${updatedDelegators} delegators`);
 
       return {
-        success: true,
-        message: `Successfully updated stake data for ${updatedCount} DReps and ${updatedDelegatorsCount} delegators`,
-        updatedDRepsCount: updatedCount,
-        updatedDelegatorsCount: updatedDelegatorsCount,
-        epochNo: currentEpochNo
+        success: true, message: `Updated ${updated} DReps, ${updatedDelegators} delegators`,
+        updatedDRepsCount: updated, updatedDelegatorsCount: updatedDelegators, epochNo
       };
-
-    } catch (error) {
-      this.logger.error(`Stake sync job failed: ${error.message}`, error.stack);
-      
-      return {
-        success: false,
-        message: `Stake sync failed: ${error.message}`
-      };
+    } catch (e) {
+      this.logger.error(`Stake sync failed: ${e.message}`, e.stack);
+      return { success: false, message: e.message };
     }
   }
 
-  private async syncDelegatorVotingPower(delegatorsRepository): Promise<number> {
-    // Get all delegators that need voting power updated (where voting_power_lovelace is null or outdated)
-    const delegatorsToUpdate = await delegatorsRepository
-      .createQueryBuilder('delegator')
-      .where('delegator.voting_power_lovelace IS NULL')
-      .orWhere('delegator.updated_at < NOW() - INTERVAL \'1 day\'')
-      .limit(100) // Limit to avoid too many API calls in one run
-      .getMany();
+  private async syncDelegatorVotingPower(repo): Promise<number> {
+    const targets = await repo.createQueryBuilder('d')
+      .where('d.voting_power_lovelace IS NULL OR d.updated_at < NOW() - INTERVAL \'1 day\'')
+      .limit(100).getMany();
 
-    let updatedCount = 0;
-
-    for (const delegator of delegatorsToUpdate) {
+    let count = 0;
+    for (const d of targets) {
       try {
-        const stakeInfo = await this.blockfrostService.getStakeAddressInfo(delegator.stakeAddress);
-        
-        if (stakeInfo && stakeInfo.controlled_amount) {
-          await delegatorsRepository.update(
-            { drepId: delegator.drepId, stakeAddress: delegator.stakeAddress },
-            { 
-              votingPowerLovelace: stakeInfo.controlled_amount,
-              updatedAt: new Date()
-            }
-          );
-          updatedCount++;
+        const info = await this.blockfrostService.getStakeAddressInfo(d.stakeAddress);
+        if (info?.controlled_amount) {
+          await repo.update({ drepId: d.drepId, stakeAddress: d.stakeAddress }, { 
+            votingPowerLovelace: info.controlled_amount, updatedAt: new Date()
+          });
+          count++;
         }
-
-        // Rate limiting - wait 100ms between requests
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-      } catch (error) {
-        this.logger.warn(`Failed to update voting power for delegator ${delegator.stakeAddress}: ${error.message}`);
+        await new Promise(r => setTimeout(r, 100));
+      } catch (e) {
+        this.logger.warn(`Delegator VP failed (${d.stakeAddress}): ${e.message}`);
       }
     }
-
-    return updatedCount;
+    return count;
   }
+
 }

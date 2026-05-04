@@ -1,3 +1,4 @@
+'use client';
 import { QUERY_KEYS } from '@/constants/queryKeys';
 import { getBudgetDiscussionPollVotes } from '@/services/requests/getBudgetDiscussionPollVotes';
 import { getDRepVotingPowerList } from '@/services/requests/getDRepVotingPowerList';
@@ -76,7 +77,7 @@ export const usePollVotes = (pollID: string) => {
       };
     },
     {
-      enabled: !!pollID,
+      enabled: typeof window !== "undefined" && (!!pollID),
       refetchOnWindowFocus: false,
     },
   );

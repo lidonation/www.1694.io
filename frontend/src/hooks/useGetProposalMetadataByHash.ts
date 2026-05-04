@@ -1,3 +1,4 @@
+'use client';
 import { getProposalMetadataByHash } from '@/services/requests/getProposalMetadataByHash';
 import { useQuery } from 'react-query';
 export type getProposalMetadataByHashQueryStringProps = {
@@ -11,7 +12,7 @@ export const useGetProposalMetadataByHashQuery = ({
   const { data, isLoading, isFetching, error } = useQuery({
     queryKey: ['getProposalMetadataByHashQueryString', hashQueryString],
     queryFn: async () => await getProposalMetadataByHash(hashQueryString),
-    enabled: !!hashQueryString && isRequired,
+    enabled: typeof window !== "undefined" && (!!hashQueryString && isRequired),
     refetchOnWindowFocus: false,
   });
 

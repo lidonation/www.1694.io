@@ -1,3 +1,4 @@
+'use client';
 import React, { useEffect, useState } from 'react';
 import { Address } from '@emurgo/cardano-serialization-lib-asmjs';
 import { z } from 'zod';

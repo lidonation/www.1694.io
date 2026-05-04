@@ -1,0 +1,99 @@
+import { Processor, WorkerHost, InjectQueue } from '@nestjs/bullmq';
+import { Injectable, Logger } from '@nestjs/common';
+import { Job, Queue } from 'bullmq';
+import { Queues, JobTypes } from '../queue.types';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource, MoreThan } from 'typeorm';
+import { DrepTimelineEvent } from '../entities/governance/drep-timeline-event.entity';
+import { SyncState } from '../entities/sync-state.entity';
+
+@Injectable()
+@Processor(Queues.TIMELINE_WATCHER)
+export class TimelineWatcherWorker extends WorkerHost {
+  private readonly logger = new Logger(TimelineWatcherWorker.name);
+  private readonly STATE_KEY = 'timeline_watcher_last_id';
+
+  constructor(
+    @InjectDataSource('default')
+    private readonly dataSource: DataSource,
+    @InjectQueue(Queues.GOVERNANCE_SYNC)
+    private readonly governanceSyncQueue: Queue,
+    @InjectQueue(Queues.PROPOSALS_SYNC)
+    private readonly proposalsSyncQueue: Queue,
+    @InjectQueue(Queues.DREP_VOTES_SYNC)
+    private readonly drepVotesSyncQueue: Queue,
+  ) {
+    super();
+  }
+
+  async process(job: Job): Promise<any> {
+    const syncStateRepo = this.dataSource.getRepository(SyncState);
+    const timelineRepo = this.dataSource.getRepository(DrepTimelineEvent);
+
+    let state = await syncStateRepo.findOne({ where: { key: this.STATE_KEY } });
+    if (!state) {
+      state = syncStateRepo.create({ key: this.STATE_KEY, lastProcessedId: '0' });
+      await syncStateRepo.save(state);
+    }
+
+    const newEvents = await timelineRepo.find({
+      where: { id: MoreThan(state.lastProcessedId) },
+      order: { id: 'ASC' },
+      take: 50,
+    });
+
+    if (newEvents.length === 0) {
+      return { success: true, processed: 0 };
+    }
+
+    this.logger.log(`Found ${newEvents.length} new timeline events to process`);
+
+    const triggeredSyncs = new Set<string>();
+
+    for (const event of newEvents) {
+      switch (event.eventType) {
+        case 'registration':
+        case 'retirement':
+          triggeredSyncs.add('dreps');
+          break;
+        case 'delegation':
+          triggeredSyncs.add('delegators');
+          break;
+        case 'proposal':
+          triggeredSyncs.add('proposals');
+          break;
+        case 'vote':
+          triggeredSyncs.add('votes');
+          break;
+      }
+    }
+
+    if (triggeredSyncs.has('dreps')) {
+      await this.governanceSyncQueue.add(JobTypes.GOVERNANCE_SYNC, { syncOnly: 'dreps' });
+      this.logger.debug('Triggered DRep sync');
+    }
+    if (triggeredSyncs.has('delegators')) {
+      await this.governanceSyncQueue.add(JobTypes.GOVERNANCE_SYNC, { syncOnly: 'delegators' });
+      this.logger.debug('Triggered delegators sync');
+    }
+    if (triggeredSyncs.has('proposals')) {
+      await this.proposalsSyncQueue.add(JobTypes.PROPOSALS_SYNC, {});
+      this.logger.debug('Triggered proposals sync');
+    }
+    if (triggeredSyncs.has('votes')) {
+      await this.drepVotesSyncQueue.add(JobTypes.DREP_VOTES_SYNC, {});
+      this.logger.debug('Triggered votes sync');
+    }
+
+    state.lastProcessedId = newEvents[newEvents.length - 1].id;
+    state.updatedAt = new Date();
+    await syncStateRepo.save(state);
+
+    return {
+      success: true,
+      processed: newEvents.length,
+      lastId: state.lastProcessedId,
+      triggers: Array.from(triggeredSyncs),
+    };
+  }
+}

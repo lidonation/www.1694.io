@@ -1,3 +1,4 @@
+'use client';
 import { Box, Grow } from '@mui/material';
 import { useEffect, useRef, useState } from 'react';
 import { ConnectedWalletCard } from '../atoms/ConnectedWalletCard';

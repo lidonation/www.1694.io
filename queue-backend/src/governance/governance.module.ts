@@ -8,6 +8,7 @@ import { DrepDelegator } from '../entities/governance/drep-delegator.entity';
 import { Proposal } from '../entities/governance/proposal.entity';
 import { ProposalMetadata } from '../entities/governance/proposal-metadata.entity';
 import { ProposalVote } from '../entities/governance/proposal-vote.entity';
+import { SyncState } from '../entities/sync-state.entity';
 
 @Module({
   imports: [
@@ -18,7 +19,8 @@ import { ProposalVote } from '../entities/governance/proposal-vote.entity';
         DrepDelegator,
         Proposal,
         ProposalMetadata,
-        ProposalVote
+        ProposalVote,
+        SyncState
       ], 
       'default'
     ),

@@ -1,3 +1,4 @@
+'use client';
 import { QUERY_KEYS } from '@/constants/queryKeys';
 import { useQuery } from 'react-query';
 import { getActionsProposals } from '@/services/requests/getActionsProposals';
@@ -32,7 +33,7 @@ export const useGetActionsProposalsQuery = (
         sortBy,
         sortOrder
       ),
-    enabled: true,
+    enabled: typeof window !== "undefined",
     refetchOnWindowFocus: false,
     keepPreviousData: true
   });

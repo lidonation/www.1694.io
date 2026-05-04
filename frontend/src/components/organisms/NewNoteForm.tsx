@@ -1,3 +1,4 @@
+'use client';
 import React, { useState } from 'react';
 import NewNotePostForm from '../molecules/NewNotePostForm';
 import { Address } from '@emurgo/cardano-serialization-lib-asmjs';
