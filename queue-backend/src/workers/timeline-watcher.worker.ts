@@ -6,6 +6,7 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource, MoreThan } from 'typeorm';
 import { DrepTimelineEvent } from '../entities/governance/drep-timeline-event.entity';
 import { SyncState } from '../entities/sync-state.entity';
+import { DrepDelegator } from '../entities/drep-delegator.entity';
 
 @Injectable()
 @Processor(Queues.TIMELINE_WATCHER)
@@ -29,6 +30,7 @@ export class TimelineWatcherWorker extends WorkerHost {
   async process(job: Job): Promise<any> {
     const syncStateRepo = this.dataSource.getRepository(SyncState);
     const timelineRepo = this.dataSource.getRepository(DrepTimelineEvent);
+    const drepDelegatorRepo = this.dataSource.getRepository(DrepDelegator);
 
     let state = await syncStateRepo.findOne({ where: { key: this.STATE_KEY } });
     if (!state) {
@@ -56,9 +58,34 @@ export class TimelineWatcherWorker extends WorkerHost {
         case 'retirement':
           triggeredSyncs.add('dreps');
           break;
-        case 'delegation':
+        case 'delegation': {
           triggeredSyncs.add('delegators');
+          
+          // Undelegation synthesis logic
+          const stakeAddress = event.metadata?.stake_address;
+          if (stakeAddress) {
+            const currentDrep = await drepDelegatorRepo.findOne({ where: { stakeAddress } });
+            
+            if (currentDrep && currentDrep.drepId !== event.drepId) {
+              this.logger.debug(`Synthesizing undelegation event for ${currentDrep.drepId} (Delegator: ${stakeAddress})`);
+              const undelegationEvent = timelineRepo.create({
+                eventType: 'undelegation',
+                timestamp: event.timestamp,
+                epoch: event.epoch,
+                slot: event.slot,
+                txHash: event.txHash,
+                blockHash: event.blockHash,
+                drepId: currentDrep.drepId,
+                metadata: {
+                  ...event.metadata,
+                  target_drep: event.drepId,
+                }
+              });
+              await timelineRepo.save(undelegationEvent);
+            }
+          }
           break;
+        }
         case 'proposal':
           triggeredSyncs.add('proposals');
           break;
