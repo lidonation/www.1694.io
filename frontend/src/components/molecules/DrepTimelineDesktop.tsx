@@ -148,7 +148,10 @@ export default function DrepTimelineDesktop({
                 <DrepVoteTimelineCard item={item} isVoteOwner={isOwner} />
               )}
               {item.type === 'delegation' && (
-                <DrepDelegatorCard item={item} />
+                <DrepDelegatorCard item={{ ...item, eventType: item.type }} />
+              )}
+              {item.type === 'undelegation' && (
+                <DrepDelegatorCard item={{ ...item, eventType: item.type }} />
               )}
               {item.type === 'bundled_delegations' && (
                 <BundledDelegations items={item.items} />

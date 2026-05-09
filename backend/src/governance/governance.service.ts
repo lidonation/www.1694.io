@@ -508,7 +508,7 @@ export class GovernanceService {
 
     return values
       .map(filter => mapping[filter] || filter)
-      .filter(type => ['vote', 'delegation', 'registration', 'retirement', 'proposal'].includes(type));
+      .filter(type => ['vote', 'delegation', 'undelegation', 'registration', 'retirement', 'proposal'].includes(type));
   }
 
   private async getEpochEventsInRange(startTime: Date, endTime: Date): Promise<any[]> {
@@ -577,6 +577,15 @@ export class GovernanceService {
         voting_epoch: event.epoch,
         url: event.metadata.url,
         vote_rationale: event.metadata.vote_rationale
+      } : {}),
+      ...(mappedType === 'undelegation' && event.metadata ? {
+        stake_address: event.metadata.stake_address,
+        current_drep: event.metadata.target_drep || event.metadata.current_drep,
+        previous_drep: event.drepId,
+        total_stake: event.metadata.total_stake,
+        added_power: false,
+        delegation_epoch: event.epoch,
+        tx_hash: event.txHash
       } : {})
     };
   }

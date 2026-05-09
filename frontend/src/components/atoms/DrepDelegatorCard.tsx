@@ -89,6 +89,9 @@ const DrepDelegatorCard = ({ item }: { item: DelegationData }) => {
       {Number(total_stake) > 0 && <p className="text-sm font-bold">{formatTotalStake(total_stake, added_power)} ₳</p>}
       <div className="flex flex-col items-center">
         <StakeAddressLink stakeAddress={stake_address} addressLength={addressLength} />
+        <p className="text-sm font-medium text-gray-500">
+          {item.eventType === 'undelegation' ? 'Delegator Left' : 'New Delegator'}
+        </p>
         <p className="text-[10px] text-gray-400 font-medium">
           {new Date((item as any).timestamp).toLocaleString(undefined, { 
             month: 'short', 
