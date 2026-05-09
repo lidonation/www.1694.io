@@ -2,7 +2,9 @@ namespace: voltaire-mainnet
 
 ingress:
   hosts:
-    - 1694.io
+    - www.1694.io
+  redirectApex: true
+  apexHost: 1694.io
   api: api.1694.io
 
 governanceIndexer:
