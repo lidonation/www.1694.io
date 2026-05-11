@@ -43,15 +43,6 @@ spec:
       database: {{ .Values.cnpg.bootstrap.database | quote }}
       owner: {{ .Values.cnpg.bootstrap.owner | quote }}
 
-  backup:
-    retentionPolicy: "14d"
-
-  plugins:
-    - name: barman-cloud.cloudnative-pg.io
-      isWALArchiver: true
-      parameters:
-        barmanObjectName: www-1694-barman-store
-
   storage:
     storageClass: longhorn
     size: {{ .Values.cnpg.cluster.storage.size | quote }}
@@ -74,42 +65,4 @@ spec:
   owner: {{ .Values.cnpg.bootstrap.owner | quote }}
   cluster:
     name: www-1694-cnpg-cluster
----
-apiVersion: postgresql.cnpg.io/v1
-kind: ScheduledBackup
-metadata:
-  name: www-1694-cnpg-daily-backup
-  namespace: {{ .Values.namespace }}
-spec:
-  schedule: {{ .Values.cnpg.backup.schedule | quote }}
-  cluster:
-    name: www-1694-cnpg-cluster
-  immediate: false
-  suspend: false
-  method: plugin
-  pluginConfiguration:
-    name: barman-cloud.cloudnative-pg.io
----
-apiVersion: barmancloud.cnpg.io/v1
-kind: ObjectStore
-metadata:
-  name: www-1694-barman-store
-  namespace: {{ .Values.namespace }}
-spec:
-  configuration:
-    destinationPath: "s3://{{ .Values.cnpg.backup.s3Bucket }}/db-backups"
-    endpointURL: "https://s3.2lovelaces.com"
-    s3Credentials:
-      accessKeyId:
-        name: www-1694-global-secrets
-        key: AWS_ACCESS_KEY_ID
-      secretAccessKey:
-        name: www-1694-global-secrets
-        key: AWS_SECRET_ACCESS_KEY
-      region:
-        name: www-1694-global-secrets
-        key: AWS_DEFAULT_REGION
-    wal:
-      compression: gzip
-  instanceSidecarConfiguration: {}
 {{- end }}

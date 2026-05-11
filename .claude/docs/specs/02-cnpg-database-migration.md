@@ -6,18 +6,18 @@
 ## 1. User Intent
 - **As an** operator
 - **I want to** migrate the PostgreSQL database from the deprecated Bitnami postgresql-ha Helm chart to CloudNativePG (CNPG)
-- **So that** the database stack receives upstream security patches, gains native Kubernetes failover, and has automated WAL-based backups to S3-compatible storage
+- **So that** the database stack receives upstream security patches and gains native Kubernetes failover
 
 ## 2. Functional Requirements
-1. The CNPG Cluster, Database, ScheduledBackup, ObjectStore, and superuser Secret are defined as Helm templates inside the `www-1694` chart — no separate Helm release required.
+1. The CNPG Cluster, Database, and superuser Secret are defined as Helm templates inside the `www-1694` chart — no separate Helm release required.
 2. The entire CNPG block is gated by `.Values.cnpg.enabled` so it can be toggled without deleting template files.
 3. The cluster runs 2 instances (1 primary + 1 replica) on PostgreSQL 17.5 with Longhorn storage.
 4. A PgBouncer Pooler (2 instances, transaction mode) fronts the cluster and exposes the service `www-1694-cnpg-pooler` for app connections.
-5. Daily WAL-archive backups ship to an S3-compatible bucket (`s3://www-1694/db-backups` at `https://s3.2lovelaces.com`) via the Barman Cloud plugin. Credentials are sourced from the `www-1694-global-secrets` Kubernetes Secret.
+5. WAL archiving and S3 backups are deferred — no ObjectStore, ScheduledBackup, or Barman plugin blocks are configured at this time.
 6. A one-shot migration Job (`cnpg.migration.enabled: true`) runs `pg_dump | pg_restore` entirely inside the cluster network to copy data from the Bitnami source to the CNPG target.
 7. The `governance-indexer` `DATABASE_URL` is sourced from a `secretKeyRef` against `www-1694-global-secrets` key `DATABASE_URL` — it is never stored in values files.
 8. The Bitnami `postgresql` release and its `chart/values.postgresql.yaml` are left untouched and run in parallel until migration is verified and the release is manually removed.
-9. GitLab CI populates `chart/global_env` from the `$GLOBAL_ENV_FILE` CI File variable before every `helm upgrade`, ensuring `www-1694-global-secrets` always contains the current `DATABASE_URL` and S3 credentials.
+9. GitLab CI populates `chart/global_env` from the `$GLOBAL_ENV_FILE` CI File variable before every `helm upgrade`, ensuring `www-1694-global-secrets` always contains the current `DATABASE_URL`.
 10. All secret values (`cnpg.superuserPassword`, `cnpg.migration.sourcePassword`) have empty defaults in `values.yaml` and must be supplied at deploy time via GitLab CI masked variables — never committed.
 
 ## 3. Edge Cases & Error Handling
@@ -59,7 +59,7 @@ log_min_duration_statement: 2000  log_statement: none
 | Variable | Type | Purpose |
 |---|---|---|
 | `CNPG_SUPERUSER_PASSWORD` | Variable (masked) | CNPG postgres superuser password |
-| `GLOBAL_ENV_FILE` | File | Contains `DATABASE_URL`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_DEFAULT_REGION` |
+| `GLOBAL_ENV_FILE` | File | Contains `DATABASE_URL` |
 
 ## 5. Cutover Runbook (operator steps)
 

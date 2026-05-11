@@ -57,7 +57,7 @@ ingress:
 labels:
   domain: 1694.io
 
-namespace: voltaire-sancho
+namespace: voltaire-preview
 
 nodeSelector: {}
 
@@ -125,10 +125,6 @@ cnpg:
 
   # Must be set at deploy time: --set cnpg.superuserPassword=<value>  Never committed.
   superuserPassword: ""
-
-  backup:
-    s3Bucket: "www-1694"
-    schedule: "0 3 * * *"
 
   migration:
     enabled: false
