@@ -7,13 +7,27 @@ ingress:
   apexHost: 1694.io
   api: api.1694.io
 
+cnpg:
+  bootstrap:
+    database: "1694_mainnet"
+    owner: "voltaire"
+  cluster:
+    storage:
+      size: "200Gi"
+  migration:
+    sourceDatabase: "1694_mainnet"
+    sourceUser: "voltaire"
+
 governanceIndexer:
   image:
     tag: latest   # mutable — always points to latest main build
     sha: ""       # set at deploy time: --set governanceIndexer.image.sha=$CI_COMMIT_SHORT_SHA
   networkMagic: "764824073"
   maxConcurrentWorkers: "16"
-  databaseUrl: "postgres://voltaire:postgres@postgresql:5432/1694_mainnet"
+  # DATABASE_URL is injected from www-1694-global-secrets (key: DATABASE_URL).
+  # Set at deploy time via global_env file — never committed. Expected format:
+  # postgres://voltaire:<password>@www-1694-cnpg-pooler:5432/1694_mainnet
+  databaseUrl: ""  # unused — deployment reads from secretKeyRef
   resources:
     requests:
       cpu: 200m

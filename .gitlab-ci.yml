@@ -225,6 +225,8 @@ app-preview:
       cat $ENV_FILE_QUEUE > queue-backend/.env.production
       cp $ENV_FILE_QUEUE ./chart/queue_env
 
+      cp $GLOBAL_ENV_FILE ./chart/global_env
+
       kubectl delete secret 1694-registry-deploy-token --ignore-not-found --namespace="$KUBE_NAMESPACE"
 
       kubectl create secret docker-registry 1694-registry-deploy-token \
@@ -256,8 +258,8 @@ app-preview:
         --set frontend.replicaCount=1 \
         --set queue.replicaCount=1 \
         --set governanceIndexer.replicaCount=1 \
-        --set governanceIndexer.databaseUrl="$GOVERNANCE_INDEXER_DATABASE_URL" \
         --set governanceIndexer.image.tag=$INDEXER_TAG \
+        --set cnpg.superuserPassword="$CNPG_SUPERUSER_PASSWORD" \
         --set secrets.NEXT_PUBLIC_GOOGLE_API="$NEXT_PUBLIC_GOOGLE_API" \
         --set ingress.hosts[0]="$AUTO_DEVOPS_WEB_DOMAIN" \
         --set ingress.api="$API" \
@@ -318,8 +320,11 @@ production:
       cat $ENV_FILE_QUEUE > queue-backend/.env.production
       cp $ENV_FILE_QUEUE ./chart/queue_env
 
+      cp $GLOBAL_ENV_FILE ./chart/global_env
+
       helm upgrade $DEPLOYMENT_NAME ./chart --install \
         -f ./chart/values.yaml \
+        -f ./chart/values.prod.yaml \
         --timeout 300s \
         --wait \
         --atomic \
@@ -329,8 +334,8 @@ production:
         --set frontend.replicaCount=5 \
         --set queue.replicaCount=2 \
         --set governanceIndexer.replicaCount=1 \
-        --set governanceIndexer.databaseUrl="$GOVERNANCE_INDEXER_DATABASE_URL" \
         --set governanceIndexer.image.tag=$INDEXER_TAG \
+        --set cnpg.superuserPassword="$CNPG_SUPERUSER_PASSWORD" \
         --set ingress.hosts[0]="$AUTO_DEVOPS_WEB_DOMAIN" \
         --set ingress.api="$API" \
         --set namespace=$KUBE_NAMESPACE \

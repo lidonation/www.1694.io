@@ -35,7 +35,10 @@ spec:
           imagePullPolicy: Always
           env:
             - name: DATABASE_URL
-              value: "{{ .Values.governanceIndexer.databaseUrl }}"
+              valueFrom:
+                secretKeyRef:
+                  name: www-1694-global-secrets
+                  key: DATABASE_URL
             - name: RELAY_ADDRESS
               value: "{{ .Values.governanceIndexer.relayAddress }}"
             - name: NETWORK_MAGIC

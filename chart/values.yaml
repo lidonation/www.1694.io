@@ -112,6 +112,33 @@ frontend:
     path: /
     tls:
 
+cnpg:
+  enabled: true
+
+  cluster:
+    storage:
+      size: "50Gi"
+
+  bootstrap:
+    database: "1694"
+    owner: "voltaire"
+
+  # Must be set at deploy time: --set cnpg.superuserPassword=<value>  Never committed.
+  superuserPassword: ""
+
+  backup:
+    s3Bucket: "www-1694"
+    schedule: "0 3 * * *"
+
+  migration:
+    enabled: false
+    sourceHost: "postgresql"  # Bitnami ClusterIP service name
+    sourcePort: "5432"
+    sourceDatabase: "1694"
+    sourceUser: "voltaire"
+    # Must be set at deploy time: --set cnpg.migration.sourcePassword=<value>  Never committed.
+    sourcePassword: ""
+
 governanceIndexer:
   replicaCount: 1
   labels:
@@ -123,7 +150,10 @@ governanceIndexer:
   relayAddresses: "backbone.mainnet.emurgornd.com:3001,relays-new.cardano-mainnet.iohk.io:3001,relay1.lidonation.com:3011"
   relayAddress: "backbone.mainnet.emurgornd.com:3001"
 
-  databaseUrl: "postgres://voltaire:postgres@postgresql:5432/1694"
+  # DATABASE_URL is injected from www-1694-global-secrets (key: DATABASE_URL).
+  # Set at deploy time via global_env file — never committed. Expected format:
+  # postgres://voltaire:<password>@www-1694-cnpg-pooler:5432/1694
+  databaseUrl: ""  # unused — deployment reads from secretKeyRef
   networkMagic: "764824073"
   maxConcurrentWorkers: "8"
   batchSize: "100"
