@@ -10,9 +10,6 @@ variables:
   DEPLOY_CARDANO_DBSYNC:
     value: "false"
     description: "Install cardano dbsync services (ogmios, hasura, postgres, grapql)"
-  DEPLOY_INFRA:
-    value: "false"
-    description: "Install infrastructure services (redis, db-sync)"
   DEPLOY_WEBSITE:
     value: "true"
     description: "Build and deploy www.lidonation.com"
@@ -45,42 +42,12 @@ services:
   image: "${CI_TEMPLATE_REGISTRY_HOST}/gitlab-org/cluster-integration/auto-deploy-image:${AUTO_DEPLOY_IMAGE_VERSION}"
   dependencies: []
 
-.infra_rules: &infra_rules
-  - if: '$CI_COMMIT_BRANCH == "main" &&
-      ($DEPLOY_INFRA == "true")'
-    when: manual
-  - if: '$CI_COMMIT_BRANCH != "main" &&
-      ($DEPLOY_INFRA == "true")'
-    when: manual
 
 .deploy_template: &deploy_template
   image: "${CI_TEMPLATE_REGISTRY_HOST}/gitlab-org/cluster-integration/auto-deploy-image:${AUTO_DEPLOY_IMAGE_VERSION}"
   retry: 0
   cache: {}
 
-.deploy_postgres_web_script: &deploy_postgres_web_script
-  - |
-    DEPLOYMENT_NAME="www-1694-$CI_ENVIRONMENT_SLUG"
-    helm repo add bitnami https://charts.bitnami.com/bitnami
-    helm repo update
-
-    echo "install postgres for web"
-    helm upgrade --install \
-        --timeout 300s \
-        --wait \
-        --atomic \
-        --namespace="$KUBE_NAMESPACE" \
-        --create-namespace \
-        -f ./chart/values.postgresql.yaml \
-        --set global.postgresql.auth.username="$POSTGRESQL_WEB_USERNAME" \
-        --set global.postgresql.auth.database="$POSTGRESQL_WEB_DATABASE" \
-        --set global.postgresql.auth.password="$POSTGRESQL_WEB_PASSWORD" \
-        --set global.postgresql.auth.postgresPassword="$POSTGRESQL_WEB_POSTGRES_PASSWORD" \
-        --set primary.persistence.size="$POSTGRESQL_WEB_SIZE" \
-        --set namespace=$KUBE_NAMESPACE \
-        --set namespaceOverride=$KUBE_NAMESPACE \
-        $DEPLOYMENT_NAME-web-db \
-        bitnami/postgresql
 
 .redis: &redis_template
   image: "${CI_TEMPLATE_REGISTRY_HOST}/gitlab-org/cluster-integration/auto-deploy-image:${AUTO_DEPLOY_IMAGE_VERSION}"
@@ -175,24 +142,6 @@ build_queue_backend:
   rules:
     - if: '$DEPLOY_WEBSITE == "true"'
 
-.deploy_postgres_web: &deploy_postgres_web
-  <<: *deploy_template
-  script:
-    - *deploy_postgres_web_script
-  rules: *infra_rules
-
-# .deploy_postgres_dbsync: &deploy_postgres_dbsync
-#   <<: *deploy_template
-#   script:
-#     - *deploy_postgres_dbsync_script
-#   rules: *infra_rules
-
-postgres-app-preview:
-  <<: *deploy_postgres_web
-  stage: preview
-  needs: []
-  environment:
-    name: preview
 
 redis_preview:
   <<: *redis_template
@@ -279,24 +228,7 @@ app-preview:
     - if: $DEPLOY_WEBSITE == 'true'
       when: manual
 
-postgres-app-production:
-  <<: *deploy_postgres_web
-  stage: production
-  needs:
-    - job: postgres-app-preview
-  environment:
-    name: production
 
-redis_production:
-  <<: *redis_template
-  stage: production
-  environment:
-    name: production
-  needs:
-    - job: redis_preview
-  rules:
-    - if: '$DEPLOY_INFRA == "true"'
-      when: manual
 
 production:
   stage: production
