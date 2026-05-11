@@ -50,8 +50,8 @@ Project 1694 is the **Voltaire DRep Campaign Platform**, an ecosystem for Cardan
 ## Spec-Driven Development (SDD) Workflow
 As per the DeepLearning.AI methodology, you must use a strict SDD workflow. No unstructured "vibe coding".
 
-1. **Project Constitution**: Always respect the `docs/project-constitution.md`. It is your foundational source of truth.
-2. **Read the Spec**: Before implementing any feature, ensure a spec exists in `docs/specs/`. If it doesn't, request one or help the user draft it using `docs/specs/template.md`. Never guess missing requirements.
+1. **Project Constitution**: Always respect the `.claude/docs/project-constitution.md`. It is your foundational source of truth.
+2. **Read the Spec**: Before implementing any feature, ensure a spec exists in `.claude/docs/specs/`. If it doesn't, request one or help the user draft it using `.claude/docs/specs/template.md`. Never guess missing requirements.
 3. **Strict TDD**: 
    - Write failing tests *first* based strictly on the spec's Test Cases.
    - Prove they fail.
