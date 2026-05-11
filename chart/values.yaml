@@ -62,7 +62,9 @@ namespace: voltaire-preview
 nodeSelector: {}
 
 redis:
-  image: redis:7.2-rc2-alpine
+  enabled: true
+  storage:
+    size: "5Gi"
 
 replicaCount: 2
 

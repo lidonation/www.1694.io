@@ -1,0 +1,70 @@
+{{- if .Values.redis.enabled }}
+---
+apiVersion: redis.redis.opstreelabs.in/v1beta2
+kind: Redis
+metadata:
+  name: www-1694-redis-cluster
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/name: www-1694-redis
+    app.kubernetes.io/component: cache
+    app.kubernetes.io/part-of: {{ $.Chart.Name }}
+spec:
+  clusterSize: 1
+  clusterVersion: v8
+  clusterMode: Standalone
+
+  redisFollower:
+    replicas: 0
+
+  podSecurityContext:
+    runAsUser: 1000
+    fsGroup: 1000
+
+  persistenceEnabled: true
+
+  kubernetesConfig:
+    image: quay.io/opstree/redis:v8.4.0
+    imagePullPolicy: IfNotPresent
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+      limits:
+        cpu: "500m"
+        memory: "1Gi"
+    redisSecret:
+      name: www-1694-global-secrets
+      key: REDIS_PASSWORD
+
+  storage:
+    volumeClaimTemplate:
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: longhorn
+        resources:
+          requests:
+            storage: {{ .Values.redis.storage.size | quote }}
+
+  redisConfig:
+    maxmemory-policy: "allkeys-lru"
+    save: ""
+    appendonly: "yes"
+    appendfsync: "no"
+    no-appendfsync-on-rewrite: "yes"
+    auto-aof-rewrite-percentage: "100"
+    auto-aof-rewrite-min-size: "64mb"
+    tcp-keepalive: "60"
+    timeout: "0"
+
+  redisExporter:
+    enabled: true
+    image: oliver006/redis_exporter:v1.55.0
+    resources:
+      requests:
+        cpu: "25m"
+        memory: "32Mi"
+      limits:
+        cpu: "100m"
+        memory: "64Mi"
+{{- end }}

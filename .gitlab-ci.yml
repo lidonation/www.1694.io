@@ -49,31 +49,6 @@ services:
   cache: {}
 
 
-.redis: &redis_template
-  image: "${CI_TEMPLATE_REGISTRY_HOST}/gitlab-org/cluster-integration/auto-deploy-image:${AUTO_DEPLOY_IMAGE_VERSION}"
-  retry: 0
-  script:
-    - auto-deploy download_chart
-    - |
-      helm repo add bitnami https://charts.bitnami.com/bitnami
-      helm repo update
-
-      echo "install redis"
-      helm upgrade --install \
-          --timeout 300s \
-          --wait \
-          --atomic \
-          --namespace="$KUBE_NAMESPACE" \
-          --create-namespace \
-          -f ./chart/values.redis.yaml \
-          --set global.redis.password="$REDIS_PASSWORD" \
-          --set auth.password="$REDIS_PASSWORD" \
-          --set master.persistence.enabled="true" \
-          redis \
-          bitnami/redis
-    - auto-deploy persist_environment_url
-  artifacts:
-    paths: [environment_url.txt]
 
 build_frontend:
   stage: build
@@ -143,15 +118,6 @@ build_queue_backend:
     - if: '$DEPLOY_WEBSITE == "true"'
 
 
-redis_preview:
-  <<: *redis_template
-  stage: preview
-  environment:
-    name: preview
-    url: https://$CI_PROJECT_PATH_SLUG.$AUTO_DEVOPS_DOMAIN
-  rules:
-    - if: '$DEPLOY_INFRA == "true"'
-      when: manual
 
 app-preview:
   image: "${CI_TEMPLATE_REGISTRY_HOST}/gitlab-org/cluster-integration/auto-deploy-image:${AUTO_DEPLOY_IMAGE_VERSION}"
