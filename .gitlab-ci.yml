@@ -174,7 +174,7 @@ app-preview:
       cat $ENV_FILE_QUEUE > queue-backend/.env.production
       cp $ENV_FILE_QUEUE ./chart/queue_env
 
-      cp $GLOBAL_ENV_FILE ./chart/global_env
+      if [ -n "$GLOBAL_ENV_FILE" ]; then cp "$GLOBAL_ENV_FILE" ./chart/global_env; else touch ./chart/global_env; fi
 
       kubectl delete secret 1694-registry-deploy-token --ignore-not-found --namespace="$KUBE_NAMESPACE"
 
@@ -252,7 +252,7 @@ production:
       cat $ENV_FILE_QUEUE > queue-backend/.env.production
       cp $ENV_FILE_QUEUE ./chart/queue_env
 
-      cp $GLOBAL_ENV_FILE ./chart/global_env
+      if [ -n "$GLOBAL_ENV_FILE" ]; then cp "$GLOBAL_ENV_FILE" ./chart/global_env; else touch ./chart/global_env; fi
 
       helm upgrade $DEPLOYMENT_NAME ./chart --install \
         -f ./chart/values.yaml \
