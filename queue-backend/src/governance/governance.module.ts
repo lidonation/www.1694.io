@@ -9,9 +9,11 @@ import { Proposal } from '../entities/governance/proposal.entity';
 import { ProposalMetadata } from '../entities/governance/proposal-metadata.entity';
 import { ProposalVote } from '../entities/governance/proposal-vote.entity';
 import { SyncState } from '../entities/sync-state.entity';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule,
     TypeOrmModule.forFeature(
       [
         DrepTimelineEvent,

@@ -2,7 +2,6 @@ import {
   ACTIVE_PROVIDER_LS_KEY,
   getItemFromLocalStorage,
   removeItemFromLocalStorage,
-  saveDataInSession,
   setItemToLocalStorage,
 } from '@/lib';
 import {
@@ -67,7 +66,7 @@ export class AuthenticationService {
       if (!loginRes.success) {
         throw new Error(loginRes?.error || 'An error occured');
       }
-      saveDataInSession(LOGIN_TOKEN_1694, loginRes.response.access_token);
+      setItemToLocalStorage(LOGIN_TOKEN_1694, loginRes.response.access_token);
       this.setActiveProvider(providerName);
       if (result.walletApi) {
         this.walletApi = result.walletApi;
@@ -123,15 +122,21 @@ export class AuthenticationService {
 
   async reconnect(): Promise<AuthResult> {
     const lastProvider = getItemFromLocalStorage(ACTIVE_PROVIDER_LS_KEY);
-    const { getDataFromSession } = await import('@/lib');
-    const existingToken = getDataFromSession(LOGIN_TOKEN_1694);
+    const { decodeToken } = await import('@/lib');
+    const existingToken = getItemFromLocalStorage(LOGIN_TOKEN_1694);
+    let isTokenValid = false;
+    
+    if (existingToken) {
+      const { isExpired } = decodeToken(existingToken);
+      isTokenValid = !isExpired;
+    }
 
     if (lastProvider && this.providers[lastProvider]) {
       const provider = this.providers[lastProvider];
 
       if (provider.reconnect) {
         try {
-          const result = await provider.reconnect({ silent: !!existingToken });
+          const result = await provider.reconnect({ silent: isTokenValid });
           
           if (result.success) {
             this.setActiveProvider(lastProvider);
@@ -139,7 +144,7 @@ export class AuthenticationService {
               this.walletApi = result.walletApi;
             }
 
-            if (!existingToken && result.accountInfo?.loginCredentials) {
+            if (!isTokenValid && result.accountInfo?.loginCredentials) {
               const loginRes = await this.login({
                 signature: result.accountInfo.loginCredentials.signature!,
                 signatureKey: result.accountInfo.loginCredentials.key!,
@@ -147,7 +152,7 @@ export class AuthenticationService {
                 method: lastProvider as AuthMethod,
               });
               if (loginRes.success) {
-                saveDataInSession(LOGIN_TOKEN_1694, loginRes.response.access_token);
+                setItemToLocalStorage(LOGIN_TOKEN_1694, loginRes.response.access_token);
               }
             }
             
@@ -206,6 +211,7 @@ export class AuthenticationService {
     await this.providers[this.activeProvider].disconnect();
     this.activeProvider = null;
     removeItemFromLocalStorage(ACTIVE_PROVIDER_LS_KEY);
+    removeItemFromLocalStorage(LOGIN_TOKEN_1694);
   }
 }
 

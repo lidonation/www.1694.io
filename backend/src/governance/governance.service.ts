@@ -19,13 +19,19 @@ export class GovernanceService {
   private currentEpochCached: number | null = null;
   private lastEpochFetchTime: number = 0;
   private readonly CACHE_DURATION = 3600000; // 1 hour
+  private readonly EPOCH_ANCHOR_MS: number;
+  private readonly EPOCH_DURATION_MS = 432000000; // 5 days
 
   constructor(
     @InjectDataSource('default')
     private governanceDataSource: DataSource,
     private configService: ConfigService,
     private blockfrostService: BlockfrostService,
-  ) { }
+  ) {
+    this.EPOCH_ANCHOR_MS = Number(
+      this.configService.get<string>('CARDANO_EPOCH_ANCHOR_MS', '1506203091000')
+    );
+  }
 
   async getAllDReps(
     search: string = '',
@@ -389,17 +395,13 @@ export class GovernanceService {
   }
 
   private getEpochNo(timestamp: number): number {
-    const anchor = 1506203091000;
-    const duration = 432000000;
-    return Math.floor((timestamp - anchor) / duration);
+    return Math.floor((timestamp - this.EPOCH_ANCHOR_MS) / this.EPOCH_DURATION_MS);
   }
 
   // Absolute Epoch Boundary Helpers
   private getEpochStartTime(epoch: number): string | null {
     try {
-      const anchor = 1506203091000; // Mainnet Epoch 0 Start
-      const duration = 432000000;   // 5 days in ms
-      return new Date(anchor + (epoch * duration)).toISOString();
+      return new Date(this.EPOCH_ANCHOR_MS + (epoch * this.EPOCH_DURATION_MS)).toISOString();
     } catch (e) {
       return null;
     }
@@ -407,9 +409,7 @@ export class GovernanceService {
 
   private getEpochEndTime(epoch: number): string | null {
     try {
-      const anchor = 1506203091000;
-      const duration = 432000000;
-      return new Date(anchor + ((epoch + 1) * duration)).toISOString();
+      return new Date(this.EPOCH_ANCHOR_MS + ((epoch + 1) * this.EPOCH_DURATION_MS)).toISOString();
     } catch (e) {
       return null;
     }
@@ -508,17 +508,16 @@ export class GovernanceService {
 
     return values
       .map(filter => mapping[filter] || filter)
-      .filter(type => ['vote', 'delegation', 'registration', 'retirement', 'proposal'].includes(type));
+      .filter(type => ['vote', 'delegation', 'undelegation', 'registration', 'retirement', 'proposal'].includes(type));
   }
 
   private async getEpochEventsInRange(startTime: Date, endTime: Date): Promise<any[]> {
-    // Generate epoch events for the time range
     const epochEvents = [];
-    const startEpoch = Math.floor((startTime.getTime() - 1506203091000) / (5 * 24 * 60 * 60 * 1000)); // Rough epoch calculation
-    const endEpoch = Math.floor((endTime.getTime() - 1506203091000) / (5 * 24 * 60 * 60 * 1000));
+    const startEpoch = Math.floor((startTime.getTime() - this.EPOCH_ANCHOR_MS) / this.EPOCH_DURATION_MS);
+    const endEpoch = Math.floor((endTime.getTime() - this.EPOCH_ANCHOR_MS) / this.EPOCH_DURATION_MS);
 
     for (let epoch = Math.max(startEpoch, 0); epoch <= endEpoch; epoch++) {
-      const epochStartTime = 1506203091000 + (epoch * 5 * 24 * 60 * 60 * 1000);
+      const epochStartTime = this.EPOCH_ANCHOR_MS + (epoch * this.EPOCH_DURATION_MS);
       if (epochStartTime >= startTime.getTime() && epochStartTime < endTime.getTime()) {
         epochEvents.push({
           id: `epoch-${epoch}`,
@@ -527,7 +526,7 @@ export class GovernanceService {
           no: epoch,
           epochNo: epoch,
           start_time: new Date(epochStartTime).toISOString(),
-          end_time: new Date(epochStartTime + (5 * 24 * 60 * 60 * 1000)).toISOString()
+          end_time: new Date(epochStartTime + this.EPOCH_DURATION_MS).toISOString()
         });
       }
     }
@@ -578,6 +577,15 @@ export class GovernanceService {
         voting_epoch: event.epoch,
         url: event.metadata.url,
         vote_rationale: event.metadata.vote_rationale
+      } : {}),
+      ...(mappedType === 'undelegation' && event.metadata ? {
+        stake_address: event.metadata.stake_address,
+        current_drep: event.metadata.target_drep || event.metadata.current_drep,
+        previous_drep: event.drepId,
+        total_stake: event.metadata.total_stake,
+        added_power: false,
+        delegation_epoch: event.epoch,
+        tx_hash: event.txHash
       } : {})
     };
   }

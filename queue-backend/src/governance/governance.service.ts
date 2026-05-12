@@ -1,15 +1,24 @@
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
-import { DataSource, SelectQueryBuilder } from 'typeorm';
+import { ConfigService } from '@nestjs/config';
+import { DataSource } from 'typeorm';
 import { Drep } from '../entities/drep.entity';
 import { DrepTimelineEvent } from '../entities/drep-timeline-event.entity';
 
 @Injectable()
 export class GovernanceService {
+  private readonly EPOCH_ANCHOR_MS: number;
+  private readonly EPOCH_DURATION_MS = 432000000; // 5 days
+
   constructor(
     @InjectDataSource('default')
     private governanceDataSource: DataSource,
-  ) {}
+    private configService: ConfigService,
+  ) {
+    this.EPOCH_ANCHOR_MS = Number(
+      this.configService.get<string>('CARDANO_EPOCH_ANCHOR_MS', '1506203091000')
+    );
+  }
 
   async getAllDReps(
     search: string = '',
@@ -240,25 +249,24 @@ export class GovernanceService {
   }
 
   private async getEpochEventsInRange(startTime: Date, endTime: Date): Promise<any[]> {
-    // Generate epoch events for the time range
     const epochEvents: any[] = [];
-    const startEpoch = Math.floor((startTime.getTime() - 1506203091000) / (5 * 24 * 60 * 60 * 1000)); // Rough epoch calculation
-    const endEpoch = Math.floor((endTime.getTime() - 1506203091000) / (5 * 24 * 60 * 60 * 1000));
-    
+    const startEpoch = Math.floor((startTime.getTime() - this.EPOCH_ANCHOR_MS) / this.EPOCH_DURATION_MS);
+    const endEpoch = Math.floor((endTime.getTime() - this.EPOCH_ANCHOR_MS) / this.EPOCH_DURATION_MS);
+
     for (let epoch = Math.max(startEpoch, 0); epoch <= endEpoch; epoch++) {
-      const epochStartTime = 1506203091000 + (epoch * 5 * 24 * 60 * 60 * 1000);
+      const epochStartTime = this.EPOCH_ANCHOR_MS + (epoch * this.EPOCH_DURATION_MS);
       if (epochStartTime >= startTime.getTime() && epochStartTime <= endTime.getTime()) {
         epochEvents.push({
           type: 'epoch',
-          timestamp: new Date(epochStartTime), // Convert to Date object to match TimelineEntry type
+          timestamp: new Date(epochStartTime),
           no: epoch,
           epochNo: epoch,
           start_time: new Date(epochStartTime).toISOString(),
-          end_time: new Date(epochStartTime + (5 * 24 * 60 * 60 * 1000)).toISOString()
+          end_time: new Date(epochStartTime + this.EPOCH_DURATION_MS).toISOString()
         });
       }
     }
-    
+
     return epochEvents;
   }
 
