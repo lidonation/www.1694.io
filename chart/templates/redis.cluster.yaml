@@ -33,9 +33,6 @@ spec:
       limits:
         cpu: "500m"
         memory: "1Gi"
-    redisSecret:
-      name: www-1694-global-secrets
-      key: REDIS_PASSWORD
 
   storage:
     volumeClaimTemplate:
