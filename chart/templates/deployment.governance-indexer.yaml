@@ -37,8 +37,8 @@ spec:
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
-                  name: www-1694-global-secrets
-                  key: DATABASE_URL
+                  name: www-1694-cnpg-cluster-app
+                  key: uri
             - name: RELAY_ADDRESS
               value: "{{ .Values.governanceIndexer.relayAddress }}"
             - name: NETWORK_MAGIC
