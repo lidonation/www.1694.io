@@ -5,7 +5,7 @@ This document tracks the iterative loops of Spec-Driven Development for the 1694
 ## Current Milestones
 
 ### In Progress
-- *None currently active. Pull the next feature from the backlog.*
+- **CNPG Database Migration**: Migrating from deprecated Bitnami postgresql-ha to CloudNativePG. Helm templates done, CI wired. Pending: operator cutover (retrieve voltaire password → update GLOBAL_ENV_FILE → run migration Job → remove Bitnami release). See `docs/specs/02-cnpg-database-migration.md`.
 
 ### Backlog (Pending Specs)
 - Add testing framework integration (Jest configuration) across all monorepo apps to support TDD workflow.

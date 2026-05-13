@@ -1,0 +1,94 @@
+{{- if and .Values.cnpg.enabled .Values.cnpg.migration.enabled }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: www-1694-cnpg-migration-job
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/name: www-1694-cnpg-migration
+    app.kubernetes.io/component: migration
+    app.kubernetes.io/part-of: {{ $.Chart.Name }}
+spec:
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 86400
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: www-1694-cnpg-migration
+        app.kubernetes.io/component: migration
+        app.kubernetes.io/part-of: {{ $.Chart.Name }}
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: migration
+          image: postgres:17-alpine
+          env:
+            - name: SOURCE_HOST
+              value: {{ .Values.cnpg.migration.sourceHost | quote }}
+            - name: SOURCE_PORT
+              value: {{ .Values.cnpg.migration.sourcePort | quote }}
+            - name: SOURCE_DB
+              value: {{ .Values.cnpg.migration.sourceDatabase | quote }}
+            - name: SOURCE_USER
+              value: {{ .Values.cnpg.migration.sourceUser | quote }}
+            - name: SOURCE_PASSWORD
+              value: {{ .Values.cnpg.migration.sourcePassword | quote }}
+            - name: TARGET_DB
+              value: {{ .Values.cnpg.bootstrap.database | quote }}
+            - name: TARGET_OWNER
+              value: {{ .Values.cnpg.bootstrap.owner | quote }}
+            - name: TARGET_PASSWORD
+              value: {{ .Values.cnpg.superuserPassword | quote }}
+            - name: PGSSLMODE
+              value: disable
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+
+              echo "Waiting for source database..."
+              until PGPASSWORD="$SOURCE_PASSWORD" pg_isready -h "$SOURCE_HOST" -p "$SOURCE_PORT" -U "$SOURCE_USER"; do
+                sleep 5
+              done
+
+              echo "Waiting for CNPG cluster..."
+              until PGPASSWORD="$TARGET_PASSWORD" pg_isready -h www-1694-cnpg-cluster-rw -U postgres; do
+                sleep 5
+              done
+
+              echo "Dumping source database..."
+              PGPASSWORD="$SOURCE_PASSWORD" pg_dump \
+                -Fc \
+                -h "$SOURCE_HOST" \
+                -p "$SOURCE_PORT" \
+                -U "$SOURCE_USER" \
+                "$SOURCE_DB" \
+                -f /tmp/dump.dump
+
+              echo "Restoring to CNPG cluster..."
+              PGPASSWORD="$TARGET_PASSWORD" pg_restore \
+                -h www-1694-cnpg-cluster-rw \
+                -U postgres \
+                -d "$TARGET_DB" \
+                --no-owner \
+                --role="$TARGET_OWNER" \
+                /tmp/dump.dump
+
+              echo "Migration complete."
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "2Gi"
+              cpu: "1"
+          volumeMounts:
+            - name: tmp-storage
+              mountPath: /tmp
+      volumes:
+        - name: tmp-storage
+          emptyDir:
+            sizeLimit: "50Gi"
+{{- end }}
