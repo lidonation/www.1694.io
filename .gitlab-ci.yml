@@ -164,9 +164,8 @@ app-preview:
 
       helm upgrade $DEPLOYMENT_NAME ./chart --install \
         -f ./chart/values.yaml \
-        --timeout 300s \
+        --timeout 600s \
         --wait \
-        --atomic \
         --namespace="$KUBE_NAMESPACE" \
         --set image.tag=$CI_APPLICATION_TAG \
         --set backend.replicaCount=1 \
@@ -223,9 +222,8 @@ production:
       helm upgrade $DEPLOYMENT_NAME ./chart --install \
         -f ./chart/values.yaml \
         -f ./chart/values.prod.yaml \
-        --timeout 300s \
+        --timeout 600s \
         --wait \
-        --atomic \
         --set image.repository=$CI_APPLICATION_REPOSITORY/www.1694.io \
         --set image.tag=$CI_APPLICATION_TAG \
         --set backend.replicaCount=5 \

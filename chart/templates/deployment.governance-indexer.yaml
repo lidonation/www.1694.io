@@ -50,7 +50,7 @@ spec:
                   name: www-1694-cnpg-cluster-app
                   key: dbname
             - name: DATABASE_URL
-              value: "postgresql://$(DB_USERNAME):$(DB_PASSWORD)@www-1694-cnpg-pooler:5432/$(DB_NAME)"
+              value: "postgresql://$(DB_USERNAME):$(DB_PASSWORD)@www-1694-cnpg-cluster-rw:5432/$(DB_NAME)"
             - name: RELAY_ADDRESS
               value: "{{ .Values.governanceIndexer.relayAddress }}"
             - name: NETWORK_MAGIC
