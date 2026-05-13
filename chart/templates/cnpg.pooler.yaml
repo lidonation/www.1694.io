@@ -1,0 +1,43 @@
+{{- if .Values.cnpg.enabled }}
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Pooler
+metadata:
+  name: www-1694-cnpg-pooler
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/name: www-1694-cnpg-pooler
+    app.kubernetes.io/component: pooler
+    app.kubernetes.io/part-of: {{ $.Chart.Name }}
+spec:
+  cluster:
+    name: www-1694-cnpg-cluster
+  instances: 2
+  type: rw
+  pgbouncer:
+    poolMode: transaction
+    parameters:
+      max_client_conn: "200"
+      default_pool_size: "20"
+      min_pool_size: "5"
+      reserve_pool_size: "5"
+      server_idle_timeout: "600"
+      server_lifetime: "3600"
+      client_idle_timeout: "300"
+      query_timeout: "300"
+      log_connections: "1"
+      log_disconnections: "1"
+  template:
+    spec:
+      containers:
+        - name: pgbouncer
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "50m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+  monitoring:
+    enablePodMonitor: true
+{{- end }}

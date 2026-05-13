@@ -34,8 +34,23 @@ spec:
           image: "{{ .Values.governanceIndexer.image.repository }}:{{ .Values.governanceIndexer.image.tag }}"
           imagePullPolicy: Always
           env:
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: www-1694-cnpg-cluster-app
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: www-1694-cnpg-cluster-app
+                  key: password
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: www-1694-cnpg-cluster-app
+                  key: dbname
             - name: DATABASE_URL
-              value: "{{ .Values.governanceIndexer.databaseUrl }}"
+              value: "postgresql://$(DB_USERNAME):$(DB_PASSWORD)@www-1694-cnpg-cluster-rw:5432/$(DB_NAME)"
             - name: RELAY_ADDRESS
               value: "{{ .Values.governanceIndexer.relayAddress }}"
             - name: NETWORK_MAGIC

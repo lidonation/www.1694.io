@@ -28,7 +28,7 @@ image:
   repository: registry.2lovelaces.io/voltaire/www.1694.io
   tag: latest
   pullPolicy: Always
-  pullSecret: 'gitlab-ci-token'
+  pullSecret: 'gitlab-registry-token'
 
 imageCredentials:
   registry: registry.raddcreative.io
@@ -57,12 +57,14 @@ ingress:
 labels:
   domain: 1694.io
 
-namespace: voltaire-sancho
+namespace: voltaire-preview
 
 nodeSelector: {}
 
 redis:
-  image: redis:7.2-rc2-alpine
+  enabled: true
+  storage:
+    size: "5Gi"
 
 replicaCount: 2
 
@@ -112,6 +114,29 @@ frontend:
     path: /
     tls:
 
+cnpg:
+  enabled: true
+
+  cluster:
+    storage:
+      size: "50Gi"
+
+  bootstrap:
+    database: "1694"
+    owner: "voltaire"
+
+  # Must be set at deploy time: --set cnpg.superuserPassword=<value>  Never committed.
+  superuserPassword: ""
+
+  migration:
+    enabled: false
+    sourceHost: "postgresql"  # Bitnami ClusterIP service name
+    sourcePort: "5432"
+    sourceDatabase: "1694"
+    sourceUser: "voltaire"
+    # Must be set at deploy time: --set cnpg.migration.sourcePassword=<value>  Never committed.
+    sourcePassword: ""
+
 governanceIndexer:
   replicaCount: 1
   labels:
@@ -123,7 +148,10 @@ governanceIndexer:
   relayAddresses: "backbone.mainnet.emurgornd.com:3001,relays-new.cardano-mainnet.iohk.io:3001,relay1.lidonation.com:3011"
   relayAddress: "backbone.mainnet.emurgornd.com:3001"
 
-  databaseUrl: "postgres://voltaire:postgres@postgresql:5432/1694"
+  # DATABASE_URL is injected from www-1694-global-secrets (key: DATABASE_URL).
+  # Set at deploy time via global_env file — never committed. Expected format:
+  # postgres://voltaire:<password>@www-1694-cnpg-pooler:5432/1694
+  databaseUrl: ""  # unused — deployment reads from secretKeyRef
   networkMagic: "764824073"
   maxConcurrentWorkers: "8"
   batchSize: "100"

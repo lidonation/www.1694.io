@@ -1,0 +1,68 @@
+{{- if .Values.cnpg.enabled }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: www-1694-cnpg-superuser
+  namespace: {{ .Values.namespace }}
+type: kubernetes.io/basic-auth
+stringData:
+  username: postgres
+  # Must be set at deploy time: --set cnpg.superuserPassword=<value>  Never committed.
+  password: {{ .Values.cnpg.superuserPassword | quote }}
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: www-1694-cnpg-cluster
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/name: www-1694-cnpg
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: {{ $.Chart.Name }}
+spec:
+  instances: 2
+  imageName: ghcr.io/cloudnative-pg/postgresql:17.5
+
+  postgresql:
+    parameters:
+      max_connections: "200"
+      shared_buffers: "256MB"
+      effective_cache_size: "2GB"
+      work_mem: "16MB"
+      maintenance_work_mem: "256MB"
+      wal_buffers: "16MB"
+      log_min_duration_statement: "2000"
+      log_statement: "none"
+
+  superuserSecret:
+    name: www-1694-cnpg-superuser
+
+  bootstrap:
+    initdb:
+      database: {{ .Values.cnpg.bootstrap.database | quote }}
+      owner: {{ .Values.cnpg.bootstrap.owner | quote }}
+
+  storage:
+    storageClass: longhorn
+    size: {{ .Values.cnpg.cluster.storage.size | quote }}
+
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "8Gi"
+      cpu: "4"
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: www-1694-cnpg-db
+  namespace: {{ .Values.namespace }}
+spec:
+  name: {{ .Values.cnpg.bootstrap.database | quote }}
+  owner: {{ .Values.cnpg.bootstrap.owner | quote }}
+  cluster:
+    name: www-1694-cnpg-cluster
+{{- end }}

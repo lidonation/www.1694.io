@@ -29,6 +29,28 @@ spec:
         - name: wait-db-migrate
           image: "{{ .Values.backend.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: DATABASE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: www-1694-cnpg-cluster-app
+                  key: username
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: www-1694-cnpg-cluster-app
+                  key: password
+            - name: DATABASE_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: www-1694-cnpg-cluster-app
+                  key: dbname
+            - name: DATABASE_HOST
+              value: www-1694-cnpg-pooler
+            - name: DATABASE_PORT
+              value: "5432"
+            - name: DATABASE_URL
+              value: "postgresql://$(DATABASE_USERNAME):$(DATABASE_PASSWORD)@www-1694-cnpg-pooler:5432/$(DATABASE_NAME)"
           envFrom:
             - secretRef:
                 name: "{{ $.Chart.Name }}-global-secrets"
@@ -38,14 +60,13 @@ spec:
             - sh
             - -c
             - |
-              # echo "Init container starting - skipping migration for now"
-
-              # until PGPASSWORD="$DATABASE_PASSWORD" pg_isready -h "$DATABASE_HOST" -p "$DATABASE_PORT" -U "$DATABASE_USERNAME" -d "$DATABASE_NAME" -q; do
-              #   sleep 2
-              # done
-
-              # yarn run migrate:up
-              # echo "Init container completed"
+              until pg_isready -h "$DATABASE_HOST" -p "$DATABASE_PORT" -U "$DATABASE_USERNAME" -d "$DATABASE_NAME" -q; do
+                echo "Waiting for database..."
+                sleep 2
+              done
+              echo "Database ready, running migrations..."
+              yarn run migrate:up
+              echo "Migrations complete."
           resources:
             limits:
               memory: 512Mi
@@ -57,6 +78,34 @@ spec:
         - name: app
           image: "{{ .Values.backend.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: DATABASE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: www-1694-cnpg-cluster-app
+                  key: username
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: www-1694-cnpg-cluster-app
+                  key: password
+            - name: DATABASE_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: www-1694-cnpg-cluster-app
+                  key: dbname
+            - name: DATABASE_HOST
+              value: www-1694-cnpg-pooler
+            - name: DATABASE_PORT
+              value: "5432"
+            - name: DATABASE_URL
+              value: "postgresql://$(DATABASE_USERNAME):$(DATABASE_PASSWORD)@www-1694-cnpg-pooler:5432/$(DATABASE_NAME)"
+            - name: REDIS_HOST
+              value: www-1694-redis-cluster
+            - name: REDIS_PORT
+              value: "6379"
+            - name: REDIS_PASSWORD
+              value: ""
           envFrom:
             - secretRef:
                 name: "{{ $.Chart.Name }}-global-secrets"
