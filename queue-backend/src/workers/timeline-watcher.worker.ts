@@ -6,7 +6,6 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource, MoreThan } from 'typeorm';
 import { DrepTimelineEvent } from '../entities/governance/drep-timeline-event.entity';
 import { SyncState } from '../entities/sync-state.entity';
-import { DrepDelegator } from '../entities/drep-delegator.entity';
 
 @Injectable()
 @Processor(Queues.TIMELINE_WATCHER)
@@ -30,7 +29,6 @@ export class TimelineWatcherWorker extends WorkerHost {
   async process(job: Job): Promise<any> {
     const syncStateRepo = this.dataSource.getRepository(SyncState);
     const timelineRepo = this.dataSource.getRepository(DrepTimelineEvent);
-    const drepDelegatorRepo = this.dataSource.getRepository(DrepDelegator);
 
     let state = await syncStateRepo.findOne({ where: { key: this.STATE_KEY } });
     if (!state) {
@@ -60,28 +58,42 @@ export class TimelineWatcherWorker extends WorkerHost {
           break;
         case 'delegation': {
           triggeredSyncs.add('delegators');
-          
-          // Undelegation synthesis logic
+
           const stakeAddress = event.metadata?.stake_address;
           if (stakeAddress) {
-            const currentDrep = await drepDelegatorRepo.findOne({ where: { stakeAddress } });
-            
-            if (currentDrep && currentDrep.drepId !== event.drepId) {
-              this.logger.debug(`Synthesizing undelegation event for ${currentDrep.drepId} (Delegator: ${stakeAddress})`);
-              const undelegationEvent = timelineRepo.create({
-                eventType: 'undelegation',
-                timestamp: event.timestamp,
-                epoch: event.epoch,
-                slot: event.slot,
-                txHash: event.txHash,
-                blockHash: event.blockHash,
-                drepId: currentDrep.drepId,
-                metadata: {
-                  ...event.metadata,
-                  target_drep: event.drepId,
-                }
+            // Use the timeline itself as source of truth for previous delegation state.
+            // drep_delegators has composite PK (drepId, stakeAddress) and may be empty —
+            // it cannot reliably tell us the current DRep for a stake address.
+            const prevRows = await this.dataSource.query<{ drep_id: string }[]>(
+              `SELECT drep_id FROM drep_timeline_event
+               WHERE event_type = 'delegation'
+                 AND metadata->>'stake_address' = $1
+                 AND id < $2
+               ORDER BY id DESC LIMIT 1`,
+              [stakeAddress, event.id],
+            );
+            const previousDrepId = prevRows[0]?.drep_id ?? null;
+
+            if (previousDrepId && previousDrepId !== event.drepId) {
+              const alreadySynthesized = await timelineRepo.findOne({
+                where: { eventType: 'undelegation', txHash: event.txHash, drepId: previousDrepId },
               });
-              await timelineRepo.save(undelegationEvent);
+
+              if (!alreadySynthesized) {
+                this.logger.debug(`Synthesizing undelegation: ${previousDrepId} → ${event.drepId} (${stakeAddress})`);
+                await timelineRepo.save(
+                  timelineRepo.create({
+                    eventType: 'undelegation',
+                    timestamp: event.timestamp,
+                    epoch: event.epoch,
+                    slot: event.slot,
+                    txHash: event.txHash,
+                    blockHash: event.blockHash,
+                    drepId: previousDrepId,
+                    metadata: { ...event.metadata, target_drep: event.drepId },
+                  }),
+                );
+              }
             }
           }
           break;
