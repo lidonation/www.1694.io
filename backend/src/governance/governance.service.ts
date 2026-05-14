@@ -560,9 +560,9 @@ export class GovernanceService {
       metadata: event.metadata,
       payload: event.metadata,
       ...(mappedType === 'delegation' && event.metadata ? {
-        stake_address: event.metadata.stake_address,
+        stake_address: event.stakeAddress || event.metadata.stake_address,
         current_drep: event.metadata.current_drep,
-        previous_drep: event.metadata.previous_drep,
+        previous_drep: event.previousDrep || event.metadata.previous_drep,
         total_stake: event.metadata.total_stake,
         added_power: event.metadata.added_power,
         delegation_epoch: event.epoch,

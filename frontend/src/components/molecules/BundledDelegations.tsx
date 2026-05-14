@@ -12,8 +12,8 @@ const BundledDelegations = ({ items }: BundledDelegationsProps) => {
   const [isExpanded, setIsExpanded] = React.useState(false);
   const { isMobile } = useScreenDimension();
   
-  const delegationsCount = items.filter(i => i.added_power).length;
-  const undelegationsCount = items.length - delegationsCount;
+  const delegationsCount = items.filter(i => i.eventType !== 'undelegation').length;
+  const undelegationsCount = items.filter(i => i.eventType === 'undelegation').length;
 
   return (
     <div className="flex flex-col gap-3 w-full">
@@ -30,7 +30,7 @@ const BundledDelegations = ({ items }: BundledDelegationsProps) => {
               {items.length} Delegation Events
             </p>
             <p className="text-[10px] sm:text-xs text-gray-500">
-              {delegationsCount} Delegations, {undelegationsCount} Withdrawal
+              {delegationsCount} New{undelegationsCount > 0 ? `, ${undelegationsCount} Left` : ''}
             </p>
           </div>
         </div>
