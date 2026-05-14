@@ -30,8 +30,16 @@ const useResponsiveLengths = () => {
   return { addressLength, drepLength };
 };
 
-const DrepLink = ({ drep, hasScript, chainId, isTarget, drepLength }: any) => {
+const DrepLink = ({ drep, hasScript, chainId, isTarget, isPrevious, drepLength }: any) => {
   const drepAddress = convertHexToCIP129(hasScript, chainId || drep);
+
+  if (isPrevious) {
+    return (
+      <Link href={`/dreps/${drepAddress}`} className="text-sm font-bold uppercase text-gray-400">
+        {shortenAddress(drepAddress, drepLength)}
+      </Link>
+    );
+  }
 
   return isTarget ? (
     <p className="text-sm font-bold uppercase text-primary-300">
@@ -63,7 +71,6 @@ const DrepDelegatorCard = ({ item }: { item: DelegationData }) => {
   const { addressLength, drepLength } = useResponsiveLengths();
   const {
     total_stake,
-    added_power,
     stake_address,
     previous_drep,
     previous_drep_has_script,
@@ -75,27 +82,30 @@ const DrepDelegatorCard = ({ item }: { item: DelegationData }) => {
     tx_hash,
   } = item;
 
-  const formatTotalStake = (stake: string, addedPower: boolean) => {
-    const sign = addedPower ? '+' : '-';
-    const ada = lovelaceToAda(Number(stake));
-    return `${sign}${formatAsCurrency(ada)}`;
-  };
-
   const isPreviousTargetDRep = previous_drep === target_drep;
   const isCurrentTargetDRep = current_drep === target_drep;
+  const isLeaving = item.eventType === 'undelegation';
+  const stakeAda = Number(total_stake) > 0 ? lovelaceToAda(Number(total_stake)) : null;
 
   return (
     <div className="flex w-full flex-col gap-2 text-center">
-      {Number(total_stake) > 0 && <p className="text-sm font-bold">{formatTotalStake(total_stake, added_power)} ₳</p>}
+      {stakeAda !== null && (
+        <div className="flex flex-col items-center gap-0.5">
+          <p className={`text-sm font-bold ${isLeaving ? 'text-red-500' : 'text-green-600'}`}>
+            {isLeaving ? '-' : '+'}{formatAsCurrency(stakeAda)} ₳
+          </p>
+          <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wide">Voting Power</p>
+        </div>
+      )}
       <div className="flex flex-col items-center">
         <StakeAddressLink stakeAddress={stake_address} addressLength={addressLength} />
-        <p className="text-sm font-medium text-gray-500">
-          {item.eventType === 'undelegation' ? 'Delegator Left' : 'New Delegator'}
+        <p className={`text-sm font-medium ${isLeaving ? 'text-orange-500' : 'text-gray-500'}`}>
+          {isLeaving ? 'Delegator Left' : 'New Delegator'}
         </p>
         <p className="text-[10px] text-gray-400 font-medium">
-          {new Date((item as any).timestamp).toLocaleString(undefined, { 
-            month: 'short', 
-            day: 'numeric', 
+          {new Date((item as any).timestamp).toLocaleString(undefined, {
+            month: 'short',
+            day: 'numeric',
             year: 'numeric',
             hour: '2-digit',
             minute: '2-digit'
@@ -109,10 +119,11 @@ const DrepDelegatorCard = ({ item }: { item: DelegationData }) => {
             hasScript={previous_drep_has_script}
             chainId={previous_chain_id}
             isTarget={isPreviousTargetDRep}
+            isPrevious
             drepLength={drepLength}
           />
         ) : (
-          <p className="text-sm font-bold uppercase text-yellow-500">null</p>
+          <p className="text-sm font-bold uppercase text-gray-400">—</p>
         )}
         <ArrowRightIcon color="black" />
         <DrepLink

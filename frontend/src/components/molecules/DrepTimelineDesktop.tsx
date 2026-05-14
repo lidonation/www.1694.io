@@ -154,7 +154,7 @@ export default function DrepTimelineDesktop({
                 <DrepDelegatorCard item={{ ...item, eventType: item.type }} />
               )}
               {item.type === 'bundled_delegations' && (
-                <BundledDelegations items={item.items} />
+                <BundledDelegations items={item.items} bundleType={item.bundleType} />
               )}
             </TimelineContent>
           </TimelineItem>

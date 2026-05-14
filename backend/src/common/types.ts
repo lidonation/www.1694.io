@@ -215,6 +215,7 @@ export interface EpochGroup {
 
 export interface BundledDelegations {
   type: 'bundled_delegations';
+  bundleType: 'delegation' | 'undelegation';
   id: string;
   timestamp: string;
   items: TimelineEntry[];

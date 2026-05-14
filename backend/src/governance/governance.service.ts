@@ -310,28 +310,36 @@ export class GovernanceService {
       // Sort events within epoch (DESC)
       epochEvents.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime() || b.id.localeCompare(a.id));
 
-      const items = [];
-      let currentDelegationBundle: BundledDelegations | null = null;
+      const rawItems = [];
+      let currentBundle: BundledDelegations | null = null;
 
       for (const ev of epochEvents) {
-        if (ev.type === 'delegation') {
-          if (!currentDelegationBundle) {
-            currentDelegationBundle = {
+        if (ev.type === 'delegation' || ev.type === 'undelegation') {
+          if (!currentBundle || currentBundle.bundleType !== ev.type) {
+            currentBundle = {
               type: 'bundled_delegations',
-              id: `bundle-del-e${e}-${ev.id}`,
+              bundleType: ev.type,
+              id: `bundle-${ev.type}-e${e}-${ev.id}`,
               timestamp: ev.timestamp,
               items: [ev],
               epochNo: e,
             };
-            items.push(currentDelegationBundle);
+            rawItems.push(currentBundle);
           } else {
-            currentDelegationBundle.items.push(ev);
+            currentBundle.items.push(ev);
           }
         } else {
-          currentDelegationBundle = null;
-          items.push(ev);
+          currentBundle = null;
+          rawItems.push(ev);
         }
       }
+
+      // Expand single-item bundles back to standalone events
+      const items = rawItems.flatMap(item =>
+        item.type === 'bundled_delegations' && item.items.length === 1
+          ? [item.items[0]]
+          : [item],
+      );
 
       epochGroups.push({
         epochNo: e,
