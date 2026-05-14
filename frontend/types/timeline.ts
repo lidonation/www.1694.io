@@ -48,7 +48,8 @@ export type Delegation = {
   timestamp: string;
   delegation_epoch: number;
   tx_hash: string;
-  type: 'delegation';
+  type: 'delegation' | 'undelegation';
+  eventType?: 'delegation' | 'undelegation';
   total_stake: string;
   added_power: boolean;
 };
