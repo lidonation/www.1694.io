@@ -113,19 +113,19 @@ const DrepDelegatorCard = ({ item }: { item: DelegationData }) => {
         </p>
       </div>
       <div className="flex w-full items-center justify-center">
-        {previous_drep ? (
-          <DrepLink
-            drep={previous_drep}
-            hasScript={previous_drep_has_script}
-            chainId={previous_chain_id}
-            isTarget={isPreviousTargetDRep}
-            isPrevious
-            drepLength={drepLength}
-          />
-        ) : (
-          <p className="text-sm font-bold uppercase text-gray-400">—</p>
+        {previous_drep && (
+          <>
+            <DrepLink
+              drep={previous_drep}
+              hasScript={previous_drep_has_script}
+              chainId={previous_chain_id}
+              isTarget={isPreviousTargetDRep}
+              isPrevious
+              drepLength={drepLength}
+            />
+            <ArrowRightIcon color="black" />
+          </>
         )}
-        <ArrowRightIcon color="black" />
         <DrepLink
           drep={current_drep}
           hasScript={current_drep_has_script}
