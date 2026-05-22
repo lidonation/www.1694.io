@@ -19,5 +19,4 @@ export const QUERY_KEYS = {
   getDRepParticipationKey: 'getDRepParticipationKey',
   getDRepGovActionsVotesKey: 'getDRepGovActionsVotesKey',
   getEpochParamsKey: 'getEpochParamsKey',
-  getGovernanceActionKey: 'getGovernanceActionKey',
 };
