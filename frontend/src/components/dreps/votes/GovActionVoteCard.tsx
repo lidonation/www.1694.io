@@ -1,8 +1,10 @@
 'use client';
 import MarkdownParser from '@/components/atoms/MarkdownParser';
 import { ViewExternalGovAction } from '@/components/atoms/ViewExternalGovAction';
+import GovernanceLifecycleBadge from '@/components/atoms/GovernanceLifecycleBadge';
 import { useGetProposalMetadataByHashQuery } from '@/hooks/useGetProposalMetadataByHash';
 import { formatIsoTime, parseContent } from '@/lib';
+import { getLifecycleStatus } from '@/lib/governanceThresholds';
 import { Alert, Box } from '@mui/material';
 import { useState, useRef, useEffect } from 'react';
 import { RationaleDataVariants } from '../../../../types/commonTypes';
@@ -45,6 +47,13 @@ export const GovActionVoteCard = ({ action }) => {
     proposalMetadata?.abstract ||
     proposalMetadata?.body?.rationale ||
     proposalMetadata?.rationale;
+
+  const lifecycleStatus = getLifecycleStatus({
+    ratified_epoch: action?.ratified_epoch,
+    enacted_epoch: action?.enacted_epoch,
+    expired_epoch: action?.expired_epoch,
+    dropped_epoch: action?.dropped_epoch,
+  });
 
   useEffect(() => {
     setRationaleData(null);
@@ -109,12 +118,13 @@ export const GovActionVoteCard = ({ action }) => {
                   <MarkdownParser text={abstract} />
                 </Box>
               )}
-              <p className="mb-1 text-sm text-gray-500 md:mb-1">
-                Type:{' '}
-                <span className="font-medium text-gray-700">
+              <div className="mb-1 flex flex-wrap items-center gap-1.5">
+                <span className="text-sm text-gray-500">Type:</span>
+                <span className="text-sm font-medium text-gray-700">
                   {action?.type || action?.description?.tag || '-'}
                 </span>
-              </p>
+                <GovernanceLifecycleBadge status={lifecycleStatus} />
+              </div>
             </Box>
           </Box>
 

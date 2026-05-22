@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Tooltip } from '@mui/material';
+import { Box } from '@mui/material';
 import MarkdownParser from './MarkdownParser';
 import { keyframes } from '@emotion/react';
 
@@ -30,6 +30,10 @@ import { GovAction } from '../../../types/api';
 import { useWallet } from '@/context/globalContext';
 import { ViewExternalGovAction } from '@/components/atoms/ViewExternalGovAction';
 import { useGetProposalMetadataByHashQuery } from '@/hooks/useGetProposalMetadataByHash';
+import GovernanceLifecycleBadge from './GovernanceLifecycleBadge';
+import GovernanceMetaRow from './GovernanceMetaRow';
+import { useEpochParamsQuery } from '@/hooks/useEpochParamsQuery';
+import { getLifecycleStatus, getThresholdsForType } from '@/lib/governanceThresholds';
 
 interface DrepVoteTimelineCardProps {
   item: DrepVote | GovAction;
@@ -136,6 +140,18 @@ const DrepVoteTimelineCard = ({
       rationaleUrl: item?.vote_rationale,
     });
   const { latestEpoch } = useWallet();
+  const { epochParams } = useEpochParamsQuery();
+
+  const lifecycleStatus = getLifecycleStatus({
+    ratified_epoch: (item as any)?.ratified_epoch,
+    enacted_epoch: item?.enacted_epoch,
+    expired_epoch: (item as any)?.expired_epoch,
+    dropped_epoch: (item as any)?.dropped_epoch,
+  });
+
+  const governanceType = (item as any)?.governance_type || item?.type || null;
+  const thresholds = getThresholdsForType(governanceType, epochParams);
+
   const { proposalMetadata } = useGetProposalMetadataByHashQuery({
     hashQueryString: (item as any)?.gov_action_proposal_id || (item as any)?.govActionHash || (item as any)?.gov_action_hash || item?.txHash || (item as any)?.tx_hash,
     isRequired: !((item as DrepVote).proposal?.title || (item as DrepVote).proposal?.abstract || (item as any)?.metadata?.body?.title),
@@ -318,7 +334,7 @@ const DrepVoteTimelineCard = ({
           </Box>
 
           {actionDetais.actionName !== '' && (
-            <Box>
+            <Box className="flex flex-wrap items-center gap-2">
               <Box
                 className={`flex w-fit items-center gap-2 rounded-full bg-slate-200 ${minimal ? 'px-2 py-0.5 text-[10px]' : 'px-3 py-1 text-sm'}`}
               >
@@ -327,13 +343,23 @@ const DrepVoteTimelineCard = ({
                   alt={`${actionDetais.actionName} icon`}
                   className={minimal ? 'h-3 w-3' : 'h-5 w-5'}
                 />
-                <p className="whitespace-normal break-words text-left">{minimal && actionDetais.actionName.length > 30 ? actionDetais.actionName.substring(0, 30) + '...' : actionDetais.actionName}</p>
+                <p className="whitespace-normal wrap-break-word text-left">{minimal && actionDetais.actionName.length > 30 ? actionDetais.actionName.substring(0, 30) + '...' : actionDetais.actionName}</p>
               </Box>
+              {minimal && <GovernanceLifecycleBadge status={lifecycleStatus} minimal />}
             </Box>
+          )}
+
+          {!minimal && (
+            <GovernanceMetaRow
+              status={lifecycleStatus}
+              thresholds={thresholds}
+              expirationEpoch={(item as any)?.expiration_epoch ?? null}
+              govActionLifetime={epochParams?.gov_action_lifetime ?? null}
+            />
           )}
         </Box>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          <div className="flex flex-wrap items-center gap-2 items-end justify-between">
+          <div className="flex flex-wrap items-center gap-2 justify-between">
             <Box className={`flex w-fit items-center gap-1 rounded-full border ${minimal ? 'px-2 py-0.5 text-[9px]' : 'px-3 py-1 text-xs'} text-gray-500`}>
               <p className="">Action Hash:</p>
               <CopyToClipboard text={(item as any)?.govActionHash || (item as any)?.gov_action_hash || item?.txHash || (item as any)?.tx_hash} truncate>

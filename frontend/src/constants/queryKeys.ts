@@ -18,4 +18,6 @@ export const QUERY_KEYS = {
   pollVotesKey: 'pollVotesKey',
   getDRepParticipationKey: 'getDRepParticipationKey',
   getDRepGovActionsVotesKey: 'getDRepGovActionsVotesKey',
+  getEpochParamsKey: 'getEpochParamsKey',
+  getGovernanceActionKey: 'getGovernanceActionKey',
 };

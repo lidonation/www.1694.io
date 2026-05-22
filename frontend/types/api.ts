@@ -25,6 +25,7 @@ export type GovAction = {
   gov_action_proposal_id: string | null;
   gov_action_proposal_index: string | null;
   type: string | null;
+  governance_type: string | null;
   description: {
     tag: string;
     contents: string | null;
@@ -40,6 +41,9 @@ export type GovAction = {
   vote_rationale: string | null;
   enacted_epoch: number | null;
   expiration_epoch: number | null;
+  ratified_epoch: number | null;
+  dropped_epoch: number | null;
+  expired_epoch: number | null;
   txHash?: string;
   tx_hash?: string;
 };
