@@ -1,5 +1,6 @@
 'use client';
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Box } from '@mui/material';
 import MarkdownParser from './MarkdownParser';
 import { keyframes } from '@emotion/react';
@@ -383,14 +384,22 @@ const DrepVoteTimelineCard = ({
             )}
           </div>
 
-          <div className={`flex items-center gap-2 ${minimal ? 'mt-1' : 'mt-2'}`}>
+          <div className={`flex flex-wrap items-center gap-2 ${minimal ? 'mt-1' : 'mt-2'}`}>
             {renderRationaleButton()}
-            <ViewExternalGovAction 
-              actionId={item?.gov_action_proposal_id} 
+            {item?.gov_action_proposal_id && (
+              <Link
+                href={`/governance-actions/${encodeURIComponent(item.gov_action_proposal_id)}`}
+                className={`${minimal ? 'text-[10px]' : 'text-xs'} font-medium text-primary-300 hover:font-bold`}
+              >
+                {minimal ? 'Details' : 'View Details →'}
+              </Link>
+            )}
+            <ViewExternalGovAction
+              actionId={item?.gov_action_proposal_id}
               txHash={item?.txHash || (item as any)?.tx_hash}
               govActionHash={(item as any)?.govActionHash || (item as any)?.gov_action_hash || (item as any)?.proposal?.anchorHash}
               txIndex={Number((item as any)?.gov_action_proposal_index) || 0}
-              minimal={minimal} 
+              minimal={minimal}
             />
           </div>
         </Box>

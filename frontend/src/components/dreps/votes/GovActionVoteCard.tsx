@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import MarkdownParser from '@/components/atoms/MarkdownParser';
 import { ViewExternalGovAction } from '@/components/atoms/ViewExternalGovAction';
 import GovernanceLifecycleBadge from '@/components/atoms/GovernanceLifecycleBadge';
@@ -110,8 +111,15 @@ export const GovActionVoteCard = ({ action }) => {
 
           <Box className="flex flex-col md:flex-row md:items-center md:justify-between md:gap-2">
             <Box className="min-w-0 flex-1">
-              <h3 className="mb-1 text-base font-bold text-gray-800 break-words">
-                {title || '-'}
+              <h3 className="mb-1 text-base font-bold text-gray-800 wrap-break-word">
+                {action?.gov_action_proposal_id ? (
+                  <Link
+                    href={`/governance-actions/${encodeURIComponent(action.gov_action_proposal_id)}`}
+                    className="hover:text-primary-300 transition-colors"
+                  >
+                    {title || '-'}
+                  </Link>
+                ) : (title || '-')}
               </h3>
               {abstract && (
                 <Box className="mb-2 text-sm text-gray-600 line-clamp-3">
@@ -167,6 +175,15 @@ export const GovActionVoteCard = ({ action }) => {
             <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
               {metadataError || 'Failed to load vote rationale data.'}
             </Alert>
+          )}
+
+          {action?.gov_action_proposal_id && (
+            <Link
+              href={`/governance-actions/${encodeURIComponent(action.gov_action_proposal_id)}`}
+              className="inline-block pt-1 text-xs font-medium text-primary-300 hover:font-bold"
+            >
+              View Details →
+            </Link>
           )}
         </Box>
       </td>
