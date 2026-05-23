@@ -6,38 +6,27 @@ import { useGetProposalMetadataByHashQuery } from '@/hooks/useGetProposalMetadat
 import { useEpochParamsQuery } from '@/hooks/useEpochParamsQuery';
 import { formatIsoTime } from '@/lib';
 import { getLifecycleStatus, getThresholdsForType } from '@/lib/governanceThresholds';
-import { Alert, Box, Tooltip } from '@mui/material';
-import { useState, useRef, useEffect } from 'react';
-import { RationaleDataVariants } from '../../../../types/commonTypes';
+import { Alert, Tooltip } from '@mui/material';
+import { useState, useEffect } from 'react';
 import { useGetExternalMetadata } from '@/hooks/useGetExternalMetadata';
 import {
   CheckCircleOutline,
   HighlightOff,
   RemoveCircleOutline,
+  KeyboardArrowDown,
+  KeyboardArrowUp,
 } from '@mui/icons-material';
 
-// Per-vote colors aligned with design system
-const VoteBadge = ({ vote }: { vote: string }) => {
-  const cfg =
-    vote === 'Yes'
-      ? { cls: 'bg-success text-zinc-800', Icon: CheckCircleOutline }
-      : vote === 'No'
-        ? { cls: 'bg-extra_red text-white', Icon: HighlightOff }
-        : { cls: 'bg-complementary-100 text-complementary-400', Icon: RemoveCircleOutline };
-
-  return (
-    <Box className={`flex w-fit items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${cfg.cls}`}>
-      <cfg.Icon sx={{ fontSize: 14 }} />
-      <span>{vote}</span>
-    </Box>
-  );
+const VOTE_STYLE: Record<string, { border: string; badge: string; text: string; Icon: any }> = {
+  Yes:     { border: 'border-l-success',          badge: 'bg-success/20 text-green-700',           text: 'text-green-700',           Icon: CheckCircleOutline },
+  No:      { border: 'border-l-extra_red',         badge: 'bg-red-100 text-red-700',                text: 'text-red-700',             Icon: HighlightOff },
+  Abstain: { border: 'border-l-complementary-200', badge: 'bg-complementary-100 text-complementary-400', text: 'text-complementary-400', Icon: RemoveCircleOutline },
 };
+
+const URL_ONLY = /^(https?:\/\/\S+|proposal\s+as\s+pdf\s*:)/i;
 
 export const GovActionVoteCard = ({ action }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isShowMoreVisible, setIsShowMoreVisible] = useState(false);
-  const [rationaleData, setRationaleData] = useState<RationaleDataVariants | null>(null);
-  const rationaleRef = useRef(null);
 
   const { proposalMetadata } = useGetProposalMetadataByHashQuery({
     hashQueryString: action?.gov_action_proposal_id,
@@ -45,24 +34,29 @@ export const GovActionVoteCard = ({ action }) => {
   });
 
   const { metadata, isMetadataLoading, metadataError } = useGetExternalMetadata(action?.vote_rationale, true);
+  const { epochParams } = useEpochParamsQuery();
 
   const title =
     action?.proposal?.title ||
-    action?.proposal?.abstract ||
     action?.metadata?.body?.title ||
     proposalMetadata?.body?.title ||
     proposalMetadata?.title ||
     action?.title ||
     '—';
 
-  const abstract =
+  const rawAbstract =
     action?.proposal?.abstract ||
     proposalMetadata?.body?.abstract ||
-    proposalMetadata?.abstract ||
-    proposalMetadata?.body?.rationale ||
-    proposalMetadata?.rationale;
+    proposalMetadata?.abstract;
 
-  const { epochParams } = useEpochParamsQuery();
+  const abstract = rawAbstract && !URL_ONLY.test(rawAbstract.trim()) ? rawAbstract : null;
+
+  const rationaleText =
+    typeof action?.proposal?.rationale === 'string' && !URL_ONLY.test(action.proposal.rationale.trim())
+      ? action.proposal.rationale
+      : null;
+
+  const hasExpandableContent = abstract || rationaleText || (metadata?.body && !isMetadataLoading);
 
   const lifecycleStatus = getLifecycleStatus({
     ratified_epoch: action?.ratified_epoch,
@@ -73,44 +67,23 @@ export const GovActionVoteCard = ({ action }) => {
 
   const thresholds = getThresholdsForType(action?.governance_type || action?.type, epochParams);
 
-  useEffect(() => {
-    setRationaleData(null);
-    if (metadata) setRationaleData(metadata.body);
-  }, [metadata]);
-
-  useEffect(() => {
-    if (rationaleRef.current) {
-      const el = rationaleRef.current as HTMLElement;
-      setIsShowMoreVisible(el.scrollHeight > el.clientHeight);
-    }
-  }, [rationaleData]);
+  const voteKey = action?.vote?.charAt(0).toUpperCase() + action?.vote?.slice(1).toLowerCase() || 'Abstain';
+  const vStyle = VOTE_STYLE[voteKey] ?? VOTE_STYLE.Abstain;
 
   return (
-    <tr className="transition-colors hover:bg-extra_gray">
-      {/* Date + external links — desktop only */}
-      <td className="hidden w-44 whitespace-nowrap px-4 py-4 align-top md:table-cell">
-        <p className="text-sm font-medium text-gray-700">{formatIsoTime(action?.time_voted) || '—'}</p>
-        <div className="mt-1">
-          <ViewExternalGovAction
-            actionId={action?.gov_action_proposal_id}
-            txHash={action?.txHash || action?.tx_hash || action?.vote_tx_hash}
-            txIndex={Number(action?.gov_action_proposal_index) || 0}
-            minimal
-          />
-        </div>
-      </td>
+    <div className={`rounded-xl border border-gray-100 bg-white shadow-sm border-l-4 ${vStyle.border} transition-shadow hover:shadow-md`}>
 
-      {/* Vote badge */}
-      <td className="px-3 py-4 text-right align-top md:px-4 md:align-middle">
-        <VoteBadge vote={action.vote} />
-      </td>
+      {/* ── Top section: always visible ─────────────────────────────── */}
+      <div className="flex flex-col gap-2.5 p-4">
 
-      {/* Main content */}
-      <td className="px-3 py-4 md:px-4">
-        <div className="space-y-2">
-          {/* Mobile: date + links */}
-          <div className="block md:hidden">
-            <p className="mb-1 text-sm font-medium text-gray-700">{formatIsoTime(action?.time_voted) || '—'}</p>
+        {/* Row 1: vote badge + date + links */}
+        <div className="flex items-center justify-between gap-2">
+          <div className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${vStyle.badge}`}>
+            <vStyle.Icon sx={{ fontSize: 14 }} />
+            <span>{voteKey}</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-[11px] text-gray-400">{formatIsoTime(action?.time_voted) || '—'}</span>
             <ViewExternalGovAction
               actionId={action?.gov_action_proposal_id}
               txHash={action?.txHash || action?.tx_hash || action?.vote_tx_hash}
@@ -118,79 +91,108 @@ export const GovActionVoteCard = ({ action }) => {
               minimal
             />
           </div>
+        </div>
 
-          {/* Title + abstract */}
-          <div>
-            <h3 className="mb-0.5 text-sm font-semibold text-titles wrap-break-word">{title}</h3>
-            {abstract && (
-              <div className="mb-2 line-clamp-2 text-xs text-gray-500">
-                <MarkdownParser text={abstract} />
-              </div>
-            )}
+        {/* Row 2: title */}
+        <h3 className="text-sm font-semibold leading-snug text-titles">
+          {title}
+        </h3>
+
+        {/* Row 3: type chip + lifecycle + thresholds + expiration */}
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-gray-500">
+          {(action?.governance_type || action?.type || action?.description?.tag) && (
+            <span className="rounded-full bg-extra_gray px-2 py-0.5 font-medium text-gray-600">
+              {action?.governance_type || action?.type || action?.description?.tag}
+            </span>
+          )}
+
+          <GovernanceLifecycleBadge status={lifecycleStatus} />
+
+          {thresholds.isInfoAction ? (
+            <span className="italic text-gray-400">No ratification threshold</span>
+          ) : thresholds.dvt !== null && (
+            <Tooltip
+              title={thresholds.pvt !== null
+                ? `DRep ≥${thresholds.dvt}%  ·  SPO ≥${thresholds.pvt}%`
+                : `${thresholds.dvtLabel ?? 'DRep'} ≥${thresholds.dvt}%`}
+              placement="top"
+              arrow
+            >
+              <span className="cursor-default border-b border-dashed border-gray-300">
+                <span className="font-semibold text-gray-600">{thresholds.dvtLabel ?? 'DRep'}</span>
+                {' ≥'}{thresholds.dvt}%
+                {thresholds.pvt !== null && (
+                  <span className="text-gray-400">  ·  SPO ≥{thresholds.pvt}%</span>
+                )}
+              </span>
+            </Tooltip>
+          )}
+
+          {epochParams?.gov_action_lifetime != null && (
+            <span>
+              Active <span className="font-semibold text-gray-600">{epochParams.gov_action_lifetime}</span> epochs
+            </span>
+          )}
+
+          {action?.expiration_epoch != null && (
+            <span>
+              Expires Ep. <span className="font-semibold text-gray-700">{action.expiration_epoch}</span>
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* ── Expandable section ───────────────────────────────────────── */}
+      {hasExpandableContent && (
+        <>
+          <div className="border-t border-gray-100 px-4 py-2">
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="flex w-full items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-gray-400 hover:text-gray-600"
+            >
+              <span>Details &amp; Rationale</span>
+              {isExpanded ? <KeyboardArrowUp sx={{ fontSize: 16 }} /> : <KeyboardArrowDown sx={{ fontSize: 16 }} />}
+            </button>
           </div>
 
-          {/* Type + lifecycle + thresholds + expiration */}
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-gray-500">
-            {(action?.type || action?.description?.tag) && (
-              <span className="rounded-full bg-extra_gray px-2 py-0.5 font-medium text-gray-600">
-                {action?.type || action?.description?.tag}
-              </span>
-            )}
-            <GovernanceLifecycleBadge status={lifecycleStatus} />
+          {isExpanded && (
+            <div className="flex flex-col gap-3 border-t border-gray-100 px-4 pb-4 pt-3">
+              {abstract && (
+                <div>
+                  <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-gray-400">Abstract</p>
+                  <div className="text-xs leading-relaxed text-gray-600">
+                    <MarkdownParser text={abstract} />
+                  </div>
+                </div>
+              )}
 
-            {thresholds.isInfoAction ? (
-              <span className="italic text-gray-400">No ratification threshold</span>
-            ) : thresholds.dvt !== null && (
-              <Tooltip
-                title={thresholds.pvt !== null ? `DRep ≥${thresholds.dvt}%  ·  SPO ≥${thresholds.pvt}%` : `${thresholds.dvtLabel ?? 'DRep'} ≥${thresholds.dvt}%`}
-                placement="top"
-                arrow
-              >
-                <span className="cursor-default border-b border-dashed border-gray-300">
-                  <span className="font-semibold text-gray-600">{thresholds.dvtLabel ?? 'DRep'}</span>
-                  {' ≥'}{thresholds.dvt}%
-                  {thresholds.pvt !== null && <span className="text-gray-400">  ·  SPO ≥{thresholds.pvt}%</span>}
-                </span>
-              </Tooltip>
-            )}
+              {rationaleText && (
+                <div>
+                  <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-gray-400">Rationale</p>
+                  <div className="text-xs leading-relaxed text-gray-600 whitespace-pre-wrap">
+                    <MarkdownParser text={rationaleText} />
+                  </div>
+                </div>
+              )}
 
-            {action?.expiration_epoch != null && (
-              <span>
-                Expires Ep. <span className="font-semibold text-gray-700">{action.expiration_epoch}</span>
-              </span>
-            )}
-          </div>
+              {!isMetadataLoading && !metadataError && metadata?.body && (
+                <div>
+                  <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-gray-400">Vote Rationale</p>
+                  <div className="text-xs leading-relaxed text-gray-600">
+                    <MarkdownParser text={typeof metadata.body === 'string' ? metadata.body : JSON.stringify(metadata.body)} />
+                  </div>
+                </div>
+              )}
 
-          {/* Rationale */}
-          {!isMetadataLoading && !metadataError && (
-            <div>
-              <p className="mb-0.5 text-[10px] font-bold uppercase tracking-wider text-gray-400">Rationale</p>
-              <div
-                ref={rationaleRef}
-                className={`text-xs leading-relaxed text-gray-600 wrap-break-word whitespace-pre-wrap ${!isExpanded ? 'line-clamp-2' : ''}`}
-              >
-                <MarkdownParser
-                  text={typeof action?.proposal?.rationale === 'string' ? action.proposal.rationale : 'Not provided.'}
-                />
-              </div>
-              {isShowMoreVisible && (
-                <button
-                  onClick={() => setIsExpanded(!isExpanded)}
-                  className="mt-0.5 text-xs font-medium text-primary-300 hover:font-bold focus:underline focus:outline-none"
-                >
-                  {isExpanded ? 'Show less' : 'Show more'}
-                </button>
+              {metadataError && (
+                <Alert severity="error" sx={{ fontSize: 12 }}>
+                  Failed to load vote rationale.
+                </Alert>
               )}
             </div>
           )}
-
-          {metadataError && (
-            <Alert severity="error" sx={{ width: '100%' }}>
-              {metadataError || 'Failed to load vote rationale data.'}
-            </Alert>
-          )}
-        </div>
-      </td>
-    </tr>
+        </>
+      )}
+    </div>
   );
 };
