@@ -1,189 +1,282 @@
 'use client';
 import MarkdownParser from '@/components/atoms/MarkdownParser';
 import { ViewExternalGovAction } from '@/components/atoms/ViewExternalGovAction';
+import GovernanceLifecycleBadge from '@/components/atoms/GovernanceLifecycleBadge';
 import { useGetProposalMetadataByHashQuery } from '@/hooks/useGetProposalMetadataByHash';
-import { formatIsoTime, parseContent } from '@/lib';
-import { Alert, Box } from '@mui/material';
-import { useState, useRef, useEffect } from 'react';
-import { RationaleDataVariants } from '../../../../types/commonTypes';
+import { useEpochParamsQuery } from '@/hooks/useEpochParamsQuery';
+import { formatIsoTime } from '@/lib';
+import { getLifecycleStatus, getThresholdsForType } from '@/lib/governanceThresholds';
+import { Alert, Tooltip } from '@mui/material';
+import { useState } from 'react';
 import { useGetExternalMetadata } from '@/hooks/useGetExternalMetadata';
 import {
   CheckCircleOutline,
   HighlightOff,
   RemoveCircleOutline,
+  KeyboardArrowDown,
+  KeyboardArrowUp,
 } from '@mui/icons-material';
 
+const VOTE_STYLE: Record<string, { border: string; badge: string; Icon: any }> = {
+  Yes:     { border: 'border-l-success',           badge: 'bg-success/20 text-green-700',            Icon: CheckCircleOutline },
+  No:      { border: 'border-l-extra_red',          badge: 'bg-red-100 text-red-700',                 Icon: HighlightOff },
+  Abstain: { border: 'border-l-complementary-200',  badge: 'bg-complementary-100 text-complementary-400', Icon: RemoveCircleOutline },
+};
+
+const URL_ONLY = /^(https?:\/\/\S+|proposal\s+as\s+pdf\s*:)/i;
+
+// ── Vote progress bar ─────────────────────────────────────────────────────────
+const VoteBar = ({
+  yes, no, abstain, threshold,
+}: { yes: number; no: number; abstain: number; threshold: number | null }) => {
+  const total = yes + no + abstain;
+  if (total === 0) return null;
+
+  const yesPct  = (yes  / total) * 100;
+  const noPct   = (no   / total) * 100;
+  const absPct  = (abstain / total) * 100;
+
+  return (
+    <div className="space-y-1.5">
+      {/* Count badges */}
+      <div className="flex items-center gap-4 text-[11px]">
+        <span className="flex items-center gap-1">
+          <span className="inline-block h-2 w-2 rounded-full bg-success" />
+          <span className="font-semibold text-gray-700">{yes}</span>
+          <span className="text-gray-400">Yes</span>
+          <span className="text-gray-300">·</span>
+          <span className="text-gray-500">{yesPct.toFixed(1)}%</span>
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="inline-block h-2 w-2 rounded-full bg-extra_red" />
+          <span className="font-semibold text-gray-700">{no}</span>
+          <span className="text-gray-400">No</span>
+          <span className="text-gray-300">·</span>
+          <span className="text-gray-500">{noPct.toFixed(1)}%</span>
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="inline-block h-2 w-2 rounded-full bg-complementary-200" />
+          <span className="font-semibold text-gray-700">{abstain}</span>
+          <span className="text-gray-400">Abstain</span>
+        </span>
+      </div>
+
+      {/* Segmented bar */}
+      <div className="relative h-2 w-full overflow-hidden rounded-full bg-gray-100">
+        <div
+          className="absolute left-0 top-0 h-full bg-success"
+          style={{ width: `${yesPct}%` }}
+        />
+        <div
+          className="absolute top-0 h-full bg-extra_red"
+          style={{ left: `${yesPct}%`, width: `${noPct}%` }}
+        />
+        <div
+          className="absolute top-0 h-full bg-complementary-200"
+          style={{ left: `${yesPct + noPct}%`, width: `${absPct}%` }}
+        />
+        {/* Threshold marker */}
+        {threshold !== null && (
+          <Tooltip title={`Ratification threshold: ${threshold}%`} placement="top" arrow>
+            <div
+              className="absolute top-0 h-full w-0.5 cursor-default bg-gray-800/60"
+              style={{ left: `${threshold}%` }}
+            />
+          </Tooltip>
+        )}
+      </div>
+
+      {threshold !== null && (
+        <p className="text-[10px] text-gray-400">
+          Threshold <span className="font-semibold text-gray-600">{threshold}%</span>
+          {yesPct >= threshold && (
+            <span className="ml-2 font-semibold text-green-600">✓ Threshold met</span>
+          )}
+        </p>
+      )}
+    </div>
+  );
+};
+
+// ── Stat chip ─────────────────────────────────────────────────────────────────
+const StatChip = ({ label, value }: { label: string; value: string | number }) => (
+  <span className="flex flex-col items-center rounded-lg bg-gray-50 px-3 py-1.5 text-center">
+    <span className="text-[11px] font-bold text-gray-700">{value}</span>
+    <span className="text-[9px] font-medium uppercase tracking-wider text-gray-400">{label}</span>
+  </span>
+);
+
+// ── Main card ─────────────────────────────────────────────────────────────────
 export const GovActionVoteCard = ({ action }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isShowMoreVisible, setIsShowMoreVisible] = useState(false);
-  const [rationaleData, setRationaleData] =
-    useState<RationaleDataVariants | null>(null);
-  const rationaleRef = useRef(null);
 
   const { proposalMetadata } = useGetProposalMetadataByHashQuery({
     hashQueryString: action?.gov_action_proposal_id,
     isRequired: !Boolean(action?.proposal?.title || action?.proposal?.abstract || action?.metadata?.body?.title || action?.title),
   });
 
-  const { metadata, isMetadataLoading, metadataError } = useGetExternalMetadata(
-    action?.vote_rationale,
-    true,
-  );
+  const { metadata, isMetadataLoading, metadataError } = useGetExternalMetadata(action?.vote_rationale, true);
+  const { epochParams } = useEpochParamsQuery();
 
   const title =
     action?.proposal?.title ||
-    action?.proposal?.abstract ||
     action?.metadata?.body?.title ||
     proposalMetadata?.body?.title ||
     proposalMetadata?.title ||
     action?.title ||
-    '-';
+    '—';
 
-  const abstract =
+  const rawAbstract =
     action?.proposal?.abstract ||
     proposalMetadata?.body?.abstract ||
-    proposalMetadata?.abstract ||
-    proposalMetadata?.body?.rationale ||
-    proposalMetadata?.rationale;
+    proposalMetadata?.abstract;
+  const abstract = rawAbstract && !URL_ONLY.test(rawAbstract.trim()) ? rawAbstract : null;
 
-  useEffect(() => {
-    setRationaleData(null);
-    if (metadata) {
-      setRationaleData(metadata.body);
-    }
-  }, [metadata]);
+  const rationaleText =
+    typeof action?.proposal?.rationale === 'string' && !URL_ONLY.test(action.proposal.rationale.trim())
+      ? action.proposal.rationale
+      : null;
 
-  useEffect(() => {
-    if (rationaleRef.current) {
-      const element = rationaleRef.current;
-      setIsShowMoreVisible(element.scrollHeight > element.clientHeight);
-    }
-  }, [rationaleData]);
+  const hasExpandableContent = abstract || rationaleText || (metadata?.body && !isMetadataLoading);
 
-  const toggleRationale = () => {
-    setIsExpanded(!isExpanded);
-  };
+  const lifecycleStatus = getLifecycleStatus({
+    ratified_epoch: action?.ratified_epoch,
+    enacted_epoch: action?.enacted_epoch,
+    expired_epoch: action?.expired_epoch,
+    dropped_epoch: action?.dropped_epoch,
+  });
 
+  const thresholds = getThresholdsForType(action?.governance_type || action?.type, epochParams);
 
-  
+  const voteKey = action?.vote?.charAt(0).toUpperCase() + action?.vote?.slice(1).toLowerCase() || 'Abstain';
+  const vStyle = VOTE_STYLE[voteKey] ?? VOTE_STYLE.Abstain;
+
+  const yesCount     = action?.drep_yes_count     ?? 0;
+  const noCount      = action?.drep_no_count      ?? 0;
+  const abstainCount = action?.drep_abstain_count ?? 0;
+  const hasVoteCounts = yesCount + noCount + abstainCount > 0;
+
+  // Derive start epoch from expiration and gov_action_lifetime
+  const startEpoch =
+    action?.expiration_epoch != null && epochParams?.gov_action_lifetime != null
+      ? action.expiration_epoch - epochParams.gov_action_lifetime
+      : null;
 
   return (
-    <tr className="transition-all hover:bg-gray-50">
-      <td className="hidden whitespace-nowrap px-4 py-3 md:table-cell">
-        <div className="flex h-full flex-col gap-2">
-          <p className="mb-1 block text-sm font-medium text-gray-800">
-            {formatIsoTime(action?.time_voted) || '-'}
-          </p>
-          <ViewExternalGovAction 
-            actionId={action?.gov_action_proposal_id} 
-            txHash={action?.txHash || action?.tx_hash || action?.vote_tx_hash}
-            txIndex={Number(action?.gov_action_proposal_index) || 0}
-          />
-        </div>
-      </td>
+    <div className={`rounded-xl border border-gray-100 bg-white shadow-sm border-l-4 ${vStyle.border} transition-shadow hover:shadow-md`}>
 
-      <td className="px-3 py-3 text-right align-top md:px-4 md:py-4 md:align-middle">
-        <VoteBadge vote={action.vote} />
-      </td>
+      {/* ── Stats section (always visible) ──────────────────────────── */}
+      <div className="flex flex-col gap-3 p-4">
 
-      <td className="px-3 py-3 md:px-4 md:py-4">
-        <Box className="space-y-2">
-          <Box className="block md:hidden">
-            <p className="mb-1 block text-sm font-medium text-gray-800">
-              {formatIsoTime(action?.time_voted) || '-'}
-            </p>
-            <ViewExternalGovAction 
-              actionId={action?.gov_action_proposal_id} 
+        {/* Row 1: vote badge · type chip · lifecycle · date + links */}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${vStyle.badge}`}>
+              <vStyle.Icon sx={{ fontSize: 14 }} />
+              <span>{voteKey}</span>
+            </div>
+            {(action?.governance_type || action?.type) && (
+              <span className="rounded-full bg-extra_gray px-2 py-0.5 text-[10px] font-medium text-gray-600">
+                {action?.governance_type || action?.type}
+              </span>
+            )}
+            <GovernanceLifecycleBadge status={lifecycleStatus} />
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-[11px] text-gray-400">{formatIsoTime(action?.time_voted) || '—'}</span>
+            <ViewExternalGovAction
+              actionId={action?.gov_action_proposal_id}
               txHash={action?.txHash || action?.tx_hash || action?.vote_tx_hash}
               txIndex={Number(action?.gov_action_proposal_index) || 0}
+              minimal
             />
-          </Box>
+          </div>
+        </div>
 
-          <Box className="flex flex-col md:flex-row md:items-center md:justify-between md:gap-2">
-            <Box className="min-w-0 flex-1">
-              <h3 className="mb-1 text-base font-bold text-gray-800 break-words">
-                {title || '-'}
-              </h3>
+        {/* Row 2: title */}
+        <h3 className="text-sm font-semibold leading-snug text-titles">
+          {title}
+        </h3>
+
+        {/* Row 3: epoch stats chips */}
+        <div className="flex flex-wrap items-center gap-2">
+          {startEpoch !== null && (
+            <StatChip label="Voting Start" value={`Epoch ${startEpoch}`} />
+          )}
+          {action?.expiration_epoch != null && (
+            <StatChip label="Voting Deadline" value={`Epoch ${action.expiration_epoch}`} />
+          )}
+          {epochParams?.gov_action_lifetime != null && (
+            <StatChip label="Active" value={`${epochParams.gov_action_lifetime} epochs`} />
+          )}
+          {thresholds.dvt !== null && !thresholds.isInfoAction && (
+            <StatChip label={thresholds.dvtLabel ?? 'DRep Threshold'} value={`≥${thresholds.dvt}%`} />
+          )}
+          {thresholds.pvt !== null && (
+            <StatChip label="SPO Threshold" value={`≥${thresholds.pvt}%`} />
+          )}
+          {thresholds.isInfoAction && (
+            <span className="text-[10px] italic text-gray-400">No ratification threshold</span>
+          )}
+        </div>
+
+        {/* Row 4: vote breakdown + progress bar */}
+        {hasVoteCounts && (
+          <VoteBar
+            yes={yesCount}
+            no={noCount}
+            abstain={abstainCount}
+            threshold={thresholds.dvt}
+          />
+        )}
+      </div>
+
+      {/* ── Expandable content ───────────────────────────────────────── */}
+      {hasExpandableContent && (
+        <>
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="flex w-full items-center justify-between border-t border-gray-100 px-4 py-2 text-[11px] font-semibold uppercase tracking-wider text-gray-400 hover:bg-gray-50 hover:text-gray-600"
+          >
+            <span>Details &amp; Rationale</span>
+            {isExpanded ? <KeyboardArrowUp sx={{ fontSize: 16 }} /> : <KeyboardArrowDown sx={{ fontSize: 16 }} />}
+          </button>
+
+          {isExpanded && (
+            <div className="flex flex-col gap-3 border-t border-gray-100 px-4 pb-4 pt-3">
               {abstract && (
-                <Box className="mb-2 text-sm text-gray-600 line-clamp-3">
-                  <MarkdownParser text={abstract} />
-                </Box>
+                <div>
+                  <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-gray-400">Abstract</p>
+                  <div className="text-xs leading-relaxed text-gray-600">
+                    <MarkdownParser text={abstract} />
+                  </div>
+                </div>
               )}
-              <p className="mb-1 text-sm text-gray-500 md:mb-1">
-                Type:{' '}
-                <span className="font-medium text-gray-700">
-                  {action?.type || action?.description?.tag || '-'}
-                </span>
-              </p>
-            </Box>
-          </Box>
-
-          {!isMetadataLoading && !metadataError && (
-            <Box>
-              <p className="mb-1 text-sm font-medium text-gray-500">
-                Rationale:
-              </p>
-              <Box className="relative">
-                <Box
-                  ref={rationaleRef}
-                  className={`whitespace-pre-wrap text-sm break-words leading-relaxed text-gray-600 ${
-                    !isExpanded ? 'line-clamp-2' : ''
-                  }`}
-                >
-                  <MarkdownParser
-                    text={
-                      typeof action?.proposal?.rationale === 'string'
-                        ? action.proposal.rationale
-                        : 'Not provided.'
-                    }
-                  />
-                </Box>
-                {isShowMoreVisible && (
-                  <button
-                    id="show-more-btn"
-                    aria-label={
-                      isExpanded ? 'Show less rationale' : 'Show more rationale'
-                    }
-                    onClick={toggleRationale}
-                    className="mt-1 text-sm font-medium text-primary-300 hover:font-bold focus:underline focus:outline-none"
-                  >
-                    {isExpanded ? 'Show less' : 'Show more'}
-                  </button>
-                )}
-              </Box>
-            </Box>
+              {rationaleText && (
+                <div>
+                  <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-gray-400">Rationale</p>
+                  <div className="text-xs leading-relaxed text-gray-600 whitespace-pre-wrap">
+                    <MarkdownParser text={rationaleText} />
+                  </div>
+                </div>
+              )}
+              {!isMetadataLoading && !metadataError && metadata?.body && (
+                <div>
+                  <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-gray-400">Vote Rationale</p>
+                  <div className="text-xs leading-relaxed text-gray-600">
+                    <MarkdownParser text={typeof metadata.body === 'string' ? metadata.body : JSON.stringify(metadata.body)} />
+                  </div>
+                </div>
+              )}
+              {metadataError && (
+                <Alert severity="error" sx={{ fontSize: 12 }}>
+                  Failed to load vote rationale.
+                </Alert>
+              )}
+            </div>
           )}
-          {metadataError && (
-            <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
-              {metadataError || 'Failed to load vote rationale data.'}
-            </Alert>
-          )}
-        </Box>
-      </td>
-    </tr>
-  );
-};
-
-const VoteBadge = ({ vote }: { vote: string }) => {
-  const colorClasses =
-    vote === 'Yes'
-      ? 'bg-green-400 text-zinc-800'
-      : vote == 'No'
-        ? 'bg-red-400 text-zinc-800'
-        : 'bg-gray-200 text-zinc-800';
-
-  return (
-    <Box
-      className={`flex w-fit items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${colorClasses}`}
-    >
-      {vote === 'Yes' ? (
-        <CheckCircleOutline sx={{ fontSize: 17 }} />
-      ) : vote === 'No' ? (
-        <HighlightOff sx={{ fontSize: 17 }} />
-      ) : (
-        <RemoveCircleOutline sx={{ fontSize: 17 }} />
+        </>
       )}
-      <span>{vote}</span>
-    </Box>
+    </div>
   );
 };
