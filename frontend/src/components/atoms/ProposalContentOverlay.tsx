@@ -16,7 +16,8 @@ import GovernanceLifecycleBadge from './GovernanceLifecycleBadge';
 import { ViewExternalGovAction } from './ViewExternalGovAction';
 import CopyToClipboard from './CopyToClipboard';
 import { useGetExternalMetadata } from '@/hooks/useGetExternalMetadata';
-import { LifecycleStatus, GovernanceThresholds } from '@/lib/governanceThresholds';
+import { useEpochParamsQuery } from '@/hooks/useEpochParamsQuery';
+import { LifecycleStatus, GovernanceThresholds, getThresholdsForType } from '@/lib/governanceThresholds';
 
 const SlideUp = React.forwardRef(function SlideUp(
   props: TransitionProps & { children: React.ReactElement },
@@ -41,33 +42,18 @@ const StatChip = ({ label, value }: { label: string; value: string | number }) =
   </span>
 );
 
-// ── Vote bar (stake-weighted) ─────────────────────────────────────────────────
+// ── Vote bar ──────────────────────────────────────────────────────────────────
 const VoteBar = ({
-  yesCount, noCount, abstainCount,
-  yesStake, noStake, abstainStake,
-  threshold,
+  yesCount, noCount, abstainCount, threshold,
 }: {
-  yesCount: number; noCount: number; abstainCount: number;
-  yesStake: number; noStake: number; abstainStake: number;
-  threshold: number | null;
+  yesCount: number; noCount: number; abstainCount: number; threshold: number | null;
 }) => {
-  const totalCount = yesCount + noCount + abstainCount;
-  if (totalCount === 0) return null;
+  const total = yesCount + noCount + abstainCount;
+  if (total === 0) return null;
 
-  // Stake-weighted percentages (Cardano ratification formula: yes / (yes + no), abstain excluded)
-  const hasStake = yesStake + noStake + abstainStake > 0;
-  const votedStake = yesStake + noStake;
-
-  const yesPct = hasStake && votedStake > 0 ? (yesStake / votedStake) * 100 : (yesCount / (yesCount + noCount || 1)) * 100;
-  const noPct  = hasStake && votedStake > 0 ? (noStake  / votedStake) * 100 : (noCount  / (yesCount + noCount || 1)) * 100;
-
-  // Bar segments proportional to total stake (or count if no stake data)
-  const totalForBar = hasStake ? yesStake + noStake + abstainStake : totalCount;
-  const yesBarPct  = totalForBar > 0 ? (hasStake ? yesStake     : yesCount)     / totalForBar * 100 : 0;
-  const noBarPct   = totalForBar > 0 ? (hasStake ? noStake      : noCount)      / totalForBar * 100 : 0;
-  const absBarPct  = totalForBar > 0 ? (hasStake ? abstainStake : abstainCount) / totalForBar * 100 : 0;
-
-  const thresholdMet = threshold !== null && yesPct >= threshold;
+  const yesPct = (yesCount / total) * 100;
+  const noPct  = (noCount  / total) * 100;
+  const absPct = (abstainCount / total) * 100;
 
   return (
     <div className="space-y-2">
@@ -94,9 +80,9 @@ const VoteBar = ({
       </div>
 
       <div className="relative h-3 w-full overflow-hidden rounded-full bg-gray-100">
-        <div className="absolute left-0 top-0 h-full bg-success"    style={{ width: `${yesBarPct}%` }} />
-        <div className="absolute top-0 h-full bg-extra_red"         style={{ left: `${yesBarPct}%`, width: `${noBarPct}%` }} />
-        <div className="absolute top-0 h-full bg-complementary-200" style={{ left: `${yesBarPct + noBarPct}%`, width: `${absBarPct}%` }} />
+        <div className="absolute left-0 top-0 h-full bg-success"    style={{ width: `${yesPct}%` }} />
+        <div className="absolute top-0 h-full bg-extra_red"         style={{ left: `${yesPct}%`, width: `${noPct}%` }} />
+        <div className="absolute top-0 h-full bg-complementary-200" style={{ left: `${yesPct + noPct}%`, width: `${absPct}%` }} />
         {threshold !== null && (
           <Tooltip title={`Ratification threshold: ${threshold}%`} placement="top" arrow>
             <div
@@ -110,9 +96,6 @@ const VoteBar = ({
       {threshold !== null && (
         <p className="text-[11px] text-gray-500">
           Threshold <span className="font-semibold text-gray-700">{threshold}%</span>
-          {thresholdMet && (
-            <span className="ml-2 font-semibold text-green-600">✓ Threshold met</span>
-          )}
         </p>
       )}
     </div>
@@ -163,9 +146,6 @@ export const ProposalContentOverlay = ({
   yesCount = 0,
   noCount = 0,
   abstainCount = 0,
-  yesStake = 0,
-  noStake = 0,
-  abstainStake = 0,
   govActionHash,
   govActionId,
   txHash,
@@ -173,18 +153,38 @@ export const ProposalContentOverlay = ({
 }: ProposalContentOverlayProps) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const { epochParams } = useEpochParamsQuery();
 
   const { metadata, isMetadataLoading } = useGetExternalMetadata(voteRationaleUrl ?? null, !!voteRationaleUrl);
 
   const voteKey = vote?.charAt(0).toUpperCase() + vote?.slice(1).toLowerCase() || 'Abstain';
   const voteCfg = VOTE_CFG[voteKey] ?? VOTE_CFG.Abstain;
 
+  // Fall back to own epoch params if parent passed incomplete data (e.g. not loaded yet)
+  const resolvedThresholds: GovernanceThresholds =
+    thresholds.dvt !== null || thresholds.isInfoAction
+      ? thresholds
+      : getThresholdsForType(type, epochParams);
+
+  const resolvedLifetime = govActionLifetime ?? epochParams?.gov_action_lifetime ?? null;
+  const resolvedStartEpoch =
+    startEpoch ??
+    (expirationEpoch != null && resolvedLifetime != null
+      ? expirationEpoch - resolvedLifetime
+      : null);
+
   const cleanAbstract = abstract && !URL_ONLY.test(abstract.trim()) ? abstract : null;
   const cleanRationale = proposalRationale && !URL_ONLY.test(proposalRationale.trim()) ? proposalRationale : null;
 
   const hasContent = cleanAbstract || cleanRationale || voteRationaleUrl;
   const hasVoteCounts = yesCount + noCount + abstainCount > 0;
-  const hasEpochInfo = startEpoch != null || expirationEpoch != null || govActionLifetime != null;
+  const hasEpochInfo =
+    resolvedStartEpoch != null ||
+    expirationEpoch != null ||
+    resolvedLifetime != null ||
+    resolvedThresholds.dvt !== null ||
+    resolvedThresholds.pvt !== null ||
+    resolvedThresholds.isInfoAction;
 
   return (
     <Dialog
@@ -240,22 +240,22 @@ export const ProposalContentOverlay = ({
         {/* Epoch stat chips */}
         {hasEpochInfo && (
           <div className="flex flex-wrap gap-2 border-b border-gray-50 px-5 py-3">
-            {startEpoch != null && (
-              <StatChip label="Voting Start" value={`Epoch ${startEpoch}`} />
+            {resolvedStartEpoch != null && (
+              <StatChip label="Voting Start" value={`Epoch ${resolvedStartEpoch}`} />
             )}
             {expirationEpoch != null && (
               <StatChip label="Voting Deadline" value={`Epoch ${expirationEpoch}`} />
             )}
-            {govActionLifetime != null && (
-              <StatChip label="Active" value={`${govActionLifetime} epochs`} />
+            {resolvedLifetime != null && (
+              <StatChip label="Active" value={`${resolvedLifetime} epochs`} />
             )}
-            {!thresholds.isInfoAction && thresholds.dvt !== null && (
-              <StatChip label={thresholds.dvtLabel ?? 'DRep'} value={`≥${thresholds.dvt}%`} />
+            {!resolvedThresholds.isInfoAction && resolvedThresholds.dvt !== null && (
+              <StatChip label={resolvedThresholds.dvtLabel ?? 'DRep'} value={`≥${resolvedThresholds.dvt}%`} />
             )}
-            {thresholds.pvt !== null && (
-              <StatChip label="SPO" value={`≥${thresholds.pvt}%`} />
+            {resolvedThresholds.pvt !== null && (
+              <StatChip label="SPO" value={`≥${resolvedThresholds.pvt}%`} />
             )}
-            {thresholds.isInfoAction && (
+            {resolvedThresholds.isInfoAction && (
               <span className="self-center text-[10px] italic text-gray-400">No ratification threshold</span>
             )}
           </div>
@@ -268,10 +268,7 @@ export const ProposalContentOverlay = ({
               yesCount={yesCount}
               noCount={noCount}
               abstainCount={abstainCount}
-              yesStake={yesStake}
-              noStake={noStake}
-              abstainStake={abstainStake}
-              threshold={thresholds.isInfoAction ? null : thresholds.dvt}
+              threshold={resolvedThresholds.isInfoAction ? null : resolvedThresholds.dvt}
             />
           </div>
         )}
