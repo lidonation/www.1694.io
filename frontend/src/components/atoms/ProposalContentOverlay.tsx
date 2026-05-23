@@ -26,8 +26,8 @@ const SlideUp = React.forwardRef(function SlideUp(
 });
 
 const VOTE_CFG: Record<string, { badge: string; Icon: any }> = {
-  Yes:     { badge: 'bg-success/20 text-green-700',            Icon: CheckCircleOutline },
-  No:      { badge: 'bg-red-100 text-red-700',                 Icon: HighlightOff },
+  Yes:     { badge: 'bg-success/20 text-green-700',                Icon: CheckCircleOutline },
+  No:      { badge: 'bg-red-100 text-red-700',                     Icon: HighlightOff },
   Abstain: { badge: 'bg-complementary-100 text-complementary-400', Icon: RemoveCircleOutline },
 };
 
@@ -41,45 +41,62 @@ const StatChip = ({ label, value }: { label: string; value: string | number }) =
   </span>
 );
 
-// ── Vote bar ──────────────────────────────────────────────────────────────────
+// ── Vote bar (stake-weighted) ─────────────────────────────────────────────────
 const VoteBar = ({
-  yes, no, abstain, threshold,
-}: { yes: number; no: number; abstain: number; threshold: number | null }) => {
-  const total = yes + no + abstain;
-  if (total === 0) return null;
+  yesCount, noCount, abstainCount,
+  yesStake, noStake, abstainStake,
+  threshold,
+}: {
+  yesCount: number; noCount: number; abstainCount: number;
+  yesStake: number; noStake: number; abstainStake: number;
+  threshold: number | null;
+}) => {
+  const totalCount = yesCount + noCount + abstainCount;
+  if (totalCount === 0) return null;
 
-  const yesPct  = (yes     / total) * 100;
-  const noPct   = (no      / total) * 100;
-  const absPct  = (abstain / total) * 100;
+  // Stake-weighted percentages (Cardano ratification formula: yes / (yes + no), abstain excluded)
+  const hasStake = yesStake + noStake + abstainStake > 0;
+  const votedStake = yesStake + noStake;
+
+  const yesPct = hasStake && votedStake > 0 ? (yesStake / votedStake) * 100 : (yesCount / (yesCount + noCount || 1)) * 100;
+  const noPct  = hasStake && votedStake > 0 ? (noStake  / votedStake) * 100 : (noCount  / (yesCount + noCount || 1)) * 100;
+
+  // Bar segments proportional to total stake (or count if no stake data)
+  const totalForBar = hasStake ? yesStake + noStake + abstainStake : totalCount;
+  const yesBarPct  = totalForBar > 0 ? (hasStake ? yesStake     : yesCount)     / totalForBar * 100 : 0;
+  const noBarPct   = totalForBar > 0 ? (hasStake ? noStake      : noCount)      / totalForBar * 100 : 0;
+  const absBarPct  = totalForBar > 0 ? (hasStake ? abstainStake : abstainCount) / totalForBar * 100 : 0;
+
+  const thresholdMet = threshold !== null && yesPct >= threshold;
 
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-2">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px]">
         <span className="flex items-center gap-1">
           <span className="inline-block h-2 w-2 rounded-full bg-success" />
-          <span className="font-semibold text-gray-700">{yes}</span>
+          <span className="font-semibold text-gray-700">{yesCount}</span>
           <span className="text-gray-400">Yes</span>
           <span className="text-gray-300">·</span>
-          <span className="text-gray-500">{yesPct.toFixed(1)}%</span>
+          <span className="text-gray-600">{yesPct.toFixed(1)}%</span>
         </span>
         <span className="flex items-center gap-1">
           <span className="inline-block h-2 w-2 rounded-full bg-extra_red" />
-          <span className="font-semibold text-gray-700">{no}</span>
+          <span className="font-semibold text-gray-700">{noCount}</span>
           <span className="text-gray-400">No</span>
           <span className="text-gray-300">·</span>
-          <span className="text-gray-500">{noPct.toFixed(1)}%</span>
+          <span className="text-gray-600">{noPct.toFixed(1)}%</span>
         </span>
         <span className="flex items-center gap-1">
           <span className="inline-block h-2 w-2 rounded-full bg-complementary-200" />
-          <span className="font-semibold text-gray-700">{abstain}</span>
+          <span className="font-semibold text-gray-700">{abstainCount}</span>
           <span className="text-gray-400">Abstain</span>
         </span>
       </div>
 
-      <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-gray-100">
-        <div className="absolute left-0 top-0 h-full bg-success"      style={{ width: `${yesPct}%` }} />
-        <div className="absolute top-0 h-full bg-extra_red"           style={{ left: `${yesPct}%`, width: `${noPct}%` }} />
-        <div className="absolute top-0 h-full bg-complementary-200"   style={{ left: `${yesPct + noPct}%`, width: `${absPct}%` }} />
+      <div className="relative h-3 w-full overflow-hidden rounded-full bg-gray-100">
+        <div className="absolute left-0 top-0 h-full bg-success"    style={{ width: `${yesBarPct}%` }} />
+        <div className="absolute top-0 h-full bg-extra_red"         style={{ left: `${yesBarPct}%`, width: `${noBarPct}%` }} />
+        <div className="absolute top-0 h-full bg-complementary-200" style={{ left: `${yesBarPct + noBarPct}%`, width: `${absBarPct}%` }} />
         {threshold !== null && (
           <Tooltip title={`Ratification threshold: ${threshold}%`} placement="top" arrow>
             <div
@@ -91,9 +108,9 @@ const VoteBar = ({
       </div>
 
       {threshold !== null && (
-        <p className="text-[10px] text-gray-400">
-          Threshold <span className="font-semibold text-gray-600">{threshold}%</span>
-          {yesPct >= threshold && (
+        <p className="text-[11px] text-gray-500">
+          Threshold <span className="font-semibold text-gray-700">{threshold}%</span>
+          {thresholdMet && (
             <span className="ml-2 font-semibold text-green-600">✓ Threshold met</span>
           )}
         </p>
@@ -120,6 +137,9 @@ export interface ProposalContentOverlayProps {
   yesCount?: number;
   noCount?: number;
   abstainCount?: number;
+  yesStake?: number;
+  noStake?: number;
+  abstainStake?: number;
   govActionHash?: string | null;
   govActionId?: string | null;
   txHash?: string | null;
@@ -143,6 +163,9 @@ export const ProposalContentOverlay = ({
   yesCount = 0,
   noCount = 0,
   abstainCount = 0,
+  yesStake = 0,
+  noStake = 0,
+  abstainStake = 0,
   govActionHash,
   govActionId,
   txHash,
@@ -189,26 +212,26 @@ export const ProposalContentOverlay = ({
         },
       }}
     >
-      {/* ── Header: vote badge + type + lifecycle + title ── */}
-      <div className="flex items-start justify-between gap-3 border-b border-gray-100 px-5 py-4">
-        <div className="flex min-w-0 flex-col gap-1.5">
-          <div className="flex flex-wrap items-center gap-2">
-            <div className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${voteCfg.badge}`}>
-              <voteCfg.Icon sx={{ fontSize: 14 }} />
-              <span>{voteKey}</span>
-            </div>
-            {type && (
-              <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-600">
-                {type}
-              </span>
-            )}
-            <GovernanceLifecycleBadge status={lifecycleStatus} />
-          </div>
+      {/* ── Header: title prominent + close; vote badge row below ── */}
+      <div className="border-b border-gray-100 px-5 pb-3 pt-4">
+        <div className="flex items-start justify-between gap-3">
           <h2 className="text-sm font-bold leading-snug text-titles">{title || '—'}</h2>
+          <IconButton onClick={onClose} size="small" sx={{ mt: -0.5, flexShrink: 0 }}>
+            <Close fontSize="small" />
+          </IconButton>
         </div>
-        <IconButton onClick={onClose} size="small" sx={{ mt: -0.5, flexShrink: 0 }}>
-          <Close fontSize="small" />
-        </IconButton>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <div className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${voteCfg.badge}`}>
+            <voteCfg.Icon sx={{ fontSize: 14 }} />
+            <span>{voteKey}</span>
+          </div>
+          {type && (
+            <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-600">
+              {type}
+            </span>
+          )}
+          <GovernanceLifecycleBadge status={lifecycleStatus} />
+        </div>
       </div>
 
       {/* ── Scrollable body ── */}
@@ -227,10 +250,10 @@ export const ProposalContentOverlay = ({
               <StatChip label="Active" value={`${govActionLifetime} epochs`} />
             )}
             {!thresholds.isInfoAction && thresholds.dvt !== null && (
-              <StatChip label={thresholds.dvtLabel ?? 'DRep Threshold'} value={`≥${thresholds.dvt}%`} />
+              <StatChip label={thresholds.dvtLabel ?? 'DRep'} value={`≥${thresholds.dvt}%`} />
             )}
             {thresholds.pvt !== null && (
-              <StatChip label="SPO Threshold" value={`≥${thresholds.pvt}%`} />
+              <StatChip label="SPO" value={`≥${thresholds.pvt}%`} />
             )}
             {thresholds.isInfoAction && (
               <span className="self-center text-[10px] italic text-gray-400">No ratification threshold</span>
@@ -240,12 +263,14 @@ export const ProposalContentOverlay = ({
 
         {/* Vote breakdown + progress bar */}
         {hasVoteCounts && (
-          <div className="border-b border-gray-50 px-5 py-3">
-            <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-gray-400">DRep Vote Breakdown</p>
+          <div className="border-b border-gray-50 px-5 py-4">
             <VoteBar
-              yes={yesCount}
-              no={noCount}
-              abstain={abstainCount}
+              yesCount={yesCount}
+              noCount={noCount}
+              abstainCount={abstainCount}
+              yesStake={yesStake}
+              noStake={noStake}
+              abstainStake={abstainStake}
               threshold={thresholds.isInfoAction ? null : thresholds.dvt}
             />
           </div>
