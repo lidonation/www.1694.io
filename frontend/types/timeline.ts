@@ -27,6 +27,13 @@ export type DrepVote = {
   timestamp: string;
   txHash?: string;
   tx_hash?: string;
+  governance_type?: string | null;
+  ratified_epoch?: number | null;
+  dropped_epoch?: number | null;
+  expired_epoch?: number | null;
+  drep_yes_count?: number;
+  drep_no_count?: number;
+  drep_abstain_count?: number;
   proposal?: {
     title: string | null;
     abstract: string | null;

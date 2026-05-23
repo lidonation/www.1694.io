@@ -384,23 +384,84 @@ export class DRepRepository extends Repository<VoltaireDrep> {
       .orderBy('event.timestamp', 'DESC')
       .getMany();
 
-    return votingEvents.map((event) => ({
-      view: drepVoterId,
-      gov_action_proposal_id:
-        event.metadata?.gov_action_proposal_id ||
-        event.metadata?.proposalId ||
-        'unknown',
-      prop_inception: event.timestamp,
-      type: 'voting_activity',
-      description: event.metadata?.description || 'Voting activity',
-      voting_anchor_id: event.metadata?.voting_anchor_id || 'unknown',
-      vote: event.metadata?.vote || 'unknown',
-      metadata: event.metadata || {},
-      time_voted: event.timestamp,
-      proposal_epoch: event.epoch,
-      voting_epoch: event.epoch,
-      url: event.metadata?.url || null,
-    }));
+    if (votingEvents.length === 0) return [];
+
+    // Batch-enrich with proposal lifecycle fields and DRep vote counts
+    const proposalIds = [
+      ...new Set(
+        votingEvents
+          .map((e) => e.metadata?.gov_action_proposal_id || e.metadata?.proposalId)
+          .filter(Boolean),
+      ),
+    ];
+
+    type ProposalRow = {
+      id: string;
+      governance_type: string | null;
+      expiration_epoch: string | null;
+      ratified_epoch: string | null;
+      enacted_epoch: string | null;
+      dropped_epoch: string | null;
+      expired_epoch: string | null;
+    };
+    type VoteCountRow = {
+      proposal_id: string;
+      drep_yes_count: string;
+      drep_no_count: string;
+      drep_abstain_count: string;
+    };
+
+    const [proposalRows, voteCountRows] = await Promise.all([
+      this.voltaireDb.query<ProposalRow[]>(
+        `SELECT id, governance_type, expiration_epoch, ratified_epoch, enacted_epoch,
+                dropped_epoch, expired_epoch
+         FROM proposals WHERE id = ANY($1)`,
+        [proposalIds],
+      ),
+      this.voltaireDb.query<VoteCountRow[]>(
+        `SELECT proposal_id,
+                COUNT(*) FILTER (WHERE LOWER(vote) = 'yes')     AS drep_yes_count,
+                COUNT(*) FILTER (WHERE LOWER(vote) = 'no')      AS drep_no_count,
+                COUNT(*) FILTER (WHERE LOWER(vote) = 'abstain') AS drep_abstain_count
+         FROM proposal_votes
+         WHERE LOWER(voter_role) = 'drep' AND proposal_id = ANY($1)
+         GROUP BY proposal_id`,
+        [proposalIds],
+      ),
+    ]);
+
+    const proposalMap = new Map(proposalRows.map((p) => [p.id, p]));
+    const voteMap = new Map(voteCountRows.map((v) => [v.proposal_id, v]));
+
+    return votingEvents.map((event) => {
+      const proposalId =
+        event.metadata?.gov_action_proposal_id || event.metadata?.proposalId || 'unknown';
+      const p = proposalMap.get(proposalId);
+      const vc = voteMap.get(proposalId);
+      return {
+        view: drepVoterId,
+        gov_action_proposal_id: proposalId,
+        prop_inception: event.timestamp,
+        type: 'voting_activity',
+        description: event.metadata?.description || 'Voting activity',
+        voting_anchor_id: event.metadata?.voting_anchor_id || 'unknown',
+        vote: event.metadata?.vote || 'unknown',
+        metadata: event.metadata || {},
+        time_voted: event.timestamp,
+        proposal_epoch: event.epoch,
+        voting_epoch: event.epoch,
+        url: event.metadata?.url || null,
+        governance_type: p?.governance_type ?? null,
+        expiration_epoch: p?.expiration_epoch != null ? Number(p.expiration_epoch) : null,
+        ratified_epoch: p?.ratified_epoch != null ? Number(p.ratified_epoch) : null,
+        enacted_epoch: p?.enacted_epoch != null ? Number(p.enacted_epoch) : null,
+        dropped_epoch: p?.dropped_epoch != null ? Number(p.dropped_epoch) : null,
+        expired_epoch: p?.expired_epoch != null ? Number(p.expired_epoch) : null,
+        drep_yes_count: vc ? Number(vc.drep_yes_count) : 0,
+        drep_no_count: vc ? Number(vc.drep_no_count) : 0,
+        drep_abstain_count: vc ? Number(vc.drep_abstain_count) : 0,
+      };
+    });
   }
 
   async getEpochParams() {

@@ -131,6 +131,16 @@ const DrepVoteTimelineCard = ({
   const govActionHash = (item as any)?.govActionHash || (item as any)?.gov_action_hash || (item as any)?.proposal?.anchorHash;
   const txHash = item?.txHash || (item as any)?.tx_hash;
 
+  const yesCount     = (item as any)?.drep_yes_count     ?? 0;
+  const noCount      = (item as any)?.drep_no_count      ?? 0;
+  const abstainCount = (item as any)?.drep_abstain_count ?? 0;
+  const hasVoteCounts = yesCount + noCount + abstainCount > 0;
+
+  const startEpoch =
+    item?.expiration_epoch != null && epochParams?.gov_action_lifetime != null
+      ? item.expiration_epoch - epochParams.gov_action_lifetime
+      : null;
+
   // ── MINIMAL MODE ────────────────────────────────────────────────────────────
   if (minimal) {
     return (
@@ -179,7 +189,28 @@ const DrepVoteTimelineCard = ({
           )}
         </div>
 
-        {/* Row 4: single Read button */}
+        {/* Row 4: compact vote counts */}
+        {hasVoteCounts && (
+          <div className="flex items-center gap-2.5 text-[9px]">
+            <span className="flex items-center gap-1">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-success" />
+              <span className="font-semibold text-gray-700">{yesCount}</span>
+              <span className="text-gray-400">Yes</span>
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-extra_red" />
+              <span className="font-semibold text-gray-700">{noCount}</span>
+              <span className="text-gray-400">No</span>
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-complementary-200" />
+              <span className="font-semibold text-gray-700">{abstainCount}</span>
+              <span className="text-gray-400">Abstain</span>
+            </span>
+          </div>
+        )}
+
+        {/* Row 5: single Read button */}
         <button
           onClick={() => setOverlayOpen(true)}
           className="flex items-center gap-1 self-start rounded-full bg-primary-50 px-2.5 py-1 text-[10px] font-semibold text-primary-300 hover:bg-primary-100"
@@ -200,6 +231,11 @@ const DrepVoteTimelineCard = ({
           lifecycleStatus={lifecycleStatus}
           thresholds={thresholds}
           expirationEpoch={item?.expiration_epoch ?? null}
+          startEpoch={startEpoch}
+          govActionLifetime={epochParams?.gov_action_lifetime ?? null}
+          yesCount={yesCount}
+          noCount={noCount}
+          abstainCount={abstainCount}
           govActionHash={govActionHash}
           govActionId={(item as any)?.gov_action_proposal_id}
           txHash={txHash}
@@ -331,6 +367,11 @@ const DrepVoteTimelineCard = ({
         lifecycleStatus={lifecycleStatus}
         thresholds={thresholds}
         expirationEpoch={item?.expiration_epoch ?? null}
+        startEpoch={startEpoch}
+        govActionLifetime={epochParams?.gov_action_lifetime ?? null}
+        yesCount={yesCount}
+        noCount={noCount}
+        abstainCount={abstainCount}
         govActionHash={govActionHash}
         govActionId={(item as any)?.gov_action_proposal_id}
         txHash={txHash}
