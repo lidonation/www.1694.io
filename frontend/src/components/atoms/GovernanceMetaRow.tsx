@@ -22,7 +22,9 @@ const GovernanceMetaRow = ({
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 pt-1 text-[10px] text-gray-500">
       <GovernanceLifecycleBadge status={status} />
 
-      {!isInfoAction && dvt !== null && (
+      {isInfoAction ? (
+        <span className="italic text-gray-400">No ratification threshold</span>
+      ) : dvt !== null && (
         <Tooltip
           title={pvt !== null ? `DRep ≥${dvt}%  ·  SPO ≥${pvt}%` : `${dvtLabel ?? 'DRep'} ≥${dvt}%`}
           placement="top"
@@ -36,16 +38,19 @@ const GovernanceMetaRow = ({
         </Tooltip>
       )}
 
+      {govActionLifetime !== null && (
+        <span>
+          Active{' '}
+          <span className="font-semibold text-gray-600">{govActionLifetime}</span>{' '}
+          epochs
+        </span>
+      )}
+
       {expirationEpoch !== null && (
-        <Tooltip
-          title={govActionLifetime ? `Ratification window: ${govActionLifetime} epochs` : ''}
-          placement="top"
-          arrow
-        >
-          <span className="cursor-default border-b border-dashed border-gray-300">
-            Epoch <span className="font-semibold text-gray-700">{expirationEpoch}</span>
-          </span>
-        </Tooltip>
+        <span>
+          Expires Ep.{' '}
+          <span className="font-semibold text-gray-700">{expirationEpoch}</span>
+        </span>
       )}
     </div>
   );

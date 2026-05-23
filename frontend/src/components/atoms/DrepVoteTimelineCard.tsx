@@ -144,12 +144,16 @@ const DrepVoteTimelineCard = ({
     || proposalMetadata?.body?.title
     || proposalMetadata?.title;
 
-  const description = (item as DrepVote).proposal?.rationale
+  const rawDescription = (item as DrepVote).proposal?.rationale
     || (item as DrepVote).proposal?.abstract
     || proposalMetadata?.body?.abstract
     || proposalMetadata?.abstract
     || proposalMetadata?.body?.rationale
     || proposalMetadata?.rationale;
+
+  // Skip descriptions that are just URL references — not useful in a card
+  const URL_ONLY = /^(https?:\/\/\S+|proposal\s+as\s+pdf\s*:)/i;
+  const description = rawDescription && !URL_ONLY.test(rawDescription.trim()) ? rawDescription : null;
 
   const isEnacted = item?.enacted_epoch && latestEpoch > item?.enacted_epoch;
   const isExpired = item?.expiration_epoch && latestEpoch > item?.expiration_epoch;
@@ -212,7 +216,7 @@ const DrepVoteTimelineCard = ({
           </div>
         )}
 
-        {/* Type chip + lifecycle badge */}
+        {/* Type chip row — badge only in minimal mode (GovernanceMetaRow owns it in normal mode) */}
         <div className="flex flex-wrap items-center gap-1.5">
           {typeChip && (
             <span className={`inline-flex items-center gap-1 rounded-full ${typeChip.bg} ${minimal ? 'px-1.5 py-0.5 text-[9px]' : 'px-2.5 py-0.5 text-[10px]'} font-medium`}>
@@ -220,10 +224,10 @@ const DrepVoteTimelineCard = ({
               {typeChip.label}
             </span>
           )}
-          <GovernanceLifecycleBadge status={lifecycleStatus} minimal={minimal} />
+          {minimal && <GovernanceLifecycleBadge status={lifecycleStatus} minimal />}
         </div>
 
-        {/* Governance meta row (full card only) */}
+        {/* Governance meta row — badge + thresholds + expiration (normal mode only) */}
         {!minimal && (
           <GovernanceMetaRow
             status={lifecycleStatus}

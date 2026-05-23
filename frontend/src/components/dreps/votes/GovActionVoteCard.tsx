@@ -3,9 +3,10 @@ import MarkdownParser from '@/components/atoms/MarkdownParser';
 import { ViewExternalGovAction } from '@/components/atoms/ViewExternalGovAction';
 import GovernanceLifecycleBadge from '@/components/atoms/GovernanceLifecycleBadge';
 import { useGetProposalMetadataByHashQuery } from '@/hooks/useGetProposalMetadataByHash';
+import { useEpochParamsQuery } from '@/hooks/useEpochParamsQuery';
 import { formatIsoTime } from '@/lib';
-import { getLifecycleStatus } from '@/lib/governanceThresholds';
-import { Alert, Box } from '@mui/material';
+import { getLifecycleStatus, getThresholdsForType } from '@/lib/governanceThresholds';
+import { Alert, Box, Tooltip } from '@mui/material';
 import { useState, useRef, useEffect } from 'react';
 import { RationaleDataVariants } from '../../../../types/commonTypes';
 import { useGetExternalMetadata } from '@/hooks/useGetExternalMetadata';
@@ -61,12 +62,16 @@ export const GovActionVoteCard = ({ action }) => {
     proposalMetadata?.body?.rationale ||
     proposalMetadata?.rationale;
 
+  const { epochParams } = useEpochParamsQuery();
+
   const lifecycleStatus = getLifecycleStatus({
     ratified_epoch: action?.ratified_epoch,
     enacted_epoch: action?.enacted_epoch,
     expired_epoch: action?.expired_epoch,
     dropped_epoch: action?.dropped_epoch,
   });
+
+  const thresholds = getThresholdsForType(action?.governance_type || action?.type, epochParams);
 
   useEffect(() => {
     setRationaleData(null);
@@ -124,14 +129,36 @@ export const GovActionVoteCard = ({ action }) => {
             )}
           </div>
 
-          {/* Type + lifecycle */}
-          <div className="flex flex-wrap items-center gap-1.5">
+          {/* Type + lifecycle + thresholds + expiration */}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-gray-500">
             {(action?.type || action?.description?.tag) && (
-              <span className="rounded-full bg-extra_gray px-2 py-0.5 text-[10px] font-medium text-gray-600">
+              <span className="rounded-full bg-extra_gray px-2 py-0.5 font-medium text-gray-600">
                 {action?.type || action?.description?.tag}
               </span>
             )}
             <GovernanceLifecycleBadge status={lifecycleStatus} />
+
+            {thresholds.isInfoAction ? (
+              <span className="italic text-gray-400">No ratification threshold</span>
+            ) : thresholds.dvt !== null && (
+              <Tooltip
+                title={thresholds.pvt !== null ? `DRep ≥${thresholds.dvt}%  ·  SPO ≥${thresholds.pvt}%` : `${thresholds.dvtLabel ?? 'DRep'} ≥${thresholds.dvt}%`}
+                placement="top"
+                arrow
+              >
+                <span className="cursor-default border-b border-dashed border-gray-300">
+                  <span className="font-semibold text-gray-600">{thresholds.dvtLabel ?? 'DRep'}</span>
+                  {' ≥'}{thresholds.dvt}%
+                  {thresholds.pvt !== null && <span className="text-gray-400">  ·  SPO ≥{thresholds.pvt}%</span>}
+                </span>
+              </Tooltip>
+            )}
+
+            {action?.expiration_epoch != null && (
+              <span>
+                Expires Ep. <span className="font-semibold text-gray-700">{action.expiration_epoch}</span>
+              </span>
+            )}
           </div>
 
           {/* Rationale */}
