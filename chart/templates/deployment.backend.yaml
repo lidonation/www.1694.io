@@ -61,11 +61,9 @@ spec:
             - -c
             - |
               until pg_isready -h "$DATABASE_HOST" -p "$DATABASE_PORT" -U "$DATABASE_USERNAME" -d "$DATABASE_NAME" -q; do
-                echo "Waiting for database..."
                 sleep 2
               done
-              echo "Database ready, running migrations..."
-              yarn run migrate:up
+              node ./node_modules/typeorm/cli.js migration:run -d src/typeorm.config.js
               echo "Migrations complete."
           resources:
             limits:

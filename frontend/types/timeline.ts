@@ -27,6 +27,13 @@ export type DrepVote = {
   timestamp: string;
   txHash?: string;
   tx_hash?: string;
+  governance_type?: string | null;
+  ratified_epoch?: number | null;
+  dropped_epoch?: number | null;
+  expired_epoch?: number | null;
+  drep_yes_count?: number;
+  drep_no_count?: number;
+  drep_abstain_count?: number;
   proposal?: {
     title: string | null;
     abstract: string | null;
@@ -48,7 +55,8 @@ export type Delegation = {
   timestamp: string;
   delegation_epoch: number;
   tx_hash: string;
-  type: 'delegation';
+  type: 'delegation' | 'undelegation';
+  eventType?: 'delegation' | 'undelegation';
   total_stake: string;
   added_power: boolean;
 };

@@ -5,8 +5,9 @@ import { Queues, JobTypes } from '../queue.types';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource, MoreThan } from 'typeorm';
 import { DrepTimelineEvent } from '../entities/governance/drep-timeline-event.entity';
+import { DrepDelegator } from '../entities/governance/drep-delegator.entity';
 import { SyncState } from '../entities/sync-state.entity';
-import { DrepDelegator } from '../entities/drep-delegator.entity';
+import { BlockfrostService } from '../blockfrost/blockfrost.service';
 
 @Injectable()
 @Processor(Queues.TIMELINE_WATCHER)
@@ -17,6 +18,7 @@ export class TimelineWatcherWorker extends WorkerHost {
   constructor(
     @InjectDataSource('default')
     private readonly dataSource: DataSource,
+    private readonly blockfrostService: BlockfrostService,
     @InjectQueue(Queues.GOVERNANCE_SYNC)
     private readonly governanceSyncQueue: Queue,
     @InjectQueue(Queues.PROPOSALS_SYNC)
@@ -27,10 +29,9 @@ export class TimelineWatcherWorker extends WorkerHost {
     super();
   }
 
-  async process(job: Job): Promise<any> {
+  async process(_job: Job): Promise<any> {
     const syncStateRepo = this.dataSource.getRepository(SyncState);
     const timelineRepo = this.dataSource.getRepository(DrepTimelineEvent);
-    const drepDelegatorRepo = this.dataSource.getRepository(DrepDelegator);
 
     let state = await syncStateRepo.findOne({ where: { key: this.STATE_KEY } });
     if (!state) {
@@ -59,29 +60,40 @@ export class TimelineWatcherWorker extends WorkerHost {
           triggeredSyncs.add('dreps');
           break;
         case 'delegation': {
-          triggeredSyncs.add('delegators');
-          
-          // Undelegation synthesis logic
           const stakeAddress = event.metadata?.stake_address;
           if (stakeAddress) {
-            const currentDrep = await drepDelegatorRepo.findOne({ where: { stakeAddress } });
-            
-            if (currentDrep && currentDrep.drepId !== event.drepId) {
-              this.logger.debug(`Synthesizing undelegation event for ${currentDrep.drepId} (Delegator: ${stakeAddress})`);
-              const undelegationEvent = timelineRepo.create({
-                eventType: 'undelegation',
-                timestamp: event.timestamp,
-                epoch: event.epoch,
-                slot: event.slot,
-                txHash: event.txHash,
-                blockHash: event.blockHash,
-                drepId: currentDrep.drepId,
-                metadata: {
-                  ...event.metadata,
-                  target_drep: event.drepId,
-                }
+            await this.updateDelegatorVotingPower(stakeAddress);
+
+            const prevRows = await this.dataSource.query<{ drep_id: string }[]>(
+              `SELECT drep_id FROM drep_timeline_event
+               WHERE event_type = 'delegation'
+                 AND metadata->>'stake_address' = $1
+                 AND id < $2
+               ORDER BY id DESC LIMIT 1`,
+              [stakeAddress, event.id],
+            );
+            const previousDrepId = prevRows[0]?.drep_id ?? null;
+
+            if (previousDrepId && previousDrepId !== event.drepId) {
+              const alreadySynthesized = await timelineRepo.findOne({
+                where: { eventType: 'undelegation', txHash: event.txHash, drepId: previousDrepId },
               });
-              await timelineRepo.save(undelegationEvent);
+
+              if (!alreadySynthesized) {
+                this.logger.debug(`Synthesizing undelegation: ${previousDrepId} → ${event.drepId} (${stakeAddress})`);
+                await timelineRepo.save(
+                  timelineRepo.create({
+                    eventType: 'undelegation',
+                    timestamp: event.timestamp,
+                    epoch: event.epoch,
+                    slot: event.slot,
+                    txHash: event.txHash,
+                    blockHash: event.blockHash,
+                    drepId: previousDrepId,
+                    metadata: { ...event.metadata, target_drep: event.drepId },
+                  }),
+                );
+              }
             }
           }
           break;
@@ -98,10 +110,6 @@ export class TimelineWatcherWorker extends WorkerHost {
     if (triggeredSyncs.has('dreps')) {
       await this.governanceSyncQueue.add(JobTypes.GOVERNANCE_SYNC, { syncOnly: 'dreps' });
       this.logger.debug('Triggered DRep sync');
-    }
-    if (triggeredSyncs.has('delegators')) {
-      await this.governanceSyncQueue.add(JobTypes.GOVERNANCE_SYNC, { syncOnly: 'delegators' });
-      this.logger.debug('Triggered delegators sync');
     }
     if (triggeredSyncs.has('proposals')) {
       await this.proposalsSyncQueue.add(JobTypes.PROPOSALS_SYNC, {});
@@ -122,5 +130,21 @@ export class TimelineWatcherWorker extends WorkerHost {
       lastId: state.lastProcessedId,
       triggers: Array.from(triggeredSyncs),
     };
+  }
+
+  private async updateDelegatorVotingPower(stakeAddress: string): Promise<void> {
+    try {
+      const info = await this.blockfrostService.getStakeAddressInfo(stakeAddress);
+      if (!info?.controlled_amount) return;
+
+      await this.dataSource
+        .createQueryBuilder()
+        .update(DrepDelegator)
+        .set({ votingPowerLovelace: info.controlled_amount, updatedAt: new Date() })
+        .where('stake_address = :stakeAddress', { stakeAddress })
+        .execute();
+    } catch (err) {
+      this.logger.warn(`Voting power update failed for ${stakeAddress}: ${err.message}`);
+    }
   }
 }

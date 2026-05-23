@@ -190,7 +190,7 @@ export default function DrepTimelineMobile({
                     {item.type === 'claimed_profile' && <ProfileClaimedChip claimedAddress={item.claimedDRepId} dateOfClaim={item.timestamp} />}
                     {item.type === 'voting_activity' && <DrepVoteTimelineCard item={item} isVoteOwner={isOwner} minimal={true} />}
                     {item.type === 'delegation' && <DrepDelegatorCard item={item} />}
-                    {item.type === 'bundled_delegations' && <BundledDelegations items={item.items} />}
+                    {item.type === 'bundled_delegations' && <BundledDelegations items={item.items} bundleType={item.bundleType} />}
                   </Box>
                 </TimelineContent>
               </TimelineItem>

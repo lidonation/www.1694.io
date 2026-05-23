@@ -244,11 +244,27 @@ export class GovernanceService {
       this.fetchNotesInRange(voterId, startTime, endTime, options.filterValues),
     ]);
 
+    // Batch-load delegator voting power for events missing total_stake in metadata
+    const delegationEvents = timelineEntities.entities.filter(
+      e => (e.eventType === 'delegation' || e.eventType === 'undelegation') && !e.metadata?.total_stake
+    );
+    const stakeAddresses = [
+      ...new Set(delegationEvents.map(e => e.stakeAddress || e.metadata?.stake_address).filter(Boolean))
+    ];
+    const stakePowerMap = new Map<string, string>();
+    if (stakeAddresses.length > 0) {
+      const rows = await this.governanceDataSource.query<{ stake_address: string; voting_power_lovelace: string }[]>(
+        `SELECT stake_address, voting_power_lovelace FROM drep_delegators WHERE stake_address = ANY($1) AND voting_power_lovelace IS NOT NULL`,
+        [stakeAddresses],
+      );
+      rows.forEach(r => stakePowerMap.set(r.stake_address, r.voting_power_lovelace));
+    }
+
     // 3. Aggregate all events
     const allEvents: any[] = [];
 
     timelineEntities.entities.forEach(event => {
-      const formatted: any = this.formatTimelineEventForAPI(event);
+      const formatted: any = this.formatTimelineEventForAPI(event, stakePowerMap);
       if (formatted.type === 'voting_activity') {
         const rawData = timelineEntities.raw.find(r => r.event_id === event.id || r.id === event.id);
         if (rawData) {
@@ -310,28 +326,36 @@ export class GovernanceService {
       // Sort events within epoch (DESC)
       epochEvents.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime() || b.id.localeCompare(a.id));
 
-      const items = [];
-      let currentDelegationBundle: BundledDelegations | null = null;
+      const rawItems = [];
+      let currentBundle: BundledDelegations | null = null;
 
       for (const ev of epochEvents) {
-        if (ev.type === 'delegation') {
-          if (!currentDelegationBundle) {
-            currentDelegationBundle = {
+        if (ev.type === 'delegation' || ev.type === 'undelegation') {
+          if (!currentBundle || currentBundle.bundleType !== ev.type) {
+            currentBundle = {
               type: 'bundled_delegations',
-              id: `bundle-del-e${e}-${ev.id}`,
+              bundleType: ev.type,
+              id: `bundle-${ev.type}-e${e}-${ev.id}`,
               timestamp: ev.timestamp,
               items: [ev],
               epochNo: e,
             };
-            items.push(currentDelegationBundle);
+            rawItems.push(currentBundle);
           } else {
-            currentDelegationBundle.items.push(ev);
+            currentBundle.items.push(ev);
           }
         } else {
-          currentDelegationBundle = null;
-          items.push(ev);
+          currentBundle = null;
+          rawItems.push(ev);
         }
       }
+
+      // Expand single-item bundles back to standalone events
+      const items = rawItems.flatMap(item =>
+        item.type === 'bundled_delegations' && item.items.length === 1
+          ? [item.items[0]]
+          : [item],
+      );
 
       epochGroups.push({
         epochNo: e,
@@ -534,7 +558,7 @@ export class GovernanceService {
     return epochEvents;
   }
 
-  private formatTimelineEventForAPI(event: DrepTimelineEvent) {
+  private formatTimelineEventForAPI(event: DrepTimelineEvent, stakePowerMap?: Map<string, string>) {
     // Map database event types to frontend expected types
     const typeMapping = {
       'vote': 'voting_activity',
@@ -560,11 +584,11 @@ export class GovernanceService {
       metadata: event.metadata,
       payload: event.metadata,
       ...(mappedType === 'delegation' && event.metadata ? {
-        stake_address: event.metadata.stake_address,
+        stake_address: event.stakeAddress || event.metadata.stake_address,
         current_drep: event.metadata.current_drep,
-        previous_drep: event.metadata.previous_drep,
-        total_stake: event.metadata.total_stake,
-        added_power: event.metadata.added_power,
+        previous_drep: event.previousDrep || event.metadata.previous_drep,
+        total_stake: event.metadata.total_stake || stakePowerMap?.get(event.stakeAddress || event.metadata.stake_address) || '0',
+        added_power: event.metadata.added_power ?? true,
         delegation_epoch: event.epoch,
         tx_hash: event.txHash
       } : {}),
@@ -582,7 +606,7 @@ export class GovernanceService {
         stake_address: event.metadata.stake_address,
         current_drep: event.metadata.target_drep || event.metadata.current_drep,
         previous_drep: event.drepId,
-        total_stake: event.metadata.total_stake,
+        total_stake: event.metadata.total_stake || stakePowerMap?.get(event.metadata.stake_address) || '0',
         added_power: false,
         delegation_epoch: event.epoch,
         tx_hash: event.txHash

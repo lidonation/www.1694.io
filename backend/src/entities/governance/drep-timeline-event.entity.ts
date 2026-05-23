@@ -32,6 +32,12 @@ export class DrepTimelineEvent {
   @Column({ name: 'drep_id', type: 'text', nullable: true })
   drepId: string | null;
 
+  @Column({ name: 'stake_address', type: 'text', nullable: true })
+  stakeAddress: string | null;
+
+  @Column({ name: 'previous_drep', type: 'text', nullable: true })
+  previousDrep: string | null;
+
   @Column({ name: 'metadata', type: 'jsonb' })
   metadata: any;
 
