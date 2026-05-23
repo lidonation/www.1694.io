@@ -737,7 +737,7 @@ export class DRepRepository extends Repository<VoltaireDrep> {
 
     const dataQuery = `
       SELECT * FROM (
-        SELECT 
+        SELECT
           v.tx_hash as vote_tx_hash,
           p.tx_hash as proposal_tx_hash,
           v.vote,
@@ -754,13 +754,26 @@ export class DRepRepository extends Repository<VoltaireDrep> {
           m.json_metadata->'body'->>'abstract' as abstract,
           m.json_metadata->'body'->>'rationale' as rationale,
           m.hash as proposal_anchor_hash,
+          COALESCE(vc.drep_yes_count, 0) as drep_yes_count,
+          COALESCE(vc.drep_no_count, 0) as drep_no_count,
+          COALESCE(vc.drep_abstain_count, 0) as drep_abstain_count,
           ROW_NUMBER() OVER (
-            PARTITION BY v.proposal_id 
+            PARTITION BY v.proposal_id
             ORDER BY v.block_time DESC NULLS LAST, v.created_at DESC
           ) as row_num
         FROM proposal_votes v
         LEFT JOIN proposals p ON v.proposal_id = p.id
         LEFT JOIN proposal_metadata m ON p.id = m.proposal_id
+        LEFT JOIN (
+          SELECT
+            proposal_id,
+            COUNT(*) FILTER (WHERE LOWER(vote) = 'yes')     AS drep_yes_count,
+            COUNT(*) FILTER (WHERE LOWER(vote) = 'no')      AS drep_no_count,
+            COUNT(*) FILTER (WHERE LOWER(vote) = 'abstain') AS drep_abstain_count
+          FROM proposal_votes
+          WHERE LOWER(voter_role) = 'drep'
+          GROUP BY proposal_id
+        ) vc ON p.id = vc.proposal_id
         WHERE v.voter IN (${placeholders})
       ) t
       WHERE row_num = 1
@@ -787,6 +800,9 @@ export class DRepRepository extends Repository<VoltaireDrep> {
         enacted_epoch: vote.enacted_epoch ? Number(vote.enacted_epoch) : null,
         dropped_epoch: vote.dropped_epoch ? Number(vote.dropped_epoch) : null,
         expired_epoch: vote.expired_epoch ? Number(vote.expired_epoch) : null,
+        drep_yes_count: Number(vote.drep_yes_count) || 0,
+        drep_no_count: Number(vote.drep_no_count) || 0,
+        drep_abstain_count: Number(vote.drep_abstain_count) || 0,
         description: {
           tag: vote.governance_type || 'InfoAction',
         },
