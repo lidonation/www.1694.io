@@ -277,6 +277,12 @@ export class GovernanceService {
           };
           if (rawData.proposal_tx_hash) formatted.txHash = rawData.proposal_tx_hash;
           if (rawData.proposal_anchor_hash) formatted.govActionHash = rawData.proposal_anchor_hash;
+          formatted.governance_type = rawData.proposal_governance_type || null;
+          formatted.expiration_epoch = rawData.proposal_expiration_epoch != null ? Number(rawData.proposal_expiration_epoch) : null;
+          formatted.ratified_epoch   = rawData.proposal_ratified_epoch   != null ? Number(rawData.proposal_ratified_epoch)   : null;
+          formatted.enacted_epoch    = rawData.proposal_enacted_epoch    != null ? Number(rawData.proposal_enacted_epoch)    : null;
+          formatted.dropped_epoch    = rawData.proposal_dropped_epoch    != null ? Number(rawData.proposal_dropped_epoch)    : null;
+          formatted.expired_epoch    = rawData.proposal_expired_epoch    != null ? Number(rawData.proposal_expired_epoch)    : null;
         }
       }
       allEvents.push(formatted);
@@ -298,6 +304,12 @@ export class GovernanceService {
           vote: vote.vote.charAt(0).toUpperCase() + vote.vote.slice(1).toLowerCase(),
           gov_action_proposal_id: vote.proposal_id,
           time_voted: vote.block_time,
+          governance_type: vote.governance_type || null,
+          expiration_epoch: vote.expiration_epoch != null ? Number(vote.expiration_epoch) : null,
+          ratified_epoch:   vote.ratified_epoch   != null ? Number(vote.ratified_epoch)   : null,
+          enacted_epoch:    vote.enacted_epoch    != null ? Number(vote.enacted_epoch)    : null,
+          dropped_epoch:    vote.dropped_epoch    != null ? Number(vote.dropped_epoch)    : null,
+          expired_epoch:    vote.expired_epoch    != null ? Number(vote.expired_epoch)    : null,
           proposal: { title: vote.title, abstract: vote.abstract, type: vote.governance_type, submitted_at: vote.block_time }
         });
       }
@@ -383,6 +395,12 @@ export class GovernanceService {
       .leftJoin('proposals', 'proposal', "(proposal.tx_hash = event.metadata->>'gov_action_proposal_id' OR proposal.tx_hash = event.txHash OR proposal.id = event.metadata->>'gov_action_proposal_id') AND proposal.cert_index = COALESCE((event.metadata->>'proposal_index')::int, 0)")
       .leftJoin('proposal_metadata', 'meta', 'meta.proposal_id = proposal.id')
       .addSelect('proposal.tx_hash', 'proposal_tx_hash')
+      .addSelect('proposal.governance_type', 'proposal_governance_type')
+      .addSelect('proposal.expiration_epoch', 'proposal_expiration_epoch')
+      .addSelect('proposal.ratified_epoch', 'proposal_ratified_epoch')
+      .addSelect('proposal.enacted_epoch', 'proposal_enacted_epoch')
+      .addSelect('proposal.dropped_epoch', 'proposal_dropped_epoch')
+      .addSelect('proposal.expired_epoch', 'proposal_expired_epoch')
       .addSelect('meta.hash', 'proposal_anchor_hash')
       .addSelect('meta.json_metadata', 'meta_json_metadata')
       .where('event.drepId = :voterId', { voterId })
@@ -399,7 +417,7 @@ export class GovernanceService {
   private async fetchVotesInRange(voterId: string, startTime: Date, endTime: Date, filterValues?: string[]) {
     if (filterValues && filterValues.length > 0 && !filterValues.includes('voting_activity')) return [];
     const query = `
-        SELECT v.*, p.governance_type, p.tx_hash as proposal_tx_hash, m.hash as proposal_anchor_hash, m.json_metadata->'body'->>'title' as title, m.json_metadata->'body'->>'abstract' as abstract
+        SELECT v.*, p.governance_type, p.tx_hash as proposal_tx_hash, p.expiration_epoch, p.ratified_epoch, p.enacted_epoch, p.dropped_epoch, p.expired_epoch, m.hash as proposal_anchor_hash, m.json_metadata->'body'->>'title' as title, m.json_metadata->'body'->>'abstract' as abstract
         FROM proposal_votes v
         LEFT JOIN proposals p ON p.id = v.proposal_id
         LEFT JOIN proposal_metadata m ON p.id = m.proposal_id
