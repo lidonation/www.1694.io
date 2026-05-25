@@ -1,4 +1,5 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
+import { LOCK_DURATION_HEAVY } from '../queue.constants';
 import { Injectable, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { Queues, ProposalsSyncJobData, ProposalsSyncJobResponse } from '../queue.types';
@@ -13,7 +14,7 @@ import { firstValueFrom } from 'rxjs';
 import * as blake from 'blakejs';
 
 @Injectable()
-@Processor(Queues.PROPOSALS_SYNC)
+@Processor(Queues.PROPOSALS_SYNC, { lockDuration: LOCK_DURATION_HEAVY })
 export class ProposalsSyncWorker extends WorkerHost {
   private readonly logger = new Logger(ProposalsSyncWorker.name);
 
@@ -64,16 +65,19 @@ export class ProposalsSyncWorker extends WorkerHost {
               where: { txHash: item.tx_hash, certIndex: item.cert_index }
             });
 
-            if (existing?.blockTime) continue; 
+            // Skip only terminal states — enacted/expired/dropped will never change
+            if (existing && (existing.enactedEpoch || existing.expiredEpoch || existing.droppedEpoch)) continue;
 
             const data = await this.blockfrostService.getProposal(item.tx_hash, item.cert_index);
             if (data) {
-              let blockTime: Date | null = null;
-              try {
-                const tx = await this.blockfrostService.getTransaction(data.tx_hash);
-                if (tx?.block_time) blockTime = new Date(tx.block_time * 1000);
-              } catch (e) {
-                this.logger.debug(`Tx time fetch failed for ${data.tx_hash}`);
+              let blockTime: Date | null = existing?.blockTime ?? null;
+              if (!blockTime) {
+                try {
+                  const tx = await this.blockfrostService.getTransaction(data.tx_hash);
+                  if (tx?.block_time) blockTime = new Date(tx.block_time * 1000);
+                } catch (e) {
+                  this.logger.debug(`Tx time fetch failed for ${data.tx_hash}`);
+                }
               }
 
               await proposalsRepository.upsert({

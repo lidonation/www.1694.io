@@ -97,7 +97,8 @@ const DrepVoteTimelineCard = ({
     enacted_epoch: item?.enacted_epoch,
     expired_epoch: (item as any)?.expired_epoch,
     dropped_epoch: (item as any)?.dropped_epoch,
-  });
+    expiration_epoch: item?.expiration_epoch,
+  }, latestEpoch);
 
   const governanceType = (item as any)?.governance_type || item?.type || null;
   const thresholds = getThresholdsForType(governanceType, epochParams);
@@ -135,6 +136,9 @@ const DrepVoteTimelineCard = ({
   const noCount      = (item as any)?.drep_no_count      ?? 0;
   const abstainCount = (item as any)?.drep_abstain_count ?? 0;
   const hasVoteCounts = yesCount + noCount + abstainCount > 0;
+  const yesStake     = (item as any)?.drep_yes_stake     ?? 0;
+  const noStake      = (item as any)?.drep_no_stake      ?? 0;
+  const abstainStake = (item as any)?.drep_abstain_stake ?? 0;
 
   const startEpoch =
     item?.expiration_epoch != null && epochParams?.gov_action_lifetime != null
@@ -236,6 +240,9 @@ const DrepVoteTimelineCard = ({
           yesCount={yesCount}
           noCount={noCount}
           abstainCount={abstainCount}
+          yesStake={yesStake}
+          noStake={noStake}
+          abstainStake={abstainStake}
           govActionHash={govActionHash}
           govActionId={(item as any)?.gov_action_proposal_id}
           txHash={txHash}
@@ -372,6 +379,9 @@ const DrepVoteTimelineCard = ({
         yesCount={yesCount}
         noCount={noCount}
         abstainCount={abstainCount}
+        yesStake={yesStake}
+        noStake={noStake}
+        abstainStake={abstainStake}
         govActionHash={govActionHash}
         govActionId={(item as any)?.gov_action_proposal_id}
         txHash={txHash}

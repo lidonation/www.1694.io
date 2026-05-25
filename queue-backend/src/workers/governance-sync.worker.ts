@@ -1,4 +1,5 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
+import { LOCK_DURATION_HEAVY } from '../queue.constants';
 import { Injectable, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import {
@@ -20,7 +21,7 @@ import { firstValueFrom } from 'rxjs';
 import * as blake from 'blakejs';
 
 @Injectable()
-@Processor(Queues.GOVERNANCE_SYNC)
+@Processor(Queues.GOVERNANCE_SYNC, { lockDuration: LOCK_DURATION_HEAVY })
 export class GovernanceSyncWorker extends WorkerHost {
   private readonly logger = new Logger(GovernanceSyncWorker.name);
 
@@ -205,16 +206,20 @@ export class GovernanceSyncWorker extends WorkerHost {
         for (const item of list) {
           try {
             const existing = await proposalsRepository.findOne({ where: { txHash: item.tx_hash, certIndex: item.cert_index } });
-            if (existing?.blockTime) continue;
+
+            // Skip only terminal states — enacted/expired/dropped will never change
+            if (existing && (existing.enactedEpoch || existing.expiredEpoch || existing.droppedEpoch)) continue;
 
             const data = await this.blockfrostService.getProposal(item.tx_hash, item.cert_index);
             if (data) {
-              let blockTime: Date | null = null;
-              try {
-                const tx = await this.blockfrostService.getTransaction(data.tx_hash);
-                if (tx?.block_time) blockTime = new Date(tx.block_time * 1000);
-              } catch (e) {
-                this.logger.debug(`Tx time fetch failed for ${data.tx_hash}`);
+              let blockTime: Date | null = existing?.blockTime ?? null;
+              if (!blockTime) {
+                try {
+                  const tx = await this.blockfrostService.getTransaction(data.tx_hash);
+                  if (tx?.block_time) blockTime = new Date(tx.block_time * 1000);
+                } catch (e) {
+                  this.logger.debug(`Tx time fetch failed for ${data.tx_hash}`);
+                }
               }
 
               await proposalsRepository.upsert({
@@ -252,6 +257,13 @@ export class GovernanceSyncWorker extends WorkerHost {
     const targets = await proposalsRepository.createQueryBuilder('p')
       .leftJoin(ProposalMetadata, 'm', 'm.proposalId = p.id')
       .where('m.proposalId IS NULL OR m.error IS NOT NULL')
+      .orWhere(`EXISTS (
+        SELECT 1 FROM proposal_votes pv
+        WHERE pv.proposal_id = p.id
+          AND pv.voter_role = 'drep'
+          AND pv.voting_power_lovelace IS NULL
+        LIMIT 1
+      )`)
       .limit(500).getMany();
 
     let totalVotesSynced = 0;
@@ -304,8 +316,16 @@ export class GovernanceSyncWorker extends WorkerHost {
             const data = await this.blockfrostService.getProposalVotes(p.txHash, p.certIndex, page, 100, 'asc');
             if (!data || data.length === 0) break;
 
-            const upserts = data.map(v => ({ proposalId: p.id, txHash: v.tx_hash, certIndex: v.cert_index, voterRole: v.voter_role, voter: v.voter, vote: v.vote }));
-            await votesRepository.upsert(upserts, { conflictPaths: ['proposalId', 'voter'], skipUpdateIfNoValuesChanged: true });
+            const upserts = data.map(v => ({
+              proposalId: p.id,
+              txHash: v.tx_hash,
+              certIndex: v.cert_index,
+              voterRole: v.voter_role,
+              voter: v.voter,
+              vote: v.vote,
+              votingPowerLovelace: v.voting_power ?? null,
+            }));
+            await votesRepository.upsert(upserts, { conflictPaths: ['proposalId', 'voter'], skipUpdateIfNoValuesChanged: false });
 
             count += data.length; totalVotesSynced += data.length;
             if (data.length < 100) hasMore = false;

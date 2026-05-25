@@ -17,7 +17,9 @@ export const getDrepVotingActivityQuery = `
         bk.time AS time_voted,
         prop_creation_bk.epoch_no AS proposal_epoch,
         bk.epoch_no AS voting_epoch,
+        gp.ratified_epoch,
         gp.enacted_epoch,
+        gp.dropped_epoch,
         gp.expiration AS expiration_epoch,
         va.url,
         vr.url AS vote_rationale
