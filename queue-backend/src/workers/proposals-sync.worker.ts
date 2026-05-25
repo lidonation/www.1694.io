@@ -64,16 +64,19 @@ export class ProposalsSyncWorker extends WorkerHost {
               where: { txHash: item.tx_hash, certIndex: item.cert_index }
             });
 
-            if (existing?.blockTime) continue; 
+            // Skip only terminal states — enacted/expired/dropped will never change
+            if (existing && (existing.enactedEpoch || existing.expiredEpoch || existing.droppedEpoch)) continue;
 
             const data = await this.blockfrostService.getProposal(item.tx_hash, item.cert_index);
             if (data) {
-              let blockTime: Date | null = null;
-              try {
-                const tx = await this.blockfrostService.getTransaction(data.tx_hash);
-                if (tx?.block_time) blockTime = new Date(tx.block_time * 1000);
-              } catch (e) {
-                this.logger.debug(`Tx time fetch failed for ${data.tx_hash}`);
+              let blockTime: Date | null = existing?.blockTime ?? null;
+              if (!blockTime) {
+                try {
+                  const tx = await this.blockfrostService.getTransaction(data.tx_hash);
+                  if (tx?.block_time) blockTime = new Date(tx.block_time * 1000);
+                } catch (e) {
+                  this.logger.debug(`Tx time fetch failed for ${data.tx_hash}`);
+                }
               }
 
               await proposalsRepository.upsert({
