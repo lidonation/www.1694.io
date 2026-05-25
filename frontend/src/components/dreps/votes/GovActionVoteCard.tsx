@@ -4,6 +4,7 @@ import { ViewExternalGovAction } from '@/components/atoms/ViewExternalGovAction'
 import GovernanceLifecycleBadge from '@/components/atoms/GovernanceLifecycleBadge';
 import { useGetProposalMetadataByHashQuery } from '@/hooks/useGetProposalMetadataByHash';
 import { useEpochParamsQuery } from '@/hooks/useEpochParamsQuery';
+import { useWallet } from '@/context/globalContext';
 import { formatIsoTime } from '@/lib';
 import { getLifecycleStatus, getThresholdsForType } from '@/lib/governanceThresholds';
 import { Alert, Tooltip } from '@mui/material';
@@ -131,6 +132,7 @@ export const GovActionVoteCard = ({ action }) => {
 
   const { metadata, isMetadataLoading, metadataError } = useGetExternalMetadata(action?.vote_rationale, true);
   const { epochParams } = useEpochParamsQuery();
+  const { latestEpoch } = useWallet();
 
   const title =
     action?.proposal?.title ||
@@ -158,7 +160,8 @@ export const GovActionVoteCard = ({ action }) => {
     enacted_epoch: action?.enacted_epoch,
     expired_epoch: action?.expired_epoch,
     dropped_epoch: action?.dropped_epoch,
-  });
+    expiration_epoch: action?.expiration_epoch,
+  }, latestEpoch);
 
   const thresholds = getThresholdsForType(action?.governance_type || action?.type, epochParams);
 

@@ -97,7 +97,8 @@ const DrepVoteTimelineCard = ({
     enacted_epoch: item?.enacted_epoch,
     expired_epoch: (item as any)?.expired_epoch,
     dropped_epoch: (item as any)?.dropped_epoch,
-  });
+    expiration_epoch: item?.expiration_epoch,
+  }, latestEpoch);
 
   const governanceType = (item as any)?.governance_type || item?.type || null;
   const thresholds = getThresholdsForType(governanceType, epochParams);

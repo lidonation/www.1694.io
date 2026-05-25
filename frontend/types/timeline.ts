@@ -20,7 +20,10 @@ export type DrepVote = {
   time_voted: string;
   proposal_epoch: number;
   voting_epoch: number;
-  enacted_epoch: number;
+  ratified_epoch: number | null;
+  enacted_epoch: number | null;
+  dropped_epoch: number | null;
+  expired_epoch: number | null;
   expiration_epoch: number;
   url: string;
   vote_rationale: string;
@@ -28,9 +31,6 @@ export type DrepVote = {
   txHash?: string;
   tx_hash?: string;
   governance_type?: string | null;
-  ratified_epoch?: number | null;
-  dropped_epoch?: number | null;
-  expired_epoch?: number | null;
   drep_yes_count?: number;
   drep_no_count?: number;
   drep_abstain_count?: number;

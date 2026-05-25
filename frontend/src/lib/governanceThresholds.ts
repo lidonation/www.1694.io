@@ -111,15 +111,20 @@ export function getThresholdsForType(
 
 export type LifecycleStatus = 'ratified' | 'enacted' | 'expired' | 'dropped' | 'active';
 
-export function getLifecycleStatus(action: {
-  ratified_epoch?: number | null;
-  enacted_epoch?: number | null;
-  expired_epoch?: number | null;
-  dropped_epoch?: number | null;
-}): LifecycleStatus {
+export function getLifecycleStatus(
+  action: {
+    ratified_epoch?: number | null;
+    enacted_epoch?: number | null;
+    expired_epoch?: number | null;
+    dropped_epoch?: number | null;
+    expiration_epoch?: number | null;
+  },
+  currentEpoch?: number | null,
+): LifecycleStatus {
   if (action.enacted_epoch) return 'enacted';
   if (action.ratified_epoch) return 'ratified';
   if (action.expired_epoch) return 'expired';
   if (action.dropped_epoch) return 'dropped';
+  if (action.expiration_epoch && currentEpoch && currentEpoch > action.expiration_epoch) return 'expired';
   return 'active';
 }

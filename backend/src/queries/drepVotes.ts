@@ -23,7 +23,9 @@ GovActions AS (
         encode(vt.hash, 'hex') AS vote_tx_hash,
         dh.view,
         vr.url as vote_rationale,
+        gap.ratified_epoch,
         gap.enacted_epoch,
+        gap.dropped_epoch,
         gap.expiration as expiration_epoch
     FROM 
         voting_procedure vp

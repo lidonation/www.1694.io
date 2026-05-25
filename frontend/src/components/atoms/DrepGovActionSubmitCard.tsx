@@ -2,6 +2,7 @@
 import { urls } from '@/constants';
 import { useGetProposalsQuery } from '@/hooks/useGetProposalByHashQuery';
 import { useEpochParamsQuery } from '@/hooks/useEpochParamsQuery';
+import { useWallet } from '@/context/globalContext';
 import { getLifecycleStatus, getThresholdsForType } from '@/lib/governanceThresholds';
 import GovernanceMetaRow from '@/components/atoms/GovernanceMetaRow';
 import Link from 'next/link';
@@ -54,6 +55,7 @@ const DrepGovActionSubmitCard = ({
 
   const { Proposals, isProposalsLoading } = useGetProposalsQuery({ hashQueryString: hash });
   const { epochParams } = useEpochParamsQuery();
+  const { latestEpoch } = useWallet();
 
   useEffect(() => {
     if (Proposals?.[0]) {
@@ -69,7 +71,8 @@ const DrepGovActionSubmitCard = ({
     enacted_epoch: cardData?.enactedEpoch ?? null,
     expired_epoch: cardData?.expiredEpoch ?? null,
     dropped_epoch: cardData?.droppedEpoch ?? null,
-  });
+    expiration_epoch: cardData?.expirationEpoch ?? null,
+  }, latestEpoch);
 
   const thresholds = getThresholdsForType(cardData?.governanceType || actionType, epochParams);
 
