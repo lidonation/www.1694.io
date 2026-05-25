@@ -426,11 +426,10 @@ export class DRepRepository extends Repository<VoltaireDrep> {
                 COUNT(*) FILTER (WHERE LOWER(pv.vote) = 'yes')     AS drep_yes_count,
                 COUNT(*) FILTER (WHERE LOWER(pv.vote) = 'no')      AS drep_no_count,
                 COUNT(*) FILTER (WHERE LOWER(pv.vote) = 'abstain') AS drep_abstain_count,
-                COALESCE(SUM(CASE WHEN LOWER(pv.vote) = 'yes'     THEN COALESCE(d.voting_power_ada::numeric, 0) ELSE 0 END), 0) AS drep_yes_stake,
-                COALESCE(SUM(CASE WHEN LOWER(pv.vote) = 'no'      THEN COALESCE(d.voting_power_ada::numeric, 0) ELSE 0 END), 0) AS drep_no_stake,
-                COALESCE(SUM(CASE WHEN LOWER(pv.vote) = 'abstain' THEN COALESCE(d.voting_power_ada::numeric, 0) ELSE 0 END), 0) AS drep_abstain_stake
+                COALESCE(SUM(pv.voting_power_lovelace) FILTER (WHERE LOWER(pv.vote) = 'yes'),     0) / 1000000.0 AS drep_yes_stake,
+                COALESCE(SUM(pv.voting_power_lovelace) FILTER (WHERE LOWER(pv.vote) = 'no'),      0) / 1000000.0 AS drep_no_stake,
+                COALESCE(SUM(pv.voting_power_lovelace) FILTER (WHERE LOWER(pv.vote) = 'abstain'), 0) / 1000000.0 AS drep_abstain_stake
          FROM proposal_votes pv
-         LEFT JOIN dreps d ON pv.voter = d.drep_id
          WHERE LOWER(pv.voter_role) = 'drep' AND pv.proposal_id = ANY($1)
          GROUP BY pv.proposal_id`,
         [proposalIds],
@@ -844,11 +843,10 @@ export class DRepRepository extends Repository<VoltaireDrep> {
             COUNT(*) FILTER (WHERE LOWER(pv.vote) = 'yes')     AS drep_yes_count,
             COUNT(*) FILTER (WHERE LOWER(pv.vote) = 'no')      AS drep_no_count,
             COUNT(*) FILTER (WHERE LOWER(pv.vote) = 'abstain') AS drep_abstain_count,
-            COALESCE(SUM(CASE WHEN LOWER(pv.vote) = 'yes'     THEN COALESCE(d.voting_power_ada::numeric, 0) ELSE 0 END), 0) AS drep_yes_stake,
-            COALESCE(SUM(CASE WHEN LOWER(pv.vote) = 'no'      THEN COALESCE(d.voting_power_ada::numeric, 0) ELSE 0 END), 0) AS drep_no_stake,
-            COALESCE(SUM(CASE WHEN LOWER(pv.vote) = 'abstain' THEN COALESCE(d.voting_power_ada::numeric, 0) ELSE 0 END), 0) AS drep_abstain_stake
+            COALESCE(SUM(pv.voting_power_lovelace) FILTER (WHERE LOWER(pv.vote) = 'yes'),     0) / 1000000.0 AS drep_yes_stake,
+            COALESCE(SUM(pv.voting_power_lovelace) FILTER (WHERE LOWER(pv.vote) = 'no'),      0) / 1000000.0 AS drep_no_stake,
+            COALESCE(SUM(pv.voting_power_lovelace) FILTER (WHERE LOWER(pv.vote) = 'abstain'), 0) / 1000000.0 AS drep_abstain_stake
           FROM proposal_votes pv
-          LEFT JOIN dreps d ON pv.voter = d.drep_id
           WHERE LOWER(pv.voter_role) = 'drep'
           GROUP BY pv.proposal_id
         ) vc ON p.id = vc.proposal_id

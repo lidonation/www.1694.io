@@ -25,18 +25,39 @@ const VOTE_STYLE: Record<string, { border: string; badge: string; Icon: any }> =
 
 const URL_ONLY = /^(https?:\/\/\S+|proposal\s+as\s+pdf\s*:)/i;
 
+const fmtAda = (ada: number) => {
+  if (ada >= 1_000_000_000) return `₳${(ada / 1_000_000_000).toFixed(2)}b`;
+  if (ada >= 1_000_000)     return `₳${(ada / 1_000_000).toFixed(2)}m`;
+  if (ada >= 1_000)         return `₳${(ada / 1_000).toFixed(1)}k`;
+  return `₳${ada.toFixed(0)}`;
+};
+
 // ── Vote progress bar ─────────────────────────────────────────────────────────
 const VoteBar = ({
-  yesCount, noCount, abstainCount, threshold,
+  yesCount, noCount, abstainCount,
+  yesStake, noStake, abstainStake,
+  threshold,
 }: {
-  yesCount: number; noCount: number; abstainCount: number; threshold: number | null;
+  yesCount: number; noCount: number; abstainCount: number;
+  yesStake: number; noStake: number; abstainStake: number;
+  threshold: number | null;
 }) => {
   const total = yesCount + noCount + abstainCount;
   if (total === 0) return null;
 
-  const yesPct = (yesCount / total) * 100;
-  const noPct  = (noCount  / total) * 100;
-  const absPct = (abstainCount / total) * 100;
+  const hasStake = yesStake + noStake + abstainStake > 0;
+  // Stake-weighted: yesStake / (yesStake + noStake) — CIP-1694 ratification formula
+  // Falls back to count-based until voting_power data is backfilled
+  const votedStake = yesStake + noStake;
+  const yesPct = hasStake && votedStake > 0
+    ? (yesStake / votedStake) * 100
+    : (yesCount / (yesCount + noCount || 1)) * 100;
+  const noPct = 100 - yesPct;
+
+  const totalForBar = hasStake ? yesStake + noStake + abstainStake : total;
+  const yesBarPct = totalForBar > 0 ? (hasStake ? yesStake     : yesCount)     / totalForBar * 100 : 0;
+  const noBarPct  = totalForBar > 0 ? (hasStake ? noStake      : noCount)      / totalForBar * 100 : 0;
+  const absBarPct = totalForBar > 0 ? (hasStake ? abstainStake : abstainCount) / totalForBar * 100 : 0;
 
   return (
     <div className="space-y-2">
@@ -45,6 +66,7 @@ const VoteBar = ({
           <span className="inline-block h-2 w-2 rounded-full bg-success" />
           <span className="font-semibold text-gray-700">{yesCount}</span>
           <span className="text-gray-400">Yes</span>
+          {hasStake && <span className="text-gray-500">{fmtAda(yesStake)}</span>}
           <span className="text-gray-300">·</span>
           <span className="text-gray-600">{yesPct.toFixed(1)}%</span>
         </span>
@@ -52,6 +74,7 @@ const VoteBar = ({
           <span className="inline-block h-2 w-2 rounded-full bg-extra_red" />
           <span className="font-semibold text-gray-700">{noCount}</span>
           <span className="text-gray-400">No</span>
+          {hasStake && <span className="text-gray-500">{fmtAda(noStake)}</span>}
           <span className="text-gray-300">·</span>
           <span className="text-gray-600">{noPct.toFixed(1)}%</span>
         </span>
@@ -59,13 +82,14 @@ const VoteBar = ({
           <span className="inline-block h-2 w-2 rounded-full bg-complementary-200" />
           <span className="font-semibold text-gray-700">{abstainCount}</span>
           <span className="text-gray-400">Abstain</span>
+          {hasStake && <span className="text-gray-500">{fmtAda(abstainStake)}</span>}
         </span>
       </div>
 
       <div className="relative h-3 w-full overflow-hidden rounded-full bg-gray-100">
-        <div className="absolute left-0 top-0 h-full bg-success"    style={{ width: `${yesPct}%` }} />
-        <div className="absolute top-0 h-full bg-extra_red"         style={{ left: `${yesPct}%`, width: `${noPct}%` }} />
-        <div className="absolute top-0 h-full bg-complementary-200" style={{ left: `${yesPct + noPct}%`, width: `${absPct}%` }} />
+        <div className="absolute left-0 top-0 h-full bg-success"    style={{ width: `${yesBarPct}%` }} />
+        <div className="absolute top-0 h-full bg-extra_red"         style={{ left: `${yesBarPct}%`, width: `${noBarPct}%` }} />
+        <div className="absolute top-0 h-full bg-complementary-200" style={{ left: `${yesBarPct + noBarPct}%`, width: `${absBarPct}%` }} />
         {threshold !== null && (
           <Tooltip title={`Ratification threshold: ${threshold}%`} placement="top" arrow>
             <div
@@ -79,6 +103,9 @@ const VoteBar = ({
       {threshold !== null && (
         <p className="text-[11px] text-gray-500">
           Threshold <span className="font-semibold text-gray-700">{threshold}%</span>
+          {hasStake && yesPct >= threshold && (
+            <span className="ml-2 font-semibold text-green-600">✓ Met</span>
+          )}
         </p>
       )}
     </div>
@@ -142,6 +169,9 @@ export const GovActionVoteCard = ({ action }) => {
   const noCount      = action?.drep_no_count      ?? 0;
   const abstainCount = action?.drep_abstain_count ?? 0;
   const hasVoteCounts = yesCount + noCount + abstainCount > 0;
+  const yesStake     = action?.drep_yes_stake     ?? 0;
+  const noStake      = action?.drep_no_stake      ?? 0;
+  const abstainStake = action?.drep_abstain_stake ?? 0;
 
   // Derive start epoch from expiration and gov_action_lifetime
   const startEpoch =
@@ -213,6 +243,9 @@ export const GovActionVoteCard = ({ action }) => {
             yesCount={yesCount}
             noCount={noCount}
             abstainCount={abstainCount}
+            yesStake={yesStake}
+            noStake={noStake}
+            abstainStake={abstainStake}
             threshold={thresholds.isInfoAction ? null : thresholds.dvt}
           />
         )}

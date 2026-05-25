@@ -36,4 +36,7 @@ export class ProposalVote {
 
   @Column({ name: 'block_time', type: 'timestamptz', nullable: true })
   blockTime: Date | null;
+
+  @Column({ name: 'voting_power_lovelace', type: 'bigint', nullable: true })
+  votingPowerLovelace: string | null;
 }

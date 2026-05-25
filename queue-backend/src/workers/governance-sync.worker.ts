@@ -256,6 +256,13 @@ export class GovernanceSyncWorker extends WorkerHost {
     const targets = await proposalsRepository.createQueryBuilder('p')
       .leftJoin(ProposalMetadata, 'm', 'm.proposalId = p.id')
       .where('m.proposalId IS NULL OR m.error IS NOT NULL')
+      .orWhere(`EXISTS (
+        SELECT 1 FROM proposal_votes pv
+        WHERE pv.proposal_id = p.id
+          AND pv.voter_role = 'drep'
+          AND pv.voting_power_lovelace IS NULL
+        LIMIT 1
+      )`)
       .limit(500).getMany();
 
     let totalVotesSynced = 0;
@@ -308,8 +315,16 @@ export class GovernanceSyncWorker extends WorkerHost {
             const data = await this.blockfrostService.getProposalVotes(p.txHash, p.certIndex, page, 100, 'asc');
             if (!data || data.length === 0) break;
 
-            const upserts = data.map(v => ({ proposalId: p.id, txHash: v.tx_hash, certIndex: v.cert_index, voterRole: v.voter_role, voter: v.voter, vote: v.vote }));
-            await votesRepository.upsert(upserts, { conflictPaths: ['proposalId', 'voter'], skipUpdateIfNoValuesChanged: true });
+            const upserts = data.map(v => ({
+              proposalId: p.id,
+              txHash: v.tx_hash,
+              certIndex: v.cert_index,
+              voterRole: v.voter_role,
+              voter: v.voter,
+              vote: v.vote,
+              votingPowerLovelace: v.voting_power ?? null,
+            }));
+            await votesRepository.upsert(upserts, { conflictPaths: ['proposalId', 'voter'], skipUpdateIfNoValuesChanged: false });
 
             count += data.length; totalVotesSynced += data.length;
             if (data.length < 100) hasMore = false;
