@@ -2,6 +2,7 @@ import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Injectable, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { Queues, StakeSyncJobData, StakeSyncJobResponse } from '../queue.types';
+import { LOCK_DURATION_MEDIUM } from '../queue.constants';
 import { BlockfrostService } from '../blockfrost/blockfrost.service';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
@@ -9,7 +10,7 @@ import { Drep } from '../entities/governance/drep.entity';
 import { DrepDelegator } from '../entities/governance/drep-delegator.entity';
 
 @Injectable()
-@Processor(Queues.STAKE_SYNC)
+@Processor(Queues.STAKE_SYNC, { lockDuration: LOCK_DURATION_MEDIUM })
 export class StakeSyncWorker extends WorkerHost {
   private readonly logger = new Logger(StakeSyncWorker.name);
 

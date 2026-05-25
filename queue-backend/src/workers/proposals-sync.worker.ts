@@ -1,4 +1,5 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
+import { LOCK_DURATION_HEAVY } from '../queue.constants';
 import { Injectable, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { Queues, ProposalsSyncJobData, ProposalsSyncJobResponse } from '../queue.types';
@@ -13,7 +14,7 @@ import { firstValueFrom } from 'rxjs';
 import * as blake from 'blakejs';
 
 @Injectable()
-@Processor(Queues.PROPOSALS_SYNC)
+@Processor(Queues.PROPOSALS_SYNC, { lockDuration: LOCK_DURATION_HEAVY })
 export class ProposalsSyncWorker extends WorkerHost {
   private readonly logger = new Logger(ProposalsSyncWorker.name);
 

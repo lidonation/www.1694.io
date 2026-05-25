@@ -1,4 +1,5 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
+import { LOCK_DURATION_HEAVY } from '../queue.constants';
 import { Injectable, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import {
@@ -20,7 +21,7 @@ import { firstValueFrom } from 'rxjs';
 import * as blake from 'blakejs';
 
 @Injectable()
-@Processor(Queues.GOVERNANCE_SYNC)
+@Processor(Queues.GOVERNANCE_SYNC, { lockDuration: LOCK_DURATION_HEAVY })
 export class GovernanceSyncWorker extends WorkerHost {
   private readonly logger = new Logger(GovernanceSyncWorker.name);
 
