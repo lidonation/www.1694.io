@@ -412,6 +412,7 @@ export class DRepRepository extends Repository<VoltaireDrep> {
       drep_yes_stake: string;
       drep_no_stake: string;
       drep_abstain_stake: string;
+      drep_total_active_stake: string;
     };
 
     const [proposalRows, voteCountRows] = await Promise.all([
@@ -428,7 +429,17 @@ export class DRepRepository extends Repository<VoltaireDrep> {
                 COUNT(*) FILTER (WHERE LOWER(pv.vote) = 'abstain') AS drep_abstain_count,
                 COALESCE(SUM(pv.voting_power_lovelace) FILTER (WHERE LOWER(pv.vote) = 'yes'),     0) / 1000000.0 AS drep_yes_stake,
                 COALESCE(SUM(pv.voting_power_lovelace) FILTER (WHERE LOWER(pv.vote) = 'no'),      0) / 1000000.0 AS drep_no_stake,
-                COALESCE(SUM(pv.voting_power_lovelace) FILTER (WHERE LOWER(pv.vote) = 'abstain'), 0) / 1000000.0 AS drep_abstain_stake
+                COALESCE(SUM(pv.voting_power_lovelace) FILTER (WHERE LOWER(pv.vote) = 'abstain'), 0) / 1000000.0 AS drep_abstain_stake,
+                COALESCE((
+                  SELECT SUM(des.amount_lovelace) / 1000000.0
+                  FROM drep_epoch_stake des
+                  JOIN proposals p ON p.id = pv.proposal_id
+                  WHERE des.active = true
+                    AND des.epoch_no = (
+                      SELECT MAX(epoch_no) FROM drep_epoch_stake
+                      WHERE epoch_no <= COALESCE(p.expiration_epoch, 9999)
+                    )
+                ), 0) AS drep_total_active_stake
          FROM proposal_votes pv
          WHERE LOWER(pv.voter_role) = 'drep' AND pv.proposal_id = ANY($1)
          GROUP BY pv.proposal_id`,
@@ -469,6 +480,7 @@ export class DRepRepository extends Repository<VoltaireDrep> {
         drep_yes_stake: vc ? Number(vc.drep_yes_stake) : 0,
         drep_no_stake: vc ? Number(vc.drep_no_stake) : 0,
         drep_abstain_stake: vc ? Number(vc.drep_abstain_stake) : 0,
+        drep_total_active_stake: vc ? Number(vc.drep_total_active_stake) : 0,
       };
     });
   }
@@ -830,6 +842,15 @@ export class DRepRepository extends Repository<VoltaireDrep> {
           COALESCE(vc.drep_yes_stake, 0) as drep_yes_stake,
           COALESCE(vc.drep_no_stake, 0) as drep_no_stake,
           COALESCE(vc.drep_abstain_stake, 0) as drep_abstain_stake,
+          COALESCE((
+            SELECT SUM(des.amount_lovelace) / 1000000.0
+            FROM drep_epoch_stake des
+            WHERE des.active = true
+              AND des.epoch_no = (
+                SELECT MAX(epoch_no) FROM drep_epoch_stake
+                WHERE epoch_no <= COALESCE(p.expiration_epoch, 9999)
+              )
+          ), 0) AS drep_total_active_stake,
           ROW_NUMBER() OVER (
             PARTITION BY v.proposal_id
             ORDER BY v.block_time DESC NULLS LAST, v.created_at DESC
@@ -882,6 +903,7 @@ export class DRepRepository extends Repository<VoltaireDrep> {
         drep_yes_stake: Number(vote.drep_yes_stake) || 0,
         drep_no_stake: Number(vote.drep_no_stake) || 0,
         drep_abstain_stake: Number(vote.drep_abstain_stake) || 0,
+        drep_total_active_stake: Number(vote.drep_total_active_stake) || 0,
         description: {
           tag: vote.governance_type || 'InfoAction',
         },

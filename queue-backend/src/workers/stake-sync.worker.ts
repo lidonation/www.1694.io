@@ -8,6 +8,7 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { Drep } from '../entities/governance/drep.entity';
 import { DrepDelegator } from '../entities/governance/drep-delegator.entity';
+import { DrepEpochStake } from '../entities/governance/drep-epoch-stake.entity';
 
 @Injectable()
 @Processor(Queues.STAKE_SYNC, { lockDuration: LOCK_DURATION_MEDIUM })
@@ -36,24 +37,38 @@ export class StakeSyncWorker extends WorkerHost {
       const epochNo = latestEpoch.epoch;
       const drepsRepo = this.dataSource.getRepository(Drep);
       const delegatorsRepo = this.dataSource.getRepository(DrepDelegator);
+      const epochStakeRepo = this.dataSource.getRepository(DrepEpochStake);
       const dreps = await drepsRepo.find();
-      
+
       let updated = 0;
+      const epochSnapshots: Partial<DrepEpochStake>[] = [];
+
       for (const d of dreps) {
         try {
           const info = await this.blockfrostService.getDRepInfo(d.drepId);
           if (info?.amount) {
-            await drepsRepo.update({ drepId: d.drepId }, { 
+            const isActive = info.active || false;
+            await drepsRepo.update({ drepId: d.drepId }, {
               votingPowerAda: (parseInt(info.amount) / 1_000_000).toString(),
-              active: info.active || false, retired: info.retired || false, expired: info.expired || false,
+              active: isActive, retired: info.retired || false, expired: info.expired || false,
               lastActiveEpoch: info.last_active_epoch, snapshotEpochNo: epochNo, updatedAt: new Date()
             });
+            epochSnapshots.push({ drepId: d.drepId, epochNo, amountLovelace: info.amount, active: isActive });
             updated++;
           }
           await new Promise(r => setTimeout(r, 20));
         } catch (e) {
           this.logger.warn(`DRep stake failed (${d.drepId}): ${e.message}`);
         }
+      }
+
+      // Upsert epoch snapshots in chunks — this is our drep_distr equivalent
+      const chunkSize = 500;
+      for (let i = 0; i < epochSnapshots.length; i += chunkSize) {
+        await epochStakeRepo.upsert(epochSnapshots.slice(i, i + chunkSize) as any, {
+          conflictPaths: ['drepId', 'epochNo'],
+          skipUpdateIfNoValuesChanged: true,
+        });
       }
 
       const updatedDelegators = await this.syncDelegatorVotingPower(delegatorsRepo);

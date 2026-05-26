@@ -136,9 +136,10 @@ const DrepVoteTimelineCard = ({
   const noCount      = (item as any)?.drep_no_count      ?? 0;
   const abstainCount = (item as any)?.drep_abstain_count ?? 0;
   const hasVoteCounts = yesCount + noCount + abstainCount > 0;
-  const yesStake     = (item as any)?.drep_yes_stake     ?? 0;
-  const noStake      = (item as any)?.drep_no_stake      ?? 0;
-  const abstainStake = (item as any)?.drep_abstain_stake ?? 0;
+  const yesStake             = (item as any)?.drep_yes_stake          ?? 0;
+  const noStake              = (item as any)?.drep_no_stake           ?? 0;
+  const abstainStake         = (item as any)?.drep_abstain_stake      ?? 0;
+  const totalActiveDRepStake = (item as any)?.drep_total_active_stake ?? 0;
 
   const startEpoch =
     item?.expiration_epoch != null && epochParams?.gov_action_lifetime != null
@@ -243,6 +244,7 @@ const DrepVoteTimelineCard = ({
           yesStake={yesStake}
           noStake={noStake}
           abstainStake={abstainStake}
+          totalActiveDRepStake={totalActiveDRepStake}
           govActionHash={govActionHash}
           govActionId={(item as any)?.gov_action_proposal_id}
           txHash={txHash}

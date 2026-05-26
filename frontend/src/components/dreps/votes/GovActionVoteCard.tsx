@@ -18,6 +18,17 @@ import {
   KeyboardArrowUp,
 } from '@mui/icons-material';
 
+function extractRationaleText(body: unknown): string {
+  if (typeof body === 'string') return body.replace(/\\n/g, '\n');
+  if (body && typeof body === 'object') {
+    const b = body as Record<string, unknown>;
+    const candidate = b.comment ?? b.text ?? b.rationale ?? b.body ?? b.content;
+    if (typeof candidate === 'string') return candidate.replace(/\\n/g, '\n');
+    return JSON.stringify(b, null, 2).replace(/\\n/g, '\n');
+  }
+  return String(body);
+}
+
 const VOTE_STYLE: Record<string, { border: string; badge: string; Icon: any }> = {
   Yes:     { border: 'border-l-success',           badge: 'bg-success/20 text-green-700',            Icon: CheckCircleOutline },
   No:      { border: 'border-l-extra_red',          badge: 'bg-red-100 text-red-700',                 Icon: HighlightOff },
@@ -37,23 +48,28 @@ const fmtAda = (ada: number) => {
 const VoteBar = ({
   yesCount, noCount, abstainCount,
   yesStake, noStake, abstainStake,
+  totalActiveDRepStake,
   threshold,
 }: {
   yesCount: number; noCount: number; abstainCount: number;
   yesStake: number; noStake: number; abstainStake: number;
+  totalActiveDRepStake?: number;
   threshold: number | null;
 }) => {
   const total = yesCount + noCount + abstainCount;
   if (total === 0) return null;
 
   const hasStake = yesStake + noStake + abstainStake > 0;
-  // Stake-weighted: yesStake / (yesStake + noStake) — CIP-1694 ratification formula
-  // Falls back to count-based until voting_power data is backfilled
-  const votedStake = yesStake + noStake;
-  const yesPct = hasStake && votedStake > 0
-    ? (yesStake / votedStake) * 100
-    : (yesCount / (yesCount + noCount || 1)) * 100;
-  const noPct = 100 - yesPct;
+  // ADAstat formula: yesStake / totalActiveDRepStake (all active DRep stake as denominator)
+  // Falls back to voted-stake ratio, then count-based until voting_power data is backfilled
+  const yesPct = hasStake && totalActiveDRepStake && totalActiveDRepStake > 0
+    ? (yesStake / totalActiveDRepStake) * 100
+    : hasStake && yesStake + noStake > 0
+      ? (yesStake / (yesStake + noStake)) * 100
+      : (yesCount / (yesCount + noCount || 1)) * 100;
+  const noPct = hasStake && totalActiveDRepStake && totalActiveDRepStake > 0
+    ? (noStake / totalActiveDRepStake) * 100
+    : 100 - yesPct;
 
   const totalForBar = hasStake ? yesStake + noStake + abstainStake : total;
   const yesBarPct = totalForBar > 0 ? (hasStake ? yesStake     : yesCount)     / totalForBar * 100 : 0;
@@ -172,9 +188,10 @@ export const GovActionVoteCard = ({ action }) => {
   const noCount      = action?.drep_no_count      ?? 0;
   const abstainCount = action?.drep_abstain_count ?? 0;
   const hasVoteCounts = yesCount + noCount + abstainCount > 0;
-  const yesStake     = action?.drep_yes_stake     ?? 0;
-  const noStake      = action?.drep_no_stake      ?? 0;
-  const abstainStake = action?.drep_abstain_stake ?? 0;
+  const yesStake              = action?.drep_yes_stake          ?? 0;
+  const noStake               = action?.drep_no_stake           ?? 0;
+  const abstainStake          = action?.drep_abstain_stake      ?? 0;
+  const totalActiveDRepStake  = action?.drep_total_active_stake ?? 0;
 
   // Derive start epoch from expiration and gov_action_lifetime
   const startEpoch =
@@ -249,6 +266,7 @@ export const GovActionVoteCard = ({ action }) => {
             yesStake={yesStake}
             noStake={noStake}
             abstainStake={abstainStake}
+            totalActiveDRepStake={totalActiveDRepStake}
             threshold={thresholds.isInfoAction ? null : thresholds.dvt}
           />
         )}
@@ -286,8 +304,8 @@ export const GovActionVoteCard = ({ action }) => {
               {!isMetadataLoading && !metadataError && metadata?.body && (
                 <div>
                   <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-gray-400">Vote Rationale</p>
-                  <div className="text-xs leading-relaxed text-gray-600">
-                    <MarkdownParser text={typeof metadata.body === 'string' ? metadata.body : JSON.stringify(metadata.body)} />
+                  <div className="text-xs leading-relaxed text-gray-600 whitespace-pre-wrap">
+                    {extractRationaleText(metadata.body)}
                   </div>
                 </div>
               )}

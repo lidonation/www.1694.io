@@ -5,6 +5,7 @@ import { GovernanceMigrationService } from './governance-migration.service';
 import { DrepTimelineEvent } from '../entities/governance/drep-timeline-event.entity';
 import { Drep } from '../entities/governance/drep.entity';
 import { DrepDelegator } from '../entities/governance/drep-delegator.entity';
+import { DrepEpochStake } from '../entities/governance/drep-epoch-stake.entity';
 import { Proposal } from '../entities/governance/proposal.entity';
 import { ProposalMetadata } from '../entities/governance/proposal-metadata.entity';
 import { ProposalVote } from '../entities/governance/proposal-vote.entity';
@@ -19,6 +20,7 @@ import { ConfigModule } from '@nestjs/config';
         DrepTimelineEvent,
         Drep,
         DrepDelegator,
+        DrepEpochStake,
         Proposal,
         ProposalMetadata,
         ProposalVote,

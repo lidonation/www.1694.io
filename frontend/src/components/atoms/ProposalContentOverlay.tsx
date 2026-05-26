@@ -67,21 +67,28 @@ const fmtAda = (ada: number) => {
 const VoteBar = ({
   yesCount, noCount, abstainCount,
   yesStake, noStake, abstainStake,
+  totalActiveDRepStake,
   threshold,
 }: {
   yesCount: number; noCount: number; abstainCount: number;
   yesStake: number; noStake: number; abstainStake: number;
+  totalActiveDRepStake?: number;
   threshold: number | null;
 }) => {
   const total = yesCount + noCount + abstainCount;
   if (total === 0) return null;
 
   const hasStake = yesStake + noStake + abstainStake > 0;
-  const votedStake = yesStake + noStake;
-  const yesPct = hasStake && votedStake > 0
-    ? (yesStake / votedStake) * 100
-    : (yesCount / (yesCount + noCount || 1)) * 100;
-  const noPct = 100 - yesPct;
+  // ADAstat formula: yesStake / totalActiveDRepStake (all active DRep stake as denominator)
+  // Falls back to voted-stake ratio, then count-based until voting_power data is backfilled
+  const yesPct = hasStake && totalActiveDRepStake && totalActiveDRepStake > 0
+    ? (yesStake / totalActiveDRepStake) * 100
+    : hasStake && yesStake + noStake > 0
+      ? (yesStake / (yesStake + noStake)) * 100
+      : (yesCount / (yesCount + noCount || 1)) * 100;
+  const noPct = hasStake && totalActiveDRepStake && totalActiveDRepStake > 0
+    ? (noStake / totalActiveDRepStake) * 100
+    : 100 - yesPct;
 
   const totalForBar = hasStake ? yesStake + noStake + abstainStake : total;
   const yesBarPct = totalForBar > 0 ? (hasStake ? yesStake     : yesCount)     / totalForBar * 100 : 0;
@@ -162,6 +169,7 @@ export interface ProposalContentOverlayProps {
   yesStake?: number;
   noStake?: number;
   abstainStake?: number;
+  totalActiveDRepStake?: number;
   govActionHash?: string | null;
 
   govActionId?: string | null;
@@ -189,6 +197,7 @@ export const ProposalContentOverlay = ({
   yesStake = 0,
   noStake = 0,
   abstainStake = 0,
+  totalActiveDRepStake = 0,
   govActionHash,
   govActionId,
   txHash,
@@ -314,6 +323,7 @@ export const ProposalContentOverlay = ({
               yesStake={yesStake}
               noStake={noStake}
               abstainStake={abstainStake}
+              totalActiveDRepStake={totalActiveDRepStake}
               threshold={resolvedThresholds.isInfoAction ? null : resolvedThresholds.dvt}
             />
           </div>
