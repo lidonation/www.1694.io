@@ -311,7 +311,7 @@ const DrepVoteTimelineCard = ({
         {title || '—'}
       </p>
 
-      {/* Row 3: type chip + lifecycle + vote summary */}
+      {/* Row 3: type chip + lifecycle */}
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[10px] text-gray-500">
         {typeChip && (
           <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-medium ${typeChip.bg}`}>
@@ -319,32 +319,43 @@ const DrepVoteTimelineCard = ({
           </span>
         )}
         <GovernanceLifecycleBadge status={lifecycleStatus} />
-        {hasVoteCounts && (
-          <>
-            <span className="flex items-center gap-1">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-success" />
-              <span className="font-semibold text-gray-700">{yesStake > 0 ? fmtAda(yesStake) : yesCount}</span>
-              <span className="text-gray-400">Yes</span>
-              {(yesStake > 0 || noStake > 0) && totalActiveDRepStake > 0 && (
-                <span className="text-gray-500">· {((yesStake / totalActiveDRepStake) * 100).toFixed(1)}%</span>
-              )}
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-extra_red" />
-              <span className="font-semibold text-gray-700">{noStake > 0 ? fmtAda(noStake) : noCount}</span>
-              <span className="text-gray-400">No</span>
-              {(yesStake > 0 || noStake > 0) && totalActiveDRepStake > 0 && (
-                <span className="text-gray-500">· {((noStake / totalActiveDRepStake) * 100).toFixed(1)}%</span>
-              )}
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-complementary-200" />
-              <span className="font-semibold text-gray-700">{abstainStake > 0 ? fmtAda(abstainStake) : abstainCount}</span>
-              <span className="text-gray-400">Abstain</span>
-            </span>
-          </>
-        )}
       </div>
+
+      {/* Row 4: DRep vote summary */}
+      {hasVoteCounts && (
+        <div className="space-y-1">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">DRep Votes</p>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px]">
+            <span className="flex items-center gap-1">
+              <span className="inline-block h-2 w-2 rounded-full bg-success" />
+              <span className="text-gray-400">Yes</span>
+              <span className="font-semibold text-gray-700">{yesStake > 0 ? fmtAda(yesStake) : yesCount}</span>
+              {yesStake > 0 && totalActiveDRepStake > 0 && (
+                <span className="text-gray-300">·</span>
+              )}
+              {yesStake > 0 && totalActiveDRepStake > 0 && (
+                <span className="text-gray-600">{((yesStake / totalActiveDRepStake) * 100).toFixed(1)}%</span>
+              )}
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="inline-block h-2 w-2 rounded-full bg-extra_red" />
+              <span className="text-gray-400">No</span>
+              <span className="font-semibold text-gray-700">{noStake > 0 ? fmtAda(noStake) : noCount}</span>
+              {noStake > 0 && totalActiveDRepStake > 0 && (
+                <span className="text-gray-300">·</span>
+              )}
+              {noStake > 0 && totalActiveDRepStake > 0 && (
+                <span className="text-gray-600">{((noStake / totalActiveDRepStake) * 100).toFixed(1)}%</span>
+              )}
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="inline-block h-2 w-2 rounded-full bg-complementary-200" />
+              <span className="text-gray-400">Abstain</span>
+              <span className="font-semibold text-gray-700">{abstainStake > 0 ? fmtAda(abstainStake) : abstainCount}</span>
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Footer: hash + read button + govtool */}
       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-gray-50 pt-3">
