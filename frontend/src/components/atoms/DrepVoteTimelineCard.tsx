@@ -140,6 +140,10 @@ const DrepVoteTimelineCard = ({
   const noStake              = (item as any)?.drep_no_stake           ?? 0;
   const abstainStake         = (item as any)?.drep_abstain_stake      ?? 0;
   const totalActiveDRepStake = (item as any)?.drep_total_active_stake ?? 0;
+  const ccYes     = (item as any)?.cc_yes_count     ?? 0;
+  const ccNo      = (item as any)?.cc_no_count      ?? 0;
+  const ccAbstain = (item as any)?.cc_abstain_count ?? 0;
+  const ccTotal   = ccYes + ccNo + ccAbstain;
 
   const startEpoch =
     item?.expiration_epoch != null && epochParams?.gov_action_lifetime != null
@@ -196,22 +200,45 @@ const DrepVoteTimelineCard = ({
 
         {/* Row 4: compact vote counts */}
         {hasVoteCounts && (
-          <div className="flex items-center gap-2.5 text-[9px]">
-            <span className="flex items-center gap-1">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-success" />
-              <span className="font-semibold text-gray-700">{yesCount}</span>
-              <span className="text-gray-400">Yes</span>
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-extra_red" />
-              <span className="font-semibold text-gray-700">{noCount}</span>
-              <span className="text-gray-400">No</span>
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-complementary-200" />
-              <span className="font-semibold text-gray-700">{abstainCount}</span>
-              <span className="text-gray-400">Abstain</span>
-            </span>
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-2.5 text-[9px]">
+              <span className="text-[9px] font-bold uppercase tracking-wider text-gray-400 w-5">DRep</span>
+              <span className="flex items-center gap-1">
+                <span className="inline-block h-1.5 w-1.5 rounded-full bg-success" />
+                <span className="font-semibold text-gray-700">{yesCount}</span>
+                <span className="text-gray-400">Yes</span>
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="inline-block h-1.5 w-1.5 rounded-full bg-extra_red" />
+                <span className="font-semibold text-gray-700">{noCount}</span>
+                <span className="text-gray-400">No</span>
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="inline-block h-1.5 w-1.5 rounded-full bg-complementary-200" />
+                <span className="font-semibold text-gray-700">{abstainCount}</span>
+                <span className="text-gray-400">Abstain</span>
+              </span>
+            </div>
+            {ccTotal > 0 && (
+              <div className="flex items-center gap-2.5 text-[9px]">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-gray-400 w-5">CC</span>
+                <span className="flex items-center gap-1">
+                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-success" />
+                  <span className="font-semibold text-gray-700">{ccYes}</span>
+                  <span className="text-gray-400">Yes</span>
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-extra_red" />
+                  <span className="font-semibold text-gray-700">{ccNo}</span>
+                  <span className="text-gray-400">No</span>
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-complementary-200" />
+                  <span className="font-semibold text-gray-700">{ccAbstain}</span>
+                  <span className="text-gray-400">Abstain</span>
+                </span>
+              </div>
+            )}
           </div>
         )}
 

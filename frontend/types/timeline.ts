@@ -38,6 +38,9 @@ export type DrepVote = {
   drep_no_stake?: number;
   drep_abstain_stake?: number;
   drep_total_active_stake?: number;
+  cc_yes_count?: number;
+  cc_no_count?: number;
+  cc_abstain_count?: number;
   proposal?: {
     title: string | null;
     abstract: string | null;

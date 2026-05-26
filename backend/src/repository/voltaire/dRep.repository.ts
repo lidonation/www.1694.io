@@ -413,6 +413,9 @@ export class DRepRepository extends Repository<VoltaireDrep> {
       drep_no_stake: string;
       drep_abstain_stake: string;
       drep_total_active_stake: string;
+      cc_yes_count: string;
+      cc_no_count: string;
+      cc_abstain_count: string;
     };
 
     const [proposalRows, voteCountRows] = await Promise.all([
@@ -423,13 +426,14 @@ export class DRepRepository extends Repository<VoltaireDrep> {
         [proposalIds],
       ),
       this.voltaireDb.query<VoteCountRow[]>(
-        `SELECT pv.proposal_id,
-                COUNT(*) FILTER (WHERE LOWER(pv.vote) = 'yes')     AS drep_yes_count,
-                COUNT(*) FILTER (WHERE LOWER(pv.vote) = 'no')      AS drep_no_count,
-                COUNT(*) FILTER (WHERE LOWER(pv.vote) = 'abstain') AS drep_abstain_count,
-                COALESCE(SUM(d.voting_power_ada::numeric) FILTER (WHERE LOWER(pv.vote) = 'yes'),     0) AS drep_yes_stake,
-                COALESCE(SUM(d.voting_power_ada::numeric) FILTER (WHERE LOWER(pv.vote) = 'no'),      0) AS drep_no_stake,
-                COALESCE(SUM(d.voting_power_ada::numeric) FILTER (WHERE LOWER(pv.vote) = 'abstain'), 0) AS drep_abstain_stake,
+        `SELECT
+                pv.proposal_id,
+                COUNT(*) FILTER (WHERE LOWER(pv.voter_role) = 'drep' AND LOWER(pv.vote) = 'yes')     AS drep_yes_count,
+                COUNT(*) FILTER (WHERE LOWER(pv.voter_role) = 'drep' AND LOWER(pv.vote) = 'no')      AS drep_no_count,
+                COUNT(*) FILTER (WHERE LOWER(pv.voter_role) = 'drep' AND LOWER(pv.vote) = 'abstain') AS drep_abstain_count,
+                COALESCE(SUM(d.voting_power_ada::numeric) FILTER (WHERE LOWER(pv.voter_role) = 'drep' AND LOWER(pv.vote) = 'yes'),     0) AS drep_yes_stake,
+                COALESCE(SUM(d.voting_power_ada::numeric) FILTER (WHERE LOWER(pv.voter_role) = 'drep' AND LOWER(pv.vote) = 'no'),      0) AS drep_no_stake,
+                COALESCE(SUM(d.voting_power_ada::numeric) FILTER (WHERE LOWER(pv.voter_role) = 'drep' AND LOWER(pv.vote) = 'abstain'), 0) AS drep_abstain_stake,
                 COALESCE((
                   SELECT SUM(des.amount_lovelace) / 1000000.0
                   FROM drep_epoch_stake des
@@ -440,10 +444,13 @@ export class DRepRepository extends Repository<VoltaireDrep> {
                       SELECT MAX(epoch_no) FROM drep_epoch_stake
                       WHERE epoch_no <= COALESCE(p.expiration_epoch, 9999)
                     )
-                ), 0) AS drep_total_active_stake
+                ), 0) AS drep_total_active_stake,
+                COUNT(*) FILTER (WHERE LOWER(pv.voter_role) = 'constitutional_committee' AND LOWER(pv.vote) = 'yes')     AS cc_yes_count,
+                COUNT(*) FILTER (WHERE LOWER(pv.voter_role) = 'constitutional_committee' AND LOWER(pv.vote) = 'no')      AS cc_no_count,
+                COUNT(*) FILTER (WHERE LOWER(pv.voter_role) = 'constitutional_committee' AND LOWER(pv.vote) = 'abstain') AS cc_abstain_count
          FROM proposal_votes pv
          LEFT JOIN dreps d ON d.drep_id = pv.voter
-         WHERE LOWER(pv.voter_role) = 'drep' AND pv.proposal_id = ANY($1)
+         WHERE pv.proposal_id = ANY($1)
          GROUP BY pv.proposal_id`,
         [proposalIds],
       ),
@@ -483,6 +490,9 @@ export class DRepRepository extends Repository<VoltaireDrep> {
         drep_no_stake: vc ? Number(vc.drep_no_stake) : 0,
         drep_abstain_stake: vc ? Number(vc.drep_abstain_stake) : 0,
         drep_total_active_stake: vc ? Number(vc.drep_total_active_stake) : 0,
+        cc_yes_count: vc ? Number(vc.cc_yes_count) : 0,
+        cc_no_count: vc ? Number(vc.cc_no_count) : 0,
+        cc_abstain_count: vc ? Number(vc.cc_abstain_count) : 0,
       };
     });
   }
@@ -864,15 +874,17 @@ export class DRepRepository extends Repository<VoltaireDrep> {
         LEFT JOIN (
           SELECT
             pv.proposal_id,
-            COUNT(*) FILTER (WHERE LOWER(pv.vote) = 'yes')     AS drep_yes_count,
-            COUNT(*) FILTER (WHERE LOWER(pv.vote) = 'no')      AS drep_no_count,
-            COUNT(*) FILTER (WHERE LOWER(pv.vote) = 'abstain') AS drep_abstain_count,
-            COALESCE(SUM(d.voting_power_ada::numeric) FILTER (WHERE LOWER(pv.vote) = 'yes'),     0) AS drep_yes_stake,
-            COALESCE(SUM(d.voting_power_ada::numeric) FILTER (WHERE LOWER(pv.vote) = 'no'),      0) AS drep_no_stake,
-            COALESCE(SUM(d.voting_power_ada::numeric) FILTER (WHERE LOWER(pv.vote) = 'abstain'), 0) AS drep_abstain_stake
+            COUNT(*) FILTER (WHERE LOWER(pv.voter_role) = 'drep' AND LOWER(pv.vote) = 'yes')     AS drep_yes_count,
+            COUNT(*) FILTER (WHERE LOWER(pv.voter_role) = 'drep' AND LOWER(pv.vote) = 'no')      AS drep_no_count,
+            COUNT(*) FILTER (WHERE LOWER(pv.voter_role) = 'drep' AND LOWER(pv.vote) = 'abstain') AS drep_abstain_count,
+            COALESCE(SUM(d.voting_power_ada::numeric) FILTER (WHERE LOWER(pv.voter_role) = 'drep' AND LOWER(pv.vote) = 'yes'),     0) AS drep_yes_stake,
+            COALESCE(SUM(d.voting_power_ada::numeric) FILTER (WHERE LOWER(pv.voter_role) = 'drep' AND LOWER(pv.vote) = 'no'),      0) AS drep_no_stake,
+            COALESCE(SUM(d.voting_power_ada::numeric) FILTER (WHERE LOWER(pv.voter_role) = 'drep' AND LOWER(pv.vote) = 'abstain'), 0) AS drep_abstain_stake,
+            COUNT(*) FILTER (WHERE LOWER(pv.voter_role) = 'constitutional_committee' AND LOWER(pv.vote) = 'yes')     AS cc_yes_count,
+            COUNT(*) FILTER (WHERE LOWER(pv.voter_role) = 'constitutional_committee' AND LOWER(pv.vote) = 'no')      AS cc_no_count,
+            COUNT(*) FILTER (WHERE LOWER(pv.voter_role) = 'constitutional_committee' AND LOWER(pv.vote) = 'abstain') AS cc_abstain_count
           FROM proposal_votes pv
           LEFT JOIN dreps d ON d.drep_id = pv.voter
-          WHERE LOWER(pv.voter_role) = 'drep'
           GROUP BY pv.proposal_id
         ) vc ON p.id = vc.proposal_id
         WHERE v.voter IN (${placeholders})
@@ -908,6 +920,9 @@ export class DRepRepository extends Repository<VoltaireDrep> {
         drep_no_stake: Number(vote.drep_no_stake) || 0,
         drep_abstain_stake: Number(vote.drep_abstain_stake) || 0,
         drep_total_active_stake: Number(vote.drep_total_active_stake) || 0,
+        cc_yes_count: Number(vote.cc_yes_count) || 0,
+        cc_no_count: Number(vote.cc_no_count) || 0,
+        cc_abstain_count: Number(vote.cc_abstain_count) || 0,
         description: {
           tag: vote.governance_type || 'InfoAction',
         },

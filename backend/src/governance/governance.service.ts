@@ -253,11 +253,11 @@ export class GovernanceService {
     ];
     const stakePowerMap = new Map<string, string>();
     if (stakeAddresses.length > 0) {
-      const rows = await this.governanceDataSource.query<{ stake_address: string; voting_power_lovelace: string }[]>(
-        `SELECT stake_address, voting_power_lovelace FROM drep_delegators WHERE stake_address = ANY($1) AND voting_power_lovelace IS NOT NULL`,
+      const rows = await this.governanceDataSource.query<{ stake_address: string; amount_lovelace: string; voting_power_lovelace: string }[]>(
+        `SELECT stake_address, amount_lovelace, voting_power_lovelace FROM drep_delegators WHERE stake_address = ANY($1)`,
         [stakeAddresses],
       );
-      rows.forEach(r => stakePowerMap.set(r.stake_address, r.voting_power_lovelace));
+      rows.forEach(r => stakePowerMap.set(r.stake_address, r.amount_lovelace || r.voting_power_lovelace));
     }
 
     // 3. Aggregate all events

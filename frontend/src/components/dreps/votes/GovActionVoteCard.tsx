@@ -192,6 +192,10 @@ export const GovActionVoteCard = ({ action }) => {
   const noStake               = action?.drep_no_stake           ?? 0;
   const abstainStake          = action?.drep_abstain_stake      ?? 0;
   const totalActiveDRepStake  = action?.drep_total_active_stake ?? 0;
+  const ccYes     = action?.cc_yes_count     ?? 0;
+  const ccNo      = action?.cc_no_count      ?? 0;
+  const ccAbstain = action?.cc_abstain_count ?? 0;
+  const ccTotal   = ccYes + ccNo + ccAbstain;
 
   // Derive start epoch from expiration and gov_action_lifetime
   const startEpoch =
@@ -257,18 +261,48 @@ export const GovActionVoteCard = ({ action }) => {
           )}
         </div>
 
-        {/* Row 4: vote breakdown + progress bar */}
+        {/* Row 4: DRep vote breakdown + progress bar */}
         {hasVoteCounts && (
-          <VoteBar
-            yesCount={yesCount}
-            noCount={noCount}
-            abstainCount={abstainCount}
-            yesStake={yesStake}
-            noStake={noStake}
-            abstainStake={abstainStake}
-            totalActiveDRepStake={totalActiveDRepStake}
-            threshold={thresholds.isInfoAction ? null : thresholds.dvt}
-          />
+          <div className="space-y-2">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">DRep Votes</p>
+            <VoteBar
+              yesCount={yesCount}
+              noCount={noCount}
+              abstainCount={abstainCount}
+              yesStake={yesStake}
+              noStake={noStake}
+              abstainStake={abstainStake}
+              totalActiveDRepStake={totalActiveDRepStake}
+              threshold={thresholds.isInfoAction ? null : thresholds.dvt}
+            />
+          </div>
+        )}
+
+        {/* Row 5: CC vote summary */}
+        {ccTotal > 0 && (
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">CC</span>
+            <span className="flex items-center gap-1">
+              <span className="inline-block h-2 w-2 rounded-full bg-success" />
+              <span className="font-semibold text-gray-700">{ccYes}</span>
+              <span className="text-gray-400">Yes</span>
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="inline-block h-2 w-2 rounded-full bg-extra_red" />
+              <span className="font-semibold text-gray-700">{ccNo}</span>
+              <span className="text-gray-400">No</span>
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="inline-block h-2 w-2 rounded-full bg-complementary-200" />
+              <span className="font-semibold text-gray-700">{ccAbstain}</span>
+              <span className="text-gray-400">Abstain</span>
+            </span>
+            {!thresholds.isInfoAction && ccTotal > 0 && (
+              <span className="text-gray-500">
+                · {((ccYes / ccTotal) * 100).toFixed(0)}% yes
+              </span>
+            )}
+          </div>
         )}
       </div>
 
