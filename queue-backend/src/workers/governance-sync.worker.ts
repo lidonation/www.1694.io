@@ -160,6 +160,7 @@ export class GovernanceSyncWorker extends WorkerHost {
         }
       }
 
+      const undelegatedAt = new Date();
       for (const [address] of existingMap) {
         if (!newDelegatorsMap.has(address)) toDeleteIds.push(address);
       }
@@ -167,11 +168,26 @@ export class GovernanceSyncWorker extends WorkerHost {
       try {
         await this.dataSource.transaction(async (manager) => {
           const repo = manager.getRepository(DrepDelegator);
+          const timelineRepo = manager.getRepository(DrepTimelineEvent);
           const chunkSize = 1000;
 
           if (toDeleteIds.length > 0) {
              for (let i = 0; i < toDeleteIds.length; i += chunkSize) {
                await repo.createQueryBuilder().delete().where("drepId = :dId", { dId: drep.drepId }).andWhere("stakeAddress IN (:...ids)", { ids: toDeleteIds.slice(i, i + chunkSize) }).execute();
+             }
+             // Record undelegation timeline events for each departed delegator
+             const undelegationEvents: Partial<DrepTimelineEvent>[] = toDeleteIds.map(address => ({
+               drepId: drep.drepId,
+               eventType: 'undelegation' as const,
+               timestamp: undelegatedAt,
+               epoch: 0,
+               slot: '0',
+               txHash: `synthetic-undelegation-${drep.drepId}-${address}`,
+               blockHash: null,
+               metadata: { stake_address: address, previous_drep: drep.drepId, target_drep: null, added_power: false },
+             }));
+             for (let i = 0; i < undelegationEvents.length; i += chunkSize) {
+               await timelineRepo.upsert(undelegationEvents.slice(i, i + chunkSize) as any, { conflictPaths: ['txHash', 'drepId'], skipUpdateIfNoValuesChanged: true });
              }
           }
 

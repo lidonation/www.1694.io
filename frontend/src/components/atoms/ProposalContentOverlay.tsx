@@ -34,6 +34,20 @@ const VOTE_CFG: Record<string, { badge: string; Icon: any }> = {
 
 const URL_ONLY = /^(https?:\/\/\S+|proposal\s+as\s+pdf\s*:)/i;
 
+// CIP-100 vote rationale anchors use a "body.comment" field with escaped \n sequences.
+// We extract the comment (or any text field), then unescape literal \n so they render as real newlines.
+function extractRationaleText(body: unknown): string {
+  if (typeof body === 'string') return body.replace(/\\n/g, '\n');
+  if (body && typeof body === 'object') {
+    const b = body as Record<string, unknown>;
+    const candidate = b.comment ?? b.text ?? b.rationale ?? b.body ?? b.content;
+    if (typeof candidate === 'string') return candidate.replace(/\\n/g, '\n');
+    // Last resort: pretty-print but convert escaped newlines back to real ones
+    return JSON.stringify(b, null, 2).replace(/\\n/g, '\n');
+  }
+  return String(body);
+}
+
 // ── Stat chip ─────────────────────────────────────────────────────────────────
 const StatChip = ({ label, value }: { label: string; value: string | number }) => (
   <span className="flex flex-col items-center rounded-lg bg-gray-50 px-3 py-1.5 text-center">
@@ -340,8 +354,8 @@ export const ProposalContentOverlay = ({
                 <div className="h-3 w-2/3 animate-pulse rounded bg-gray-200" />
               </div>
             ) : metadata?.body ? (
-              <div className="text-sm leading-relaxed text-gray-700">
-                <MarkdownParser text={typeof metadata.body === 'string' ? metadata.body : JSON.stringify(metadata.body, null, 2)} />
+              <div className="text-sm leading-relaxed text-gray-700 whitespace-pre-wrap">
+                {extractRationaleText(metadata.body)}
               </div>
             ) : (
               <p className="text-xs italic text-gray-400">Could not load external rationale.</p>
