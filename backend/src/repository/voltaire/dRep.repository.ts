@@ -427,20 +427,22 @@ export class DRepRepository extends Repository<VoltaireDrep> {
                 COUNT(*) FILTER (WHERE LOWER(pv.vote) = 'yes')     AS drep_yes_count,
                 COUNT(*) FILTER (WHERE LOWER(pv.vote) = 'no')      AS drep_no_count,
                 COUNT(*) FILTER (WHERE LOWER(pv.vote) = 'abstain') AS drep_abstain_count,
-                COALESCE(SUM(pv.voting_power_lovelace) FILTER (WHERE LOWER(pv.vote) = 'yes'),     0) / 1000000.0 AS drep_yes_stake,
-                COALESCE(SUM(pv.voting_power_lovelace) FILTER (WHERE LOWER(pv.vote) = 'no'),      0) / 1000000.0 AS drep_no_stake,
-                COALESCE(SUM(pv.voting_power_lovelace) FILTER (WHERE LOWER(pv.vote) = 'abstain'), 0) / 1000000.0 AS drep_abstain_stake,
+                COALESCE(SUM(d.voting_power_ada::numeric) FILTER (WHERE LOWER(pv.vote) = 'yes'),     0) AS drep_yes_stake,
+                COALESCE(SUM(d.voting_power_ada::numeric) FILTER (WHERE LOWER(pv.vote) = 'no'),      0) AS drep_no_stake,
+                COALESCE(SUM(d.voting_power_ada::numeric) FILTER (WHERE LOWER(pv.vote) = 'abstain'), 0) AS drep_abstain_stake,
                 COALESCE((
                   SELECT SUM(des.amount_lovelace) / 1000000.0
                   FROM drep_epoch_stake des
                   JOIN proposals p ON p.id = pv.proposal_id
                   WHERE des.active = true
+                    AND des.drep_id != 'drep_always_abstain'
                     AND des.epoch_no = (
                       SELECT MAX(epoch_no) FROM drep_epoch_stake
                       WHERE epoch_no <= COALESCE(p.expiration_epoch, 9999)
                     )
                 ), 0) AS drep_total_active_stake
          FROM proposal_votes pv
+         LEFT JOIN dreps d ON d.drep_id = pv.voter
          WHERE LOWER(pv.voter_role) = 'drep' AND pv.proposal_id = ANY($1)
          GROUP BY pv.proposal_id`,
         [proposalIds],
@@ -846,6 +848,7 @@ export class DRepRepository extends Repository<VoltaireDrep> {
             SELECT SUM(des.amount_lovelace) / 1000000.0
             FROM drep_epoch_stake des
             WHERE des.active = true
+              AND des.drep_id != 'drep_always_abstain'
               AND des.epoch_no = (
                 SELECT MAX(epoch_no) FROM drep_epoch_stake
                 WHERE epoch_no <= COALESCE(p.expiration_epoch, 9999)
@@ -864,10 +867,11 @@ export class DRepRepository extends Repository<VoltaireDrep> {
             COUNT(*) FILTER (WHERE LOWER(pv.vote) = 'yes')     AS drep_yes_count,
             COUNT(*) FILTER (WHERE LOWER(pv.vote) = 'no')      AS drep_no_count,
             COUNT(*) FILTER (WHERE LOWER(pv.vote) = 'abstain') AS drep_abstain_count,
-            COALESCE(SUM(pv.voting_power_lovelace) FILTER (WHERE LOWER(pv.vote) = 'yes'),     0) / 1000000.0 AS drep_yes_stake,
-            COALESCE(SUM(pv.voting_power_lovelace) FILTER (WHERE LOWER(pv.vote) = 'no'),      0) / 1000000.0 AS drep_no_stake,
-            COALESCE(SUM(pv.voting_power_lovelace) FILTER (WHERE LOWER(pv.vote) = 'abstain'), 0) / 1000000.0 AS drep_abstain_stake
+            COALESCE(SUM(d.voting_power_ada::numeric) FILTER (WHERE LOWER(pv.vote) = 'yes'),     0) AS drep_yes_stake,
+            COALESCE(SUM(d.voting_power_ada::numeric) FILTER (WHERE LOWER(pv.vote) = 'no'),      0) AS drep_no_stake,
+            COALESCE(SUM(d.voting_power_ada::numeric) FILTER (WHERE LOWER(pv.vote) = 'abstain'), 0) AS drep_abstain_stake
           FROM proposal_votes pv
+          LEFT JOIN dreps d ON d.drep_id = pv.voter
           WHERE LOWER(pv.voter_role) = 'drep'
           GROUP BY pv.proposal_id
         ) vc ON p.id = vc.proposal_id
