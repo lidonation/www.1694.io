@@ -12,6 +12,7 @@ import { ViewExternalGovAction } from '@/components/atoms/ViewExternalGovAction'
 import { useGetProposalMetadataByHashQuery } from '@/hooks/useGetProposalMetadataByHash';
 import { useEpochParamsQuery } from '@/hooks/useEpochParamsQuery';
 import { getLifecycleStatus, getThresholdsForType } from '@/lib/governanceThresholds';
+import { shortNumber } from '@/lib/utils';
 import GovernanceLifecycleBadge from './GovernanceLifecycleBadge';
 import { ProposalContentOverlay } from './ProposalContentOverlay';
 import {
@@ -20,6 +21,8 @@ import {
   RemoveCircleOutline,
   MenuBookOutlined,
 } from '@mui/icons-material';
+
+const fmtAda = (ada: number) => `₳${shortNumber(ada, 2)}`;
 
 const highlightAnimation = keyframes`
   0%   { box-shadow: 0 0 0 0px var(--highlight-glow), 0 10px 15px -3px rgba(0,0,0,0.1); border-color: transparent; }
@@ -308,7 +311,7 @@ const DrepVoteTimelineCard = ({
         {title || '—'}
       </p>
 
-      {/* Row 3: type chip + lifecycle + thresholds + expiration */}
+      {/* Row 3: type chip + lifecycle + vote summary */}
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[10px] text-gray-500">
         {typeChip && (
           <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-medium ${typeChip.bg}`}>
@@ -316,26 +319,30 @@ const DrepVoteTimelineCard = ({
           </span>
         )}
         <GovernanceLifecycleBadge status={lifecycleStatus} />
-        {thresholds.isInfoAction ? (
-          <span className="italic text-gray-400">No ratification threshold</span>
-        ) : thresholds.dvt !== null && (
-          <span>
-            <span className="font-semibold text-gray-600">{thresholds.dvtLabel ?? 'DRep'}</span>
-            {' ≥'}{thresholds.dvt}%
-            {thresholds.pvt !== null && (
-              <span className="text-gray-400">  ·  SPO ≥{thresholds.pvt}%</span>
-            )}
-          </span>
-        )}
-        {epochParams?.gov_action_lifetime != null && (
-          <span>
-            Active <span className="font-semibold text-gray-600">{epochParams.gov_action_lifetime}</span> epochs
-          </span>
-        )}
-        {item?.expiration_epoch != null && (
-          <span>
-            Expires Ep. <span className="font-semibold text-gray-700">{item.expiration_epoch}</span>
-          </span>
+        {hasVoteCounts && (
+          <>
+            <span className="flex items-center gap-1">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-success" />
+              <span className="font-semibold text-gray-700">{yesStake > 0 ? fmtAda(yesStake) : yesCount}</span>
+              <span className="text-gray-400">Yes</span>
+              {(yesStake > 0 || noStake > 0) && totalActiveDRepStake > 0 && (
+                <span className="text-gray-500">· {((yesStake / totalActiveDRepStake) * 100).toFixed(1)}%</span>
+              )}
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-extra_red" />
+              <span className="font-semibold text-gray-700">{noStake > 0 ? fmtAda(noStake) : noCount}</span>
+              <span className="text-gray-400">No</span>
+              {(yesStake > 0 || noStake > 0) && totalActiveDRepStake > 0 && (
+                <span className="text-gray-500">· {((noStake / totalActiveDRepStake) * 100).toFixed(1)}%</span>
+              )}
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-complementary-200" />
+              <span className="font-semibold text-gray-700">{abstainStake > 0 ? fmtAda(abstainStake) : abstainCount}</span>
+              <span className="text-gray-400">Abstain</span>
+            </span>
+          </>
         )}
       </div>
 
@@ -411,6 +418,7 @@ const DrepVoteTimelineCard = ({
         yesStake={yesStake}
         noStake={noStake}
         abstainStake={abstainStake}
+        totalActiveDRepStake={totalActiveDRepStake}
         govActionHash={govActionHash}
         govActionId={(item as any)?.gov_action_proposal_id}
         txHash={txHash}

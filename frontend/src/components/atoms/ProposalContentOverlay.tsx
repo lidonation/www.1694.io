@@ -18,6 +18,7 @@ import CopyToClipboard from './CopyToClipboard';
 import { useGetExternalMetadata } from '@/hooks/useGetExternalMetadata';
 import { useEpochParamsQuery } from '@/hooks/useEpochParamsQuery';
 import { LifecycleStatus, GovernanceThresholds, getThresholdsForType } from '@/lib/governanceThresholds';
+import { shortNumber } from '@/lib/utils';
 
 const SlideUp = React.forwardRef(function SlideUp(
   props: TransitionProps & { children: React.ReactElement },
@@ -26,10 +27,10 @@ const SlideUp = React.forwardRef(function SlideUp(
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-const VOTE_CFG: Record<string, { badge: string; Icon: any }> = {
-  Yes:     { badge: 'bg-success/20 text-green-700',                Icon: CheckCircleOutline },
-  No:      { badge: 'bg-red-100 text-red-700',                     Icon: HighlightOff },
-  Abstain: { badge: 'bg-complementary-100 text-complementary-400', Icon: RemoveCircleOutline },
+const VOTE_CFG: Record<string, { badge: string; Icon: any; rationaleAccent: string; rationaleBg: string; labelColor: string }> = {
+  Yes:     { badge: 'bg-success/20 text-green-700',                Icon: CheckCircleOutline,   rationaleAccent: 'border-l-success',         rationaleBg: 'bg-success/5',         labelColor: 'text-green-600' },
+  No:      { badge: 'bg-red-100 text-red-700',                     Icon: HighlightOff,         rationaleAccent: 'border-l-extra_red',       rationaleBg: 'bg-red-50/60',         labelColor: 'text-red-500' },
+  Abstain: { badge: 'bg-complementary-100 text-complementary-400', Icon: RemoveCircleOutline,  rationaleAccent: 'border-l-complementary-200', rationaleBg: 'bg-complementary-50/50', labelColor: 'text-complementary-400' },
 };
 
 const URL_ONLY = /^(https?:\/\/\S+|proposal\s+as\s+pdf\s*:)/i;
@@ -56,12 +57,7 @@ const StatChip = ({ label, value }: { label: string; value: string | number }) =
   </span>
 );
 
-const fmtAda = (ada: number) => {
-  if (ada >= 1_000_000_000) return `₳${(ada / 1_000_000_000).toFixed(2)}b`;
-  if (ada >= 1_000_000)     return `₳${(ada / 1_000_000).toFixed(2)}m`;
-  if (ada >= 1_000)         return `₳${(ada / 1_000).toFixed(1)}k`;
-  return `₳${ada.toFixed(0)}`;
-};
+const fmtAda = (ada: number) => `₳${shortNumber(ada, 2)}`;
 
 // ── Vote bar ──────────────────────────────────────────────────────────────────
 const VoteBar = ({
@@ -100,25 +96,22 @@ const VoteBar = ({
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px]">
         <span className="flex items-center gap-1">
           <span className="inline-block h-2 w-2 rounded-full bg-success" />
-          <span className="font-semibold text-gray-700">{yesCount}</span>
           <span className="text-gray-400">Yes</span>
-          {hasStake && <span className="text-gray-500">{fmtAda(yesStake)}</span>}
+          <span className="font-semibold text-gray-700">{hasStake ? fmtAda(yesStake) : yesCount}</span>
           <span className="text-gray-300">·</span>
           <span className="text-gray-600">{yesPct.toFixed(1)}%</span>
         </span>
         <span className="flex items-center gap-1">
           <span className="inline-block h-2 w-2 rounded-full bg-extra_red" />
-          <span className="font-semibold text-gray-700">{noCount}</span>
           <span className="text-gray-400">No</span>
-          {hasStake && <span className="text-gray-500">{fmtAda(noStake)}</span>}
+          <span className="font-semibold text-gray-700">{hasStake ? fmtAda(noStake) : noCount}</span>
           <span className="text-gray-300">·</span>
           <span className="text-gray-600">{noPct.toFixed(1)}%</span>
         </span>
         <span className="flex items-center gap-1">
           <span className="inline-block h-2 w-2 rounded-full bg-complementary-200" />
-          <span className="font-semibold text-gray-700">{abstainCount}</span>
           <span className="text-gray-400">Abstain</span>
-          {hasStake && <span className="text-gray-500">{fmtAda(abstainStake)}</span>}
+          <span className="font-semibold text-gray-700">{hasStake ? fmtAda(abstainStake) : abstainCount}</span>
         </span>
       </div>
 
@@ -355,8 +348,10 @@ export const ProposalContentOverlay = ({
         )}
 
         {voteRationaleUrl && (
-          <div className="px-5 py-4">
-            <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-gray-400">Vote Rationale</p>
+          <div className={`border-l-4 px-5 py-4 ${voteCfg.rationaleAccent} ${voteCfg.rationaleBg}`}>
+            <p className={`mb-2 text-[10px] font-bold uppercase tracking-wider ${voteCfg.labelColor}`}>
+              DRep Rationale
+            </p>
             {isMetadataLoading ? (
               <div className="space-y-2">
                 <div className="h-3 w-3/4 animate-pulse rounded bg-gray-200" />

@@ -6,6 +6,7 @@ import { useGetProposalMetadataByHashQuery } from '@/hooks/useGetProposalMetadat
 import { useEpochParamsQuery } from '@/hooks/useEpochParamsQuery';
 import { useWallet } from '@/context/globalContext';
 import { formatIsoTime } from '@/lib';
+import { shortNumber } from '@/lib/utils';
 import { getLifecycleStatus, getThresholdsForType } from '@/lib/governanceThresholds';
 import { Alert, Tooltip } from '@mui/material';
 import { useState } from 'react';
@@ -37,12 +38,7 @@ const VOTE_STYLE: Record<string, { border: string; badge: string; Icon: any }> =
 
 const URL_ONLY = /^(https?:\/\/\S+|proposal\s+as\s+pdf\s*:)/i;
 
-const fmtAda = (ada: number) => {
-  if (ada >= 1_000_000_000) return `₳${(ada / 1_000_000_000).toFixed(2)}b`;
-  if (ada >= 1_000_000)     return `₳${(ada / 1_000_000).toFixed(2)}m`;
-  if (ada >= 1_000)         return `₳${(ada / 1_000).toFixed(1)}k`;
-  return `₳${ada.toFixed(0)}`;
-};
+const fmtAda = (ada: number) => `₳${shortNumber(ada, 2)}`;
 
 // ── Vote progress bar ─────────────────────────────────────────────────────────
 const VoteBar = ({
@@ -81,25 +77,22 @@ const VoteBar = ({
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px]">
         <span className="flex items-center gap-1">
           <span className="inline-block h-2 w-2 rounded-full bg-success" />
-          <span className="font-semibold text-gray-700">{yesCount}</span>
           <span className="text-gray-400">Yes</span>
-          {hasStake && <span className="text-gray-500">{fmtAda(yesStake)}</span>}
+          <span className="font-semibold text-gray-700">{hasStake ? fmtAda(yesStake) : yesCount}</span>
           <span className="text-gray-300">·</span>
           <span className="text-gray-600">{yesPct.toFixed(1)}%</span>
         </span>
         <span className="flex items-center gap-1">
           <span className="inline-block h-2 w-2 rounded-full bg-extra_red" />
-          <span className="font-semibold text-gray-700">{noCount}</span>
           <span className="text-gray-400">No</span>
-          {hasStake && <span className="text-gray-500">{fmtAda(noStake)}</span>}
+          <span className="font-semibold text-gray-700">{hasStake ? fmtAda(noStake) : noCount}</span>
           <span className="text-gray-300">·</span>
           <span className="text-gray-600">{noPct.toFixed(1)}%</span>
         </span>
         <span className="flex items-center gap-1">
           <span className="inline-block h-2 w-2 rounded-full bg-complementary-200" />
-          <span className="font-semibold text-gray-700">{abstainCount}</span>
           <span className="text-gray-400">Abstain</span>
-          {hasStake && <span className="text-gray-500">{fmtAda(abstainStake)}</span>}
+          <span className="font-semibold text-gray-700">{hasStake ? fmtAda(abstainStake) : abstainCount}</span>
         </span>
       </div>
 
