@@ -55,67 +55,68 @@ const VoteBar = ({
   const total = yesCount + noCount + abstainCount;
   if (total === 0) return null;
 
-  const hasStake = yesStake + noStake + abstainStake > 0;
-  // ADAstat formula: yesStake / totalActiveDRepStake (all active DRep stake as denominator)
-  // Falls back to voted-stake ratio, then count-based until voting_power data is backfilled
-  const yesPct = hasStake && totalActiveDRepStake && totalActiveDRepStake > 0
-    ? (yesStake / totalActiveDRepStake) * 100
-    : hasStake && yesStake + noStake > 0
-      ? (yesStake / (yesStake + noStake)) * 100
-      : (yesCount / (yesCount + noCount || 1)) * 100;
-  const noPct = hasStake && totalActiveDRepStake && totalActiveDRepStake > 0
-    ? (noStake / totalActiveDRepStake) * 100
-    : 100 - yesPct;
+  const votedTotal = yesStake + noStake + abstainStake;
+  const hasStake   = votedTotal > 0;
+  const hasActive  = hasStake && totalActiveDRepStake && totalActiveDRepStake > 0;
 
-  const totalForBar = hasStake ? yesStake + noStake + abstainStake : total;
-  const yesBarPct = totalForBar > 0 ? (hasStake ? yesStake     : yesCount)     / totalForBar * 100 : 0;
-  const noBarPct  = totalForBar > 0 ? (hasStake ? noStake      : noCount)      / totalForBar * 100 : 0;
-  const absBarPct = totalForBar > 0 ? (hasStake ? abstainStake : abstainCount) / totalForBar * 100 : 0;
+  // All percentages are of eligible stake (totalActiveDRepStake), so they sum to 100%
+  const pct = (n: number) => hasActive ? (n / totalActiveDRepStake!) * 100 : 0;
+  const yesPct     = hasActive ? pct(yesStake)     : (yesCount     / (total || 1)) * 100;
+  const noPct      = hasActive ? pct(noStake)      : (noCount      / (total || 1)) * 100;
+  const abstainPct = hasActive ? pct(abstainStake) : (abstainCount / (total || 1)) * 100;
+  const notVoted   = hasActive ? Math.max(0, totalActiveDRepStake! - votedTotal) : 0;
+  const notVotedPct= hasActive ? pct(notVoted) : 0;
+
+  const thresholdMet = threshold !== null && yesPct >= threshold;
 
   return (
-    <div className="space-y-2">
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px]">
-        <span className="flex items-center gap-1">
-          <span className="inline-block h-2 w-2 rounded-full bg-success" />
-          <span className="text-gray-400">Yes</span>
-          <span className="font-semibold text-gray-700">{hasStake ? fmtAda(yesStake) : yesCount}</span>
-          <span className="text-gray-300">·</span>
-          <span className="text-gray-600">{yesPct.toFixed(1)}%</span>
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="inline-block h-2 w-2 rounded-full bg-extra_red" />
-          <span className="text-gray-400">No</span>
-          <span className="font-semibold text-gray-700">{hasStake ? fmtAda(noStake) : noCount}</span>
-          <span className="text-gray-300">·</span>
-          <span className="text-gray-600">{noPct.toFixed(1)}%</span>
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="inline-block h-2 w-2 rounded-full bg-complementary-200" />
-          <span className="text-gray-400">Abstain</span>
-          <span className="font-semibold text-gray-700">{hasStake ? fmtAda(abstainStake) : abstainCount}</span>
-        </span>
-      </div>
+    <div className="space-y-2.5">
+      {/* Header: eligible stake */}
+      {hasActive && (
+        <p className="text-[10px] text-gray-400">
+          <span className="font-semibold text-gray-600">{fmtAda(totalActiveDRepStake!)}</span> eligible DRep stake
+        </p>
+      )}
 
+      {/* Progress bar — full width = totalActiveDRepStake */}
       <div className="relative h-3 w-full overflow-hidden rounded-full bg-gray-100">
-        <div className="absolute left-0 top-0 h-full bg-success"    style={{ width: `${yesBarPct}%` }} />
-        <div className="absolute top-0 h-full bg-extra_red"         style={{ left: `${yesBarPct}%`, width: `${noBarPct}%` }} />
-        <div className="absolute top-0 h-full bg-complementary-200" style={{ left: `${yesBarPct + noBarPct}%`, width: `${absBarPct}%` }} />
+        <div className="absolute left-0 top-0 h-full bg-success"    style={{ width: `${yesPct}%` }} />
+        <div className="absolute top-0 h-full bg-extra_red"         style={{ left: `${yesPct}%`, width: `${noPct}%` }} />
+        <div className="absolute top-0 h-full bg-complementary-200" style={{ left: `${yesPct + noPct}%`, width: `${abstainPct}%` }} />
         {threshold !== null && (
           <Tooltip title={`Ratification threshold: ${threshold}%`} placement="top" arrow>
-            <div
-              className="absolute top-0 h-full w-0.5 cursor-default bg-gray-800/60"
-              style={{ left: `${threshold}%` }}
-            />
+            <div className="absolute top-0 h-full w-0.5 cursor-default bg-gray-800/60" style={{ left: `${threshold}%` }} />
           </Tooltip>
         )}
       </div>
 
+      {/* Vote breakdown — all % of eligible stake, sum to 100% */}
+      <div className="grid grid-cols-[auto_1fr_auto] items-center gap-x-2 gap-y-1 text-[11px]">
+        <span className="inline-block h-2 w-2 rounded-full bg-success" />
+        <span className="text-gray-500">Yes <span className="font-semibold text-gray-700">{hasStake ? fmtAda(yesStake) : yesCount}</span></span>
+        <span className="text-right font-semibold text-gray-700">{yesPct.toFixed(2)}%</span>
+
+        <span className="inline-block h-2 w-2 rounded-full bg-extra_red" />
+        <span className="text-gray-500">No <span className="font-semibold text-gray-700">{hasStake ? fmtAda(noStake) : noCount}</span></span>
+        <span className="text-right font-semibold text-gray-700">{noPct.toFixed(2)}%</span>
+
+        <span className="inline-block h-2 w-2 rounded-full bg-complementary-200" />
+        <span className="text-gray-500">Abstain <span className="font-semibold text-gray-700">{hasStake ? fmtAda(abstainStake) : abstainCount}</span></span>
+        <span className="text-right font-semibold text-gray-700">{abstainPct.toFixed(2)}%</span>
+
+        {hasActive && notVoted > 0 && (
+          <>
+            <span className="inline-block h-2 w-2 rounded-full bg-gray-300" />
+            <span className="text-gray-400">Not Voted <span className="font-semibold text-gray-500">{fmtAda(notVoted)}</span></span>
+            <span className="text-right font-semibold text-gray-400">{notVotedPct.toFixed(2)}%</span>
+          </>
+        )}
+      </div>
+
+      {/* Ratification status */}
       {threshold !== null && (
-        <p className="text-[11px] text-gray-500">
-          Threshold <span className="font-semibold text-gray-700">{threshold}%</span>
-          {hasStake && yesPct >= threshold && (
-            <span className="ml-2 font-semibold text-green-600">✓ Met</span>
-          )}
+        <p className={`text-[11px] font-medium ${thresholdMet ? 'text-green-600' : 'text-gray-500'}`}>
+          {thresholdMet ? '✓ Threshold met' : `${yesPct.toFixed(2)}% Yes · ${threshold}% threshold`}
         </p>
       )}
     </div>
