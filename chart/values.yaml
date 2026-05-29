@@ -137,6 +137,14 @@ cnpg:
     # Must be set at deploy time: --set cnpg.migration.sourcePassword=<value>  Never committed.
     sourcePassword: ""
 
+yaciStore:
+  # Cross-namespace FQDN for the Yaci Store CNPG cluster in lidolovelace-test namespace.
+  # Override per environment if the service name differs.
+  dbHost: "lidonation-cnpg-cluster-rw.lidolovelace-test.svc.cluster.local"
+  dbPort: "5432"
+  dbName: "yaci_store"
+  # dbUsername and dbPassword are set at deploy time via queue_env file (never committed).
+
 governanceIndexer:
   replicaCount: 1
   labels:

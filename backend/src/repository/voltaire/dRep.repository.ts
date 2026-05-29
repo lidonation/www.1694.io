@@ -431,13 +431,12 @@ export class DRepRepository extends Repository<VoltaireDrep> {
                 COUNT(*) FILTER (WHERE LOWER(pv.voter_role) = 'drep' AND LOWER(pv.vote) = 'yes')     AS drep_yes_count,
                 COUNT(*) FILTER (WHERE LOWER(pv.voter_role) = 'drep' AND LOWER(pv.vote) = 'no')      AS drep_no_count,
                 COUNT(*) FILTER (WHERE LOWER(pv.voter_role) = 'drep' AND LOWER(pv.vote) = 'abstain') AS drep_abstain_count,
-                COALESCE(SUM(d.voting_power_ada::numeric) FILTER (WHERE LOWER(pv.voter_role) = 'drep' AND LOWER(pv.vote) = 'yes'),     0) AS drep_yes_stake,
-                COALESCE(SUM(d.voting_power_ada::numeric) FILTER (WHERE LOWER(pv.voter_role) = 'drep' AND LOWER(pv.vote) = 'no'),      0) AS drep_no_stake,
-                COALESCE(SUM(d.voting_power_ada::numeric) FILTER (WHERE LOWER(pv.voter_role) = 'drep' AND LOWER(pv.vote) = 'abstain'), 0) AS drep_abstain_stake,
+x                COALESCE(SUM(des_power.amount_lovelace / 1000000.0) FILTER (WHERE LOWER(pv.voter_role) = 'drep' AND LOWER(pv.vote) = 'yes'),     0) AS drep_yes_stake,
+                COALESCE(SUM(des_power.amount_lovelace / 1000000.0) FILTER (WHERE LOWER(pv.voter_role) = 'drep' AND LOWER(pv.vote) = 'no'),      0) AS drep_no_stake,
+                COALESCE(SUM(des_power.amount_lovelace / 1000000.0) FILTER (WHERE LOWER(pv.voter_role) = 'drep' AND LOWER(pv.vote) = 'abstain'), 0) AS drep_abstain_stake,
                 COALESCE((
                   SELECT SUM(des.amount_lovelace) / 1000000.0
                   FROM drep_epoch_stake des
-                  JOIN proposals p ON p.id = pv.proposal_id
                   WHERE des.active = true
                     AND des.drep_id != 'drep_always_abstain'
                     AND des.epoch_no = (
@@ -449,9 +448,17 @@ export class DRepRepository extends Repository<VoltaireDrep> {
                 COUNT(*) FILTER (WHERE LOWER(pv.voter_role) = 'constitutional_committee' AND LOWER(pv.vote) = 'no')      AS cc_no_count,
                 COUNT(*) FILTER (WHERE LOWER(pv.voter_role) = 'constitutional_committee' AND LOWER(pv.vote) = 'abstain') AS cc_abstain_count
          FROM proposal_votes pv
-         LEFT JOIN dreps d ON d.drep_id = pv.voter
+         JOIN proposals p ON p.id = pv.proposal_id
+         LEFT JOIN LATERAL (
+           SELECT des.amount_lovelace
+           FROM drep_epoch_stake des
+           WHERE des.drep_id = pv.voter
+             AND des.epoch_no <= COALESCE(p.expiration_epoch, 9999)
+           ORDER BY des.epoch_no DESC
+           LIMIT 1
+         ) des_power ON true
          WHERE pv.proposal_id = ANY($1)
-         GROUP BY pv.proposal_id`,
+         GROUP BY pv.proposal_id, p.expiration_epoch`,
         [proposalIds],
       ),
     ]);

@@ -5,6 +5,12 @@ export enum Queues {
   DREP_VOTES_SYNC = 'drep-votes-sync',
   PROPOSALS_SYNC = 'proposals-sync',
   TIMELINE_WATCHER = 'timeline-watcher',
+  YACI_TIMELINE_SYNC        = 'yaci-timeline-sync',
+  YACI_EPOCH_STAKE          = 'yaci-epoch-stake',
+  YACI_DELEGATOR_EPOCH_STAKE = 'yaci-delegator-epoch-stake',
+  YACI_DREP_SYNC            = 'yaci-drep-sync',
+  YACI_PROPOSAL_SYNC        = 'yaci-proposal-sync',
+  YACI_VOTE_SYNC            = 'yaci-vote-sync',
 }
 
 export enum JobTypes {
@@ -14,6 +20,12 @@ export enum JobTypes {
   DREP_VOTES_SYNC = 'drep-votes-sync-job',
   PROPOSALS_SYNC = 'proposals-sync-job',
   TIMELINE_WATCHER = 'timeline-watcher-job',
+  YACI_TIMELINE_SYNC        = 'yaci-timeline-sync-job',
+  YACI_EPOCH_STAKE          = 'yaci-epoch-stake-job',
+  YACI_DELEGATOR_EPOCH_STAKE = 'yaci-delegator-epoch-stake-job',
+  YACI_DREP_SYNC            = 'yaci-drep-sync-job',
+  YACI_PROPOSAL_SYNC        = 'yaci-proposal-sync-job',
+  YACI_VOTE_SYNC            = 'yaci-vote-sync-job',
 }
 
 export type DRepClaimJobData = {
@@ -91,4 +103,58 @@ export type ProposalsSyncJobResponse = {
   message: string;
   proposalsCount?: number;
   metadataCount?: number;
+};
+
+export type YaciTimelineSyncJobData = Record<string, never>;
+
+export type YaciTimelineSyncJobResponse = {
+  success: boolean;
+  message: string;
+  inserted: number;
+};
+
+export type YaciEpochStakeJobData = {
+  epochFrom?: number;
+  epochTo?: number;
+};
+
+export type YaciEpochStakeJobResponse = {
+  success: boolean;
+  message: string;
+  processedEpochs: number[];
+};
+
+export type YaciDelegatorEpochStakeJobData = {
+  epochFrom?: number;
+  epochTo?: number;
+};
+
+export type YaciDelegatorEpochStakeJobResponse = {
+  success: boolean;
+  message: string;
+  processedEpochs: number[];
+};
+
+export type YaciDRepSyncJobData = Record<string, never>;
+
+export type YaciDRepSyncJobResponse = {
+  success: boolean;
+  message: string;
+  upserted: number;
+};
+
+export type YaciProposalSyncJobData = Record<string, never>;
+
+export type YaciProposalSyncJobResponse = {
+  success: boolean;
+  message: string;
+  upserted: number;
+};
+
+export type YaciVoteSyncJobData = Record<string, never>;
+
+export type YaciVoteSyncJobResponse = {
+  success: boolean;
+  message: string;
+  upserted: number;
 };

@@ -21,6 +21,12 @@ import { Queues } from '../queue.types';
     BullModule.registerQueue({
       name: Queues.TIMELINE_WATCHER,
     }),
+    BullModule.registerQueue({ name: Queues.YACI_TIMELINE_SYNC }),
+    BullModule.registerQueue({ name: Queues.YACI_EPOCH_STAKE }),
+    BullModule.registerQueue({ name: Queues.YACI_DELEGATOR_EPOCH_STAKE }),
+    BullModule.registerQueue({ name: Queues.YACI_DREP_SYNC }),
+    BullModule.registerQueue({ name: Queues.YACI_PROPOSAL_SYNC }),
+    BullModule.registerQueue({ name: Queues.YACI_VOTE_SYNC }),
   ],
   providers: [JobSchedulerService],
 })
