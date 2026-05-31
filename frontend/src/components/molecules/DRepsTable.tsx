@@ -23,6 +23,7 @@ import Typography from '@mui/material/Typography';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import DRepLogo from './DRepLogo';
 import RecordsNotFound from '../atoms/RecordsNotFound';
+import { useDRepNavigator } from '@/lib/lastDrepTabNavigation';
 
 type DRepsTableProps = {
   query?: string;
@@ -52,6 +53,7 @@ const DRepsTable = ({
   includeRetired,
   type,
 }: DRepsTableProps) => {
+  const navigateToDRepWithLastTab = useDRepNavigator();
   const { isMobile } = useScreenDimension();
   const { addSuccessAlert } = useGlobalNotifications();
   const { DReps, isDRepsLoading, isError } = useGetDRepsQuery(
@@ -173,6 +175,10 @@ const DRepsTable = ({
                         <Link
                           href={`/dreps/${drep?.view}`}
                           prefetch={false}
+                          onClick={(e) => {
+                            e.preventDefault(); 
+                            navigateToDRepWithLastTab(drep?.has_script, drep?.chain_id);
+                          }}
                         >
                           <p className="hover:font-semibold">
                             {convertString(
@@ -191,6 +197,10 @@ const DRepsTable = ({
                             className="inline-flex"
                             href={`/dreps/${drep?.view}`}
                             prefetch={false}
+                            onClick={(e) => {
+                              e.preventDefault(); 
+                              navigateToDRepWithLastTab(drep?.has_script, drep?.chain_id);
+                            }}
                           >
                             <span className="inline-block rounded-xl border border-black px-1.5 py-0.5 text-xs font-black text-black">
                               {(() => {
