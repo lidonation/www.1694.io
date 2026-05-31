@@ -187,11 +187,19 @@ export class DRepRepository extends Repository<VoltaireDrep> {
       return 'drep.drep_id IN ' + subQuery;
     });
 
-    // Apply search filter
+    // Apply search filter. CIP-119 wraps body fields as { "@value": "..." }, so
+    // prefer the unwrapped @value and fall back to the raw scalar for older
+    // metadata that stored a plain string. Name matching is ILIKE-contains OR
+    // pg_trgm similarity (`%`, default threshold 0.3) for typo tolerance —
+    // both backed by the idx_dreps_given_name_trgm GIN index.
+    const nameExpr = `COALESCE(drep.metadata->'json_metadata'->'body'->'givenName'->>'@value', drep.metadata->'json_metadata'->'body'->>'givenName', '')`;
     if (query) {
       queryBuilder.andWhere(
-        "(drep.drepId ILIKE :search OR drep.metadata->'json_metadata'->'body'->>'givenName' ILIKE :search OR drep.hex ILIKE :search OR drep.metadata->'json_metadata'->'body'->>'paymentAddress' ILIKE :search)",
-        { search: `%${query}%` },
+        `(drep.drepId ILIKE :search OR drep.hex ILIKE :search
+          OR ${nameExpr} ILIKE :search
+          OR ${nameExpr} % :q
+          OR COALESCE(drep.metadata->'json_metadata'->'body'->'paymentAddress'->>'@value', drep.metadata->'json_metadata'->'body'->>'paymentAddress') ILIKE :search)`,
+        { search: `%${query}%`, q: query },
       );
     }
 
@@ -225,21 +233,31 @@ export class DRepRepository extends Repository<VoltaireDrep> {
     }
 
     // Apply sorting
+    // COALESCE the numeric columns so DReps whose voting power has not been
+    // synced yet (NULL) sort as 0 instead of vanishing off the top. The prior
+    // `NULLS FIRST`/`NULLS LAST` branch keyed off the raw (lower-case) sortOrder,
+    // so a default DESC sort landed on NULLS FIRST and floated unsynced DReps to
+    // the top — hiding the real high-voting-power DReps.
     const sortColumnMap = {
-      delegation_vote_count: 'drep.delegationVoteCount',
-      live_stake: 'drep.votingPowerAda',
-      voting_power: 'drep.votingPowerAda',
+      delegation_vote_count: 'COALESCE(drep.delegation_vote_count, 0)',
+      live_stake: 'COALESCE(drep.voting_power_ada, 0)',
+      voting_power: 'COALESCE(drep.voting_power_ada, 0)',
       governance_vote_count: 'computed_vote_count',
     };
 
-    const dbSortColumn = sortColumnMap[sortColumn] || 'drep.votingPowerAda';
+    const dbSortColumn =
+      sortColumnMap[sortColumn] || 'COALESCE(drep.voting_power_ada, 0)';
     const dbSortOrder = sortOrder?.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
-    queryBuilder.orderBy(
-      dbSortColumn,
-      dbSortOrder,
-      sortOrder === 'DESC' ? 'NULLS LAST' : 'NULLS FIRST',
-    );
+    if (query) {
+      // With an active search, surface the closest name matches first, then fall
+      // back to the requested column for ties (and for non-name/ID matches).
+      queryBuilder
+        .orderBy(`similarity(${nameExpr}, :q)`, 'DESC')
+        .addOrderBy(dbSortColumn, dbSortOrder);
+    } else {
+      queryBuilder.orderBy(dbSortColumn, dbSortOrder);
+    }
 
     // Get total count for pagination
     const totalItems = await queryBuilder.getCount();
@@ -258,17 +276,16 @@ export class DRepRepository extends Repository<VoltaireDrep> {
       const liveStakeAda = parseInt(liveStakeLovelace) / 1000000;
       const voteCount = parseInt(rawResult?.computed_vote_count || '0');
 
-      let givenName = drep.metadata?.json_metadata?.body?.givenName || null;
-      // Handle doubly-encoded JSON or JSON string in givenName field
-      if (
-        givenName &&
-        typeof givenName === 'string' &&
-        givenName.trim().startsWith('{')
-      ) {
+      // CIP-119 wraps values as { "@value": "..." }. Unwrap objects, and tolerate
+      // metadata that stored the value as a (possibly doubly-encoded) JSON string,
+      // so the name renders as text instead of "[object Object]".
+      let givenName: any = drep.metadata?.json_metadata?.body?.givenName ?? null;
+      if (givenName && typeof givenName === 'object') {
+        givenName = givenName['@value'] ?? null;
+      } else if (typeof givenName === 'string' && givenName.trim().startsWith('{')) {
         try {
           const parsed = JSON.parse(givenName);
-          // Try to extract name from parsed object if it has likely keys, or use parsed itself if it turned out to be a simple string (less likely)
-          if (parsed.givenName) givenName = parsed.givenName;
+          givenName = parsed['@value'] ?? parsed.givenName ?? givenName;
         } catch (e) {
           // If parse fails, keep original string
         }
@@ -412,6 +429,10 @@ export class DRepRepository extends Repository<VoltaireDrep> {
       drep_yes_stake: string;
       drep_no_stake: string;
       drep_abstain_stake: string;
+      drep_total_active_stake: string;
+      cc_yes_count: string;
+      cc_no_count: string;
+      cc_abstain_count: string;
     };
 
     const [proposalRows, voteCountRows] = await Promise.all([
@@ -422,15 +443,31 @@ export class DRepRepository extends Repository<VoltaireDrep> {
         [proposalIds],
       ),
       this.voltaireDb.query<VoteCountRow[]>(
-        `SELECT pv.proposal_id,
-                COUNT(*) FILTER (WHERE LOWER(pv.vote) = 'yes')     AS drep_yes_count,
-                COUNT(*) FILTER (WHERE LOWER(pv.vote) = 'no')      AS drep_no_count,
-                COUNT(*) FILTER (WHERE LOWER(pv.vote) = 'abstain') AS drep_abstain_count,
-                COALESCE(SUM(pv.voting_power_lovelace) FILTER (WHERE LOWER(pv.vote) = 'yes'),     0) / 1000000.0 AS drep_yes_stake,
-                COALESCE(SUM(pv.voting_power_lovelace) FILTER (WHERE LOWER(pv.vote) = 'no'),      0) / 1000000.0 AS drep_no_stake,
-                COALESCE(SUM(pv.voting_power_lovelace) FILTER (WHERE LOWER(pv.vote) = 'abstain'), 0) / 1000000.0 AS drep_abstain_stake
+        `SELECT
+                pv.proposal_id,
+                COUNT(*) FILTER (WHERE LOWER(pv.voter_role) = 'drep' AND LOWER(pv.vote) = 'yes')     AS drep_yes_count,
+                COUNT(*) FILTER (WHERE LOWER(pv.voter_role) = 'drep' AND LOWER(pv.vote) = 'no')      AS drep_no_count,
+                COUNT(*) FILTER (WHERE LOWER(pv.voter_role) = 'drep' AND LOWER(pv.vote) = 'abstain') AS drep_abstain_count,
+                COALESCE(SUM(d.voting_power_ada::numeric) FILTER (WHERE LOWER(pv.voter_role) = 'drep' AND LOWER(pv.vote) = 'yes'),     0) AS drep_yes_stake,
+                COALESCE(SUM(d.voting_power_ada::numeric) FILTER (WHERE LOWER(pv.voter_role) = 'drep' AND LOWER(pv.vote) = 'no'),      0) AS drep_no_stake,
+                COALESCE(SUM(d.voting_power_ada::numeric) FILTER (WHERE LOWER(pv.voter_role) = 'drep' AND LOWER(pv.vote) = 'abstain'), 0) AS drep_abstain_stake,
+                COALESCE((
+                  SELECT SUM(des.amount_lovelace) / 1000000.0
+                  FROM drep_epoch_stake des
+                  JOIN proposals p ON p.id = pv.proposal_id
+                  WHERE des.active = true
+                    AND des.drep_id != 'drep_always_abstain'
+                    AND des.epoch_no = (
+                      SELECT MAX(epoch_no) FROM drep_epoch_stake
+                      WHERE epoch_no <= COALESCE(p.expiration_epoch, 9999)
+                    )
+                ), 0) AS drep_total_active_stake,
+                COUNT(*) FILTER (WHERE LOWER(pv.voter_role) = 'constitutional_committee' AND LOWER(pv.vote) = 'yes')     AS cc_yes_count,
+                COUNT(*) FILTER (WHERE LOWER(pv.voter_role) = 'constitutional_committee' AND LOWER(pv.vote) = 'no')      AS cc_no_count,
+                COUNT(*) FILTER (WHERE LOWER(pv.voter_role) = 'constitutional_committee' AND LOWER(pv.vote) = 'abstain') AS cc_abstain_count
          FROM proposal_votes pv
-         WHERE LOWER(pv.voter_role) = 'drep' AND pv.proposal_id = ANY($1)
+         LEFT JOIN dreps d ON d.drep_id = pv.voter
+         WHERE pv.proposal_id = ANY($1)
          GROUP BY pv.proposal_id`,
         [proposalIds],
       ),
@@ -469,6 +506,10 @@ export class DRepRepository extends Repository<VoltaireDrep> {
         drep_yes_stake: vc ? Number(vc.drep_yes_stake) : 0,
         drep_no_stake: vc ? Number(vc.drep_no_stake) : 0,
         drep_abstain_stake: vc ? Number(vc.drep_abstain_stake) : 0,
+        drep_total_active_stake: vc ? Number(vc.drep_total_active_stake) : 0,
+        cc_yes_count: vc ? Number(vc.cc_yes_count) : 0,
+        cc_no_count: vc ? Number(vc.cc_no_count) : 0,
+        cc_abstain_count: vc ? Number(vc.cc_abstain_count) : 0,
       };
     });
   }
@@ -830,6 +871,16 @@ export class DRepRepository extends Repository<VoltaireDrep> {
           COALESCE(vc.drep_yes_stake, 0) as drep_yes_stake,
           COALESCE(vc.drep_no_stake, 0) as drep_no_stake,
           COALESCE(vc.drep_abstain_stake, 0) as drep_abstain_stake,
+          COALESCE((
+            SELECT SUM(des.amount_lovelace) / 1000000.0
+            FROM drep_epoch_stake des
+            WHERE des.active = true
+              AND des.drep_id != 'drep_always_abstain'
+              AND des.epoch_no = (
+                SELECT MAX(epoch_no) FROM drep_epoch_stake
+                WHERE epoch_no <= COALESCE(p.expiration_epoch, 9999)
+              )
+          ), 0) AS drep_total_active_stake,
           ROW_NUMBER() OVER (
             PARTITION BY v.proposal_id
             ORDER BY v.block_time DESC NULLS LAST, v.created_at DESC
@@ -840,14 +891,17 @@ export class DRepRepository extends Repository<VoltaireDrep> {
         LEFT JOIN (
           SELECT
             pv.proposal_id,
-            COUNT(*) FILTER (WHERE LOWER(pv.vote) = 'yes')     AS drep_yes_count,
-            COUNT(*) FILTER (WHERE LOWER(pv.vote) = 'no')      AS drep_no_count,
-            COUNT(*) FILTER (WHERE LOWER(pv.vote) = 'abstain') AS drep_abstain_count,
-            COALESCE(SUM(pv.voting_power_lovelace) FILTER (WHERE LOWER(pv.vote) = 'yes'),     0) / 1000000.0 AS drep_yes_stake,
-            COALESCE(SUM(pv.voting_power_lovelace) FILTER (WHERE LOWER(pv.vote) = 'no'),      0) / 1000000.0 AS drep_no_stake,
-            COALESCE(SUM(pv.voting_power_lovelace) FILTER (WHERE LOWER(pv.vote) = 'abstain'), 0) / 1000000.0 AS drep_abstain_stake
+            COUNT(*) FILTER (WHERE LOWER(pv.voter_role) = 'drep' AND LOWER(pv.vote) = 'yes')     AS drep_yes_count,
+            COUNT(*) FILTER (WHERE LOWER(pv.voter_role) = 'drep' AND LOWER(pv.vote) = 'no')      AS drep_no_count,
+            COUNT(*) FILTER (WHERE LOWER(pv.voter_role) = 'drep' AND LOWER(pv.vote) = 'abstain') AS drep_abstain_count,
+            COALESCE(SUM(d.voting_power_ada::numeric) FILTER (WHERE LOWER(pv.voter_role) = 'drep' AND LOWER(pv.vote) = 'yes'),     0) AS drep_yes_stake,
+            COALESCE(SUM(d.voting_power_ada::numeric) FILTER (WHERE LOWER(pv.voter_role) = 'drep' AND LOWER(pv.vote) = 'no'),      0) AS drep_no_stake,
+            COALESCE(SUM(d.voting_power_ada::numeric) FILTER (WHERE LOWER(pv.voter_role) = 'drep' AND LOWER(pv.vote) = 'abstain'), 0) AS drep_abstain_stake,
+            COUNT(*) FILTER (WHERE LOWER(pv.voter_role) = 'constitutional_committee' AND LOWER(pv.vote) = 'yes')     AS cc_yes_count,
+            COUNT(*) FILTER (WHERE LOWER(pv.voter_role) = 'constitutional_committee' AND LOWER(pv.vote) = 'no')      AS cc_no_count,
+            COUNT(*) FILTER (WHERE LOWER(pv.voter_role) = 'constitutional_committee' AND LOWER(pv.vote) = 'abstain') AS cc_abstain_count
           FROM proposal_votes pv
-          WHERE LOWER(pv.voter_role) = 'drep'
+          LEFT JOIN dreps d ON d.drep_id = pv.voter
           GROUP BY pv.proposal_id
         ) vc ON p.id = vc.proposal_id
         WHERE v.voter IN (${placeholders})
@@ -882,6 +936,10 @@ export class DRepRepository extends Repository<VoltaireDrep> {
         drep_yes_stake: Number(vote.drep_yes_stake) || 0,
         drep_no_stake: Number(vote.drep_no_stake) || 0,
         drep_abstain_stake: Number(vote.drep_abstain_stake) || 0,
+        drep_total_active_stake: Number(vote.drep_total_active_stake) || 0,
+        cc_yes_count: Number(vote.cc_yes_count) || 0,
+        cc_no_count: Number(vote.cc_no_count) || 0,
+        cc_abstain_count: Number(vote.cc_abstain_count) || 0,
         description: {
           tag: vote.governance_type || 'InfoAction',
         },

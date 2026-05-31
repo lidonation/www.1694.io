@@ -18,6 +18,7 @@ import CopyToClipboard from './CopyToClipboard';
 import { useGetExternalMetadata } from '@/hooks/useGetExternalMetadata';
 import { useEpochParamsQuery } from '@/hooks/useEpochParamsQuery';
 import { LifecycleStatus, GovernanceThresholds, getThresholdsForType } from '@/lib/governanceThresholds';
+import { shortNumber } from '@/lib/utils';
 
 const SlideUp = React.forwardRef(function SlideUp(
   props: TransitionProps & { children: React.ReactElement },
@@ -26,13 +27,27 @@ const SlideUp = React.forwardRef(function SlideUp(
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-const VOTE_CFG: Record<string, { badge: string; Icon: any }> = {
-  Yes:     { badge: 'bg-success/20 text-green-700',                Icon: CheckCircleOutline },
-  No:      { badge: 'bg-red-100 text-red-700',                     Icon: HighlightOff },
-  Abstain: { badge: 'bg-complementary-100 text-complementary-400', Icon: RemoveCircleOutline },
+const VOTE_CFG: Record<string, { badge: string; Icon: any; rationaleAccent: string; rationaleBg: string; labelColor: string }> = {
+  Yes:     { badge: 'bg-success/20 text-green-700',                Icon: CheckCircleOutline,   rationaleAccent: 'border-l-success',         rationaleBg: 'bg-success/5',         labelColor: 'text-green-600' },
+  No:      { badge: 'bg-red-100 text-red-700',                     Icon: HighlightOff,         rationaleAccent: 'border-l-extra_red',       rationaleBg: 'bg-red-50/60',         labelColor: 'text-red-500' },
+  Abstain: { badge: 'bg-complementary-100 text-complementary-400', Icon: RemoveCircleOutline,  rationaleAccent: 'border-l-complementary-200', rationaleBg: 'bg-complementary-50/50', labelColor: 'text-complementary-400' },
 };
 
 const URL_ONLY = /^(https?:\/\/\S+|proposal\s+as\s+pdf\s*:)/i;
+
+// CIP-100 vote rationale anchors use a "body.comment" field with escaped \n sequences.
+// We extract the comment (or any text field), then unescape literal \n so they render as real newlines.
+function extractRationaleText(body: unknown): string {
+  if (typeof body === 'string') return body.replace(/\\n/g, '\n');
+  if (body && typeof body === 'object') {
+    const b = body as Record<string, unknown>;
+    const candidate = b.comment ?? b.text ?? b.rationale ?? b.body ?? b.content;
+    if (typeof candidate === 'string') return candidate.replace(/\\n/g, '\n');
+    // Last resort: pretty-print but convert escaped newlines back to real ones
+    return JSON.stringify(b, null, 2).replace(/\\n/g, '\n');
+  }
+  return String(body);
+}
 
 // ── Stat chip ─────────────────────────────────────────────────────────────────
 const StatChip = ({ label, value }: { label: string; value: string | number }) => (
@@ -42,85 +57,80 @@ const StatChip = ({ label, value }: { label: string; value: string | number }) =
   </span>
 );
 
-const fmtAda = (ada: number) => {
-  if (ada >= 1_000_000_000) return `₳${(ada / 1_000_000_000).toFixed(2)}b`;
-  if (ada >= 1_000_000)     return `₳${(ada / 1_000_000).toFixed(2)}m`;
-  if (ada >= 1_000)         return `₳${(ada / 1_000).toFixed(1)}k`;
-  return `₳${ada.toFixed(0)}`;
-};
+const fmtAda = (ada: number) => `₳${shortNumber(ada, 2)}`;
 
 // ── Vote bar ──────────────────────────────────────────────────────────────────
 const VoteBar = ({
   yesCount, noCount, abstainCount,
   yesStake, noStake, abstainStake,
+  totalActiveDRepStake,
   threshold,
 }: {
   yesCount: number; noCount: number; abstainCount: number;
   yesStake: number; noStake: number; abstainStake: number;
+  totalActiveDRepStake?: number;
   threshold: number | null;
 }) => {
   const total = yesCount + noCount + abstainCount;
   if (total === 0) return null;
 
-  const hasStake = yesStake + noStake + abstainStake > 0;
-  const votedStake = yesStake + noStake;
-  const yesPct = hasStake && votedStake > 0
-    ? (yesStake / votedStake) * 100
-    : (yesCount / (yesCount + noCount || 1)) * 100;
-  const noPct = 100 - yesPct;
+  const votedTotal = yesStake + noStake + abstainStake;
+  const hasStake   = votedTotal > 0;
+  const hasActive  = hasStake && totalActiveDRepStake && totalActiveDRepStake > 0;
 
-  const totalForBar = hasStake ? yesStake + noStake + abstainStake : total;
-  const yesBarPct = totalForBar > 0 ? (hasStake ? yesStake     : yesCount)     / totalForBar * 100 : 0;
-  const noBarPct  = totalForBar > 0 ? (hasStake ? noStake      : noCount)      / totalForBar * 100 : 0;
-  const absBarPct = totalForBar > 0 ? (hasStake ? abstainStake : abstainCount) / totalForBar * 100 : 0;
+  const pct = (n: number) => hasActive ? (n / totalActiveDRepStake!) * 100 : 0;
+  const yesPct     = hasActive ? pct(yesStake)     : (yesCount     / (total || 1)) * 100;
+  const noPct      = hasActive ? pct(noStake)      : (noCount      / (total || 1)) * 100;
+  const abstainPct = hasActive ? pct(abstainStake) : (abstainCount / (total || 1)) * 100;
+  const notVoted   = hasActive ? Math.max(0, totalActiveDRepStake! - votedTotal) : 0;
+  const notVotedPct= hasActive ? pct(notVoted) : 0;
+
+  const thresholdMet = threshold !== null && yesPct >= threshold;
 
   return (
-    <div className="space-y-2">
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px]">
-        <span className="flex items-center gap-1">
-          <span className="inline-block h-2 w-2 rounded-full bg-success" />
-          <span className="font-semibold text-gray-700">{yesCount}</span>
-          <span className="text-gray-400">Yes</span>
-          {hasStake && <span className="text-gray-500">{fmtAda(yesStake)}</span>}
-          <span className="text-gray-300">·</span>
-          <span className="text-gray-600">{yesPct.toFixed(1)}%</span>
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="inline-block h-2 w-2 rounded-full bg-extra_red" />
-          <span className="font-semibold text-gray-700">{noCount}</span>
-          <span className="text-gray-400">No</span>
-          {hasStake && <span className="text-gray-500">{fmtAda(noStake)}</span>}
-          <span className="text-gray-300">·</span>
-          <span className="text-gray-600">{noPct.toFixed(1)}%</span>
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="inline-block h-2 w-2 rounded-full bg-complementary-200" />
-          <span className="font-semibold text-gray-700">{abstainCount}</span>
-          <span className="text-gray-400">Abstain</span>
-          {hasStake && <span className="text-gray-500">{fmtAda(abstainStake)}</span>}
-        </span>
-      </div>
+    <div className="space-y-2.5">
+      {hasActive && (
+        <p className="text-[10px] text-gray-400">
+          <span className="font-semibold text-gray-600">{fmtAda(totalActiveDRepStake!)}</span> eligible DRep stake
+        </p>
+      )}
 
       <div className="relative h-3 w-full overflow-hidden rounded-full bg-gray-100">
-        <div className="absolute left-0 top-0 h-full bg-success"    style={{ width: `${yesBarPct}%` }} />
-        <div className="absolute top-0 h-full bg-extra_red"         style={{ left: `${yesBarPct}%`, width: `${noBarPct}%` }} />
-        <div className="absolute top-0 h-full bg-complementary-200" style={{ left: `${yesBarPct + noBarPct}%`, width: `${absBarPct}%` }} />
+        <div className="absolute left-0 top-0 h-full bg-success"    style={{ width: `${yesPct}%` }} />
+        <div className="absolute top-0 h-full bg-extra_red"         style={{ left: `${yesPct}%`, width: `${noPct}%` }} />
+        <div className="absolute top-0 h-full bg-complementary-200" style={{ left: `${yesPct + noPct}%`, width: `${abstainPct}%` }} />
         {threshold !== null && (
           <Tooltip title={`Ratification threshold: ${threshold}%`} placement="top" arrow>
-            <div
-              className="absolute top-0 h-full w-0.5 cursor-default bg-gray-700/70"
-              style={{ left: `${threshold}%` }}
-            />
+            <div className="absolute top-0 h-full w-0.5 cursor-default bg-gray-700/70" style={{ left: `${threshold}%` }} />
           </Tooltip>
         )}
       </div>
 
+      <div className="grid grid-cols-[auto_1fr_auto] items-center gap-x-2 gap-y-1 text-[11px]">
+        <span className="inline-block h-2 w-2 rounded-full bg-success" />
+        <span className="text-gray-500">Yes <span className="font-semibold text-gray-700">{hasStake ? fmtAda(yesStake) : yesCount}</span></span>
+        <span className="text-right font-semibold text-gray-700">{yesPct.toFixed(2)}%</span>
+
+        <span className="inline-block h-2 w-2 rounded-full bg-extra_red" />
+        <span className="text-gray-500">No <span className="font-semibold text-gray-700">{hasStake ? fmtAda(noStake) : noCount}</span></span>
+        <span className="text-right font-semibold text-gray-700">{noPct.toFixed(2)}%</span>
+
+        <span className="inline-block h-2 w-2 rounded-full bg-complementary-200" />
+        <span className="text-gray-500">Abstain <span className="font-semibold text-gray-700">{hasStake ? fmtAda(abstainStake) : abstainCount}</span></span>
+        <span className="text-right font-semibold text-gray-700">{abstainPct.toFixed(2)}%</span>
+
+        {hasActive && notVoted > 0 && (
+          <>
+            <span className="inline-block h-2 w-2 rounded-full bg-gray-300" />
+            <span className="text-gray-400">Not Voted <span className="font-semibold text-gray-500">{fmtAda(notVoted)}</span></span>
+            <span className="text-right font-semibold text-gray-400">{notVotedPct.toFixed(2)}%</span>
+          </>
+        )}
+      </div>
+
       {threshold !== null && (
-        <p className="text-[11px] text-gray-500">
-          Threshold <span className="font-semibold text-gray-700">{threshold}%</span>
-          {hasStake && yesPct >= threshold && (
-            <span className="ml-2 font-semibold text-green-600">✓ Met</span>
-          )}
+        <p className={`text-[11px] font-medium ${thresholdMet ? 'text-green-600' : 'text-gray-500'}`}>
+          {thresholdMet ? '✓ Threshold met' : `${yesPct.toFixed(2)}% Yes · ${threshold}% threshold`}
         </p>
       )}
     </div>
@@ -148,6 +158,7 @@ export interface ProposalContentOverlayProps {
   yesStake?: number;
   noStake?: number;
   abstainStake?: number;
+  totalActiveDRepStake?: number;
   govActionHash?: string | null;
 
   govActionId?: string | null;
@@ -175,6 +186,7 @@ export const ProposalContentOverlay = ({
   yesStake = 0,
   noStake = 0,
   abstainStake = 0,
+  totalActiveDRepStake = 0,
   govActionHash,
   govActionId,
   txHash,
@@ -300,6 +312,7 @@ export const ProposalContentOverlay = ({
               yesStake={yesStake}
               noStake={noStake}
               abstainStake={abstainStake}
+              totalActiveDRepStake={totalActiveDRepStake}
               threshold={resolvedThresholds.isInfoAction ? null : resolvedThresholds.dvt}
             />
           </div>
@@ -331,8 +344,10 @@ export const ProposalContentOverlay = ({
         )}
 
         {voteRationaleUrl && (
-          <div className="px-5 py-4">
-            <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-gray-400">Vote Rationale</p>
+          <div className={`border-l-4 px-5 py-4 ${voteCfg.rationaleAccent} ${voteCfg.rationaleBg}`}>
+            <p className={`mb-2 text-[10px] font-bold uppercase tracking-wider ${voteCfg.labelColor}`}>
+              DRep Rationale
+            </p>
             {isMetadataLoading ? (
               <div className="space-y-2">
                 <div className="h-3 w-3/4 animate-pulse rounded bg-gray-200" />
@@ -340,8 +355,8 @@ export const ProposalContentOverlay = ({
                 <div className="h-3 w-2/3 animate-pulse rounded bg-gray-200" />
               </div>
             ) : metadata?.body ? (
-              <div className="text-sm leading-relaxed text-gray-700">
-                <MarkdownParser text={typeof metadata.body === 'string' ? metadata.body : JSON.stringify(metadata.body, null, 2)} />
+              <div className="text-sm leading-relaxed text-gray-700 whitespace-pre-wrap">
+                {extractRationaleText(metadata.body)}
               </div>
             ) : (
               <p className="text-xs italic text-gray-400">Could not load external rationale.</p>

@@ -253,11 +253,11 @@ export class GovernanceService {
     ];
     const stakePowerMap = new Map<string, string>();
     if (stakeAddresses.length > 0) {
-      const rows = await this.governanceDataSource.query<{ stake_address: string; voting_power_lovelace: string }[]>(
-        `SELECT stake_address, voting_power_lovelace FROM drep_delegators WHERE stake_address = ANY($1) AND voting_power_lovelace IS NOT NULL`,
+      const rows = await this.governanceDataSource.query<{ stake_address: string; amount_lovelace: string; voting_power_lovelace: string }[]>(
+        `SELECT stake_address, amount_lovelace, voting_power_lovelace FROM drep_delegators WHERE stake_address = ANY($1)`,
         [stakeAddresses],
       );
-      rows.forEach(r => stakePowerMap.set(r.stake_address, r.voting_power_lovelace));
+      rows.forEach(r => stakePowerMap.set(r.stake_address, r.amount_lovelace || r.voting_power_lovelace));
     }
 
     // 3. Aggregate all events
@@ -331,7 +331,66 @@ export class GovernanceService {
       });
     });
 
-    // 4. Group EVERY Epoch in range (DESC)
+    // 4. Batch-enrich voting_activity events with DRep/CC vote counts and stakes
+    const voteEvents = allEvents.filter(e => e.type === 'voting_activity');
+    if (voteEvents.length > 0) {
+      const proposalIds = [...new Set(voteEvents.map(e => e.gov_action_proposal_id).filter(Boolean))];
+      if (proposalIds.length > 0) {
+        const voteCountRows = await this.governanceDataSource.query<{
+          proposal_id: string;
+          drep_yes_count: string; drep_no_count: string; drep_abstain_count: string;
+          drep_yes_stake: string; drep_no_stake: string; drep_abstain_stake: string;
+          drep_total_active_stake: string;
+          cc_yes_count: string; cc_no_count: string; cc_abstain_count: string;
+        }[]>(
+          `SELECT
+            pv.proposal_id,
+            COUNT(*) FILTER (WHERE LOWER(pv.voter_role) = 'drep' AND LOWER(pv.vote) = 'yes')     AS drep_yes_count,
+            COUNT(*) FILTER (WHERE LOWER(pv.voter_role) = 'drep' AND LOWER(pv.vote) = 'no')      AS drep_no_count,
+            COUNT(*) FILTER (WHERE LOWER(pv.voter_role) = 'drep' AND LOWER(pv.vote) = 'abstain') AS drep_abstain_count,
+            COALESCE(SUM(d.voting_power_ada::numeric) FILTER (WHERE LOWER(pv.voter_role) = 'drep' AND LOWER(pv.vote) = 'yes'),     0) AS drep_yes_stake,
+            COALESCE(SUM(d.voting_power_ada::numeric) FILTER (WHERE LOWER(pv.voter_role) = 'drep' AND LOWER(pv.vote) = 'no'),      0) AS drep_no_stake,
+            COALESCE(SUM(d.voting_power_ada::numeric) FILTER (WHERE LOWER(pv.voter_role) = 'drep' AND LOWER(pv.vote) = 'abstain'), 0) AS drep_abstain_stake,
+            COALESCE((
+              SELECT SUM(des.amount_lovelace) / 1000000.0
+              FROM drep_epoch_stake des
+              JOIN proposals p ON p.id = pv.proposal_id
+              WHERE des.active = true
+                AND des.drep_id != 'drep_always_abstain'
+                AND des.epoch_no = (
+                  SELECT MAX(epoch_no) FROM drep_epoch_stake
+                  WHERE epoch_no <= COALESCE(p.expiration_epoch, 9999)
+                )
+            ), 0) AS drep_total_active_stake,
+            COUNT(*) FILTER (WHERE LOWER(pv.voter_role) = 'constitutional_committee' AND LOWER(pv.vote) = 'yes')     AS cc_yes_count,
+            COUNT(*) FILTER (WHERE LOWER(pv.voter_role) = 'constitutional_committee' AND LOWER(pv.vote) = 'no')      AS cc_no_count,
+            COUNT(*) FILTER (WHERE LOWER(pv.voter_role) = 'constitutional_committee' AND LOWER(pv.vote) = 'abstain') AS cc_abstain_count
+           FROM proposal_votes pv
+           LEFT JOIN dreps d ON d.drep_id = pv.voter
+           WHERE pv.proposal_id = ANY($1)
+           GROUP BY pv.proposal_id`,
+          [proposalIds],
+        );
+        const vcMap = new Map(voteCountRows.map(r => [r.proposal_id, r]));
+        voteEvents.forEach(ev => {
+          const vc = vcMap.get(ev.gov_action_proposal_id);
+          if (vc) {
+            ev.drep_yes_count       = Number(vc.drep_yes_count);
+            ev.drep_no_count        = Number(vc.drep_no_count);
+            ev.drep_abstain_count   = Number(vc.drep_abstain_count);
+            ev.drep_yes_stake       = Number(vc.drep_yes_stake);
+            ev.drep_no_stake        = Number(vc.drep_no_stake);
+            ev.drep_abstain_stake   = Number(vc.drep_abstain_stake);
+            ev.drep_total_active_stake = Number(vc.drep_total_active_stake);
+            ev.cc_yes_count         = Number(vc.cc_yes_count);
+            ev.cc_no_count          = Number(vc.cc_no_count);
+            ev.cc_abstain_count     = Number(vc.cc_abstain_count);
+          }
+        });
+      }
+    }
+
+    // 5. Group EVERY Epoch in range (DESC)
     const epochGroups: EpochGroup[] = [];
     for (let e = endEpoch; e >= startEpoch; e--) {
       const epochEvents = allEvents.filter(ev => ev.epochNo === e);

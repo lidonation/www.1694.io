@@ -8,6 +8,7 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { Drep } from '../entities/governance/drep.entity';
 import { DrepDelegator } from '../entities/governance/drep-delegator.entity';
+import { DrepEpochStake } from '../entities/governance/drep-epoch-stake.entity';
 
 @Injectable()
 @Processor(Queues.STAKE_SYNC, { lockDuration: LOCK_DURATION_MEDIUM })
@@ -26,34 +27,55 @@ export class StakeSyncWorker extends WorkerHost {
     this.logger.log(`Starting stake sync: ${job.id}`);
 
     try {
-      let latestEpoch;
-      try {
-        latestEpoch = await this.blockfrostService.getLatestEpoch();
-      } catch (e) {
-        return { success: false, message: `Epoch fetch failed: ${e.message}` };
+      const source = await this.blockfrostService.assertGovernanceSourceFresh();
+      if (!source.ok) {
+        this.logger.error(`Aborting stake sync: ${source.reason}`);
+        return { success: false, message: source.reason };
       }
-      
-      const epochNo = latestEpoch.epoch;
+
+      const epochNo = source.epoch!;
       const drepsRepo = this.dataSource.getRepository(Drep);
       const delegatorsRepo = this.dataSource.getRepository(DrepDelegator);
+      const epochStakeRepo = this.dataSource.getRepository(DrepEpochStake);
       const dreps = await drepsRepo.find();
-      
+
       let updated = 0;
+      const epochSnapshots: Partial<DrepEpochStake>[] = [];
+
       for (const d of dreps) {
         try {
           const info = await this.blockfrostService.getDRepInfo(d.drepId);
-          if (info?.amount) {
-            await drepsRepo.update({ drepId: d.drepId }, { 
-              votingPowerAda: (parseInt(info.amount) / 1_000_000).toString(),
-              active: info.active || false, retired: info.retired || false, expired: info.expired || false,
+          // Only write a numeric lovelace amount. `info.amount` is a string, so
+          // the prior `if (info.amount)` accepted "0" and stub values as truthy
+          // and let bad upstreams overwrite real voting power. A genuine 0 is
+          // valid (the source is verified fresh above); null/non-numeric is not.
+          const lovelace = info?.amount;
+          const amount = lovelace == null ? NaN : Number(lovelace);
+          if (Number.isFinite(amount) && amount >= 0) {
+            const isActive = info.active || false;
+            await drepsRepo.update({ drepId: d.drepId }, {
+              votingPowerAda: (amount / 1_000_000).toString(),
+              active: isActive, retired: info.retired || false, expired: info.expired || false,
               lastActiveEpoch: info.last_active_epoch, snapshotEpochNo: epochNo, updatedAt: new Date()
             });
+            epochSnapshots.push({ drepId: d.drepId, epochNo, amountLovelace: String(lovelace), active: isActive });
             updated++;
+          } else {
+            this.logger.warn(`Skipping ${d.drepId}: non-numeric amount "${lovelace}"`);
           }
           await new Promise(r => setTimeout(r, 20));
         } catch (e) {
           this.logger.warn(`DRep stake failed (${d.drepId}): ${e.message}`);
         }
+      }
+
+      // Upsert epoch snapshots in chunks — this is our drep_distr equivalent
+      const chunkSize = 500;
+      for (let i = 0; i < epochSnapshots.length; i += chunkSize) {
+        await epochStakeRepo.upsert(epochSnapshots.slice(i, i + chunkSize) as any, {
+          conflictPaths: ['drepId', 'epochNo'],
+          skipUpdateIfNoValuesChanged: true,
+        });
       }
 
       const updatedDelegators = await this.syncDelegatorVotingPower(delegatorsRepo);

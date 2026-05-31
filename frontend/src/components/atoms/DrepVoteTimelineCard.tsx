@@ -12,6 +12,7 @@ import { ViewExternalGovAction } from '@/components/atoms/ViewExternalGovAction'
 import { useGetProposalMetadataByHashQuery } from '@/hooks/useGetProposalMetadataByHash';
 import { useEpochParamsQuery } from '@/hooks/useEpochParamsQuery';
 import { getLifecycleStatus, getThresholdsForType } from '@/lib/governanceThresholds';
+import { shortNumber } from '@/lib/utils';
 import GovernanceLifecycleBadge from './GovernanceLifecycleBadge';
 import { ProposalContentOverlay } from './ProposalContentOverlay';
 import {
@@ -20,6 +21,8 @@ import {
   RemoveCircleOutline,
   MenuBookOutlined,
 } from '@mui/icons-material';
+
+const fmtAda = (ada: number) => `₳${shortNumber(ada, 2)}`;
 
 const highlightAnimation = keyframes`
   0%   { box-shadow: 0 0 0 0px var(--highlight-glow), 0 10px 15px -3px rgba(0,0,0,0.1); border-color: transparent; }
@@ -136,9 +139,14 @@ const DrepVoteTimelineCard = ({
   const noCount      = (item as any)?.drep_no_count      ?? 0;
   const abstainCount = (item as any)?.drep_abstain_count ?? 0;
   const hasVoteCounts = yesCount + noCount + abstainCount > 0;
-  const yesStake     = (item as any)?.drep_yes_stake     ?? 0;
-  const noStake      = (item as any)?.drep_no_stake      ?? 0;
-  const abstainStake = (item as any)?.drep_abstain_stake ?? 0;
+  const yesStake             = (item as any)?.drep_yes_stake          ?? 0;
+  const noStake              = (item as any)?.drep_no_stake           ?? 0;
+  const abstainStake         = (item as any)?.drep_abstain_stake      ?? 0;
+  const totalActiveDRepStake = (item as any)?.drep_total_active_stake ?? 0;
+  const ccYes     = (item as any)?.cc_yes_count     ?? 0;
+  const ccNo      = (item as any)?.cc_no_count      ?? 0;
+  const ccAbstain = (item as any)?.cc_abstain_count ?? 0;
+  const ccTotal   = ccYes + ccNo + ccAbstain;
 
   const startEpoch =
     item?.expiration_epoch != null && epochParams?.gov_action_lifetime != null
@@ -195,22 +203,45 @@ const DrepVoteTimelineCard = ({
 
         {/* Row 4: compact vote counts */}
         {hasVoteCounts && (
-          <div className="flex items-center gap-2.5 text-[9px]">
-            <span className="flex items-center gap-1">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-success" />
-              <span className="font-semibold text-gray-700">{yesCount}</span>
-              <span className="text-gray-400">Yes</span>
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-extra_red" />
-              <span className="font-semibold text-gray-700">{noCount}</span>
-              <span className="text-gray-400">No</span>
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-complementary-200" />
-              <span className="font-semibold text-gray-700">{abstainCount}</span>
-              <span className="text-gray-400">Abstain</span>
-            </span>
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-2.5 text-[9px]">
+              <span className="text-[9px] font-bold uppercase tracking-wider text-gray-400 w-5">DRep</span>
+              <span className="flex items-center gap-1">
+                <span className="inline-block h-1.5 w-1.5 rounded-full bg-success" />
+                <span className="font-semibold text-gray-700">{yesCount}</span>
+                <span className="text-gray-400">Yes</span>
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="inline-block h-1.5 w-1.5 rounded-full bg-extra_red" />
+                <span className="font-semibold text-gray-700">{noCount}</span>
+                <span className="text-gray-400">No</span>
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="inline-block h-1.5 w-1.5 rounded-full bg-complementary-200" />
+                <span className="font-semibold text-gray-700">{abstainCount}</span>
+                <span className="text-gray-400">Abstain</span>
+              </span>
+            </div>
+            {ccTotal > 0 && (
+              <div className="flex items-center gap-2.5 text-[9px]">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-gray-400 w-5">CC</span>
+                <span className="flex items-center gap-1">
+                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-success" />
+                  <span className="font-semibold text-gray-700">{ccYes}</span>
+                  <span className="text-gray-400">Yes</span>
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-extra_red" />
+                  <span className="font-semibold text-gray-700">{ccNo}</span>
+                  <span className="text-gray-400">No</span>
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-complementary-200" />
+                  <span className="font-semibold text-gray-700">{ccAbstain}</span>
+                  <span className="text-gray-400">Abstain</span>
+                </span>
+              </div>
+            )}
           </div>
         )}
 
@@ -243,6 +274,7 @@ const DrepVoteTimelineCard = ({
           yesStake={yesStake}
           noStake={noStake}
           abstainStake={abstainStake}
+          totalActiveDRepStake={totalActiveDRepStake}
           govActionHash={govActionHash}
           govActionId={(item as any)?.gov_action_proposal_id}
           txHash={txHash}
@@ -279,7 +311,7 @@ const DrepVoteTimelineCard = ({
         {title || '—'}
       </p>
 
-      {/* Row 3: type chip + lifecycle + thresholds + expiration */}
+      {/* Row 3: type chip + lifecycle */}
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[10px] text-gray-500">
         {typeChip && (
           <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-medium ${typeChip.bg}`}>
@@ -287,28 +319,43 @@ const DrepVoteTimelineCard = ({
           </span>
         )}
         <GovernanceLifecycleBadge status={lifecycleStatus} />
-        {thresholds.isInfoAction ? (
-          <span className="italic text-gray-400">No ratification threshold</span>
-        ) : thresholds.dvt !== null && (
-          <span>
-            <span className="font-semibold text-gray-600">{thresholds.dvtLabel ?? 'DRep'}</span>
-            {' ≥'}{thresholds.dvt}%
-            {thresholds.pvt !== null && (
-              <span className="text-gray-400">  ·  SPO ≥{thresholds.pvt}%</span>
-            )}
-          </span>
-        )}
-        {epochParams?.gov_action_lifetime != null && (
-          <span>
-            Active <span className="font-semibold text-gray-600">{epochParams.gov_action_lifetime}</span> epochs
-          </span>
-        )}
-        {item?.expiration_epoch != null && (
-          <span>
-            Expires Ep. <span className="font-semibold text-gray-700">{item.expiration_epoch}</span>
-          </span>
-        )}
       </div>
+
+      {/* Row 4: DRep vote summary */}
+      {hasVoteCounts && (
+        <div className="space-y-1">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">DRep Votes</p>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px]">
+            <span className="flex items-center gap-1">
+              <span className="inline-block h-2 w-2 rounded-full bg-success" />
+              <span className="text-gray-400">Yes</span>
+              <span className="font-semibold text-gray-700">{yesStake > 0 ? fmtAda(yesStake) : yesCount}</span>
+              {yesStake > 0 && totalActiveDRepStake > 0 && (
+                <span className="text-gray-300">·</span>
+              )}
+              {yesStake > 0 && totalActiveDRepStake > 0 && (
+                <span className="text-gray-600">{((yesStake / totalActiveDRepStake) * 100).toFixed(1)}%</span>
+              )}
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="inline-block h-2 w-2 rounded-full bg-extra_red" />
+              <span className="text-gray-400">No</span>
+              <span className="font-semibold text-gray-700">{noStake > 0 ? fmtAda(noStake) : noCount}</span>
+              {noStake > 0 && totalActiveDRepStake > 0 && (
+                <span className="text-gray-300">·</span>
+              )}
+              {noStake > 0 && totalActiveDRepStake > 0 && (
+                <span className="text-gray-600">{((noStake / totalActiveDRepStake) * 100).toFixed(1)}%</span>
+              )}
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="inline-block h-2 w-2 rounded-full bg-complementary-200" />
+              <span className="text-gray-400">Abstain</span>
+              <span className="font-semibold text-gray-700">{abstainStake > 0 ? fmtAda(abstainStake) : abstainCount}</span>
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Footer: hash + read button + govtool */}
       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-gray-50 pt-3">
@@ -382,6 +429,7 @@ const DrepVoteTimelineCard = ({
         yesStake={yesStake}
         noStake={noStake}
         abstainStake={abstainStake}
+        totalActiveDRepStake={totalActiveDRepStake}
         govActionHash={govActionHash}
         govActionId={(item as any)?.gov_action_proposal_id}
         txHash={txHash}

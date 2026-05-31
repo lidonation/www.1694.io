@@ -149,7 +149,8 @@ export class GovernanceSyncWorker extends WorkerHost {
       const existing = await delegatorsRepository.find({ where: { drepId: drep.drepId } });
       const existingMap = new Map(existing.map(d => [d.stakeAddress, d]));
 
-      const toInsert: any[] = [], toUpdate: any[] = [], toDeleteIds: string[] = [];
+      const toInsert: any[] = [], toUpdate: any[] = [];
+      const toDelete: { address: string; amountLovelace: string }[] = [];
 
       for (const [address, newData] of newDelegatorsMap) {
         const ext = existingMap.get(address);
@@ -160,18 +161,34 @@ export class GovernanceSyncWorker extends WorkerHost {
         }
       }
 
-      for (const [address] of existingMap) {
-        if (!newDelegatorsMap.has(address)) toDeleteIds.push(address);
+      const undelegatedAt = new Date();
+      for (const [address, existing] of existingMap) {
+        if (!newDelegatorsMap.has(address)) toDelete.push({ address, amountLovelace: existing.amountLovelace });
       }
 
       try {
         await this.dataSource.transaction(async (manager) => {
           const repo = manager.getRepository(DrepDelegator);
+          const timelineRepo = manager.getRepository(DrepTimelineEvent);
           const chunkSize = 1000;
 
-          if (toDeleteIds.length > 0) {
-             for (let i = 0; i < toDeleteIds.length; i += chunkSize) {
-               await repo.createQueryBuilder().delete().where("drepId = :dId", { dId: drep.drepId }).andWhere("stakeAddress IN (:...ids)", { ids: toDeleteIds.slice(i, i + chunkSize) }).execute();
+          if (toDelete.length > 0) {
+             const deleteAddresses = toDelete.map(d => d.address);
+             for (let i = 0; i < deleteAddresses.length; i += chunkSize) {
+               await repo.createQueryBuilder().delete().where("drepId = :dId", { dId: drep.drepId }).andWhere("stakeAddress IN (:...ids)", { ids: deleteAddresses.slice(i, i + chunkSize) }).execute();
+             }
+             const undelegationEvents: Partial<DrepTimelineEvent>[] = toDelete.map(({ address, amountLovelace }) => ({
+               drepId: drep.drepId,
+               eventType: 'undelegation' as const,
+               timestamp: undelegatedAt,
+               epoch: 0,
+               slot: '0',
+               txHash: `synthetic-undelegation-${drep.drepId}-${address}`,
+               blockHash: null,
+               metadata: { stake_address: address, previous_drep: drep.drepId, target_drep: null, added_power: false, total_stake: amountLovelace },
+             }));
+             for (let i = 0; i < undelegationEvents.length; i += chunkSize) {
+               await timelineRepo.upsert(undelegationEvents.slice(i, i + chunkSize) as any, { conflictPaths: ['txHash', 'drepId'], skipUpdateIfNoValuesChanged: true });
              }
           }
 
