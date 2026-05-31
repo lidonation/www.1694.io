@@ -27,14 +27,13 @@ export class StakeSyncWorker extends WorkerHost {
     this.logger.log(`Starting stake sync: ${job.id}`);
 
     try {
-      let latestEpoch;
-      try {
-        latestEpoch = await this.blockfrostService.getLatestEpoch();
-      } catch (e) {
-        return { success: false, message: `Epoch fetch failed: ${e.message}` };
+      const source = await this.blockfrostService.assertGovernanceSourceFresh();
+      if (!source.ok) {
+        this.logger.error(`Aborting stake sync: ${source.reason}`);
+        return { success: false, message: source.reason };
       }
-      
-      const epochNo = latestEpoch.epoch;
+
+      const epochNo = source.epoch!;
       const drepsRepo = this.dataSource.getRepository(Drep);
       const delegatorsRepo = this.dataSource.getRepository(DrepDelegator);
       const epochStakeRepo = this.dataSource.getRepository(DrepEpochStake);
@@ -46,15 +45,23 @@ export class StakeSyncWorker extends WorkerHost {
       for (const d of dreps) {
         try {
           const info = await this.blockfrostService.getDRepInfo(d.drepId);
-          if (info?.amount) {
+          // Only write a numeric lovelace amount. `info.amount` is a string, so
+          // the prior `if (info.amount)` accepted "0" and stub values as truthy
+          // and let bad upstreams overwrite real voting power. A genuine 0 is
+          // valid (the source is verified fresh above); null/non-numeric is not.
+          const lovelace = info?.amount;
+          const amount = lovelace == null ? NaN : Number(lovelace);
+          if (Number.isFinite(amount) && amount >= 0) {
             const isActive = info.active || false;
             await drepsRepo.update({ drepId: d.drepId }, {
-              votingPowerAda: (parseInt(info.amount) / 1_000_000).toString(),
+              votingPowerAda: (amount / 1_000_000).toString(),
               active: isActive, retired: info.retired || false, expired: info.expired || false,
               lastActiveEpoch: info.last_active_epoch, snapshotEpochNo: epochNo, updatedAt: new Date()
             });
-            epochSnapshots.push({ drepId: d.drepId, epochNo, amountLovelace: info.amount, active: isActive });
+            epochSnapshots.push({ drepId: d.drepId, epochNo, amountLovelace: String(lovelace), active: isActive });
             updated++;
+          } else {
+            this.logger.warn(`Skipping ${d.drepId}: non-numeric amount "${lovelace}"`);
           }
           await new Promise(r => setTimeout(r, 20));
         } catch (e) {

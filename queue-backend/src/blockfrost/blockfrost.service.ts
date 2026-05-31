@@ -135,6 +135,67 @@ export class BlockfrostService {
     });
   }
 
+  /**
+   * Confirms the configured primary Blockfrost serves live governance data
+   * before a stake sync overwrites voting power. Guards the two failure modes
+   * that otherwise corrupt every DRep at once:
+   *   - primary points at a minibf/stub that does not implement governance
+   *     (/epochs/latest 404s, while /governance/dreps returns placeholder amounts)
+   *   - primary's db-sync backend lags chain tip, so its stake distribution is stale
+   * Probes the primary directly (no fallback) and compares its epoch against the
+   * hosted tip; the fallback being unreachable is tolerated, not fatal.
+   */
+  async assertGovernanceSourceFresh(): Promise<{
+    ok: boolean;
+    reason?: string;
+    epoch?: number;
+  }> {
+    let primaryEpoch: number;
+    try {
+      const res = await this.makeRequest<{ epoch: number }>(this.primaryConfig, {
+        method: 'GET',
+        endpoint: '/epochs/latest',
+      });
+      if (typeof res?.epoch !== 'number') {
+        return {
+          ok: false,
+          reason:
+            'primary /epochs/latest returned no epoch — source is not governance-capable',
+        };
+      }
+      primaryEpoch = res.epoch;
+    } catch (e) {
+      const status = e?.status || e?.response?.status || e?.message;
+      return {
+        ok: false,
+        reason: `primary /epochs/latest failed (${status}) — source is not governance-capable`,
+      };
+    }
+
+    let tipEpoch: number | undefined;
+    if (this.fallbackConfig.url) {
+      try {
+        const res = await this.makeRequest<{ epoch: number }>(
+          this.fallbackConfig,
+          { method: 'GET', endpoint: '/epochs/latest' },
+        );
+        if (typeof res?.epoch === 'number') tipEpoch = res.epoch;
+      } catch {
+        // Fallback unavailable — proceed on the primary epoch rather than block.
+      }
+    }
+
+    if (typeof tipEpoch === 'number' && primaryEpoch < tipEpoch) {
+      return {
+        ok: false,
+        epoch: primaryEpoch,
+        reason: `primary db-sync is behind chain tip (epoch ${primaryEpoch} < ${tipEpoch}); skipping to avoid overwriting voting power with stale stake`,
+      };
+    }
+
+    return { ok: true, epoch: primaryEpoch };
+  }
+
   async getAddressUtxos(address: string): Promise<BlockfrostUTXO[]> {
     return await this.executeWithFallback<BlockfrostUTXO[]>({
       method: 'GET',
