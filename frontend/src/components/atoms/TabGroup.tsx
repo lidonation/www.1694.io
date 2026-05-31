@@ -14,23 +14,23 @@ interface TabGroupProps {
   tabs: TabItem[];
   defaultTab?: string;
   className?: string;
+  onTabChange?: (tabInfo: { activeTab: string; storedTab: string | null }) => void;
 }
 
 const TabGroup: React.FC<TabGroupProps> = ({
   tabs,
-  defaultTab = tabs[0]?.id,
+  defaultTab = tabs[0]?.id || 'profile',
   className = '',
+  onTabChange,
 }) => {
   const pathname = usePathname();
   const containerRef = useRef<HTMLDivElement>(null);
   const activeTabRef = useRef<HTMLAnchorElement>(null);
 
-  const activeTab =
-    tabs.find((tab) =>
-      tab.id === defaultTab
-        ? pathname === tab.path
-        : pathname.includes(tab.path),
-    )?.id || defaultTab;
+  const pathnameSegments = pathname.split('/').filter(Boolean);
+  const currentTabSegment = pathnameSegments[pathnameSegments.length - 1];
+  const tabIds = tabs.map((tab) => tab.id);
+  const activeTab = tabIds.includes(currentTabSegment) ? currentTabSegment : defaultTab;
 
   useEffect(() => {
     if (activeTabRef.current && containerRef.current) {
@@ -48,7 +48,11 @@ const TabGroup: React.FC<TabGroupProps> = ({
         behavior: 'smooth',
       });
     }
-  }, [activeTab]);
+
+    const storedTab = tabIds.includes(currentTabSegment) ? activeTab : null;
+
+    onTabChange?.({ activeTab, storedTab });
+  }, [activeTab, pathname, tabs, onTabChange]);
 
   return (
     <Box
