@@ -130,3 +130,4 @@ infra/terraform/.terraform*
 .next
 
 node_modules
+.gitnexus
