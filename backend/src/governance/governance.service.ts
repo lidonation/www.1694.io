@@ -50,9 +50,14 @@ export class GovernanceService {
       .createQueryBuilder('drep');
 
     if (search) {
+      // CIP-119 wraps givenName as { "@value": "..." }; prefer the unwrapped
+      // value (fall back to a raw scalar). Match by ILIKE-contains OR pg_trgm
+      // similarity (`%`, threshold 0.3) for typo tolerance, index-backed by
+      // idx_dreps_given_name_trgm.
+      const nameExpr = `COALESCE(drep.metadata->'json_metadata'->'body'->'givenName'->>'@value', drep.metadata->'json_metadata'->'body'->>'givenName', '')`;
       queryBuilder.andWhere(
-        '(drep.drepId ILIKE :search OR drep.metadata->\'json_metadata\'->\'body\'->>\'givenName\' ILIKE :search OR drep.hex ILIKE :search)',
-        { search: `%${search}%` },
+        `(drep.drepId ILIKE :search OR drep.hex ILIKE :search OR ${nameExpr} ILIKE :search OR ${nameExpr} % :q)`,
+        { search: `%${search}%`, q: search },
       );
     }
 
@@ -157,8 +162,8 @@ export class GovernanceService {
         valA = parseFloat(a.votingPowerAda || '0');
         valB = parseFloat(b.votingPowerAda || '0');
       } else if (sortCol === 'givenName') {
-        valA = (a.metadata?.json_metadata?.body?.givenName || '').toLowerCase();
-        valB = (b.metadata?.json_metadata?.body?.givenName || '').toLowerCase();
+        valA = (this.cipValue(a.metadata?.json_metadata?.body?.givenName) || '').toLowerCase();
+        valB = (this.cipValue(b.metadata?.json_metadata?.body?.givenName) || '').toLowerCase();
       } else {
         valA = (a as any)[sortCol];
         valB = (b as any)[sortCol];
@@ -561,7 +566,27 @@ export class GovernanceService {
     return sortMap[sort] || 'votingPowerAda';
   }
 
+  // CIP-119 wraps scalar body fields as { "@value": "..." }. Unwrap objects, and
+  // tolerate values stored as a (possibly doubly-encoded) JSON string, so the
+  // name renders as text instead of "[object Object]".
+  private cipValue(v: any): string | null {
+    if (v == null) return null;
+    if (typeof v === 'object') return v['@value'] ?? null;
+    if (typeof v === 'string' && v.trim().startsWith('{')) {
+      try {
+        const parsed = JSON.parse(v);
+        return parsed['@value'] ?? parsed.givenName ?? v;
+      } catch {
+        return v;
+      }
+    }
+    return v;
+  }
+
   private formatDRepForAPI(drep: Drep) {
+    const givenName = this.cipValue(
+      drep.metadata?.json_metadata?.body?.givenName,
+    );
     return {
       drepId: drep.drepId,
       view: drep.drepId,
@@ -580,8 +605,8 @@ export class GovernanceService {
       votesCount: drep.governanceVoteCount,
       governance_vote_count: drep.governanceVoteCount,
       metadata: drep.metadata,
-      givenName: drep.metadata?.json_metadata?.body?.givenName || null,
-      given_name: drep.metadata?.json_metadata?.body?.givenName || null,
+      givenName: givenName,
+      given_name: givenName,
       imageUrl: drep.metadata?.json_metadata?.body?.image?.contentUrl || null,
       metadataUrl: drep.metadata?.url || null,
       paymentAddress: drep.metadata?.json_metadata?.body?.paymentAddress || null,
