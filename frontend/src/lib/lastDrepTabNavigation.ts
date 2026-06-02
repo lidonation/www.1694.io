@@ -1,15 +1,12 @@
 import { getDrepLastTabKey } from '@/lib/localStorage';
-import { convertHexToCIP129 } from '@/lib';
 import { useRouter } from 'next/navigation';
 
 export const useDRepNavigator = () => {
   const router = useRouter();
 
-  const navigateToDRepWithLastTab = (
-    hasScript: boolean | undefined,
-    chainId: string | undefined,
-  ) => {
-    const resolvedDrepId = convertHexToCIP129(hasScript, chainId);
+  const navigateToDRepWithLastTab = (resolvedDrepId: string | undefined) => {
+    if (!resolvedDrepId) return;
+
     const drepTabStorageKey = getDrepLastTabKey(resolvedDrepId);
     const lastVisitedTab = localStorage.getItem(drepTabStorageKey) || 'profile';
 
