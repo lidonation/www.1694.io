@@ -179,7 +179,7 @@ export class GovernanceService {
     const paginated = consolidatedDReps.slice((page - 1) * perPage, page * perPage);
 
     return {
-      data: paginated.map(this.formatDRepForAPI),
+      data: paginated.map((drep) => this.formatDRepForAPI(drep)),
       pagination: {
         page,
         perPage,
