@@ -177,7 +177,7 @@ const DRepsTable = ({
                           prefetch={false}
                           onClick={(e) => {
                             e.preventDefault(); 
-                            navigateToDRepWithLastTab(drep?.has_script, drep?.chain_id);
+                            navigateToDRepWithLastTab(drep?.view);
                           }}
                         >
                           <p className="hover:font-semibold">
@@ -199,7 +199,7 @@ const DRepsTable = ({
                             prefetch={false}
                             onClick={(e) => {
                               e.preventDefault(); 
-                              navigateToDRepWithLastTab(drep?.has_script, drep?.chain_id);
+                              navigateToDRepWithLastTab(drep?.view);
                             }}
                           >
                             <span className="inline-block rounded-xl border border-black px-1.5 py-0.5 text-xs font-black text-black">
