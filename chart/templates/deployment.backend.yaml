@@ -23,8 +23,7 @@ spec:
         app: "nestjs"
         service: "{{ .Values.backend.labels.service }}"
     spec:
-      imagePullSecrets:
-        - name: {{ .Values.image.pullSecret }}
+      # No imagePullSecrets: pulls authenticate at the node level (k3s registries.yaml).
       initContainers:
         - name: wait-db-migrate
           image: "{{ .Values.backend.image.repository }}:{{ .Values.image.tag }}"

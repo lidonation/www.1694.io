@@ -27,8 +27,7 @@ spec:
         # rolling restart and pulls the new image even if the tag name is the same.
         deploy-sha: "{{ .Values.governanceIndexer.image.sha }}"
     spec:
-      imagePullSecrets:
-        - name: gitlab-registry-token
+      # No imagePullSecrets: pulls authenticate at the node level (k3s registries.yaml).
       containers:
         - name: indexer
           image: "{{ .Values.governanceIndexer.image.repository }}:{{ .Values.governanceIndexer.image.tag }}"
