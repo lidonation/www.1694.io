@@ -4,6 +4,9 @@ import { Queue } from 'bullmq';
 import { Queues, JobTypes } from './queue.types';
 import { GovernanceMigrationService } from './governance/governance-migration.service';
 import { BlockfrostService } from './blockfrost/blockfrost.service';
+import { YaciStoreService } from './yaci/yaci-store.service';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 @Controller('sync-trigger')
 export class SyncTriggerController {
@@ -22,6 +25,13 @@ export class SyncTriggerController {
     private timelineWatcherQueue: Queue,
     private readonly governanceMigrationService: GovernanceMigrationService,
     private readonly blockfrostService: BlockfrostService,
+    private readonly yaciStore: YaciStoreService,
+    @InjectQueue(Queues.YACI_TIMELINE_SYNC)
+    private yaciTimelineSyncQueue: Queue,
+    @InjectQueue(Queues.YACI_EPOCH_STAKE)
+    private yaciEpochStakeQueue: Queue,
+    @InjectDataSource('default')
+    private readonly db: DataSource,
   ) {}
 
   @Post('stake/trigger')
@@ -87,6 +97,41 @@ export class SyncTriggerController {
       dataStatus,
       stats,
     };
+  }
+
+  @Get('yaci/health')
+  async yaciHealth() {
+    const [yaci, voltaire] = await Promise.all([
+      this.yaciStore.getHealthStats(),
+      this.getVoltaireStats(),
+    ]);
+    return { ok: yaci.connected && !yaci.error, yaci, voltaire };
+  }
+
+  @Post('yaci/timeline/trigger')
+  async triggerYaciTimelineSync() {
+    await this.yaciTimelineSyncQueue.add(JobTypes.YACI_TIMELINE_SYNC, {});
+    return { success: true, message: 'Yaci timeline sync triggered' };
+  }
+
+  @Post('yaci/epoch-stake/trigger')
+  async triggerYaciEpochStake(@Body() body: { epochFrom?: number; epochTo?: number } = {}) {
+    await this.yaciEpochStakeQueue.add(JobTypes.YACI_EPOCH_STAKE, body);
+    return { success: true, message: 'Yaci epoch stake aggregation triggered', data: body };
+  }
+
+  private async getVoltaireStats(): Promise<Record<string, number>> {
+    const tables = ['drep_timeline_event', 'drep_epoch_stake', 'drep_delegator_epoch_stake'];
+    const result: Record<string, number> = {};
+    await Promise.all(tables.map(async t => {
+      try {
+        const [r] = await this.db.query(`SELECT COUNT(*)::text AS c FROM ${t}`);
+        result[t] = Number(r?.c ?? 0);
+      } catch {
+        result[t] = -1;
+      }
+    }));
+    return result;
   }
 
   @Get('blockfrost/test/:drepId')

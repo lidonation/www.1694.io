@@ -217,4 +217,40 @@ export class YaciStoreService {
     );
     return rows[0]?.slot ? BigInt(rows[0].slot) : 0n;
   }
+
+  async getHealthStats(): Promise<{
+    connected: boolean;
+    latestSlot: string;
+    tables: Record<string, { count: number; latestSlot?: string }>;
+    error?: string;
+  }> {
+    if (!this.guard()) {
+      return { connected: false, latestSlot: '0', tables: {}, error: 'YACI_STORE_DB_* env vars not configured' };
+    }
+    try {
+      const [slot, reg, deleg, prop, votes, stake, epochs] = await Promise.all([
+        this.db.query<{ slot: string }[]>('SELECT MAX(slot)::text AS slot FROM block'),
+        this.db.query<{ c: string; max_slot: string }[]>('SELECT COUNT(*)::text AS c, MAX(slot)::text AS max_slot FROM drep_registration'),
+        this.db.query<{ c: string; max_slot: string }[]>('SELECT COUNT(*)::text AS c, MAX(slot)::text AS max_slot FROM delegation_vote'),
+        this.db.query<{ c: string; max_slot: string }[]>('SELECT COUNT(*)::text AS c, MAX(slot)::text AS max_slot FROM gov_action_proposal'),
+        this.db.query<{ c: string; max_slot: string }[]>('SELECT COUNT(*)::text AS c, MAX(slot)::text AS max_slot FROM voting_procedure'),
+        this.db.query<{ c: string }[]>('SELECT COUNT(*)::text AS c FROM epoch_stake'),
+        this.db.query<{ c: string }[]>('SELECT COUNT(*)::text AS c FROM epoch WHERE start_slot IS NOT NULL'),
+      ]);
+      return {
+        connected: true,
+        latestSlot: slot[0]?.slot ?? '0',
+        tables: {
+          drep_registration:   { count: Number(reg[0].c),   latestSlot: reg[0].max_slot },
+          delegation_vote:     { count: Number(deleg[0].c), latestSlot: deleg[0].max_slot },
+          gov_action_proposal: { count: Number(prop[0].c),  latestSlot: prop[0].max_slot },
+          voting_procedure:    { count: Number(votes[0].c), latestSlot: votes[0].max_slot },
+          epoch_stake:         { count: Number(stake[0].c) },
+          epoch:               { count: Number(epochs[0].c) },
+        },
+      };
+    } catch (e) {
+      return { connected: false, latestSlot: '0', tables: {}, error: e.message };
+    }
+  }
 }
