@@ -83,8 +83,9 @@ For maintainer-related questions or escalations:
 
 - **General inquiries**: Create an issue in the repository
 - **Security concerns**: See [SECURITY.md](./SECURITY.md)
-- **Code of Conduct violations**: See [CODE-OF-CONDUCT.md](./CODE-OF-CONDUCT.md)
+- **Code of Conduct violations**: See [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)
 - **Contributing guidelines**: See [CONTRIBUTING.md](./CONTRIBUTING.md)
+- **Governance**: See [GOVERNANCE.md](./GOVERNANCE.md)
 
 ## Decision Making Process
 
@@ -107,9 +108,9 @@ The nomination process requires:
 2. Agreement from at least 2/3 of existing core maintainers
 3. Acceptance by the nominee
 
-## Code Ownership
+## Governance
 
-See [CODEOWNERS](./CODEOWNERS) for detailed information about code ownership and automatic review assignments.
+See [GOVERNANCE.md](./GOVERNANCE.md) for how decisions are made, how releases are cut, and how new maintainers are nominated.
 
 ## Project Statistics
 

@@ -42,7 +42,7 @@ The api backend is powered by nest.js, A progressive Node.js framework for build
 For data persistence, we utilize PostgreSQL, known for its robustness, scalability, and reliability. This choice ensures that our application's data layer is secure, efficient, and capable of handling growth.
 
 ### Frontend
-The frontend is developed with Next.js, a React framework that allows for server-side rendering and static site generation. This choice enables us to create fast, SEO-friendly web pages that integrate seamlessly with our Strapi backend.
+The frontend is developed with Next.js, a React framework that allows for server-side rendering and static site generation. This choice enables us to create fast, SEO-friendly web pages that integrate seamlessly with our Nest.js backend.
 
 The instructions that follow will guide you through setting up each component of our application stack, ensuring a cohesive development and deployment process.
 
@@ -56,13 +56,13 @@ Before you begin setting up the application, you'll need to clone the repository
     - Navigate to the directory where you want to store the project.
     - Run the following command to clone the repository:
       ```
-      git clone https://github.com/IntersectMBO/drep-campaign-platform.git
+      git clone https://github.com/lidonation/www.1694.io.git
       ```
 
 2. **Navigate to the Project Directory:**
     - After cloning, change into the project's root directory:
       ```
-      cd drep-campaign-platform
+      cd www.1694.io
       ```
       This directory contains all the files you need to set up the application, including the Docker Compose files and the separate directories for the backend and frontend components.
 
@@ -71,7 +71,7 @@ By cloning the repository, you ensure that you have the latest version of the co
 ## Running locally
 
 The app, all of it's dependencies including dev server with hot module reloading all run in docker environments. The only dependency you need on your machine is the docker engine.
-ollow these steps:
+Follow these steps:
 
 ### Backend setup
 
@@ -94,14 +94,36 @@ or run `make logs`.
 
 ### Accessing the application:**
 - With all services running, your application components should be accessible at the following URLs:
-    - **Backend:** `http://localhost:8080` – This is  will mostly be called by Next.js server side code, not much to see as it is just an api.
-    - **Frontend:** `http://localhost:4000` – Your Next.js frontend application will be available here, ready to serve your site's visitors.
-    - **Database:** While the database itself won't be directly accessible via a simple URL (since it's meant to be accessed by your backend service), it's running on a mapped port `5434` on your host machine. This setup is specified in your `docker-compose.yaml` file, allowing secure and straightforward connections from your backend service.
+    - **Backend:** `http://localhost:8000` – mostly called by Next.js server-side code; not much to see, as it is just an API.
+    - **Frontend:** `http://localhost:3000` – the Next.js application.
+    - **Queue backend:** `http://localhost:9999` – the BullMQ worker service, including its Bull Board dashboard.
+    - **Adminer:** `http://localhost:8080` – a database UI, useful for inspecting the schema.
+    - **Database:** not served over HTTP; Postgres is mapped to port `5432` on your host machine, as specified in `docker-compose.yaml`.
 
 ### Overview of services in docker compose:
 
-- **Backend service:** Configured to run Nest.js on port `8080`, this service automatically connects to the PostgreSQL database, ensuring the api has all the data it needs to operate.
+- **Backend service:** runs Nest.js on port `8000` and connects to the PostgreSQL database.
 
-- **Database service:** This service runs PostgreSQL and is set to be accessible on port `5434` from the host machine. It's crucial for storing all your application's data securely and efficiently.
+- **Queue backend service:** runs the BullMQ sync workers on port `9999`, backed by Redis.
 
-- **Frontend service:** Your Next.js application will be served on port `4000`, connecting to the Strapi backend to fetch content and data. This setup provides a seamless experience for developers and users alike.
+- **Database service:** runs PostgreSQL, mapped to port `5432` on the host machine.
+
+- **Redis service:** backs the job queues, mapped to port `6379`.
+
+- **Frontend service:** serves the Next.js application on port `3000`, calling the Nest.js backend for content and data.
+
+- **Governance indexer:** indexes Cardano governance data into the shared database.
+
+## Project documentation
+
+- [CONTRIBUTING.md](./CONTRIBUTING.md) — how to submit a change
+- [GOVERNANCE.md](./GOVERNANCE.md) — roles, decision making, releases
+- [MAINTAINERS.md](./MAINTAINERS.md) — who maintains the project
+- [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md) — expected conduct
+- [SECURITY.md](./SECURITY.md) — how to report a vulnerability privately
+- [SUPPORT.md](./SUPPORT.md) — where to ask for help
+- [CHANGELOG.md](./CHANGELOG.md) — release history
+
+## License
+
+Licensed under the Apache License, Version 2.0. See [LICENSE](./LICENSE).
