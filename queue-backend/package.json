@@ -35,7 +35,7 @@
     "@bull-board/express": "^6.9.6",
     "@bull-board/nestjs": "^6.9.6",
     "@nestjs/axios": "^4.0.0",
-    "@nestjs/bullmq": "^11.0.2",
+    "@nestjs/bullmq": "^11.0.5",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
