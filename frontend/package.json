@@ -37,7 +37,7 @@
     "@tiptap/extension-image": "^2.3.0",
     "@tiptap/extension-italic": "^2.3.0",
     "@tiptap/extension-link": "^2.3.0",
-    "@tiptap/extension-list-item": "^2.3.0",
+    "@tiptap/extension-list-item": "^2.4.0",
     "@tiptap/extension-ordered-list": "^2.3.0",
     "@tiptap/extension-strike": "^2.3.0",
     "@tiptap/extension-superscript": "^2.3.0",
