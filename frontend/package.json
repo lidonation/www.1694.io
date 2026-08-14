@@ -68,7 +68,7 @@
     "next": "^15.3.4",
     "next-intl": "^3.5.4",
     "react": "19",
-    "react-copy-to-clipboard": "^5.1.0",
+    "react-copy-to-clipboard": "^5.1.1",
     "react-dom": "19",
     "react-easy-infinite-scroll-hook": "^2.1.4",
     "react-hook-form": "^7.51.3",
