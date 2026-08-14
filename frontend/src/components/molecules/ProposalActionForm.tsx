@@ -25,13 +25,10 @@ const ProposalActionForm = ({
   const [inputValue, setInputValue] = useState(currentHash);
   const formRef = useRef<HTMLDivElement>(null);
 
-  const {
-    Proposals,
-    isProposalsFetching,
-    proposalFetchError,
-  } = useGetProposalsQuery({
-    hashQueryString: currentHash,
-  });
+  const { Proposals, isProposalsFetching, proposalFetchError } =
+    useGetProposalsQuery({
+      hashQueryString: currentHash,
+    });
 
   useEffect(() => {
     if (Proposals && Proposals.length > 0) {
@@ -40,13 +37,15 @@ const ProposalActionForm = ({
     }
     if (proposalFetchError) {
       setFetchedProposals([]);
-      setError(proposalFetchError?.response?.data?.message as string || 'Error');
+      setError(
+        (proposalFetchError?.response?.data?.message as string) || 'Error',
+      );
     }
   }, [Proposals]);
 
   const handleDebouncedInputChange = useDebouncedCallback((value) => {
     setFetchedProposals(null);
-    setProposals(null)
+    setProposals(null);
     setCurrentHash(value);
   }, 300);
 
@@ -93,7 +92,7 @@ const ProposalActionForm = ({
   return (
     <div
       ref={formRef}
-      className={`flex min-h-[8.75rem] w-full flex-col text-nowrap rounded-lg bg-white p-5 shadow-lg`}
+      className={`flex min-h-[8.75rem] w-full flex-col rounded-lg bg-white p-5 text-nowrap shadow-lg`}
     >
       <div className="h-11 text-[1.375rem] font-bold text-zinc-800">
         Add Proposal
@@ -108,7 +107,7 @@ const ProposalActionForm = ({
         />
       </div>
 
-      <p className="text-start text-sm font-medium text-black mt-2">
+      <p className="mt-2 text-start text-sm font-medium text-black">
         Proposals should exist on chain for addition.
       </p>
       <div className="mt-3 flex max-h-52 flex-col gap-3">

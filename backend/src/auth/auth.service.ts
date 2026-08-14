@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { GovtoolsOAuthProvider } from './providers/govtools-oauth.provider';
 import {
@@ -34,7 +34,7 @@ export class AuthService {
 
   private async signJWT(payload: JwtPayload, tte: number | string) {
     return this.jwtService.signAsync(payload, {
-      expiresIn: tte as string,
+      expiresIn: tte,
     });
   }
 
@@ -64,12 +64,16 @@ export class AuthService {
           HttpStatus.UNAUTHORIZED,
         );
       }
-      // Check DRep claim status(fire and forget  job)
-      this.checkDRepClaimStatus(
+      // Check DRep claim status (deliberately fire-and-forget). The promise is
+      // explicitly voided and its rejection handled so a failure here can never
+      // surface as an unhandled rejection and take the process down.
+      void this.checkDRepClaimStatus(
         loginDto.stakeKey,
         loginDto.signature,
         loginDto.signatureKey,
-      );
+      ).catch((error) => {
+        Logger.error('Background DRep claim status check failed', error);
+      });
       return await this.createJWTSession(loginDto);
     } catch (error) {
       console.error('Unified login error:', error);
@@ -199,7 +203,7 @@ export class AuthService {
         };
       }
 
-      this.queueService.addToQueue<DRepClaimJobData>(Queues.DREP_CLAIM, {
+      await this.queueService.addToQueue<DRepClaimJobData>(Queues.DREP_CLAIM, {
         name: JobTypes.DREP_CLAIM,
         data: {
           stakeKey,

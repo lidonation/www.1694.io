@@ -25,7 +25,9 @@ const LoaderComponent = () => {
 function NotesPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { wallet:{ stakeKeyBech32, isConnected} } = useWallet();
+  const {
+    wallet: { stakeKeyBech32, isConnected },
+  } = useWallet();
   const [dominantNoteId, setDominantNoteId] = useState<number | undefined>(
     undefined,
   );
@@ -126,9 +128,9 @@ function NotesPage() {
         }
       },
       100,
-      { leading: true, trailing: false }
+      { leading: true, trailing: false },
     ),
-    [allNotes, dominantNoteId]
+    [allNotes, dominantNoteId],
   );
   const handleScroll = useCallback(
     (event) => {

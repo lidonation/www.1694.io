@@ -27,10 +27,16 @@ const SearchBar = ({
         />
       </div>
       <div className="flex max-w-5 flex-row items-center justify-center gap-2">
-        <div className="w-full shrink-0 cursor-pointer" onClick={() => handleFilter()}>
+        <div
+          className="w-full shrink-0 cursor-pointer"
+          onClick={() => handleFilter()}
+        >
           <img src="/svgs/filter.svg" alt="Filter Icon" />
         </div>
-        <div className="w-full shrink-0 cursor-pointer" onClick={() => handleSort()}>
+        <div
+          className="w-full shrink-0 cursor-pointer"
+          onClick={() => handleSort()}
+        >
           <img src="/svgs/arrows-sort.svg" alt="Arrows Sort" />
         </div>
       </div>

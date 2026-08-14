@@ -40,7 +40,7 @@ export const useGetDRepsQuery = (
       );
     },
     refetchOnWindowFocus: false,
-    enabled: typeof window !== "undefined",
+    enabled: typeof window !== 'undefined',
   });
 
   return { DReps: data, isDRepsLoading: isLoading, isError };

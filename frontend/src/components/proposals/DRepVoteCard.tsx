@@ -16,7 +16,7 @@ const DRepVoteCard = ({
     <Box className="py-4">
       <Box className="mb-1 flex items-center">
         <h2 className="mr-1 text-base font-bold text-gray-800">{name}</h2>
-        <span className="text-gray-600 text-sm">- Vote: {vote}</span>
+        <span className="text-sm text-gray-600">- Vote: {vote}</span>
       </Box>
 
       <Box className="mb-3 flex items-center text-gray-600">
@@ -27,7 +27,7 @@ const DRepVoteCard = ({
       <Box className="mb-2 flex items-center justify-between">
         {isPositive ? (
           <Box className="relative">
-            <span className="inline-block rounded-full bg-blue-100 px-3 py-1 text-xs text-primary-300">
+            <span className="text-primary-300 inline-block rounded-full bg-blue-100 px-3 py-1 text-xs">
               % Influence ({influence}%)
             </span>
             <span className="absolute -bottom-1 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45 transform bg-blue-100"></span>
@@ -49,7 +49,7 @@ const DRepVoteCard = ({
       <Box className="mb-4 h-2 w-full overflow-hidden rounded-full bg-gray-200">
         {isPositive ? (
           <Box
-            className="h-full rounded-full bg-primary-300"
+            className="bg-primary-300 h-full rounded-full"
             style={{ width: `${influence}%` }}
           ></Box>
         ) : (

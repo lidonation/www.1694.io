@@ -17,7 +17,7 @@ export const getOAuthProviders = async ({
     },
   });
 
-  return response.data as OAuthProvider[]
+  return response.data as OAuthProvider[];
 };
 
 export const getOAuthProvider = async ({
@@ -51,7 +51,7 @@ export const getCheckOAuthProvider = async ({
     },
   });
 
-  return response.data as {hasProvider: boolean};
+  return response.data as { hasProvider: boolean };
 };
 
 export const createOAuth = async (payload: CreateOAuthDto) => {

@@ -64,17 +64,15 @@ export class ActionsProposalsService {
         committee,
       };
       const { data } = await firstValueFrom(
-        this.httpService
-          .get(url, { params })
-          .pipe(
-            catchError((error) => {
-              console.error(
-                'Error fetching filtered proposals:',
-                error?.response?.data || error,
-              );
-              throw error;
-            }),
-          ),
+        this.httpService.get(url, { params }).pipe(
+          catchError((error) => {
+            console.error(
+              'Error fetching filtered proposals:',
+              error?.response?.data || error,
+            );
+            throw error;
+          }),
+        ),
       );
 
       return data;

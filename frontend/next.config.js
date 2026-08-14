@@ -8,7 +8,12 @@ const nextConfig = {
     // your project has ESLint errors.
     ignoreDuringBuilds: true,
   },
-  serverExternalPackages: ['@tailwindcss/postcss', 'tailwindcss', 'lightningcss', '@tailwindcss/node'],
+  serverExternalPackages: [
+    '@tailwindcss/postcss',
+    'tailwindcss',
+    'lightningcss',
+    '@tailwindcss/node',
+  ],
   webpack: (config, { isServer }) => {
     // Enable WebAssembly
     config.experiments = {

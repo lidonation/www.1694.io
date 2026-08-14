@@ -2,10 +2,13 @@ import { VimeoEmbed } from '@/components/atoms/VimeoEmbed';
 import YouTubeEmbed from '@/components/atoms/YouTubeEmbed';
 import React from 'react';
 
-
-export const youtubeVimeoProcessor = (content: (string | React.ReactNode)[]): (string | React.ReactNode)[] => {
-  const youtubeRegex = /\[([^\]]+)\]\((?:<a[^>]*href=")?(https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([^\s&")]+))(?:\"[^>]*>.*?<\/a>)?\)/g;
-  const vimeoRegex = /\[([^\]]+)\]\((?:<a[^>]*href=")?(https?:\/\/(?:www\.)?vimeo\.com\/([^\s)]+))(?:\"[^>]*>.*?<\/a>)?\)/g;
+export const youtubeVimeoProcessor = (
+  content: (string | React.ReactNode)[],
+): (string | React.ReactNode)[] => {
+  const youtubeRegex =
+    /\[([^\]]+)\]\((?:<a[^>]*href=")?(https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([^\s&")]+))(?:\"[^>]*>.*?<\/a>)?\)/g;
+  const vimeoRegex =
+    /\[([^\]]+)\]\((?:<a[^>]*href=")?(https?:\/\/(?:www\.)?vimeo\.com\/([^\s)]+))(?:\"[^>]*>.*?<\/a>)?\)/g;
 
   return content.flatMap((item) => {
     if (typeof item !== 'string') {
@@ -25,7 +28,9 @@ export const youtubeVimeoProcessor = (content: (string | React.ReactNode)[]): (s
         parts.push(item.substring(lastIndex, startIndex));
       }
 
-      parts.push(<YouTubeEmbed key={`youtube-${id}`} videoId={id} title={text} />);
+      parts.push(
+        <YouTubeEmbed key={`youtube-${id}`} videoId={id} title={text} />,
+      );
 
       lastIndex = endIndex;
     }

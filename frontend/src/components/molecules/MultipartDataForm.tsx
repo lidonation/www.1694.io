@@ -74,7 +74,6 @@ const MultipartDataForm = ({
       setFiles(validFiles);
       previewFile(validFiles);
     } else {
-
     }
   };
   const handleAddLink = () => {
@@ -197,7 +196,7 @@ const MultipartDataForm = ({
   return (
     <div
       ref={formRef}
-      className={`flex min-h-[8.75rem] w-full flex-col text-nowrap rounded-lg bg-white p-5 shadow-lg`}
+      className={`flex min-h-[8.75rem] w-full flex-col rounded-lg bg-white p-5 text-nowrap shadow-lg`}
     >
       {activeForm === 'image' ? (
         <>
@@ -215,7 +214,7 @@ const MultipartDataForm = ({
             </p>
           </div>
           <div
-            className="flex cursor-pointer flex-col items-center justify-center  bg-white p-4"
+            className="flex cursor-pointer flex-col items-center justify-center bg-white p-4"
             onClick={() => document.getElementById('fileInput').click()}
           >
             <p className="text-center text-lg font-normal text-blue-800">
@@ -290,7 +289,7 @@ const MultipartDataForm = ({
             <label>Title</label>
             <input
               type="text"
-              className={`w-full rounded-full border border-zinc-100 py-3 pl-5 pr-3`}
+              className={`w-full rounded-full border border-zinc-100 py-3 pr-3 pl-5`}
               data-testid="URL-title-input"
               placeholder="Paste or type URL title here"
               value={currentLinkTitle}
@@ -301,7 +300,7 @@ const MultipartDataForm = ({
             <label>URL</label>
             <input
               type="text"
-              className={`w-full rounded-full border border-zinc-100 py-3 pl-5 pr-3`}
+              className={`w-full rounded-full border border-zinc-100 py-3 pr-3 pl-5`}
               data-testid="URL-input"
               placeholder="Paste or type URL here"
               value={currentLinkURL}

@@ -85,7 +85,7 @@ export const useDelegateTodRep = () => {
         );
       }
       queryClient.invalidateQueries(
-        QUERY_KEYS.getAdaHolderCurrentDelegationKey
+        QUERY_KEYS.getAdaHolderCurrentDelegationKey,
       );
     } catch (error: any) {
       console.error(error);

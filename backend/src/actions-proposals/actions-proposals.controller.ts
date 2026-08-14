@@ -13,7 +13,7 @@ import { ActionsProposalsService } from './actions-proposals.service';
 export class ActionsProposalsController {
   constructor(
     private readonly actionsProposalsService: ActionsProposalsService,
-  ) { }
+  ) {}
   @Get('')
   findAll(
     @Query('page') page: number = 1,

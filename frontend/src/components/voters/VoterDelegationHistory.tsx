@@ -37,7 +37,7 @@ const VoterDelegationHistory: React.FC<VoterDelegationHistoryProps> = ({
     navigator.clipboard.writeText(id);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
-  };  
+  };
 
   if (isVoterDataLoading) {
     return (
@@ -216,8 +216,7 @@ const VoterDelegationHistory: React.FC<VoterDelegationHistoryProps> = ({
                       day: 'numeric',
                       hour: 'numeric',
                       minute: 'numeric',
-                    })
-                    }
+                    })}
                   </Typography>
                 </TableCell>
                 <TableCell>

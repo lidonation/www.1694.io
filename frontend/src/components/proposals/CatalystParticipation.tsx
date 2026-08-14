@@ -17,7 +17,7 @@ const CatalystParticipation = ({
         <h2 className="mb-6 text-center text-xl font-semibold">
           Catalyst Participation:
         </h2>
-        
+
         <Box className="overflow-hidden rounded-xl border border-blue-100">
           <Box className="grid grid-cols-1 divide-y divide-blue-100">
             <Box className="px-3 py-1">

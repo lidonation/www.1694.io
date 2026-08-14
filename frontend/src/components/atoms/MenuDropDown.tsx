@@ -96,9 +96,9 @@ export default function MenuDropDown({ title, menuItems }: MenuDropDownProps) {
                     },
                   }}
                 >
-                  <Box className="flex max-w-64 flex-col items-start text-wrap text-complementary-500">
+                  <Box className="text-complementary-500 flex max-w-64 flex-col items-start text-wrap">
                     <p className="text-base font-normal">{item.label}</p>
-                    <p className="text-xs font-normal leading-4">{item.text}</p>
+                    <p className="text-xs leading-4 font-normal">{item.text}</p>
                   </Box>
                 </MenuItem>
               );
@@ -108,7 +108,11 @@ export default function MenuDropDown({ title, menuItems }: MenuDropDownProps) {
                   {item.to ? (
                     <Link href={item.to}>{ItemContent}</Link>
                   ) : (
-                    <a href={item.href} target="_blank" rel="noopener noreferrer">
+                    <a
+                      href={item.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
                       {ItemContent}
                     </a>
                   )}

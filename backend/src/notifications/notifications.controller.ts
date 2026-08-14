@@ -3,7 +3,6 @@ import { NotificationsService } from './notifications.service';
 import { createNotificationDto } from 'src/dto/createNotificationDto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
 
-
 @UseGuards(JwtAuthGuard)
 @Controller('notifications')
 export class NotificationsController {

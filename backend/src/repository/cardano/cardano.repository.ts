@@ -26,11 +26,11 @@ export class CardanoRepository {
       .innerJoin(Drep, 'drep', 'drep.drepId = delegator.drepId')
       .select([
         'delegator.drepId as drep_id',
-        'delegator.stakeAddress as stake_address', 
+        'delegator.stakeAddress as stake_address',
         'delegator.amountLovelace as amount',
         'delegator.votingPowerLovelace as voting_power',
         'drep.drepId as drep_view',
-        'drep.active as active'
+        'drep.active as active',
       ])
       .where('delegator.stakeAddress = :stakeKey', { stakeKey })
       .andWhere('drep.active = true')
@@ -54,9 +54,12 @@ export class CardanoRepository {
       .orderBy('event.timestamp', 'DESC')
       .getMany();
 
-    return events.map(event => ({
+    return events.map((event) => ({
       view: drepView,
-      gov_action_proposal_id: event.metadata?.gov_action_proposal_id || event.metadata?.proposalId || 'unknown',
+      gov_action_proposal_id:
+        event.metadata?.gov_action_proposal_id ||
+        event.metadata?.proposalId ||
+        'unknown',
       prop_inception: event.timestamp,
       type: 'voting_activity',
       description: event.metadata?.description || 'Voting activity',
@@ -71,30 +74,28 @@ export class CardanoRepository {
   }
 
   async getDrepByView(drepId: string) {
-    const drep = await this.dataSource
-      .getRepository(Drep)
-      .findOne({
-        where: { drepId },
-      });
-    
+    const drep = await this.dataSource.getRepository(Drep).findOne({
+      where: { drepId },
+    });
+
     if (!drep) {
       return [];
     }
 
-    return [{
-      id: drep.voltaireDrepId || 0,
-      view: drep.drepId,
-    }];
+    return [
+      {
+        id: drep.voltaireDrepId || 0,
+        view: drep.drepId,
+      },
+    ];
   }
 
   async getDrepDelegators(drepHashId: number) {
-    const drep = await this.dataSource
-      .getRepository(Drep)
-      .findOne({
-        where: { voltaireDrepId: drepHashId },
-        select: ['drepId']
-      });
-    
+    const drep = await this.dataSource.getRepository(Drep).findOne({
+      where: { voltaireDrepId: drepHashId },
+      select: ['drepId'],
+    });
+
     if (!drep) {
       return [];
     }

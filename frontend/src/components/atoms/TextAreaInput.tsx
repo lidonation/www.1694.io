@@ -14,9 +14,9 @@ const TextAreaInput = ({
       <label>{inputName}</label>
       <textarea
         type="text"
-        className={`border py-3 pl-5 pr-3 ${
+        className={`border py-3 pr-3 pl-5 ${
           isDisabled && 'pointer-events-none'
-        }  rounded-md border-zinc-100`}
+        } rounded-md border-zinc-100`}
         data-testid={dataTestId}
         {...registerValue(id)}
         placeholder={placeholder}

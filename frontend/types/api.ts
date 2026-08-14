@@ -1,4 +1,4 @@
-import { AuthMethod } from "./auth";
+import { AuthMethod } from './auth';
 
 export type currentDelegation = {
   drep_raw: string | null;
@@ -70,7 +70,7 @@ export type ClaimedProfile = {
   voterSignatureType: string;
   voterSignatureKey: string;
   voterSignature: string;
-  claimMethod: AuthMethod
+  claimMethod: AuthMethod;
 };
 
 export type SingleDRep = {
@@ -178,7 +178,7 @@ export interface CxProposalsMetrics {
 }
 
 export interface DRepParticipation {
-  participation: number,
-  total_actions: number,
-  non_participation: number
+  participation: number;
+  total_actions: number;
+  non_participation: number;
 }

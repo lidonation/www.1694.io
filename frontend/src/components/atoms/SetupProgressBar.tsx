@@ -54,9 +54,9 @@ const SetupProgressBar = () => {
   } = useWallet();
 
   const hasClaimedProfile = dRepProfilesClaimed.find(
-    (profile) => profile.claimedDRepBech32 == dRepIDToClaimBech32 
+    (profile) => profile.claimedDRepBech32 == dRepIDToClaimBech32,
   );
-  
+
   const { addWarningAlert } = useGlobalNotifications();
   const { isMobile } = useScreenDimension();
 
@@ -79,7 +79,12 @@ const SetupProgressBar = () => {
     const currentStepMatch = stepPathnameRegex.exec(pathname);
     const currentStep = currentStepMatch ? Number(currentStepMatch[1]) : 0;
 
-    if (!isCurrentOwnerOfDRepToClaim && !hasClaimedProfile && currentStep === 2 && stepNumber > 2) {
+    if (
+      !isCurrentOwnerOfDRepToClaim &&
+      !hasClaimedProfile &&
+      currentStep === 2 &&
+      stepNumber > 2
+    ) {
       addWarningAlert('You need to verify your DRep profile first.');
       return;
     }

@@ -185,8 +185,7 @@ export function VoteRationaleModal({
             text={
               rationaleData && typeof rationaleData?.comment === 'string'
                 ? rationaleData.comment
-                : rationaleData?.comment?.['@value'] ||
-                  'Not provided.'
+                : rationaleData?.comment?.['@value'] || 'Not provided.'
             }
           />
         </Box>

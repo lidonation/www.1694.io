@@ -1,13 +1,15 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class MigrateDRepMetadataToJSON1764661687000 implements MigrationInterface {
-    public async up(queryRunner: QueryRunner): Promise<void> {
-        // Add the new metadata column
-        await queryRunner.query(`ALTER TABLE "dreps" ADD COLUMN "metadata" jsonb`);
+export class MigrateDRepMetadataToJSON1764661687000
+  implements MigrationInterface
+{
+  public async up(queryRunner: QueryRunner): Promise<void> {
+    // Add the new metadata column
+    await queryRunner.query(`ALTER TABLE "dreps" ADD COLUMN "metadata" jsonb`);
 
-        // Migration of data: Copy from individual columns to the new metadata JSON column
-        // We'll construct a JSON object from existing columns if they are not all null
-        await queryRunner.query(`
+    // Migration of data: Copy from individual columns to the new metadata JSON column
+    // We'll construct a JSON object from existing columns if they are not all null
+    await queryRunner.query(`
             UPDATE "dreps"
             SET "metadata" = jsonb_build_object(
                 'url', "metadata_url",
@@ -35,32 +37,46 @@ export class MigrateDRepMetadataToJSON1764661687000 implements MigrationInterfac
                OR "metadata_hash" IS NOT NULL
         `);
 
-        // Drop the old individual columns
-        await queryRunner.query(`ALTER TABLE "dreps" DROP COLUMN "given_name"`);
-        await queryRunner.query(`ALTER TABLE "dreps" DROP COLUMN "image_url"`);
-        await queryRunner.query(`ALTER TABLE "dreps" DROP COLUMN "payment_address"`);
-        await queryRunner.query(`ALTER TABLE "dreps" DROP COLUMN "objectives"`);
-        await queryRunner.query(`ALTER TABLE "dreps" DROP COLUMN "motivations"`);
-        await queryRunner.query(`ALTER TABLE "dreps" DROP COLUMN "qualifications"`);
-        await queryRunner.query(`ALTER TABLE "dreps" DROP COLUMN "references"`);
-        await queryRunner.query(`ALTER TABLE "dreps" DROP COLUMN "metadata_url"`);
-        await queryRunner.query(`ALTER TABLE "dreps" DROP COLUMN "metadata_hash"`);
-    }
+    // Drop the old individual columns
+    await queryRunner.query(`ALTER TABLE "dreps" DROP COLUMN "given_name"`);
+    await queryRunner.query(`ALTER TABLE "dreps" DROP COLUMN "image_url"`);
+    await queryRunner.query(
+      `ALTER TABLE "dreps" DROP COLUMN "payment_address"`,
+    );
+    await queryRunner.query(`ALTER TABLE "dreps" DROP COLUMN "objectives"`);
+    await queryRunner.query(`ALTER TABLE "dreps" DROP COLUMN "motivations"`);
+    await queryRunner.query(`ALTER TABLE "dreps" DROP COLUMN "qualifications"`);
+    await queryRunner.query(`ALTER TABLE "dreps" DROP COLUMN "references"`);
+    await queryRunner.query(`ALTER TABLE "dreps" DROP COLUMN "metadata_url"`);
+    await queryRunner.query(`ALTER TABLE "dreps" DROP COLUMN "metadata_hash"`);
+  }
 
-    public async down(queryRunner: QueryRunner): Promise<void> {
-        // Add back individual columns
-        await queryRunner.query(`ALTER TABLE "dreps" ADD COLUMN "given_name" text`);
-        await queryRunner.query(`ALTER TABLE "dreps" ADD COLUMN "image_url" text`);
-        await queryRunner.query(`ALTER TABLE "dreps" ADD COLUMN "payment_address" text`);
-        await queryRunner.query(`ALTER TABLE "dreps" ADD COLUMN "objectives" text`);
-        await queryRunner.query(`ALTER TABLE "dreps" ADD COLUMN "motivations" text`);
-        await queryRunner.query(`ALTER TABLE "dreps" ADD COLUMN "qualifications" text`);
-        await queryRunner.query(`ALTER TABLE "dreps" ADD COLUMN "references" jsonb`);
-        await queryRunner.query(`ALTER TABLE "dreps" ADD COLUMN "metadata_url" text`);
-        await queryRunner.query(`ALTER TABLE "dreps" ADD COLUMN "metadata_hash" text`);
+  public async down(queryRunner: QueryRunner): Promise<void> {
+    // Add back individual columns
+    await queryRunner.query(`ALTER TABLE "dreps" ADD COLUMN "given_name" text`);
+    await queryRunner.query(`ALTER TABLE "dreps" ADD COLUMN "image_url" text`);
+    await queryRunner.query(
+      `ALTER TABLE "dreps" ADD COLUMN "payment_address" text`,
+    );
+    await queryRunner.query(`ALTER TABLE "dreps" ADD COLUMN "objectives" text`);
+    await queryRunner.query(
+      `ALTER TABLE "dreps" ADD COLUMN "motivations" text`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "dreps" ADD COLUMN "qualifications" text`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "dreps" ADD COLUMN "references" jsonb`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "dreps" ADD COLUMN "metadata_url" text`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "dreps" ADD COLUMN "metadata_hash" text`,
+    );
 
-        // Restore data from JSON if possible
-        await queryRunner.query(`
+    // Restore data from JSON if possible
+    await queryRunner.query(`
             UPDATE "dreps"
             SET 
                 "given_name" = "metadata"->'json_metadata'->'body'->>'givenName',
@@ -75,7 +91,7 @@ export class MigrateDRepMetadataToJSON1764661687000 implements MigrationInterfac
             WHERE "metadata" IS NOT NULL
         `);
 
-        // Drop metadata column
-        await queryRunner.query(`ALTER TABLE "dreps" DROP COLUMN "metadata"`);
-    }
+    // Drop metadata column
+    await queryRunner.query(`ALTER TABLE "dreps" DROP COLUMN "metadata"`);
+  }
 }

@@ -35,7 +35,10 @@ export class TimelineWatcherWorker extends WorkerHost {
 
     let state = await syncStateRepo.findOne({ where: { key: this.STATE_KEY } });
     if (!state) {
-      state = syncStateRepo.create({ key: this.STATE_KEY, lastProcessedId: '0' });
+      state = syncStateRepo.create({
+        key: this.STATE_KEY,
+        lastProcessedId: '0',
+      });
       await syncStateRepo.save(state);
     }
 
@@ -76,11 +79,17 @@ export class TimelineWatcherWorker extends WorkerHost {
 
             if (previousDrepId && previousDrepId !== event.drepId) {
               const alreadySynthesized = await timelineRepo.findOne({
-                where: { eventType: 'undelegation', txHash: event.txHash, drepId: previousDrepId },
+                where: {
+                  eventType: 'undelegation',
+                  txHash: event.txHash,
+                  drepId: previousDrepId,
+                },
               });
 
               if (!alreadySynthesized) {
-                this.logger.debug(`Synthesizing undelegation: ${previousDrepId} → ${event.drepId} (${stakeAddress})`);
+                this.logger.debug(
+                  `Synthesizing undelegation: ${previousDrepId} → ${event.drepId} (${stakeAddress})`,
+                );
                 await timelineRepo.save(
                   timelineRepo.create({
                     eventType: 'undelegation',
@@ -108,7 +117,9 @@ export class TimelineWatcherWorker extends WorkerHost {
     }
 
     if (triggeredSyncs.has('dreps')) {
-      await this.governanceSyncQueue.add(JobTypes.GOVERNANCE_SYNC, { syncOnly: 'dreps' });
+      await this.governanceSyncQueue.add(JobTypes.GOVERNANCE_SYNC, {
+        syncOnly: 'dreps',
+      });
       this.logger.debug('Triggered DRep sync');
     }
     if (triggeredSyncs.has('proposals')) {
@@ -132,19 +143,27 @@ export class TimelineWatcherWorker extends WorkerHost {
     };
   }
 
-  private async updateDelegatorVotingPower(stakeAddress: string): Promise<void> {
+  private async updateDelegatorVotingPower(
+    stakeAddress: string,
+  ): Promise<void> {
     try {
-      const info = await this.blockfrostService.getStakeAddressInfo(stakeAddress);
+      const info =
+        await this.blockfrostService.getStakeAddressInfo(stakeAddress);
       if (!info?.controlled_amount) return;
 
       await this.dataSource
         .createQueryBuilder()
         .update(DrepDelegator)
-        .set({ votingPowerLovelace: info.controlled_amount, updatedAt: new Date() })
+        .set({
+          votingPowerLovelace: info.controlled_amount,
+          updatedAt: new Date(),
+        })
         .where('stake_address = :stakeAddress', { stakeAddress })
         .execute();
     } catch (err) {
-      this.logger.warn(`Voting power update failed for ${stakeAddress}: ${err.message}`);
+      this.logger.warn(
+        `Voting power update failed for ${stakeAddress}: ${err.message}`,
+      );
     }
   }
 }

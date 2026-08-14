@@ -14,11 +14,15 @@ export class MetricsService {
     this.METRICS_URL = this.configService.get<string>('METRICS_BASE_URL') || '';
   }
 
-  async getProposalMetrics(search?: string, category?: string, committee?: string): Promise<any> {
+  async getProposalMetrics(
+    search?: string,
+    category?: string,
+    committee?: string,
+  ): Promise<any> {
     try {
       let url = `${this.METRICS_URL}/cardano/budget-proposals/metrics`;
       const queryParams: Record<string, string> = {};
-      
+
       if (search) queryParams['s'] = search;
       if (category) queryParams['category'] = category;
       if (committee) queryParams['committee'] = committee;

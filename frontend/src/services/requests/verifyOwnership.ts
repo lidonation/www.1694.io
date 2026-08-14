@@ -9,9 +9,9 @@ export interface VerifyOwnershipPayloadResponse {
   result: boolean;
   message: string;
   signatures: {
-    signature: string,
-    key: string,
-    type: SignatureType,
+    signature: string;
+    key: string;
+    type: SignatureType;
   }[];
 }
 

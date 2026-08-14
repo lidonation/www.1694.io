@@ -91,7 +91,7 @@ export class DRepRepository extends Repository<VoltaireDrep> {
   async verifyOwnership(voterId: string, drepId: string): Promise<Signature[]> {
     return this.voltaireDb.getRepository(Signature).find({
       where: { voterId, drep_bech32: drepId },
-    }) as Promise<Signature[]>;
+    });
   }
 
   async checkDRepClaimStatus(stakeKey: string) {
@@ -279,10 +279,14 @@ export class DRepRepository extends Repository<VoltaireDrep> {
       // CIP-119 wraps values as { "@value": "..." }. Unwrap objects, and tolerate
       // metadata that stored the value as a (possibly doubly-encoded) JSON string,
       // so the name renders as text instead of "[object Object]".
-      let givenName: any = drep.metadata?.json_metadata?.body?.givenName ?? null;
+      let givenName: any =
+        drep.metadata?.json_metadata?.body?.givenName ?? null;
       if (givenName && typeof givenName === 'object') {
         givenName = givenName['@value'] ?? null;
-      } else if (typeof givenName === 'string' && givenName.trim().startsWith('{')) {
+      } else if (
+        typeof givenName === 'string' &&
+        givenName.trim().startsWith('{')
+      ) {
         try {
           const parsed = JSON.parse(givenName);
           givenName = parsed['@value'] ?? parsed.givenName ?? givenName;
@@ -354,18 +358,22 @@ export class DRepRepository extends Repository<VoltaireDrep> {
 
   async getDrepDateOfRegistration(drepVoterId: string) {
     // First try to find registration event in timeline
-    const regEvent = await this.voltaireDb.getRepository(DrepTimelineEvent).findOne({
-      where: { drepId: drepVoterId, eventType: 'registration' },
-      order: { timestamp: 'ASC' }
-    });
+    const regEvent = await this.voltaireDb
+      .getRepository(DrepTimelineEvent)
+      .findOne({
+        where: { drepId: drepVoterId, eventType: 'registration' },
+        order: { timestamp: 'ASC' },
+      });
 
     if (regEvent) {
-      return [{
-        drep_hash_id: 0,
-        reg_tx_hash: regEvent.txHash,
-        date_of_registration: regEvent.timestamp,
-        epoch_of_registration: regEvent.epoch
-      }];
+      return [
+        {
+          drep_hash_id: 0,
+          reg_tx_hash: regEvent.txHash,
+          date_of_registration: regEvent.timestamp,
+          epoch_of_registration: regEvent.epoch,
+        },
+      ];
     }
 
     const drepData = await this.voltaireDb
@@ -407,7 +415,9 @@ export class DRepRepository extends Repository<VoltaireDrep> {
     const proposalIds = [
       ...new Set(
         votingEvents
-          .map((e) => e.metadata?.gov_action_proposal_id || e.metadata?.proposalId)
+          .map(
+            (e) => e.metadata?.gov_action_proposal_id || e.metadata?.proposalId,
+          )
           .filter(Boolean),
       ),
     ];
@@ -478,7 +488,9 @@ export class DRepRepository extends Repository<VoltaireDrep> {
 
     return votingEvents.map((event) => {
       const proposalId =
-        event.metadata?.gov_action_proposal_id || event.metadata?.proposalId || 'unknown';
+        event.metadata?.gov_action_proposal_id ||
+        event.metadata?.proposalId ||
+        'unknown';
       const p = proposalMap.get(proposalId);
       const vc = voteMap.get(proposalId);
       return {
@@ -495,11 +507,16 @@ export class DRepRepository extends Repository<VoltaireDrep> {
         voting_epoch: event.epoch,
         url: event.metadata?.url || null,
         governance_type: p?.governance_type ?? null,
-        expiration_epoch: p?.expiration_epoch != null ? Number(p.expiration_epoch) : null,
-        ratified_epoch: p?.ratified_epoch != null ? Number(p.ratified_epoch) : null,
-        enacted_epoch: p?.enacted_epoch != null ? Number(p.enacted_epoch) : null,
-        dropped_epoch: p?.dropped_epoch != null ? Number(p.dropped_epoch) : null,
-        expired_epoch: p?.expired_epoch != null ? Number(p.expired_epoch) : null,
+        expiration_epoch:
+          p?.expiration_epoch != null ? Number(p.expiration_epoch) : null,
+        ratified_epoch:
+          p?.ratified_epoch != null ? Number(p.ratified_epoch) : null,
+        enacted_epoch:
+          p?.enacted_epoch != null ? Number(p.enacted_epoch) : null,
+        dropped_epoch:
+          p?.dropped_epoch != null ? Number(p.dropped_epoch) : null,
+        expired_epoch:
+          p?.expired_epoch != null ? Number(p.expired_epoch) : null,
         drep_yes_count: vc ? Number(vc.drep_yes_count) : 0,
         drep_no_count: vc ? Number(vc.drep_no_count) : 0,
         drep_abstain_count: vc ? Number(vc.drep_abstain_count) : 0,
@@ -692,7 +709,10 @@ export class DRepRepository extends Repository<VoltaireDrep> {
       .getRawMany();
 
     return timelineEvents.map((event) => {
-      const meta = typeof event.metadata === 'string' ? JSON.parse(event.metadata) : event.metadata;
+      const meta =
+        typeof event.metadata === 'string'
+          ? JSON.parse(event.metadata)
+          : event.metadata;
       return {
         stake_address: event.stake_address,
         target_drep: event.drep_id,
@@ -703,9 +723,9 @@ export class DRepRepository extends Repository<VoltaireDrep> {
         tx_hash: event.tx_hash,
         type: 'delegation' as const,
         total_stake: meta?.total_stake || '0',
-        total_stake_ada: (parseFloat(meta?.total_stake) / 1_000_000) || 0,
+        total_stake_ada: parseFloat(meta?.total_stake) / 1_000_000 || 0,
         voting_power_lovelace: meta?.total_stake || '0',
-        voting_power_ada: (parseFloat(meta?.total_stake) / 1_000_000) || 0,
+        voting_power_ada: parseFloat(meta?.total_stake) / 1_000_000 || 0,
         added_power: meta?.added_power,
         delegation_status: meta?.delegation_status,
         current_delegated_drep: meta?.current_drep,
@@ -767,12 +787,16 @@ export class DRepRepository extends Repository<VoltaireDrep> {
     const canonicalIds = await this.getAllDrepIds(voterId);
 
     // We still use lookupId to find delegationVoteCount if needed
-    const lookupId = canonicalIds.length > 0 ? canonicalIds[canonicalIds.length - 1] : voterId;
-    const drepData = await this.voltaireDb
-      .getRepository(Drep)
-      .findOne({ where: { drepId: lookupId }, select: ['delegationVoteCount'] });
+    const lookupId =
+      canonicalIds.length > 0 ? canonicalIds[canonicalIds.length - 1] : voterId;
+    const drepData = await this.voltaireDb.getRepository(Drep).findOne({
+      where: { drepId: lookupId },
+      select: ['delegationVoteCount'],
+    });
 
-    const totalProposals = await this.voltaireDb.getRepository(Proposal).count();
+    const totalProposals = await this.voltaireDb
+      .getRepository(Proposal)
+      .count();
 
     if (canonicalIds.length === 0) {
       return {
@@ -784,7 +808,9 @@ export class DRepRepository extends Repository<VoltaireDrep> {
     }
 
     // specific handling for array parameters in raw query
-    const placeholders = canonicalIds.map((_, index) => `$${index + 1}`).join(', ');
+    const placeholders = canonicalIds
+      .map((_, index) => `$${index + 1}`)
+      .join(', ');
 
     // Calculate DISTINCT participation dynamically
     const countQuery = `
@@ -825,7 +851,9 @@ export class DRepRepository extends Repository<VoltaireDrep> {
 
     // specific handling for array parameters in raw query
     // we manually construct the IN clause placeholders
-    const placeholders = canonicalIds.map((_, index) => `$${index + 1}`).join(', ');
+    const placeholders = canonicalIds
+      .map((_, index) => `$${index + 1}`)
+      .join(', ');
 
     // 1. Get total distinct items count
     const countQuery = `
@@ -922,11 +950,19 @@ export class DRepRepository extends Repository<VoltaireDrep> {
         proposal_id: vote.proposal_id,
         gov_action_proposal_id: vote.proposal_id,
         gov_action_hash: vote.proposal_anchor_hash,
-        time_voted: vote.block_time ? new Date(vote.block_time).toISOString() : (vote.created_at ? new Date(vote.created_at).toISOString() : new Date().toISOString()),
+        time_voted: vote.block_time
+          ? new Date(vote.block_time).toISOString()
+          : vote.created_at
+            ? new Date(vote.created_at).toISOString()
+            : new Date().toISOString(),
         type: vote.governance_type || 'InfoAction',
         governance_type: vote.governance_type || null,
-        expiration_epoch: vote.expiration_epoch ? Number(vote.expiration_epoch) : null,
-        ratified_epoch: vote.ratified_epoch ? Number(vote.ratified_epoch) : null,
+        expiration_epoch: vote.expiration_epoch
+          ? Number(vote.expiration_epoch)
+          : null,
+        ratified_epoch: vote.ratified_epoch
+          ? Number(vote.ratified_epoch)
+          : null,
         enacted_epoch: vote.enacted_epoch ? Number(vote.enacted_epoch) : null,
         dropped_epoch: vote.dropped_epoch ? Number(vote.dropped_epoch) : null,
         expired_epoch: vote.expired_epoch ? Number(vote.expired_epoch) : null,
@@ -1046,7 +1082,7 @@ export class DRepRepository extends Repository<VoltaireDrep> {
       combinedResult?.view?.includes('drep_always_no_confidence')
     ) {
       combinedResult['type'] = 'voting_option';
-    } else if (!!combinedResult.has_script) {
+    } else if (combinedResult.has_script) {
       combinedResult['type'] = 'scripted';
     } else {
       combinedResult['type'] = 'drep';
@@ -1069,7 +1105,7 @@ export class DRepRepository extends Repository<VoltaireDrep> {
     // 1. Try direct lookup
     const directMatch = await this.voltaireDb.getRepository(Drep).findOne({
       where: { drepId: ILike(voterId.trim()) },
-      select: ['drepId']
+      select: ['drepId'],
     });
     if (directMatch) return directMatch.drepId;
 
@@ -1080,7 +1116,9 @@ export class DRepRepository extends Repository<VoltaireDrep> {
       const hex = Buffer.from(data).toString('hex');
 
       if (hex.length >= 56) {
-        const hexMatch = await this.voltaireDb.getRepository(Drep).createQueryBuilder('drep')
+        const hexMatch = await this.voltaireDb
+          .getRepository(Drep)
+          .createQueryBuilder('drep')
           .where('LOWER(RIGHT(drep.hex, 56)) = LOWER(RIGHT(:hex, 56))', { hex })
           .getOne();
 
@@ -1112,12 +1150,14 @@ export class DRepRepository extends Repository<VoltaireDrep> {
 
       if (hex.length >= 56) {
         // Find ALL Dreps with this hex suffix
-        const matches = await this.voltaireDb.getRepository(Drep).createQueryBuilder('drep')
+        const matches = await this.voltaireDb
+          .getRepository(Drep)
+          .createQueryBuilder('drep')
           .where('LOWER(RIGHT(drep.hex, 56)) = LOWER(RIGHT(:hex, 56))', { hex })
           .select('drep.drepId')
           .getMany();
 
-        matches.forEach(m => ids.add(m.drepId));
+        matches.forEach((m) => ids.add(m.drepId));
       }
     } catch (e) {
       // ignore

@@ -1,4 +1,11 @@
-import { Entity, Column, PrimaryColumn, Index, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryColumn,
+  Index,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity('proposals')
 @Index('idx_proposal_id', ['id'], { unique: true })
@@ -19,7 +26,14 @@ export class Proposal {
   certIndex: number;
 
   @Column({ name: 'governance_type', type: 'text' })
-  governanceType: 'hard_fork_initiation' | 'new_committee' | 'new_constitution' | 'info_action' | 'no_confidence' | 'parameter_change' | 'treasury_withdrawals';
+  governanceType:
+    | 'hard_fork_initiation'
+    | 'new_committee'
+    | 'new_constitution'
+    | 'info_action'
+    | 'no_confidence'
+    | 'parameter_change'
+    | 'treasury_withdrawals';
 
   @Column({ name: 'governance_description', type: 'jsonb', nullable: true })
   governanceDescription: any; // Optional JSON map, human-readable

@@ -26,8 +26,8 @@ function page() {
     wallet: { isConnected, isDRep },
   } = useWallet();
   const username =
-    actionProposal?.data?.attributes?.creator?.data?.attributes?.govtool_username ||
-    'anonymous';
+    actionProposal?.data?.attributes?.creator?.data?.attributes
+      ?.govtool_username || 'anonymous';
   const { data: proposalMetrics, isLoading } =
     useUserParticipationQuery(username);
 
@@ -65,7 +65,10 @@ function page() {
           />
 
           <Box className="rounded-md bg-white p-6 shadow-sm">
-            <CatalystParticipation metrics={proposalMetrics} isLoading={isLoading}/>
+            <CatalystParticipation
+              metrics={proposalMetrics}
+              isLoading={isLoading}
+            />
           </Box>
 
           {isConnected && isDRep && <VotingSection poll={poll?.data} />}
@@ -82,9 +85,7 @@ function page() {
             </Box>
           )}
 
-          <ProposalComments
-            proposal={actionProposal?.data}
-          />
+          <ProposalComments proposal={actionProposal?.data} />
         </main>
       </section>
     </Box>

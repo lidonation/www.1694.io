@@ -15,7 +15,9 @@ type MarkdownEditorProps = {
 
 const MarkdownEditor = ({ control, errors, name }: MarkdownEditorProps) => {
   const [mode, setMode] = useState<'write' | 'preview'>('write');
-  const { wallet:{isConnected} } = useWallet();
+  const {
+    wallet: { isConnected },
+  } = useWallet();
   return (
     <Controller
       name={name}
@@ -24,7 +26,7 @@ const MarkdownEditor = ({ control, errors, name }: MarkdownEditorProps) => {
         const parts = processContent(field.value);
         return (
           <div className="flex flex-col">
-            <div className="flex flex-row items-center justify-between rounded-t-xl border-l border-r border-t bg-slate-50 py-1">
+            <div className="flex flex-row items-center justify-between rounded-t-xl border-t border-r border-l bg-slate-50 py-1">
               <div className="flex">
                 <div
                   className={`px-2 ${mode === 'write' ? 'opacity-100' : 'opacity-50'} cursor-pointer`}
@@ -61,23 +63,28 @@ const MarkdownEditor = ({ control, errors, name }: MarkdownEditorProps) => {
               />
             ) : (
               <div className="min-h-40 w-full overflow-auto rounded-b-xl border p-2">
-                {parts && parts.map((item, index) => {
-                  if (typeof item === 'string') {
-                    return (
-                      <Typography
-                        key={index}
-                        dangerouslySetInnerHTML={{ __html: marked.parse(item) }}
-                      />
-                    );
-                  } else if (React.isValidElement(item)) {
-                    return React.cloneElement(item, { key: index });
-                  }
-                  return null;
-                })}
+                {parts &&
+                  parts.map((item, index) => {
+                    if (typeof item === 'string') {
+                      return (
+                        <Typography
+                          key={index}
+                          dangerouslySetInnerHTML={{
+                            __html: marked.parse(item),
+                          }}
+                        />
+                      );
+                    } else if (React.isValidElement(item)) {
+                      return React.cloneElement(item, { key: index });
+                    }
+                    return null;
+                  })}
               </div>
             )}
             {errors[name] && (
-              <span className="text-red-500 text-sm">{errors[name].message}</span>
+              <span className="text-sm text-red-500">
+                {errors[name].message}
+              </span>
             )}
           </div>
         );

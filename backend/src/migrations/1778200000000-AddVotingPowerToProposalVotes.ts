@@ -1,6 +1,8 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddVotingPowerToProposalVotes1778200000000 implements MigrationInterface {
+export class AddVotingPowerToProposalVotes1778200000000
+  implements MigrationInterface
+{
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
       ALTER TABLE "proposal_votes"
@@ -14,7 +16,11 @@ export class AddVotingPowerToProposalVotes1778200000000 implements MigrationInte
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DROP INDEX IF EXISTS "idx_proposal_vote_voting_power"`);
-    await queryRunner.query(`ALTER TABLE "proposal_votes" DROP COLUMN IF EXISTS "voting_power_lovelace"`);
+    await queryRunner.query(
+      `DROP INDEX IF EXISTS "idx_proposal_vote_voting_power"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "proposal_votes" DROP COLUMN IF EXISTS "voting_power_lovelace"`,
+    );
   }
 }

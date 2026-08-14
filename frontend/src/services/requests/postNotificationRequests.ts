@@ -17,17 +17,19 @@ export const postCreateNotification = async ({
   isArchived?: boolean;
   isPersistent?: boolean;
 }) => {
-  const response = await axiosInstance.post(`/notifications/${recipientId}/new`, {
-    title,
-    message,
-    type,
-    isRead,
-    isArchived,
-    isPersistent,
-  });
+  const response = await axiosInstance.post(
+    `/notifications/${recipientId}/new`,
+    {
+      title,
+      message,
+      type,
+      isRead,
+      isArchived,
+      isPersistent,
+    },
+  );
   return response.data;
 };
-
 
 export const postMarkNotificationAsRead = async ({
   notificationId,
@@ -39,7 +41,6 @@ export const postMarkNotificationAsRead = async ({
   );
   return response.data;
 };
-
 
 export const postMarkNotificationAsUnread = async ({
   notificationId,

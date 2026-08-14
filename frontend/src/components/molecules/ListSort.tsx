@@ -60,7 +60,7 @@ export default function ListSort({ tableType, sortOptions }: ListSortProps) {
 
   useEffect(() => {
     if (isInitializing) return;
-    (sort && order)
+    sort && order
       ? setItemToLocalStorage(DREP_SORT_LS_KEY, { sort, order })
       : removeItemFromLocalStorage(DREP_SORT_LS_KEY);
   }, [sort, order, isInitializing]);
@@ -116,8 +116,8 @@ export default function ListSort({ tableType, sortOptions }: ListSortProps) {
   return (
     <Box>
       <Box className="relative flex justify-start">
-        <IconButton 
-          color="primary" 
+        <IconButton
+          color="primary"
           sx={{ width: 40, height: 40 }}
           aria-describedby={id}
           onClick={handleShow}
@@ -130,7 +130,7 @@ export default function ListSort({ tableType, sortOptions }: ListSortProps) {
         </IconButton>
 
         <Grow in={isFiltering}>
-          <div className="absolute right-0 top-0">
+          <div className="absolute top-0 right-0">
             <DotIcon color="#f97316" width={17} height={17} />
           </div>
         </Grow>

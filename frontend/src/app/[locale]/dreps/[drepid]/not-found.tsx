@@ -1,4 +1,4 @@
-'use client'
+'use client';
 import { usePathname } from 'next/navigation';
 import React from 'react';
 
@@ -7,7 +7,7 @@ function NotFound() {
   return (
     <div className="flex h-screen flex-col items-center justify-center text-center">
       <div className="flex flex-col items-center gap-4 text-black">
-        <p className="text-4xl font-bold leading-10">Oops!</p>
+        <p className="text-4xl leading-10 font-bold">Oops!</p>
         <div className="flex items-center">
           <h1 className="mr-6 border-r border-black pr-6 text-2xl font-semibold">
             404
@@ -16,7 +16,7 @@ function NotFound() {
             This DRep could not be found.
           </h2>
         </div>
-        <p className="rounded bg-primary-100 px-2 py-1 text-base font-medium">
+        <p className="bg-primary-100 rounded px-2 py-1 text-base font-medium">
           URL: {pathname}
         </p>
       </div>

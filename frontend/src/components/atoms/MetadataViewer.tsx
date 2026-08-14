@@ -66,11 +66,11 @@ const MetadataViewer = ({
                       key={index}
                       className="flex w-full flex-col items-start gap-1 text-sm"
                     >
-                      <p className="font-bold ">
+                      <p className="font-bold">
                         {capitalizeFirstLetter(linkLabel)}
                       </p>
                       <Link
-                        className="w-full break-words font-light"
+                        className="w-full font-light break-words"
                         href={linkUri ? linkUri || '#' : '#'}
                         target="_blank"
                       >
@@ -85,7 +85,9 @@ const MetadataViewer = ({
               key={key}
               className="flex flex-col items-start justify-center gap-1 text-sm"
             >
-              <Typography variant="h6" className="font-bold text-gray-800 mt-2">References</Typography>
+              <Typography variant="h6" className="mt-2 font-bold text-gray-800">
+                References
+              </Typography>
               <div className="w-full space-y-1 pl-2">
                 {links.length > 0 ? links : 'Empty'}
               </div>
@@ -97,10 +99,10 @@ const MetadataViewer = ({
             key={key}
             className="flex w-full flex-col items-start justify-center gap-1 text-sm"
           >
-            <Typography variant="h6" className="font-bold text-gray-800 mt-2">
+            <Typography variant="h6" className="mt-2 font-bold text-gray-800">
               {capitalizeFirstLetter(key)}
             </Typography>
-            <Box className="w-full break-words pl-1 text-gray-600 leading-relaxed">
+            <Box className="w-full pl-1 leading-relaxed break-words text-gray-600">
               <MarkdownParser text={valueString} />
             </Box>
           </div>

@@ -1,4 +1,3 @@
-
 export const getTotalDrepsAndVotingPower = `
 WITH latest_registration AS (
     SELECT
@@ -46,8 +45,8 @@ export const getLiveStakeQuery = `
 With delegation_summary as (SELECT * from "drep_frontend_snapshot")
 select SUM(live_stake_ada) as total_live_stake
 from delegation_summary`;
-export const getTotalGovernanceActionsQuery = `SELECT COUNT(*) as count FROM "proposals"`
-export const getActiveDRepsQuery=`
+export const getTotalGovernanceActionsQuery = `SELECT COUNT(*) as count FROM "proposals"`;
+export const getActiveDRepsQuery = `
 WITH latest_epoch AS (
     -- Get the latest epoch from the block table
     SELECT MAX(epoch_no) AS latest_epoch_no
@@ -75,4 +74,4 @@ active_dreps AS (
 SELECT
     COUNT(*) AS total_active_dreps
 FROM active_dreps;
-`
+`;

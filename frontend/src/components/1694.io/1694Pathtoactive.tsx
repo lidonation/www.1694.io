@@ -144,7 +144,7 @@ const CIPPathtoactive = () => {
               <p className="text-2xl font-bold">
                 Changes to the local state-query protocol
               </p>
-              <ul className="ml-5 mt-2 flex list-disc flex-col gap-1">
+              <ul className="mt-2 ml-5 flex list-disc flex-col gap-1">
                 <li>
                   The on-chain governance workload is large, but the off-chain
                   workload for tools and applications will arguably be even
@@ -160,7 +160,7 @@ const CIPPathtoactive = () => {
                   information which are harder to infer from blocks (i.e. those
                   that require maintaining a ledger state). New state queries
                   should cover (at least):
-                  <ul className="ml-5 mt-2 flex list-disc flex-col gap-1">
+                  <ul className="mt-2 ml-5 flex list-disc flex-col gap-1">
                     <li>Governance actions currently staged for enactment</li>
                     <li>
                       Governance actions under ratification, with the total and

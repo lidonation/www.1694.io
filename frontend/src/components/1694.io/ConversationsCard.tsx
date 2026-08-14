@@ -32,7 +32,7 @@ const ConversationsCard = ({ conversations }: ConversationsCardProps) => {
 
   return (
     <div className="base_container py-20">
-      <p className="text-4xl font-bold text-zinc-800 lg:text-6xl mb-2">
+      <p className="mb-2 text-4xl font-bold text-zinc-800 lg:text-6xl">
         Conversations
       </p>
       <div className="flex w-full grid-cols-3 flex-col gap-6 lg:grid lg:gap-4">

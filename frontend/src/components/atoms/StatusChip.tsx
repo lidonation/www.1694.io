@@ -75,7 +75,7 @@ const StatusChip = ({ status }: StatusProps) => {
   return (
     <Box
       component="span"
-      className={`text-nowrap rounded-full px-2 py-1 text-center text-xs font-normal  ${statusClass}`}
+      className={`rounded-full px-2 py-1 text-center text-xs font-normal text-nowrap ${statusClass}`}
     >
       {status}
     </Box>

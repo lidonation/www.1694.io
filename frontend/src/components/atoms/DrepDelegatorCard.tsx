@@ -2,7 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import ArrowRightIcon from './svgs/ArrowRightIcon';
-import { convertHexToCIP129, formatAsCurrency, lovelaceToAda, shortenAddress } from '@/lib';
+import {
+  convertHexToCIP129,
+  formatAsCurrency,
+  lovelaceToAda,
+  shortenAddress,
+} from '@/lib';
 import { urls } from '@/constants';
 import { DelegationData } from '../../../types/api';
 
@@ -30,30 +35,46 @@ const useResponsiveLengths = () => {
   return { addressLength, drepLength };
 };
 
-const DrepLink = ({ drep, hasScript, chainId, isTarget, isPrevious, drepLength }: any) => {
+const DrepLink = ({
+  drep,
+  hasScript,
+  chainId,
+  isTarget,
+  isPrevious,
+  drepLength,
+}: any) => {
   const drepAddress = convertHexToCIP129(hasScript, chainId || drep);
 
   if (isPrevious) {
     return (
-      <Link href={`/dreps/${drepAddress}`} className="text-sm font-bold uppercase text-gray-400">
+      <Link
+        href={`/dreps/${drepAddress}`}
+        className="text-sm font-bold text-gray-400 uppercase"
+      >
         {shortenAddress(drepAddress, drepLength)}
       </Link>
     );
   }
 
   return isTarget ? (
-    <p className="text-sm font-bold uppercase text-primary-300">
+    <p className="text-primary-300 text-sm font-bold uppercase">
       {shortenAddress(drepAddress, drepLength)}
     </p>
   ) : (
-    <Link href={`/dreps/${drepAddress}`} className="text-sm font-bold uppercase text-yellow-500">
+    <Link
+      href={`/dreps/${drepAddress}`}
+      className="text-sm font-bold text-yellow-500 uppercase"
+    >
       {shortenAddress(drepAddress, drepLength)}
     </Link>
   );
 };
 
 const StakeAddressLink = ({ stakeAddress, addressLength }: any) => (
-  <Link href={stakeAddress ? `/voters/${stakeAddress}` : '#'} className="hover:font-medium">
+  <Link
+    href={stakeAddress ? `/voters/${stakeAddress}` : '#'}
+    className="hover:font-medium"
+  >
     <p className="text-base">{shortenAddress(stakeAddress, addressLength)}</p>
   </Link>
 );
@@ -85,30 +106,41 @@ const DrepDelegatorCard = ({ item }: { item: DelegationData }) => {
   const isPreviousTargetDRep = previous_drep === target_drep;
   const isCurrentTargetDRep = current_drep === target_drep;
   const isLeaving = item.eventType === 'undelegation';
-  const stakeAda = Number(total_stake) > 0 ? lovelaceToAda(Number(total_stake)) : null;
+  const stakeAda =
+    Number(total_stake) > 0 ? lovelaceToAda(Number(total_stake)) : null;
 
   return (
     <div className="flex w-full flex-col gap-2 text-center">
       {stakeAda !== null && (
         <div className="flex flex-col items-center gap-0.5">
-          <p className={`text-sm font-bold ${isLeaving ? 'text-red-500' : 'text-green-600'}`}>
-            {isLeaving ? '-' : '+'}{formatAsCurrency(stakeAda)} ₳
+          <p
+            className={`text-sm font-bold ${isLeaving ? 'text-red-500' : 'text-green-600'}`}
+          >
+            {isLeaving ? '-' : '+'}
+            {formatAsCurrency(stakeAda)} ₳
           </p>
-          <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wide">Voting Power</p>
+          <p className="text-[10px] font-medium tracking-wide text-gray-400 uppercase">
+            Voting Power
+          </p>
         </div>
       )}
       <div className="flex flex-col items-center">
-        <StakeAddressLink stakeAddress={stake_address} addressLength={addressLength} />
-        <p className={`text-sm font-medium ${isLeaving ? 'text-orange-500' : 'text-gray-500'}`}>
+        <StakeAddressLink
+          stakeAddress={stake_address}
+          addressLength={addressLength}
+        />
+        <p
+          className={`text-sm font-medium ${isLeaving ? 'text-orange-500' : 'text-gray-500'}`}
+        >
           {isLeaving ? 'Delegator Left' : 'New Delegator'}
         </p>
-        <p className="text-[10px] text-gray-400 font-medium">
+        <p className="text-[10px] font-medium text-gray-400">
           {new Date((item as any).timestamp).toLocaleString(undefined, {
             month: 'short',
             day: 'numeric',
             year: 'numeric',
             hour: '2-digit',
-            minute: '2-digit'
+            minute: '2-digit',
           })}
         </p>
       </div>

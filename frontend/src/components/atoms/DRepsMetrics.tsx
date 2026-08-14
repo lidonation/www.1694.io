@@ -24,9 +24,6 @@ const DRepsMetrics = () => {
     }
   }, [isMetricsLoading, fetchedMetrics]);
 
-
-  
-
   return (
     <TableContainer
       className="drep_metrics"
@@ -46,7 +43,7 @@ const DRepsMetrics = () => {
               isLoading={isMetricsLoading}
             />
             <MetricCard
-              value={metrics.totalProposals??0}
+              value={metrics.totalProposals ?? 0}
               label="Total Governance Actions"
               isLoading={isMetricsLoading}
             />

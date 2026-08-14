@@ -4,7 +4,7 @@ import AcknowledgmentSummary from './AcknowledgmentSummary';
 import { useScreenDimension } from '@/hooks';
 
 const CIPAcknowledgments = () => {
-  const {isMobile} = useScreenDimension();
+  const { isMobile } = useScreenDimension();
   return (
     <div className="bg-gradient-to-b from-[#E9EFFF] to-[#FFFFFF] text-black">
       <div className="base_container flex w-full flex-col gap-10 py-10">
@@ -28,7 +28,7 @@ const CIPAcknowledgments = () => {
             </div>
           </div>
         ) : (
-          <div className='relative dual-bg'>
+          <div className="dual-bg relative">
             <AcknowledgmentSummary />
           </div>
         )}

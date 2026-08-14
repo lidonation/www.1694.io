@@ -13,7 +13,6 @@ const CustomAutocomplete = ({
   dataTestId,
   isDisabled,
 }) => {
-
   return (
     <div className="flex flex-col gap-1">
       <label>{inputName}</label>
@@ -48,7 +47,7 @@ const CustomAutocomplete = ({
                 variant="outlined"
                 className={`border ${
                   isDisabled && 'pointer-events-none'
-                }  rounded-full border-zinc-100 bg-white`}
+                } rounded-full border-zinc-100 bg-white`}
                 data-testid={dataTestId}
                 placeholder={placeholder}
               />

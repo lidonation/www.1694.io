@@ -119,7 +119,7 @@ export class NotificationsService {
          WHERE dd.stake_address = $1
          ORDER BY dd.updated_at DESC
          LIMIT 1`,
-        [signature.stakeKey]
+        [signature.stakeKey],
       );
 
       if (!delegationData || delegationData.length === 0) {
@@ -128,7 +128,7 @@ export class NotificationsService {
       }
 
       const delegatedTo = delegationData[0];
-      
+
       // Get voting activity for the delegated DRep since last sync
       const votingActivity = await this.voltaireDb.query(
         `SELECT pv.*, p.title, p.type, p.created_at as proposal_created_at
@@ -136,7 +136,7 @@ export class NotificationsService {
          LEFT JOIN proposals p ON p.id = pv.proposal_id
          WHERE pv.voter = $1 AND pv.created_at > $2
          ORDER BY pv.created_at DESC`,
-        [delegatedTo.drep_id, timeSinceLastSync]
+        [delegatedTo.drep_id, timeSinceLastSync],
       );
 
       for (const vote of votingActivity) {
@@ -149,7 +149,7 @@ export class NotificationsService {
         const notificationContent = this.newVoteOnProposalNotification(
           timeVoted,
           delegatedTo.drep_id,
-          vote.vote
+          vote.vote,
         );
 
         await this.createNotification(
@@ -158,7 +158,7 @@ export class NotificationsService {
           vote.created_at,
         );
       }
-      
+
       return 'Done';
     } catch (error) {
       console.log('Error while processing vote notifications', error);
@@ -174,7 +174,7 @@ export class NotificationsService {
     try {
       const delegators = await this.voltaireDb.query(
         'SELECT stake_address FROM drep_delegators WHERE drep_id = $1',
-        [drepId]
+        [drepId],
       );
 
       for (const delegator of delegators) {
@@ -214,7 +214,7 @@ export class NotificationsService {
     return {
       title: 'New Note',
       message: `The [DRep](/dreps/${drepId}) you have delegated to has created a new note. Check it out [here](/dreps/${drepId}?start=${note_creation_date - 5 * 24 * 60 * 60 * 1000}&end=${note_creation_date})`,
-      type: 'info' as 'info',
+      type: 'info' as const,
     };
   }
 
@@ -226,7 +226,7 @@ export class NotificationsService {
     return {
       title: 'New Comment',
       message: `A [voter](/voters/${voterId}) has commented on your [note](/dreps/${drepId}?start=${note_creation_date - 5 * 24 * 60 * 60 * 1000}&end=${note_creation_date})`,
-      type: 'info' as 'info',
+      type: 'info' as const,
     };
   }
 
@@ -234,7 +234,7 @@ export class NotificationsService {
     return {
       title: 'New Reply',
       message: `A [voter](/voters/${voterId}) has replied to your comment.`,
-      type: 'info' as 'info',
+      type: 'info' as const,
     };
   }
 
@@ -253,7 +253,7 @@ export class NotificationsService {
     return {
       title: 'Note Reaction',
       message: `A [voter](/voters/${voterId}) has reacted ${reactionIcons[reactionType]} to your [note](/dreps/${drepId}?start=${note_creation_date - 5 * 24 * 60 * 60 * 1000}&end=${note_creation_date})`,
-      type: 'info' as 'info',
+      type: 'info' as const,
     };
   }
 
@@ -270,7 +270,7 @@ export class NotificationsService {
     return {
       title: 'Comment Reaction',
       message: `A [voter](/voters/${voterId}) has reacted ${reactionIcons[reactionType]} to your comment`,
-      type: 'info' as 'info',
+      type: 'info' as const,
     };
   }
 
@@ -282,7 +282,7 @@ export class NotificationsService {
     return {
       title: 'Proposal Vote',
       message: `The [drep](/dreps/${drepId}) you have delegated to has just voted ${voteType} on this [proposal](/dreps/${drepId}?start=${timeVoted - 5 * 24 * 60 * 60 * 1000}&end=${timeVoted}).`,
-      type: 'info' as 'info',
+      type: 'info' as const,
     };
   }
 
@@ -305,7 +305,7 @@ export class NotificationsService {
           continue;
         }
         await this.processEntityVoteNotifications(
-          sig as Signature,
+          sig,
           new Date(synctime[0]?.lastSyncTime),
         );
       }

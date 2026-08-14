@@ -3,7 +3,7 @@ import { MiscellaneousService } from './miscellaneous.service';
 
 @Controller('misc')
 export class MiscellaneousController {
-  constructor(private miscService: MiscellaneousService) { }
+  constructor(private miscService: MiscellaneousService) {}
 
   @Get('epochs/first')
   getFirstEpoch() {

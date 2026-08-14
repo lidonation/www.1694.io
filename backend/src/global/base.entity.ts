@@ -61,5 +61,4 @@ export abstract class BaseImmutableEntity extends SoftDeletableBaseEntity {
     update: false,
   }) // TypeORM decorator for creation date
   createdAt?: Date;
-
 }

@@ -15,5 +15,10 @@ export const useVerifyTransactionWitness = () => {
     },
   );
 
-  return { isWitnessVerifying: isLoading, isError, witnessVerification: data, verifyWitness: mutateAsync };
+  return {
+    isWitnessVerifying: isLoading,
+    isError,
+    witnessVerification: data,
+    verifyWitness: mutateAsync,
+  };
 };

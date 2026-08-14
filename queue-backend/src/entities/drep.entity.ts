@@ -1,4 +1,11 @@
-import { Entity, Column, PrimaryColumn, Index, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryColumn,
+  Index,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity('dreps')
 @Index('idx_drep_id', ['drepId'], { unique: true })
@@ -65,7 +72,13 @@ export class Drep {
   @Column({ name: 'references', type: 'jsonb', nullable: true })
   references: any[] | null;
 
-  @Column({ name: 'voting_power_ada', type: 'decimal', precision: 30, scale: 6, nullable: true })
+  @Column({
+    name: 'voting_power_ada',
+    type: 'decimal',
+    precision: 30,
+    scale: 6,
+    nullable: true,
+  })
   votingPowerAda: string | null;
 
   @Column({ name: 'delegation_vote_count', type: 'integer', default: 0 })

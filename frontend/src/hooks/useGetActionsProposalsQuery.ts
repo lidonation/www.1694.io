@@ -10,7 +10,7 @@ export const useGetActionsProposalsQuery = (
   category: string[] = [],
   committee: string[] = [],
   sortBy = 'createdAt',
-  sortOrder = 'desc'
+  sortOrder = 'desc',
 ) => {
   const { data, isLoading } = useQuery({
     queryKey: [
@@ -31,15 +31,15 @@ export const useGetActionsProposalsQuery = (
         category,
         committee,
         sortBy,
-        sortOrder
+        sortOrder,
       ),
-    enabled: typeof window !== "undefined",
+    enabled: typeof window !== 'undefined',
     refetchOnWindowFocus: false,
-    keepPreviousData: true
+    keepPreviousData: true,
   });
 
   return {
     actionsProposals: data,
-    isActionsProposalsLoading: isLoading
+    isActionsProposalsLoading: isLoading,
   };
 };

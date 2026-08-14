@@ -2,7 +2,6 @@ import React from 'react';
 import Button from '@/components/atoms/Button';
 import Link from 'next/link';
 
-
 interface DrepInfoCardProps {
   img: string;
   title: string;
@@ -13,7 +12,7 @@ interface DrepInfoCardProps {
     target?: '_blank' | '_self';
   };
   clicked?: () => void;
-  disabled?: boolean
+  disabled?: boolean;
 }
 
 const DrepInfoCard = ({
@@ -22,7 +21,7 @@ const DrepInfoCard = ({
   description,
   action = null,
   clicked,
-  disabled
+  disabled,
 }: DrepInfoCardProps) => {
   return (
     <div className="flex h-full w-full flex-1 flex-col items-start rounded-lg bg-blue-800 p-5 shadow-lg">
@@ -32,7 +31,12 @@ const DrepInfoCard = ({
 
       {!!action && (
         <div className="mt-auto pt-4">
-          <Button sx={{ width: 'fit-content' }} variant="contained" handleClick={clicked} disabled={disabled}>
+          <Button
+            sx={{ width: 'fit-content' }}
+            variant="contained"
+            handleClick={clicked}
+            disabled={disabled}
+          >
             <Link href={action.href} target={action.target}>
               {action.label}
             </Link>

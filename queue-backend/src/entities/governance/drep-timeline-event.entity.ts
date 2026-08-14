@@ -12,7 +12,13 @@ export class DrepTimelineEvent {
   id: string;
 
   @Column({ name: 'event_type', type: 'text' })
-  eventType: 'registration' | 'retirement' | 'delegation' | 'undelegation' | 'proposal' | 'vote';
+  eventType:
+    | 'registration'
+    | 'retirement'
+    | 'delegation'
+    | 'undelegation'
+    | 'proposal'
+    | 'vote';
 
   @Column({ name: 'timestamp', type: 'timestamptz' })
   timestamp: Date;

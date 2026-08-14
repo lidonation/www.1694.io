@@ -1,4 +1,13 @@
-import { Entity, Column, PrimaryColumn, Index, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryColumn,
+  Index,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Proposal } from './proposal.entity';
 
 @Entity('proposal_metadata')

@@ -42,7 +42,8 @@ const DRepTimeline = ({ drep }: { drep: any }) => {
     loadDirection,
   } = useGetDRepTimelineQuery(drepid, filterValues, 20);
 
-  const isLoadingNewerData = isDRepActivityLoading && nextCursor !== null && prevCursor !== null; 
+  const isLoadingNewerData =
+    isDRepActivityLoading && nextCursor !== null && prevCursor !== null;
   const isLoadingOlderData = isDRepActivityLoading && nextCursor !== null;
 
   const {
@@ -54,7 +55,7 @@ const DRepTimeline = ({ drep }: { drep: any }) => {
       item.claimedDRepBech32 ===
       convertDrepPhraseToCIP105Legacy(drepid.toString()),
   );
-  
+
   const searchParams = useSearchParams();
   const { isMobile } = useScreenDimension();
   const params = new URLSearchParams(searchParams.toString());
@@ -90,7 +91,9 @@ const DRepTimeline = ({ drep }: { drep: any }) => {
   const firstEpoch = epochs[0];
   const lastEpoch = epochs[epochs.length - 1];
   const latestTime = firstEpoch?.items?.[0]?.timestamp || firstEpoch?.startTime;
-  const oldestTime = lastEpoch?.items?.[lastEpoch.items.length - 1]?.timestamp || lastEpoch?.startTime;
+  const oldestTime =
+    lastEpoch?.items?.[lastEpoch.items.length - 1]?.timestamp ||
+    lastEpoch?.startTime;
 
   return (
     <div className="flex h-full w-full flex-col gap-5 bg-white">
@@ -144,8 +147,17 @@ const DRepTimeline = ({ drep }: { drep: any }) => {
                     className="text-sm"
                   >
                     Showing results from{' '}
-                    <span className="font-semibold">{formatNumberTimeToReadable(new Date(oldestTime).getTime())}</span> to{' '}
-                    <span className="font-semibold">{formatNumberTimeToReadable(new Date(latestTime).getTime())}</span>
+                    <span className="font-semibold">
+                      {formatNumberTimeToReadable(
+                        new Date(oldestTime).getTime(),
+                      )}
+                    </span>{' '}
+                    to{' '}
+                    <span className="font-semibold">
+                      {formatNumberTimeToReadable(
+                        new Date(latestTime).getTime(),
+                      )}
+                    </span>
                   </Typography>
                 )}
               </Box>
@@ -172,7 +184,6 @@ const DRepTimeline = ({ drep }: { drep: any }) => {
                 onLoadOlder={loadMoreData}
               />
             )}
-
 
             <Box className="flex w-full flex-col items-center gap-2">
               <Box className="flex flex-col items-center">
