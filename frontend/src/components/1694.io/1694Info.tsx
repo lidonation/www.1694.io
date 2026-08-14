@@ -3,12 +3,12 @@ import { TermTooltip } from '../atoms/term-tooltip';
 
 const CIPInfo = () => {
   return (
-    <div className="mt-5  w-full block lg:grid lg:grid-cols-2 overflow-hidden rounded-t-3xl bg-white py-20 shadow-lg">
-      <div className="flex items-center justify-center shrink-0">
+    <div className="mt-5 block w-full overflow-hidden rounded-t-3xl bg-white py-20 shadow-lg lg:grid lg:grid-cols-2">
+      <div className="flex shrink-0 items-center justify-center">
         <img src="/img/1694-asset-2.png" alt="Asset 2" width={'80%'} />
       </div>
       <div className="base_container flex flex-col gap-5 text-base font-light text-gray-800">
-        <p className="text-3xl lg:text-7xl font-bold leading-[68px] text-zinc-800">
+        <p className="text-3xl leading-[68px] font-bold text-zinc-800 lg:text-7xl">
           Abstract
         </p>
         <p>
@@ -19,8 +19,14 @@ const CIPInfo = () => {
           transaction bodies for:
         </p>
         <ol className="ml-10 list-decimal">
-          <li><TermTooltip term="Governance Action">governance actions</TermTooltip> </li>
-          <li><TermTooltip term="Ratification">votes</TermTooltip></li>
+          <li>
+            <TermTooltip term="Governance Action">
+              governance actions
+            </TermTooltip>{' '}
+          </li>
+          <li>
+            <TermTooltip term="Ratification">votes</TermTooltip>
+          </li>
         </ol>
 
         <p>
@@ -33,11 +39,17 @@ const CIPInfo = () => {
           <li>a constitutional committee</li>
           <li>
             a group of delegated representatives (henceforth called{' '}
-            <span className="font-bold"><TermTooltip term="DRep">DReps</TermTooltip></span>)
+            <span className="font-bold">
+              <TermTooltip term="DRep">DReps</TermTooltip>
+            </span>
+            )
           </li>
           <li>
             the stake pool operators (henceforth called{' '}
-            <span className="font-bold"><TermTooltip term="SPO">SPOs</TermTooltip></span>).
+            <span className="font-bold">
+              <TermTooltip term="SPO">SPOs</TermTooltip>
+            </span>
+            ).
           </li>
         </ol>
 
@@ -53,11 +65,12 @@ const CIPInfo = () => {
           on-chain, following a set of well-defined rules.
         </p>
         <p>
-          As with stake pools, any Ada holder may register to be a <TermTooltip term="DRep" /> and so
-          choose to represent themselves and/or others. Also, as with stake
-          pools, Ada holders may, instead, delegate their voting rights to any
-          other <TermTooltip term="DRep" />. Voting rights will be based on the total Ada that is
-          delegated, as a whole number of <TermTooltip term="Lovelace" />.
+          As with stake pools, any Ada holder may register to be a{' '}
+          <TermTooltip term="DRep" /> and so choose to represent themselves
+          and/or others. Also, as with stake pools, Ada holders may, instead,
+          delegate their voting rights to any other <TermTooltip term="DRep" />.
+          Voting rights will be based on the total Ada that is delegated, as a
+          whole number of <TermTooltip term="Lovelace" />.
         </p>
 
         <p>

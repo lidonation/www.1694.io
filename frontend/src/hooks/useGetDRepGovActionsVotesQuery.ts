@@ -15,7 +15,7 @@ export const useGetDRepGovActionsVotesQuery = (
       const cip105Id = convertDrepPhraseToCIP105(voterId);
       return await getDRepGovActionsVotes(cip105Id, page, perPage);
     },
-    enabled: typeof window !== "undefined" && (!!voterId),
+    enabled: typeof window !== 'undefined' && !!voterId,
     refetchOnWindowFocus: false,
   });
 

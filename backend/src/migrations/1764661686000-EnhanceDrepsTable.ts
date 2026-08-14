@@ -27,10 +27,18 @@ export class EnhanceDrepsTable1764661686000 implements MigrationInterface {
     `);
 
     // Create indexes
-    await queryRunner.query(`CREATE INDEX "idx_drep_active" ON "dreps" ("active")`);
-    await queryRunner.query(`CREATE INDEX "idx_drep_voting_power" ON "dreps" ("voting_power_ada")`);
-    await queryRunner.query(`CREATE INDEX "idx_drep_delegators" ON "dreps" ("delegation_vote_count")`);
-    await queryRunner.query(`CREATE INDEX "idx_drep_claimed" ON "dreps" ("is_claimed")`);
+    await queryRunner.query(
+      `CREATE INDEX "idx_drep_active" ON "dreps" ("active")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_drep_voting_power" ON "dreps" ("voting_power_ada")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_drep_delegators" ON "dreps" ("delegation_vote_count")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_drep_claimed" ON "dreps" ("is_claimed")`,
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {

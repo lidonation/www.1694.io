@@ -10,7 +10,7 @@ export class VoterService {
     @InjectDataSource('default')
     private readonly voltaireDb: DataSource,
     private readonly blockfrostService: BlockfrostService,
-  ) { }
+  ) {}
   async getVoter(voterIdentity: string): Promise<VoterData> {
     try {
       let voterData: any;
@@ -20,15 +20,14 @@ export class VoterService {
         // Get DRep data from enhanced dreps table
         const drepData = await this.voltaireDb.query(
           'SELECT * FROM dreps WHERE drep_id = $1',
-          [voterIdentity]
+          [voterIdentity],
         );
-
-
 
         if (!drepData || drepData.length === 0) {
           // Fallback: try to fetch from Blockfrost
           try {
-            const blockfrostDrep = await this.blockfrostService.getDRepInfo(voterIdentity);
+            const blockfrostDrep =
+              await this.blockfrostService.getDRepInfo(voterIdentity);
             if (!blockfrostDrep) {
               throw new HttpException('DRep not found!', HttpStatus.NOT_FOUND);
             }
@@ -36,7 +35,8 @@ export class VoterService {
             // Get metadata if available
             let metadata = null;
             try {
-              metadata = await this.blockfrostService.getDRepMetadata(voterIdentity);
+              metadata =
+                await this.blockfrostService.getDRepMetadata(voterIdentity);
             } catch (metadataError) {
               // Metadata is optional, continue without it
             }
@@ -46,7 +46,8 @@ export class VoterService {
               address: metadata?.json_metadata?.body?.paymentAddress || null,
               total_stake: parseFloat(blockfrostDrep.amount || '0') / 1000000, // Convert from lovelace
               drep_id: blockfrostDrep.drep_id,
-              stake_address: metadata?.json_metadata?.body?.paymentAddress || null,
+              stake_address:
+                metadata?.json_metadata?.body?.paymentAddress || null,
               given_name: metadata?.json_metadata?.body?.givenName || null,
               active: blockfrostDrep.active,
               retired: blockfrostDrep.retired,
@@ -60,7 +61,6 @@ export class VoterService {
               delegationHistory,
               isDelegated: false,
             };
-
           } catch (blockfrostError) {
             throw new HttpException('DRep not found!', HttpStatus.NOT_FOUND);
           }
@@ -71,33 +71,37 @@ export class VoterService {
         // Get delegators for this DRep
         const delegators = await this.voltaireDb.query(
           'SELECT stake_address, amount_lovelace, updated_at FROM drep_delegators WHERE drep_id = $1 ORDER BY updated_at DESC',
-          [voterIdentity]
+          [voterIdentity],
         );
 
         voterData = {
           address: drep.metadata?.json_metadata?.body?.paymentAddress || null,
           total_stake: parseFloat(drep.voting_power_ada || '0'),
           drep_id: drep.drep_id,
-          stake_address: drep.metadata?.json_metadata?.body?.paymentAddress || null,
+          stake_address:
+            drep.metadata?.json_metadata?.body?.paymentAddress || null,
           given_name: drep.metadata?.json_metadata?.body?.givenName || null,
           active: drep.active,
           retired: drep.retired,
         };
 
-        delegationHistory = delegators.map(d => ({
+        delegationHistory = delegators.map((d) => ({
           stake_address: d.stake_address,
           amount: d.amount_lovelace,
           timestamp: d.updated_at,
-          type: 'delegation'
+          type: 'delegation',
         }));
-
       } else if (voterIdentity.includes('stake')) {
         // 1. Get stake address info from Blockfrost (Optional)
         let stakeInfo: any = null;
         try {
-          stakeInfo = await this.blockfrostService.getStakeAddressInfo(voterIdentity);
+          stakeInfo =
+            await this.blockfrostService.getStakeAddressInfo(voterIdentity);
         } catch (blockfrostError) {
-          console.warn('Blockfrost error for stake address (continuing with DB):', blockfrostError?.message);
+          console.warn(
+            'Blockfrost error for stake address (continuing with DB):',
+            blockfrostError?.message,
+          );
         }
 
         // 2. Get delegation info from the local DB (History & Snapshot)
@@ -116,7 +120,7 @@ export class VoterService {
              LEFT JOIN dreps d ON d.drep_id = dte.drep_id
              WHERE dte.stake_address = $1 AND dte.event_type = 'delegation'
              ORDER BY dte.timestamp DESC`,
-            [voterIdentity]
+            [voterIdentity],
           );
 
           const currentDelegationRecord = await this.voltaireDb.query(
@@ -131,7 +135,7 @@ export class VoterService {
              LEFT JOIN dreps d ON d.drep_id = dd.drep_id
              WHERE dd.stake_address = $1
              LIMIT 1`,
-            [voterIdentity]
+            [voterIdentity],
           );
 
           const currentSnapshot = currentDelegationRecord[0];
@@ -139,10 +143,15 @@ export class VoterService {
           voterData = {
             address: voterIdentity,
             // Prefer Blockfrost for balance, fallback to DB snapshot if available
-            total_stake: stakeInfo 
-              ? (parseFloat(stakeInfo.controlled_amount || '0') / 1000000)
-              : (currentSnapshot ? (parseFloat(currentSnapshot.amount_lovelace || '0') / 1000000) : 0),
-            drep_id: currentSnapshot?.drep_id || historicalDelegations[0]?.drep_id || null,
+            total_stake: stakeInfo
+              ? parseFloat(stakeInfo.controlled_amount || '0') / 1000000
+              : currentSnapshot
+                ? parseFloat(currentSnapshot.amount_lovelace || '0') / 1000000
+                : 0,
+            drep_id:
+              currentSnapshot?.drep_id ||
+              historicalDelegations[0]?.drep_id ||
+              null,
             stake_address: voterIdentity,
           };
 
@@ -155,11 +164,16 @@ export class VoterService {
             chain_id: d.chain_id,
             tx_hash: d.tx_hash,
             delegation_epoch: d.delegation_epoch,
-            type: 'delegation'
+            type: 'delegation',
           }));
 
           // Merge current delegation if missing from history (sync lag)
-          if (currentSnapshot && !delegationHistory.some(h => h.drep_id === currentSnapshot.drep_id)) {
+          if (
+            currentSnapshot &&
+            !delegationHistory.some(
+              (h) => h.drep_id === currentSnapshot.drep_id,
+            )
+          ) {
             delegationHistory.unshift({
               drep_id: currentSnapshot.drep_id,
               drep_name: currentSnapshot.given_name || 'DRep',
@@ -168,7 +182,7 @@ export class VoterService {
               has_script: currentSnapshot.has_script,
               chain_id: currentSnapshot.chain_id,
               type: 'delegation',
-              is_current: true
+              is_current: true,
             });
           }
         } catch (dbError) {
@@ -177,18 +191,21 @@ export class VoterService {
           if (stakeInfo) {
             voterData = {
               address: voterIdentity,
-              total_stake: parseFloat(stakeInfo.controlled_amount || '0') / 1000000,
+              total_stake:
+                parseFloat(stakeInfo.controlled_amount || '0') / 1000000,
               stake_address: voterIdentity,
             };
           } else {
             return null;
           }
         }
-
       } else {
         // For regular addresses, try to get related stake addresses
         try {
-          const relatedAddresses = await this.blockfrostService.getAddressesRelatedToStakeAddress(voterIdentity);
+          const relatedAddresses =
+            await this.blockfrostService.getAddressesRelatedToStakeAddress(
+              voterIdentity,
+            );
 
           if (relatedAddresses && relatedAddresses.length > 0) {
             // Use the first related stake address
@@ -208,7 +225,6 @@ export class VoterService {
         delegationHistory,
         isDelegated: delegationHistory.length > 0,
       };
-
     } catch (error) {
       console.error('Error getting voter data:', error);
       throw new HttpException(
@@ -221,7 +237,6 @@ export class VoterService {
     if (!stakeKey) return null;
 
     try {
-
       const delegationData = await this.voltaireDb.query(
         `SELECT dd.drep_id, d.metadata->'json_metadata'->'body'->>'givenName' as given_name, d.voting_power_ada, d.has_script
          FROM drep_delegators dd
@@ -229,7 +244,7 @@ export class VoterService {
          WHERE dd.stake_address = $1
          ORDER BY dd.updated_at DESC
          LIMIT 1`,
-        [stakeKey]
+        [stakeKey],
       );
 
       if (!delegationData || delegationData.length === 0) {
@@ -264,17 +279,21 @@ export class VoterService {
         .leftJoinAndSelect('p.votes', 'pv')
         .leftJoinAndSelect('p.metadata', 'pm');
 
-      if (voterIdentity.startsWith('stake')) { // Stake Key
+      if (voterIdentity.startsWith('stake')) {
+        // Stake Key
         queryBuilder
           .innerJoin('drep_delegators', 'dd', 'dd.drep_id = pv.voter')
           .where('dd.stake_address = :identity', { identity: voterIdentity });
-      } else if (voterIdentity.startsWith('drep')) { // DRep ID
-        queryBuilder
-          .where('pv.voter = :identity', { identity: voterIdentity });
+      } else if (voterIdentity.startsWith('drep')) {
+        // DRep ID
+        queryBuilder.where('pv.voter = :identity', { identity: voterIdentity });
       } else {
         queryBuilder
           .innerJoin('drep_delegators', 'dd', 'dd.drep_id = pv.voter')
-          .where('dd.stake_address = (SELECT stake_address FROM drep_delegators WHERE drep_id = :identity LIMIT 1)', { identity: voterIdentity });
+          .where(
+            'dd.stake_address = (SELECT stake_address FROM drep_delegators WHERE drep_id = :identity LIMIT 1)',
+            { identity: voterIdentity },
+          );
       }
 
       queryBuilder
@@ -285,14 +304,16 @@ export class VoterService {
       const [proposals, total] = await queryBuilder.getManyAndCount();
       const totalPages = Math.ceil(total / itemsPerPage);
 
-      const formattedActions = proposals.map(p => {
+      const formattedActions = proposals.map((p) => {
         const vote = p.votes[0];
         return {
           gov_action_proposal_id: p.id,
           gov_action_proposal_index: p.certIndex,
           type: p.governanceType,
           description: { tag: p.governanceType },
-          vote: vote?.vote ? vote.vote.charAt(0).toUpperCase() + vote.vote.slice(1) : null,
+          vote: vote?.vote
+            ? vote.vote.charAt(0).toUpperCase() + vote.vote.slice(1)
+            : null,
           url: p.metadata?.url || null,
           metadata: p.metadata?.jsonMetadata || null,
           epoch_no: null, // Not directly on proposal, would need block info
@@ -305,8 +326,8 @@ export class VoterService {
             title: p.metadata?.jsonMetadata?.body?.title || null,
             abstract: p.metadata?.jsonMetadata?.body?.abstract || null,
             rationale: p.metadata?.jsonMetadata?.body?.rationale || null,
-            type: p.governanceType
-          }
+            type: p.governanceType,
+          },
         };
       });
 
@@ -317,7 +338,6 @@ export class VoterService {
         itemsPerPage,
         totalPages,
       };
-
     } catch (error) {
       console.error('Error getting governance actions:', error);
       throw new HttpException(

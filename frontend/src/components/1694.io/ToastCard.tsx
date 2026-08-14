@@ -6,7 +6,7 @@ interface ToastCardProps {
 const ToastCard = ({ type, text }: ToastCardProps) => {
   return (
     <div
-      className={`w-inherit flex flex-row items-center gap-10 border-l-8 py-3 ${type === 'warning' ? 'border-l-orange-300' : 'border-l-green-300'}  bg-white`}
+      className={`w-inherit flex flex-row items-center gap-10 border-l-8 py-3 ${type === 'warning' ? 'border-l-orange-300' : 'border-l-green-300'} bg-white`}
     >
       <img
         className="mx-3 lg:mx-7"

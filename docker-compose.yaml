@@ -147,13 +147,6 @@ volumes:
   node-ipc:
   redis-data:
 
-secrets:
-  postgres_db:
-    file: ./config/secrets/postgres_db
-  postgres_password:
-    file: ./config/secrets/postgres_password
-  postgres_user:
-    file: ./config/secrets/postgres_user
 
 networks:
   io-1694:

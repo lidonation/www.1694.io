@@ -46,7 +46,11 @@ export const helperSnippets: HelperSnippet[] = [
     extraText: 'Copy the below command to sign the update metadata transaction',
   },
   {
-    snippetToCopy: (networkType, fileToDownload = 'tx.raw', keyTypeForSigning = 'payment') => {
+    snippetToCopy: (
+      networkType,
+      fileToDownload = 'tx.raw',
+      keyTypeForSigning = 'payment',
+    ) => {
       return `cardano-cli latest transaction sign \\
                 --tx-body-file ${fileToDownload} \\
                 --signing-key-file ${keyTypeForSigning}.skey \\
@@ -70,7 +74,11 @@ export const helperSnippets: HelperSnippet[] = [
       'Updating DRep metadata requires both payment and DRep keys to sign the transaction',
   },
   {
-    snippetToCopy: (networkType, fileToDownload = 'tx.raw', keyTypeForSigning = 'stake') => {
+    snippetToCopy: (
+      networkType,
+      fileToDownload = 'tx.raw',
+      keyTypeForSigning = 'stake',
+    ) => {
       return `cardano-signer sign --cip30 \\
                 --data-file ${fileToDownload} \\
                 --out-file tx.signed \\

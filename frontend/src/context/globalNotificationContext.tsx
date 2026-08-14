@@ -17,11 +17,27 @@ interface ProviderProps {
 }
 
 interface GlobalNotificationContext {
-  addSuccessAlert: (message: string, autoHide?: boolean, autoHideDuration?: number) => void;
-  addErrorAlert: (message: string, autoHide?: boolean, autoHideDuration?: number) => void;
-  addWarningAlert:(message: string, autoHide?: boolean, autoHideDuration?: number) => void;
+  addSuccessAlert: (
+    message: string,
+    autoHide?: boolean,
+    autoHideDuration?: number,
+  ) => void;
+  addErrorAlert: (
+    message: string,
+    autoHide?: boolean,
+    autoHideDuration?: number,
+  ) => void;
+  addWarningAlert: (
+    message: string,
+    autoHide?: boolean,
+    autoHideDuration?: number,
+  ) => void;
   addChangesSavedAlert: () => void;
-  addPendingAlert: (message: string, autoHide?: boolean, autoHideDuration?: number) => void;
+  addPendingAlert: (
+    message: string,
+    autoHide?: boolean,
+    autoHideDuration?: number,
+  ) => void;
 }
 
 interface GlobalMessage {

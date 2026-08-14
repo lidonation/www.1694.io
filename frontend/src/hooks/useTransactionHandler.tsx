@@ -348,7 +348,6 @@ export function useTransactionHandler({
         ),
       );
 
-
       const utxos = await getUtxos(walletApi, {
         address: options?.deriveUtxosFrom,
         external: Boolean(options?.deriveUtxosFrom),
@@ -429,10 +428,10 @@ export function useTransactionHandler({
 
       const currentNetworkTime = Date.now() / 1000;
       const mainnetShelleyStart = 1591566291; // UNIX timestamp
-      const estimatedMainnetSlot = Math.floor(currentNetworkTime - mainnetShelleyStart) + 4492800; // Byron slots offset
+      const estimatedMainnetSlot =
+        Math.floor(currentNetworkTime - mainnetShelleyStart) + 4492800; // Byron slots offset
       const currentSlot = estimatedMainnetSlot; // Fallback estimate
-      const ttl = currentSlot + (DEFAULT_TXN_TTL * 10); // Generous 10x TTL
-
+      const ttl = currentSlot + DEFAULT_TXN_TTL * 10; // Generous 10x TTL
 
       const finalTxBuilder = TransactionBuilder.new(
         TransactionBuilderConfigBuilder.new()
@@ -525,8 +524,7 @@ export function useTransactionHandler({
           message: pendingTx?.message,
         };
       if (pendingTx.type === 'loginViaExpiredTxnSigning') {
-        if (!pendingTx.txBuilder)
-          throw new Error('Arguments not ready');
+        if (!pendingTx.txBuilder) throw new Error('Arguments not ready');
         return prepExpiredTxn(pendingTx.txBuilder, walletApi, options);
       }
 
@@ -796,7 +794,9 @@ export function useTransactionHandler({
                       key: COSE_Key_hex,
                     });
                   } else {
-                    throw new Error('The message signature is invalid. Please use the required signing key');
+                    throw new Error(
+                      'The message signature is invalid. Please use the required signing key',
+                    );
                   }
                 }
                 //if no required keys, resolve the promise
@@ -891,7 +891,7 @@ export function useTransactionHandler({
         );
         return txHash as string;
       }
-      
+
       //if walletApi is not available, use the mutateAsync function
       const txHash = await mutateAsync({
         tx: signedTx.to_hex(),

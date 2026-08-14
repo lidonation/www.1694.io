@@ -104,7 +104,7 @@ export default function VotingSection({ poll }: VoteSectionProps) {
             className={`flex flex-1 flex-col items-center justify-center rounded-lg border p-4 transition-all ${
               vote === 'yes'
                 ? 'border-primary-200 bg-primary-100'
-                : 'border-gray-200 hover:border-primary-200 hover:bg-primary-100'
+                : 'hover:border-primary-200 hover:bg-primary-100 border-gray-200'
             } ${hasVoted ? 'cursor-not-allowed opacity-70' : ''}`}
           >
             <ThumbUpIcon

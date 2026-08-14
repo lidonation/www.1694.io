@@ -30,15 +30,15 @@ export const ProfileClaimedChip = ({ claimedAddress, dateOfClaim }) => {
           <div className="mx-auto max-w-7xl">
             <div className="grid grid-cols-2 gap-px bg-white/5 md:grid-cols-4">
               <div className="flex h-full w-full flex-col justify-between gap-3 bg-gray-800 px-2">
-                <p className="text-xs font-medium leading-3 text-gray-400">
+                <p className="text-xs leading-3 font-medium text-gray-400">
                   Delegators
                 </p>
                 <span className="overflow-hidden text-sm font-semibold tracking-tight text-white">
                   {DRepStats.delegators}
                 </span>
               </div>
-              <div className="flex h-full w-full flex-col justify-between  gap-3 bg-gray-800 px-4">
-                <p className="text-xs font-medium leading-3 text-gray-400">
+              <div className="flex h-full w-full flex-col justify-between gap-3 bg-gray-800 px-4">
+                <p className="text-xs leading-3 font-medium text-gray-400">
                   Active power
                 </p>
                 <span className="overflow-hidden text-sm font-semibold tracking-tight text-white">
@@ -46,15 +46,15 @@ export const ProfileClaimedChip = ({ claimedAddress, dateOfClaim }) => {
                 </span>
               </div>
               <div className="flex h-full w-full flex-col justify-between gap-3 bg-gray-800 px-2 pt-2 md:px-4 md:pt-0">
-                <p className="text-xs font-medium leading-3 text-gray-400">
+                <p className="text-xs leading-3 font-medium text-gray-400">
                   Governance actions
                 </p>
                 <span className="overflow-hidden text-sm font-semibold tracking-tight text-white">
                   -
                 </span>
               </div>
-              <div className="flex h-full w-full flex-col justify-between  gap-3 bg-gray-800 px-4 pt-2 md:pt-0">
-                <p className="text-xs font-medium leading-3 text-gray-400">
+              <div className="flex h-full w-full flex-col justify-between gap-3 bg-gray-800 px-4 pt-2 md:pt-0">
+                <p className="text-xs leading-3 font-medium text-gray-400">
                   Votes
                 </p>
                 <span className="overflow-hidden text-sm font-semibold tracking-tight text-white">

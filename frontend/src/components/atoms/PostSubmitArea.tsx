@@ -66,12 +66,12 @@ const PostSubmitArea = ({
           bgcolor={bgColor}
           sx={isDisabled ? { pointerEvents: 'none' } : {}}
           disabled={!isUpdating}
-          className="duration-3000 transition-all ease-linear"
+          className="transition-all duration-3000 ease-linear"
         >
           <Link
             href={`/dreps/${dRepIdBech32}/timeline`}
             prefetch={true}
-            className="text-center text-sm font-medium leading-4 text-blue-800"
+            className="text-center text-sm leading-4 font-medium text-blue-800"
           >
             View In Timeline
           </Link>
@@ -85,7 +85,7 @@ const PostSubmitArea = ({
           handleClick={handleCancel}
           sx={isDisabled ? { pointerEvents: 'none' } : {}}
         >
-          <p className="text-center text-sm font-medium leading-4 text-blue-800">
+          <p className="text-center text-sm leading-4 font-medium text-blue-800">
             Cancel
           </p>
         </Button>
@@ -96,7 +96,7 @@ const PostSubmitArea = ({
           className="flex items-center gap-2"
         >
           {!isLoading && (
-            <p className="text-center text-sm font-medium leading-4 text-white">
+            <p className="text-center text-sm leading-4 font-medium text-white">
               Post
             </p>
           )}

@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TimelineWatcherWorker } from './timeline-watcher.worker';
 import { getDataSourceToken } from '@nestjs/typeorm';
+import { BlockfrostService } from '../blockfrost/blockfrost.service';
 import { Queues } from '../queue.types';
 import { Job } from 'bullmq';
 
@@ -21,6 +22,7 @@ describe('TimelineWatcherWorker', () => {
 
     mockTimelineRepo = {
       find: jest.fn(),
+      findOne: jest.fn().mockResolvedValue(null),
       create: jest.fn(),
       save: jest.fn(),
     };
@@ -36,6 +38,7 @@ describe('TimelineWatcherWorker', () => {
         if (entity.name === 'DrepDelegator') return mockDrepDelegatorRepo;
         return {};
       }),
+      query: jest.fn().mockResolvedValue([]),
     };
 
     mockQueue = {
@@ -48,6 +51,10 @@ describe('TimelineWatcherWorker', () => {
         {
           provide: getDataSourceToken('default'),
           useValue: mockDataSource,
+        },
+        {
+          provide: BlockfrostService,
+          useValue: { getStakeAddressInfo: jest.fn().mockResolvedValue(null) },
         },
         {
           provide: `BullQueue_${Queues.GOVERNANCE_SYNC}`,
@@ -72,16 +79,17 @@ describe('TimelineWatcherWorker', () => {
 
     it('Test 1: Given a stake key with no prior delegation, processing a VoteDelegation generates 0 extra events', async () => {
       mockSyncStateRepo.findOne.mockResolvedValue({ lastProcessedId: '0' });
-      
+
       const newDelegation = {
         id: '1',
         eventType: 'delegation',
         drepId: 'new_drep',
         metadata: { stake_address: 'stake1xxx' },
       };
-      
+
       mockTimelineRepo.find.mockResolvedValue([newDelegation]);
-      mockDrepDelegatorRepo.findOne.mockResolvedValue(null); // No prior delegation
+      // No prior delegation for this stake address
+      mockDataSource.query.mockResolvedValue([]);
 
       await worker.process(mockJob);
 
@@ -92,7 +100,7 @@ describe('TimelineWatcherWorker', () => {
 
     it('Test 2: Given a stake key delegated to DRep A, processing a VoteDelegation to DRep B successfully synthesizes an undelegation event for DRep A', async () => {
       mockSyncStateRepo.findOne.mockResolvedValue({ lastProcessedId: '0' });
-      
+
       const newDelegation = {
         id: '2',
         eventType: 'delegation',
@@ -104,31 +112,40 @@ describe('TimelineWatcherWorker', () => {
         txIndex: 1,
         metadata: { stake_address: 'stake1yyy' },
       };
-      
+
       mockTimelineRepo.find.mockResolvedValue([newDelegation]);
-      mockDrepDelegatorRepo.findOne.mockResolvedValue({
-        drepId: 'drepA',
-        stakeAddress: 'stake1yyy'
-      });
+      mockDataSource.query.mockImplementation((sql: string) =>
+        Promise.resolve(
+          sql.includes('SELECT drep_id') ? [{ drep_id: 'drepA' }] : [],
+        ),
+      );
 
       // Define what create returns
-      const synthesizedUndelegation = { ...newDelegation, eventType: 'undelegation', drepId: 'drepA' };
+      const synthesizedUndelegation = {
+        ...newDelegation,
+        eventType: 'undelegation',
+        drepId: 'drepA',
+      };
       mockTimelineRepo.create.mockReturnValue(synthesizedUndelegation);
 
       await worker.process(mockJob);
 
       // Verify create was called with correct parameters
-      expect(mockTimelineRepo.create).toHaveBeenCalledWith(expect.objectContaining({
-        eventType: 'undelegation',
-        drepId: 'drepA',
-        txHash: 'txhash123',
-        metadata: expect.objectContaining({
-          stake_address: 'stake1yyy'
-        })
-      }));
+      expect(mockTimelineRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          eventType: 'undelegation',
+          drepId: 'drepA',
+          txHash: 'txhash123',
+          metadata: expect.objectContaining({
+            stake_address: 'stake1yyy',
+          }),
+        }),
+      );
 
       // Verify the new event was saved
-      expect(mockTimelineRepo.save).toHaveBeenCalledWith(synthesizedUndelegation);
+      expect(mockTimelineRepo.save).toHaveBeenCalledWith(
+        synthesizedUndelegation,
+      );
     });
   });
 });

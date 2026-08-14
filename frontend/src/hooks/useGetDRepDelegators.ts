@@ -18,7 +18,7 @@ export const useGetDRepDelegatorsQuery = (
       const cip105Id = convertDrepPhraseToCIP105(voterId);
       return await getDRepDelegators(cip105Id, page, perPage, sort, order);
     },
-    enabled: typeof window !== "undefined" && (!!voterId),
+    enabled: typeof window !== 'undefined' && !!voterId,
     refetchOnWindowFocus: false,
   });
 

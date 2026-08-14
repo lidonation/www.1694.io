@@ -180,8 +180,8 @@ const MetadataEditor = ({
   };
 
   const modalContent = (
-    <div className="flex flex-col gap-2 max-h-[550px] overflow-auto">
-      <div className="flex flex-col gap-4 ">
+    <div className="flex max-h-[550px] flex-col gap-2 overflow-auto">
+      <div className="flex flex-col gap-4">
         <h2 className="text-xl font-bold">Edit Metadata</h2>
         <div>
           {metadata &&

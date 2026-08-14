@@ -60,20 +60,40 @@ const Page = () => {
         {/* Disabled till further notice */}
         {/* <TranslationBlock/> */}
         <ScrollToTop />
-        <div id="intro"><CIPIntro /></div>
+        <div id="intro">
+          <CIPIntro />
+        </div>
         <div id="lifecycle" className="base_container py-12">
           <GovernanceLifecycle />
         </div>
-        <div id="summary"><CIPInfo /></div>
-        <div id="motivation"><CIPMotivationInfo /></div>
+        <div id="summary">
+          <CIPInfo />
+        </div>
+        <div id="motivation">
+          <CIPMotivationInfo />
+        </div>
         <ConversationsCard conversations={comments} />
-        <div id="specifications"><CIPSpecifications /></div>
-        <div id="dreps"><CIPDRepInfo /></div>
-        <div id="governance-actions"><CIPGovernanceActions /></div>
-        <div id="rationale"><CIPRationale /></div>
-        <div id="changelog"><CIPChangelog /></div>
-        <div id="path-to-active"><CIPPathtoactive /></div>
-        <div id="acknowledgments"><CIPAcknowledgments /></div>
+        <div id="specifications">
+          <CIPSpecifications />
+        </div>
+        <div id="dreps">
+          <CIPDRepInfo />
+        </div>
+        <div id="governance-actions">
+          <CIPGovernanceActions />
+        </div>
+        <div id="rationale">
+          <CIPRationale />
+        </div>
+        <div id="changelog">
+          <CIPChangelog />
+        </div>
+        <div id="path-to-active">
+          <CIPPathtoactive />
+        </div>
+        <div id="acknowledgments">
+          <CIPAcknowledgments />
+        </div>
         <CopyRight />
         <Footer />
       </Background>

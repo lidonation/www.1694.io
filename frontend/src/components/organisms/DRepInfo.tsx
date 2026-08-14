@@ -9,7 +9,7 @@ const DRepInfo = () => {
       <div className="drep_bg flex h-full w-full flex-col gap-10">
         <div className="base_container py-16">
           <div className="flex flex-col gap-16">
-            <div className="max-w-lg lg:max-w-3xl xl:w-full items-center justify-center gap-2 pt-14 text-4xl font-bold text-violet-50 md:text-6xl lg:text-7xl">
+            <div className="max-w-lg items-center justify-center gap-2 pt-14 text-4xl font-bold text-violet-50 md:text-6xl lg:max-w-3xl lg:text-7xl xl:w-full">
               <p>Delegated Representatives</p>
               <p>(DReps)</p>
             </div>

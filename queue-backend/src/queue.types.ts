@@ -1,5 +1,5 @@
 export enum Queues {
-  DREP_CLAIM = "drep-claim",
+  DREP_CLAIM = 'drep-claim',
   STAKE_SYNC = 'stake-sync',
   GOVERNANCE_SYNC = 'governance-sync',
   DREP_VOTES_SYNC = 'drep-votes-sync',
@@ -41,7 +41,7 @@ export class createDrepDto {
   signatures: {
     signature: string;
     key: string;
-    type: "drep" | "signer";
+    type: 'drep' | 'signer';
   }[];
 }
 

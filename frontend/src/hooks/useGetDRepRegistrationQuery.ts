@@ -7,7 +7,7 @@ export const useGetDRepRegistrationQuery = (dRepId: string) => {
   const { data, isLoading } = useQuery({
     queryKey: [QUERY_KEYS.getDRepRegStatusKey, dRepId],
     queryFn: async () => await getDRepRegStatus(dRepId),
-    enabled: typeof window !== "undefined" && (!!dRepId),
+    enabled: typeof window !== 'undefined' && !!dRepId,
     refetchOnWindowFocus: false,
   });
 

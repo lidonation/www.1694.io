@@ -12,12 +12,12 @@ export function initializeAuthentication() {
 
   authService.registerProvider(
     ExtendedAuthMethod.HOT_WALLET,
-    new CardanoMeshProvider()
+    new CardanoMeshProvider(),
   );
 
   authService.registerProvider(
     ExtendedAuthMethod.LOGIN_FILE,
-    new LoginFileProvider()
+    new LoginFileProvider(),
   );
 
   return authService;

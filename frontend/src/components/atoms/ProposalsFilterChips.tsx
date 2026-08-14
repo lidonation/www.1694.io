@@ -61,7 +61,7 @@ export default function ProposalsFilterChips() {
 
   const removeFilter = (key: FilterKey, value?: string) => {
     const params = new URLSearchParams(searchParams.toString());
-  
+
     if (key === 'sort' || key === 'order') {
       params.delete('sort');
       params.delete('order');
@@ -73,26 +73,29 @@ export default function ProposalsFilterChips() {
         ? params.set(key, updatedValues.join(','))
         : params.delete(key);
     }
-  
+
     const updatedFilters: Record<string, string[]> = {
       categories: params.get('categories')?.split(',').filter(Boolean) || [],
       committees: params.get('committees')?.split(',').filter(Boolean) || [],
     };
-  
+
     params.set('page', '1');
     router.replace(`${pathname}?${params.toString()}`);
-  
-    if (updatedFilters.categories.length > 0 || updatedFilters.committees.length > 0) {
+
+    if (
+      updatedFilters.categories.length > 0 ||
+      updatedFilters.committees.length > 0
+    ) {
       setItemToLocalStorage(PROPOSAL_FILTERS_LS_KEY, updatedFilters);
     } else {
       removeItemFromLocalStorage(PROPOSAL_FILTERS_LS_KEY);
     }
   };
-  
+
   const renderSortChip = () => {
     const sort = searchParams.get('sort');
     const order = searchParams.get('order');
-    
+
     if (!sort) return null;
 
     return (
@@ -125,8 +128,10 @@ export default function ProposalsFilterChips() {
             />
           ))}
         </ChipContainer>
-      ) : [];
+      ) : (
+        []
+      );
     }).filter(Boolean);
-    
+
   return <Box className="flex flex-wrap gap-2">{renderFilterChips()}</Box>;
 }

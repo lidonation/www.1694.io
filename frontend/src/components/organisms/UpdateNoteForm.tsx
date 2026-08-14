@@ -83,7 +83,7 @@ const UpdateNoteForm = ({ noteId, initialValues }) => {
 
   return (
     <form
-      className="mb-48 mt-4 rounded-3xl bg-slate-50 p-5 shadow-lg"
+      className="mt-4 mb-48 rounded-3xl bg-slate-50 p-5 shadow-lg"
       onSubmit={handleSubmit(updateNote, onError)}
     >
       <UpdateNotePostForm

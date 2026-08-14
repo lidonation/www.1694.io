@@ -1,3 +1,3 @@
-export enum Currency{
-    LOVELACETOADA = 1000000,
+export enum Currency {
+  LOVELACETOADA = 1000000,
 }

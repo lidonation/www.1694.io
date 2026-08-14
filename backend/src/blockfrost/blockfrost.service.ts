@@ -28,16 +28,17 @@ export class BlockfrostService {
   ) {
     this.primaryConfig = {
       url: this.configService.get<string>('BLOCKFROST_NETWORK_URL') || '',
-      projectId: this.configService.get<string>(
-        'BLOCKFROST_NETWORK_PROJECT_ID',
-      ) || '',
+      projectId:
+        this.configService.get<string>('BLOCKFROST_NETWORK_PROJECT_ID') || '',
     };
 
     this.fallbackConfig = {
-      url: this.configService.get<string>('BLOCKFROST_NETWORK_URL_FALLBACK') || '',
-      projectId: this.configService.get<string>(
-        'BLOCKFROST_NETWORK_PROJECT_ID_FALLBACK',
-      ) || '',
+      url:
+        this.configService.get<string>('BLOCKFROST_NETWORK_URL_FALLBACK') || '',
+      projectId:
+        this.configService.get<string>(
+          'BLOCKFROST_NETWORK_PROJECT_ID_FALLBACK',
+        ) || '',
     };
   }
 
@@ -186,7 +187,12 @@ export class BlockfrostService {
     });
   }
 
-  async getDRepDelegators(drepId: string, page = 1, count = 100, order = 'asc') {
+  async getDRepDelegators(
+    drepId: string,
+    page = 1,
+    count = 100,
+    order = 'asc',
+  ) {
     return this.executeWithFallback({
       method: 'GET',
       endpoint: `/governance/dreps/${drepId}/delegators?page=${page}&count=${count}&order=${order}`,
@@ -214,7 +220,13 @@ export class BlockfrostService {
     });
   }
 
-  async getProposalVotes(txHash: string, certIndex: number, page = 1, count = 100, order = 'asc') {
+  async getProposalVotes(
+    txHash: string,
+    certIndex: number,
+    page = 1,
+    count = 100,
+    order = 'asc',
+  ) {
     return this.executeWithFallback({
       method: 'GET',
       endpoint: `/governance/proposals/${txHash}/${certIndex}/votes?page=${page}&count=${count}&order=${order}`,

@@ -32,14 +32,25 @@ export class SyncTriggerController {
   }
 
   @Post('governance/trigger')
-  async triggerGovernanceSync(@Body() body: { forceRefresh?: boolean; syncOnly?: 'dreps' | 'delegators' | 'proposals' | 'metadata-votes' } = {}) {
+  async triggerGovernanceSync(
+    @Body()
+    body: {
+      forceRefresh?: boolean;
+      syncOnly?: 'dreps' | 'delegators' | 'proposals' | 'metadata-votes';
+    } = {},
+  ) {
     const { forceRefresh = false, syncOnly } = body;
-    await this.governanceSyncQueue.add(
-      `${JobTypes.GOVERNANCE_SYNC}-manual`,
-      { forceRefresh, syncOnly }
+    await this.governanceSyncQueue.add(`${JobTypes.GOVERNANCE_SYNC}-manual`, {
+      forceRefresh,
+      syncOnly,
+    });
+    this.logger.log(
+      `Triggered manual governance sync job (forceRefresh: ${forceRefresh}, syncOnly: ${syncOnly})`,
     );
-    this.logger.log(`Triggered manual governance sync job (forceRefresh: ${forceRefresh}, syncOnly: ${syncOnly})`);
-    return { success: true, message: `Manual governance sync triggered${syncOnly ? ` (only: ${syncOnly})` : ''}` };
+    return {
+      success: true,
+      message: `Manual governance sync triggered${syncOnly ? ` (only: ${syncOnly})` : ''}`,
+    };
   }
 
   @Post('proposals/trigger')
@@ -51,20 +62,23 @@ export class SyncTriggerController {
       {
         removeOnComplete: 10,
         removeOnFail: 10,
-      }
+      },
     );
-    this.logger.log(`Triggered manual proposals sync job (forceRefresh: ${forceRefresh})`);
+    this.logger.log(
+      `Triggered manual proposals sync job (forceRefresh: ${forceRefresh})`,
+    );
     return { success: true, message: 'Manual proposals sync triggered' };
   }
 
   @Post('drep-votes/trigger')
   async triggerDrepVotesSync(@Body() body: { forceRefresh?: boolean } = {}) {
     const { forceRefresh = false } = body;
-    await this.drepVotesSyncQueue.add(
-      `${JobTypes.DREP_VOTES_SYNC}-manual`,
-      { forceRefresh }
+    await this.drepVotesSyncQueue.add(`${JobTypes.DREP_VOTES_SYNC}-manual`, {
+      forceRefresh,
+    });
+    this.logger.log(
+      `Triggered manual DRep votes sync job (forceRefresh: ${forceRefresh})`,
     );
-    this.logger.log(`Triggered manual DRep votes sync job (forceRefresh: ${forceRefresh})`);
     return { success: true, message: 'Manual DRep votes sync triggered' };
   }
 
@@ -95,12 +109,12 @@ export class SyncTriggerController {
       const drepInfo = await this.blockfrostService.getDRepInfo(drepId);
       return {
         success: true,
-        data: drepInfo
+        data: drepInfo,
       };
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }

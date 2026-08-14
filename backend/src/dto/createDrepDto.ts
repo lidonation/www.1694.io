@@ -5,6 +5,6 @@ export class createDrepDto {
   signatures: {
     signature: string;
     key: string;
-    type: 'drep' | 'signer'
+    type: 'drep' | 'signer';
   }[];
 }

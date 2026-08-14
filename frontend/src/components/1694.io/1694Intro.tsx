@@ -4,9 +4,9 @@ import DRepIntroImgs from '../molecules/DRepIntroImgs';
 
 const CIPIntro = () => {
   return (
-    <div className="base_container flex w-full flex-col-reverse gap-4 lg:flex-row items-center py-16">
+    <div className="base_container flex w-full flex-col-reverse items-center gap-4 py-16 lg:flex-row">
       <CIPIntroText />
-      <DRepIntroImgs/>
+      <DRepIntroImgs />
     </div>
   );
 };

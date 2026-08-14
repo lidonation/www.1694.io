@@ -137,8 +137,8 @@ const ProposalSort: React.FC<ProposalSortProps> = ({
           <FormControl fullWidth>
             <RadioGroup
               value={sortBy}
-              onChange={(e) => handleSortChange(e.target.value)}>
-                
+              onChange={(e) => handleSortChange(e.target.value)}
+            >
               {sortOptions.map((option) => (
                 <FormControlLabel
                   key={option.value}
@@ -166,10 +166,23 @@ const ProposalSort: React.FC<ProposalSortProps> = ({
             <FormControl fullWidth>
               <RadioGroup
                 value={sortBy === sort.value ? sortOrder : ''}
-                onChange={(e) => handleSortOrderChange(sort.value, e.target.value as 'asc' | 'desc')}
+                onChange={(e) =>
+                  handleSortOrderChange(
+                    sort.value,
+                    e.target.value as 'asc' | 'desc',
+                  )
+                }
               >
-                <FormControlLabel value="desc" control={<Radio />} label="Highest to Lowest" />
-                <FormControlLabel value="asc" control={<Radio />} label="Lowest to Highest" />
+                <FormControlLabel
+                  value="desc"
+                  control={<Radio />}
+                  label="Highest to Lowest"
+                />
+                <FormControlLabel
+                  value="asc"
+                  control={<Radio />}
+                  label="Lowest to Highest"
+                />
               </RadioGroup>
             </FormControl>
           </Box>

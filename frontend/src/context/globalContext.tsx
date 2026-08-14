@@ -1345,7 +1345,7 @@ export const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
     >
       {children}
       {modalState.walletListModal.isOpen && (
-        <div className="blur-container fixed left-0 top-0 z-50 flex h-screen w-full items-center justify-center">
+        <div className="blur-container fixed top-0 left-0 z-50 flex h-screen w-full items-center justify-center">
           <ChooseWalletModal
             open={modalState.walletListModal.isOpen}
             hideCloseButton={modalState.walletListModal.hideCloseButton}
@@ -1355,7 +1355,7 @@ export const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
       )}
 
       {modalState.loginModal.isOpen && (
-        <div className="blur-container fixed left-0 top-0 z-50 flex h-screen w-full items-center justify-center">
+        <div className="blur-container fixed top-0 left-0 z-50 flex h-screen w-full items-center justify-center">
           <UserLoginModal
             hideCloseButton={modalState.loginModal.hideCloseButton}
             onClose={() => {
@@ -1374,7 +1374,7 @@ export const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
       )}
 
       {modalState.usernameModal.isOpen && (
-        <div className="blur-container fixed left-0 top-0 z-50 flex h-screen w-full items-center justify-center">
+        <div className="blur-container fixed top-0 left-0 z-50 flex h-screen w-full items-center justify-center">
           <GovToolUserNameModal
             hideCloseButton={modalState.usernameModal.hideCloseButton}
             onClose={() => closeModal(ModalType.USERNAME)}
@@ -1383,7 +1383,7 @@ export const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
       )}
 
       {modalState.actionModal.isOpen && modalState.actionModal.props && (
-        <div className="blur-container fixed left-0 top-0 z-50 flex h-screen w-full items-center justify-center">
+        <div className="blur-container fixed top-0 left-0 z-50 flex h-screen w-full items-center justify-center">
           <ActionModal
             {...modalState.actionModal.props}
             handleClose={() => closeModal(ModalType.ACTION)}
@@ -1394,7 +1394,7 @@ export const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
       {modalState.saveJwtModal.isOpen &&
         modalState.saveJwtModal.jwt &&
         modalState.saveJwtModal.stakeKeyBech32 && (
-          <div className="blur-container fixed left-0 top-0 z-50 flex h-screen w-full items-center justify-center">
+          <div className="blur-container fixed top-0 left-0 z-50 flex h-screen w-full items-center justify-center">
             <SaveJwtModal
               {...modalState.saveJwtModal}
               onClose={() => closeModal(ModalType.SAVE_JWT)}

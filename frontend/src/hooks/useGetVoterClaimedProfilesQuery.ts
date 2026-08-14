@@ -11,7 +11,7 @@ export const useGetVoterClaimedProfilesQuery = (drepId?: string) => {
       const cip105Id = convertDrepPhraseToCIP105(drepId);
       return await getVoterClaimedProfiles(cip105Id);
     },
-    enabled: typeof window !== "undefined" && (!!drepId),
+    enabled: typeof window !== 'undefined' && !!drepId,
     refetchOnWindowFocus: false,
   });
 

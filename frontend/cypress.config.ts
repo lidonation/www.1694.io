@@ -6,7 +6,7 @@ export default defineConfig({
   defaultCommandTimeout: 2000,
   watchForFileChanges: false,
   video: true,
-  screenshotOnRunFailure:true,
+  screenshotOnRunFailure: true,
   videosFolder: './cypress/videos',
   screenshotsFolder: './cypress/screenshots',
   fixturesFolder: './cypress/fixture',
@@ -17,14 +17,13 @@ export default defineConfig({
     baseUrl: 'http://frontend:3000',
     env: {
       backendUrl: 'https://sancho.1694.io/api',
-    }
+    },
   },
-  
+
   component: {
     devServer: {
       framework: 'next',
       bundler: 'webpack',
     },
-    
   },
 });

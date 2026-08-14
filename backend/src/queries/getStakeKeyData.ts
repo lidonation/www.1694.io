@@ -7,4 +7,3 @@ LEFT JOIN tx_in txi ON txo.tx_id = txi.tx_out_id AND txo.index = txi.tx_out_inde
 WHERE sa.view = $1
   AND txi.tx_out_id IS NULL
 GROUP BY sa.view;`;
-

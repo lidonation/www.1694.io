@@ -27,7 +27,7 @@ export const useGetOwnership = ({ drepId, voterId }: UseGetOwnershipProps) => {
         voterId: convertedVoterId,
       });
     },
-    enabled: typeof window !== "undefined" && (!!drepId && !!voterId),
+    enabled: typeof window !== 'undefined' && !!drepId && !!voterId,
     refetchOnWindowFocus: false,
   });
 

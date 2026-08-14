@@ -70,7 +70,7 @@ export default function VoteResultsCard({
             </p>
           </Box>
           <span
-            className={`rounded-full px-3 py-1 text-sm font-medium ${pollData?.is_poll_active ? 'bg-blue-100 text-primary-300' : 'bg-gray-100 text-gray-800'}`}
+            className={`rounded-full px-3 py-1 text-sm font-medium ${pollData?.is_poll_active ? 'text-primary-300 bg-blue-100' : 'bg-gray-100 text-gray-800'}`}
           >
             {pollData?.is_poll_active ? 'Active' : 'Closed'}
           </span>
@@ -86,7 +86,7 @@ export default function VoteResultsCard({
 
         <Box className="mb-1 h-3 w-full rounded-full bg-gray-200">
           <Box
-            className="h-3 rounded-full bg-primary-300"
+            className="bg-primary-300 h-3 rounded-full"
             style={{ width: `${yesPercentage}%` }}
           ></Box>
         </Box>

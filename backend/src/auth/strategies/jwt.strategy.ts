@@ -13,9 +13,14 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     @InjectDataSource('default')
     private voltaireService: DataSource,
-    private configService: ConfigService
+    private configService: ConfigService,
   ) {
-    const secret = configService.get<string>('JWT_SECRET') || 'default-secret';
+    const secret = configService.get<string>('JWT_SECRET');
+    if (!secret) {
+      throw new Error(
+        'JWT_SECRET is not configured. Refusing to start with an insecure default signing key.',
+      );
+    }
     super({
       jwtFromRequest: customAuthHeaderExtractor,
       ignoreExpiration: false,
@@ -27,10 +32,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     const signature = await this.voltaireService
       .getRepository<Signature>('Signature')
       .findOne({
-        where: { 
+        where: {
           id: payload.sub,
-          stakeKey: payload.stakeKey 
-        }
+          stakeKey: payload.stakeKey,
+        },
       });
 
     if (!signature) {

@@ -9,6 +9,6 @@ export const postUsernameToGovTool = async (userNameData: any) => {
     return data;
   } catch (error) {
     console.error(error);
-    throw error
+    throw error;
   }
 };

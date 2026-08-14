@@ -1,6 +1,9 @@
 'use client';
 
-import { verifySignatures, VerifySignaturesPayloadRequest } from '@/services/requests/verifySignatures';
+import {
+  verifySignatures,
+  VerifySignaturesPayloadRequest,
+} from '@/services/requests/verifySignatures';
 import { useMutation } from 'react-query';
 
 export const useVerifySignatures = () => {

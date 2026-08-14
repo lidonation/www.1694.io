@@ -1,4 +1,4 @@
-import { TransactionUnspentOutput } from "@emurgo/cardano-serialization-lib-asmjs";
+import { TransactionUnspentOutput } from '@emurgo/cardano-serialization-lib-asmjs';
 
 declare global {
   interface Window {
@@ -121,7 +121,6 @@ export type MessageBodyAfterSign = {
   COSE_Sign1_hex: string;
   COSE_Key_hex: string;
 };
-
 
 export type Utxos = {
   txid: any;

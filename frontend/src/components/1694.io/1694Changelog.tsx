@@ -9,8 +9,8 @@ const CIPChangelog = () => {
         <p className="text-5xl font-bold">Changelog</p>
       </div>
       <HotLinks />
-      <div className="base_container w-full ">
-        <div className="max-w-3xl flex flex-col gap-8">
+      <div className="base_container w-full">
+        <div className="flex max-w-3xl flex-col gap-8">
           <section className="flex flex-col gap-4">
             <p className="text-2xl font-bold">
               Changes post Longmont workshop (March 2023){' '}
@@ -46,8 +46,8 @@ const CIPChangelog = () => {
                 economic, technical, and governmental.
               </li>
               <li>
-                Most governance actions can be enacted (upon ratification)
-                right away. All but: protocol parameters and hard forks.
+                Most governance actions can be enacted (upon ratification) right
+                away. All but: protocol parameters and hard forks.
               </li>
               <li>
                 Remove "one action per type per epoch" restriction in favor of
@@ -96,8 +96,8 @@ const CIPChangelog = () => {
             </p>
             <ul className="ml-5 flex list-disc flex-col gap-2">
               <li>
-                Add guardrails script, which can control what treasury withdrawals
-                and protocol parameter changes are allowed.
+                Add guardrails script, which can control what treasury
+                withdrawals and protocol parameter changes are allowed.
               </li>
               <li>
                 Remove dropping of governance actions. The only effect this has
@@ -142,14 +142,10 @@ const CIPChangelog = () => {
             </ul>
           </section>
           <section className="flex flex-col gap-4">
-            <p className="text-2xl font-bold">
-             May 2024
-            </p>
+            <p className="text-2xl font-bold">May 2024</p>
             <ul className="ml-5 flex list-disc flex-col gap-2">
               <li>Update the section on the bootstrap period.</li>
-              <li>
-              Mention missing `Q_5` parameter.
-              </li>
+              <li>Mention missing `Q_5` parameter.</li>
               <li>Various small fixes/consistency changes.</li>
             </ul>
           </section>

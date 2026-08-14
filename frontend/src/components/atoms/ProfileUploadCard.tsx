@@ -53,7 +53,6 @@ const ProfileUploadCard = ({
       setFiles(file);
       previewFile(file);
     } else {
-
     }
   };
   const previewFile = (file) => {
@@ -85,7 +84,7 @@ const ProfileUploadCard = ({
   return (
     <div className="relative flex min-h-48 flex-col items-center justify-center gap-1 rounded-lg border-2 border-zinc-100 bg-violet-50 px-6 py-4 text-center">
       <div
-        className="transparent absolute left-0 top-0 h-full w-full"
+        className="transparent absolute top-0 left-0 h-full w-full"
         onDragOver={preventDefault}
         onDragEnter={preventDefault}
         onDrop={(e) => {
@@ -94,7 +93,7 @@ const ProfileUploadCard = ({
       ></div>
 
       {!preview ? (
-        <img src="/svgs/user-circle-filled.svg" alt="upload" className='mb-4' />
+        <img src="/svgs/user-circle-filled.svg" alt="upload" className="mb-4" />
       ) : (
         <div
           className="relative mb-4 flex aspect-video w-40 items-center justify-center"
@@ -107,7 +106,7 @@ const ProfileUploadCard = ({
             className="h-full w-full object-contain"
           />
           <div
-            className={`absolute left-0 top-0 flex h-full w-full flex-col items-center justify-center  bg-slate-500 ${isOverlay ? 'opacity-90' : 'hidden'} cursor-pointer text-sm text-white`}
+            className={`absolute top-0 left-0 flex h-full w-full flex-col items-center justify-center bg-slate-500 ${isOverlay ? 'opacity-90' : 'hidden'} cursor-pointer text-sm text-white`}
             onClick={handleRemove}
           >
             Remove

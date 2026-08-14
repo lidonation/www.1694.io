@@ -5,13 +5,19 @@ import { keyframes } from '@emotion/react';
 import CopyToClipboard from './CopyToClipboard';
 import { DrepVote } from '../../../types/timeline';
 import Button from './Button';
-import { VoteRationaleModal, VoteRationaleModalProps } from '../molecules/VoteRationaleModal';
+import {
+  VoteRationaleModal,
+  VoteRationaleModalProps,
+} from '../molecules/VoteRationaleModal';
 import { GovAction } from '../../../types/api';
 import { useWallet } from '@/context/globalContext';
 import { ViewExternalGovAction } from '@/components/atoms/ViewExternalGovAction';
 import { useGetProposalMetadataByHashQuery } from '@/hooks/useGetProposalMetadataByHash';
 import { useEpochParamsQuery } from '@/hooks/useEpochParamsQuery';
-import { getLifecycleStatus, getThresholdsForType } from '@/lib/governanceThresholds';
+import {
+  getLifecycleStatus,
+  getThresholdsForType,
+} from '@/lib/governanceThresholds';
 import { shortNumber } from '@/lib/utils';
 import GovernanceLifecycleBadge from './GovernanceLifecycleBadge';
 import { ProposalContentOverlay } from './ProposalContentOverlay';
@@ -30,21 +36,70 @@ const highlightAnimation = keyframes`
   100% { box-shadow: 0 0 0 0px var(--highlight-glow), 0 10px 15px -3px rgba(0,0,0,0.1); border-color: transparent; }
 `;
 
-const VOTE_ACCENT: Record<string, { border: string; badge: string; text: string; glow: string; glowBorder: string; Icon: any }> = {
-  Yes:     { border: 'border-l-success',           badge: 'bg-success/20 text-green-700',           text: 'text-green-700',           glow: 'rgba(111,223,142,0.35)', glowBorder: '#6fdf8e', Icon: CheckCircleOutline },
-  No:      { border: 'border-l-extra_red',          badge: 'bg-red-100 text-red-700',                text: 'text-red-700',             glow: 'rgba(255,77,77,0.3)',   glowBorder: '#ff4d4d', Icon: HighlightOff },
-  Abstain: { border: 'border-l-complementary-200',  badge: 'bg-complementary-100 text-complementary-400', text: 'text-complementary-400', glow: 'rgba(160,211,224,0.35)', glowBorder: '#a0d3e0', Icon: RemoveCircleOutline },
+const VOTE_ACCENT: Record<
+  string,
+  {
+    border: string;
+    badge: string;
+    text: string;
+    glow: string;
+    glowBorder: string;
+    Icon: any;
+  }
+> = {
+  Yes: {
+    border: 'border-l-success',
+    badge: 'bg-success/20 text-green-700',
+    text: 'text-green-700',
+    glow: 'rgba(111,223,142,0.35)',
+    glowBorder: '#6fdf8e',
+    Icon: CheckCircleOutline,
+  },
+  No: {
+    border: 'border-l-extra_red',
+    badge: 'bg-red-100 text-red-700',
+    text: 'text-red-700',
+    glow: 'rgba(255,77,77,0.3)',
+    glowBorder: '#ff4d4d',
+    Icon: HighlightOff,
+  },
+  Abstain: {
+    border: 'border-l-complementary-200',
+    badge: 'bg-complementary-100 text-complementary-400',
+    text: 'text-complementary-400',
+    glow: 'rgba(160,211,224,0.35)',
+    glowBorder: '#a0d3e0',
+    Icon: RemoveCircleOutline,
+  },
 };
 
 const TYPE_CHIP: Record<string, { bg: string; label: string }> = {
-  parameterchange:     { bg: 'bg-secondary-100 text-secondary-400',       label: 'Protocol Params' },
-  noconfidence:        { bg: 'bg-red-50 text-red-600',                    label: 'No Confidence' },
-  infoaction:          { bg: 'bg-primary-100 text-primary-400',            label: 'Info' },
-  hardforkinitiation:  { bg: 'bg-complementary-100 text-complementary-400', label: 'Hard Fork' },
-  newconstitution:     { bg: 'bg-general-100 text-general-400',            label: 'New Constitution' },
-  newcommittee:        { bg: 'bg-extra_gray text-primary-400',             label: 'Update Committee' },
-  updatecommittee:     { bg: 'bg-extra_gray text-primary-400',             label: 'Update Committee' },
-  treasurywithdrawals: { bg: 'bg-secondary-100 text-secondary-400',       label: 'Treasury Withdrawal' },
+  parameterchange: {
+    bg: 'bg-secondary-100 text-secondary-400',
+    label: 'Protocol Params',
+  },
+  noconfidence: { bg: 'bg-red-50 text-red-600', label: 'No Confidence' },
+  infoaction: { bg: 'bg-primary-100 text-primary-400', label: 'Info' },
+  hardforkinitiation: {
+    bg: 'bg-complementary-100 text-complementary-400',
+    label: 'Hard Fork',
+  },
+  newconstitution: {
+    bg: 'bg-general-100 text-general-400',
+    label: 'New Constitution',
+  },
+  newcommittee: {
+    bg: 'bg-extra_gray text-primary-400',
+    label: 'Update Committee',
+  },
+  updatecommittee: {
+    bg: 'bg-extra_gray text-primary-400',
+    label: 'Update Committee',
+  },
+  treasurywithdrawals: {
+    bg: 'bg-secondary-100 text-secondary-400',
+    label: 'Treasury Withdrawal',
+  },
 };
 
 function getTypeChip(tag: string | null | undefined) {
@@ -71,9 +126,14 @@ const DrepVoteTimelineCard = ({
 }: DrepVoteTimelineCardProps) => {
   const [isHighlighted, setIsHighlighted] = useState(false);
   const [overlayOpen, setOverlayOpen] = useState(false);
-  const [rationaleModalOptions, setRationalModalOptions] = useState<VoteRationaleModalProps>({
-    mode: 'view', open: false, onClose: () => {}, onEdit: () => {}, rationaleUrl: item?.vote_rationale,
-  });
+  const [rationaleModalOptions, setRationalModalOptions] =
+    useState<VoteRationaleModalProps>({
+      mode: 'view',
+      open: false,
+      onClose: () => {},
+      onEdit: () => {},
+      rationaleUrl: item?.vote_rationale,
+    });
 
   const elementId = `vote-${(item as any)?.id || (item as any)?.vote_tx_hash || (item as any)?.gov_action_proposal_id}`;
 
@@ -92,23 +152,37 @@ const DrepVoteTimelineCard = ({
   const { latestEpoch } = useWallet();
   const { epochParams } = useEpochParamsQuery();
 
-  const voteKey = item.vote?.charAt(0).toUpperCase() + item.vote?.slice(1).toLowerCase() || 'Abstain';
+  const voteKey =
+    item.vote?.charAt(0).toUpperCase() + item.vote?.slice(1).toLowerCase() ||
+    'Abstain';
   const accent = VOTE_ACCENT[voteKey] ?? VOTE_ACCENT.Abstain;
 
-  const lifecycleStatus = getLifecycleStatus({
-    ratified_epoch: (item as any)?.ratified_epoch,
-    enacted_epoch: item?.enacted_epoch,
-    expired_epoch: (item as any)?.expired_epoch,
-    dropped_epoch: (item as any)?.dropped_epoch,
-    expiration_epoch: item?.expiration_epoch,
-  }, latestEpoch);
+  const lifecycleStatus = getLifecycleStatus(
+    {
+      ratified_epoch: (item as any)?.ratified_epoch,
+      enacted_epoch: item?.enacted_epoch,
+      expired_epoch: (item as any)?.expired_epoch,
+      dropped_epoch: (item as any)?.dropped_epoch,
+      expiration_epoch: item?.expiration_epoch,
+    },
+    latestEpoch,
+  );
 
   const governanceType = (item as any)?.governance_type || item?.type || null;
   const thresholds = getThresholdsForType(governanceType, epochParams);
 
   const { proposalMetadata } = useGetProposalMetadataByHashQuery({
-    hashQueryString: (item as any)?.gov_action_proposal_id || (item as any)?.govActionHash || (item as any)?.gov_action_hash || item?.txHash || (item as any)?.tx_hash,
-    isRequired: !((item as DrepVote).proposal?.title || (item as DrepVote).proposal?.abstract || (item as any)?.metadata?.body?.title),
+    hashQueryString:
+      (item as any)?.gov_action_proposal_id ||
+      (item as any)?.govActionHash ||
+      (item as any)?.gov_action_hash ||
+      item?.txHash ||
+      (item as any)?.tx_hash,
+    isRequired: !(
+      (item as DrepVote).proposal?.title ||
+      (item as DrepVote).proposal?.abstract ||
+      (item as any)?.metadata?.body?.title
+    ),
   });
 
   const title =
@@ -117,36 +191,52 @@ const DrepVoteTimelineCard = ({
     proposalMetadata?.body?.title ||
     proposalMetadata?.title;
 
-  const tag = (item as DrepVote).proposal?.type || (item?.type as string) || proposalMetadata?.type || proposalMetadata?.body?.type;
+  const tag =
+    (item as DrepVote).proposal?.type ||
+    (item?.type as string) ||
+    proposalMetadata?.type ||
+    proposalMetadata?.body?.type;
   const typeChip = getTypeChip(tag);
 
-  const rawAbstract = (item as DrepVote).proposal?.abstract || proposalMetadata?.body?.abstract || proposalMetadata?.abstract;
-  const abstract = rawAbstract && !URL_ONLY.test(rawAbstract.trim()) ? rawAbstract : null;
+  const rawAbstract =
+    (item as DrepVote).proposal?.abstract ||
+    proposalMetadata?.body?.abstract ||
+    proposalMetadata?.abstract;
+  const abstract =
+    rawAbstract && !URL_ONLY.test(rawAbstract.trim()) ? rawAbstract : null;
 
-  const rawRationale = (item as DrepVote).proposal?.rationale || proposalMetadata?.body?.rationale || proposalMetadata?.rationale;
-  const rationale = rawRationale && !URL_ONLY.test(rawRationale.trim()) ? rawRationale : null;
+  const rawRationale =
+    (item as DrepVote).proposal?.rationale ||
+    proposalMetadata?.body?.rationale ||
+    proposalMetadata?.rationale;
+  const rationale =
+    rawRationale && !URL_ONLY.test(rawRationale.trim()) ? rawRationale : null;
 
   const isEnacted = item?.enacted_epoch && latestEpoch > item?.enacted_epoch;
-  const isExpired = item?.expiration_epoch && latestEpoch > item?.expiration_epoch;
+  const isExpired =
+    item?.expiration_epoch && latestEpoch > item?.expiration_epoch;
 
   const handleRationaleModalClose = () =>
     setRationalModalOptions((prev) => ({ ...prev, open: false }));
 
-  const govActionHash = (item as any)?.govActionHash || (item as any)?.gov_action_hash || (item as any)?.proposal?.anchorHash;
+  const govActionHash =
+    (item as any)?.govActionHash ||
+    (item as any)?.gov_action_hash ||
+    (item as any)?.proposal?.anchorHash;
   const txHash = item?.txHash || (item as any)?.tx_hash;
 
-  const yesCount     = (item as any)?.drep_yes_count     ?? 0;
-  const noCount      = (item as any)?.drep_no_count      ?? 0;
+  const yesCount = (item as any)?.drep_yes_count ?? 0;
+  const noCount = (item as any)?.drep_no_count ?? 0;
   const abstainCount = (item as any)?.drep_abstain_count ?? 0;
   const hasVoteCounts = yesCount + noCount + abstainCount > 0;
-  const yesStake             = (item as any)?.drep_yes_stake          ?? 0;
-  const noStake              = (item as any)?.drep_no_stake           ?? 0;
-  const abstainStake         = (item as any)?.drep_abstain_stake      ?? 0;
+  const yesStake = (item as any)?.drep_yes_stake ?? 0;
+  const noStake = (item as any)?.drep_no_stake ?? 0;
+  const abstainStake = (item as any)?.drep_abstain_stake ?? 0;
   const totalActiveDRepStake = (item as any)?.drep_total_active_stake ?? 0;
-  const ccYes     = (item as any)?.cc_yes_count     ?? 0;
-  const ccNo      = (item as any)?.cc_no_count      ?? 0;
+  const ccYes = (item as any)?.cc_yes_count ?? 0;
+  const ccNo = (item as any)?.cc_no_count ?? 0;
   const ccAbstain = (item as any)?.cc_abstain_count ?? 0;
-  const ccTotal   = ccYes + ccNo + ccAbstain;
+  const ccTotal = ccYes + ccNo + ccAbstain;
 
   const startEpoch =
     item?.expiration_epoch != null && epochParams?.gov_action_lifetime != null
@@ -158,45 +248,61 @@ const DrepVoteTimelineCard = ({
     return (
       <Box
         id={elementId}
-        className={`flex w-full flex-col gap-2 rounded-xl border border-gray-100 bg-white p-3 shadow-sm border-l-4 ${accent.border}`}
+        className={`flex w-full flex-col gap-2 rounded-xl border border-l-4 border-gray-100 bg-white p-3 shadow-sm ${accent.border}`}
         sx={{
           '--highlight-glow': accent.glow,
           '--highlight-border': accent.glowBorder,
-          ...(isHighlighted && { animation: `${highlightAnimation} 2s ease-out forwards` }),
+          ...(isHighlighted && {
+            animation: `${highlightAnimation} 2s ease-out forwards`,
+          }),
         }}
       >
         {/* Row 1: vote badge + date */}
         <div className="flex items-center justify-between gap-2">
-          <div className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${accent.badge}`}>
+          <div
+            className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${accent.badge}`}
+          >
             <accent.Icon sx={{ fontSize: 11 }} />
             <span>{voteKey}</span>
           </div>
           <span className="text-[10px] text-gray-400">
-            {new Date(item?.time_voted).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+            {new Date(item?.time_voted).toLocaleDateString(undefined, {
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric',
+            })}
           </span>
         </div>
 
         {/* Row 2: title */}
-        <p className="line-clamp-2 text-xs font-semibold leading-snug text-titles">
+        <p className="text-titles line-clamp-2 text-xs leading-snug font-semibold">
           {title || '—'}
         </p>
 
         {/* Row 3: type chip + lifecycle badge */}
         <div className="flex flex-wrap items-center gap-1.5">
           {typeChip && (
-            <span className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-medium ${typeChip.bg}`}>
+            <span
+              className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-medium ${typeChip.bg}`}
+            >
               {typeChip.label}
             </span>
           )}
           <GovernanceLifecycleBadge status={lifecycleStatus} minimal />
           {thresholds.dvt !== null && !thresholds.isInfoAction && (
             <span className="text-[9px] text-gray-400">
-              DRep ≥<span className="font-semibold text-gray-600">{thresholds.dvt}%</span>
+              DRep ≥
+              <span className="font-semibold text-gray-600">
+                {thresholds.dvt}%
+              </span>
             </span>
           )}
           {item?.expiration_epoch != null && (
             <span className="text-[9px] text-gray-400">
-              Ep. <span className="font-semibold text-gray-600">{item.expiration_epoch}</span>
+              Ep.{' '}
+              <span className="font-semibold text-gray-600">
+                {item.expiration_epoch}
+              </span>
             </span>
           )}
         </div>
@@ -205,39 +311,47 @@ const DrepVoteTimelineCard = ({
         {hasVoteCounts && (
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2.5 text-[9px]">
-              <span className="text-[9px] font-bold uppercase tracking-wider text-gray-400 w-5">DRep</span>
+              <span className="w-5 text-[9px] font-bold tracking-wider text-gray-400 uppercase">
+                DRep
+              </span>
               <span className="flex items-center gap-1">
-                <span className="inline-block h-1.5 w-1.5 rounded-full bg-success" />
+                <span className="bg-success inline-block h-1.5 w-1.5 rounded-full" />
                 <span className="font-semibold text-gray-700">{yesCount}</span>
                 <span className="text-gray-400">Yes</span>
               </span>
               <span className="flex items-center gap-1">
-                <span className="inline-block h-1.5 w-1.5 rounded-full bg-extra_red" />
+                <span className="bg-extra_red inline-block h-1.5 w-1.5 rounded-full" />
                 <span className="font-semibold text-gray-700">{noCount}</span>
                 <span className="text-gray-400">No</span>
               </span>
               <span className="flex items-center gap-1">
-                <span className="inline-block h-1.5 w-1.5 rounded-full bg-complementary-200" />
-                <span className="font-semibold text-gray-700">{abstainCount}</span>
+                <span className="bg-complementary-200 inline-block h-1.5 w-1.5 rounded-full" />
+                <span className="font-semibold text-gray-700">
+                  {abstainCount}
+                </span>
                 <span className="text-gray-400">Abstain</span>
               </span>
             </div>
             {ccTotal > 0 && (
               <div className="flex items-center gap-2.5 text-[9px]">
-                <span className="text-[9px] font-bold uppercase tracking-wider text-gray-400 w-5">CC</span>
+                <span className="w-5 text-[9px] font-bold tracking-wider text-gray-400 uppercase">
+                  CC
+                </span>
                 <span className="flex items-center gap-1">
-                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-success" />
+                  <span className="bg-success inline-block h-1.5 w-1.5 rounded-full" />
                   <span className="font-semibold text-gray-700">{ccYes}</span>
                   <span className="text-gray-400">Yes</span>
                 </span>
                 <span className="flex items-center gap-1">
-                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-extra_red" />
+                  <span className="bg-extra_red inline-block h-1.5 w-1.5 rounded-full" />
                   <span className="font-semibold text-gray-700">{ccNo}</span>
                   <span className="text-gray-400">No</span>
                 </span>
                 <span className="flex items-center gap-1">
-                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-complementary-200" />
-                  <span className="font-semibold text-gray-700">{ccAbstain}</span>
+                  <span className="bg-complementary-200 inline-block h-1.5 w-1.5 rounded-full" />
+                  <span className="font-semibold text-gray-700">
+                    {ccAbstain}
+                  </span>
                   <span className="text-gray-400">Abstain</span>
                 </span>
               </div>
@@ -248,7 +362,7 @@ const DrepVoteTimelineCard = ({
         {/* Row 5: single Read button */}
         <button
           onClick={() => setOverlayOpen(true)}
-          className="flex items-center gap-1 self-start rounded-full bg-primary-50 px-2.5 py-1 text-[10px] font-semibold text-primary-300 hover:bg-primary-100"
+          className="bg-primary-50 text-primary-300 hover:bg-primary-100 flex items-center gap-1 self-start rounded-full px-2.5 py-1 text-[10px] font-semibold"
         >
           <MenuBookOutlined sx={{ fontSize: 11 }} />
           Read
@@ -288,33 +402,45 @@ const DrepVoteTimelineCard = ({
   return (
     <Box
       id={elementId}
-      className={`flex w-full flex-col gap-3 rounded-xl border border-gray-100 bg-white p-4 shadow-sm border-l-4 ${accent.border}`}
+      className={`flex w-full flex-col gap-3 rounded-xl border border-l-4 border-gray-100 bg-white p-4 shadow-sm ${accent.border}`}
       sx={{
         '--highlight-glow': accent.glow,
         '--highlight-border': accent.glowBorder,
-        ...(isHighlighted && { animation: `${highlightAnimation} 2s ease-out forwards` }),
+        ...(isHighlighted && {
+          animation: `${highlightAnimation} 2s ease-out forwards`,
+        }),
       }}
     >
       {/* Row 1: vote badge + date */}
       <div className="flex items-center justify-between gap-2">
-        <div className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${accent.badge}`}>
+        <div
+          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${accent.badge}`}
+        >
           <accent.Icon sx={{ fontSize: 14 }} />
           <span>{voteKey}</span>
         </div>
         <span className="text-[11px] text-gray-400">
-          {new Date(item?.time_voted).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+          {new Date(item?.time_voted).toLocaleString(undefined, {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+          })}
         </span>
       </div>
 
       {/* Row 2: title */}
-      <p className="text-sm font-semibold leading-snug text-titles">
+      <p className="text-titles text-sm leading-snug font-semibold">
         {title || '—'}
       </p>
 
       {/* Row 3: type chip + lifecycle */}
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[10px] text-gray-500">
         {typeChip && (
-          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-medium ${typeChip.bg}`}>
+          <span
+            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-medium ${typeChip.bg}`}
+          >
             {typeChip.label}
           </span>
         )}
@@ -324,34 +450,46 @@ const DrepVoteTimelineCard = ({
       {/* Row 4: DRep vote summary */}
       {hasVoteCounts && (
         <div className="space-y-1">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">DRep Votes</p>
+          <p className="text-[10px] font-bold tracking-wider text-gray-400 uppercase">
+            DRep Votes
+          </p>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px]">
             <span className="flex items-center gap-1">
-              <span className="inline-block h-2 w-2 rounded-full bg-success" />
+              <span className="bg-success inline-block h-2 w-2 rounded-full" />
               <span className="text-gray-400">Yes</span>
-              <span className="font-semibold text-gray-700">{yesStake > 0 ? fmtAda(yesStake) : yesCount}</span>
+              <span className="font-semibold text-gray-700">
+                {yesStake > 0 ? fmtAda(yesStake) : yesCount}
+              </span>
               {yesStake > 0 && totalActiveDRepStake > 0 && (
                 <span className="text-gray-300">·</span>
               )}
               {yesStake > 0 && totalActiveDRepStake > 0 && (
-                <span className="text-gray-600">{((yesStake / totalActiveDRepStake) * 100).toFixed(1)}%</span>
+                <span className="text-gray-600">
+                  {((yesStake / totalActiveDRepStake) * 100).toFixed(1)}%
+                </span>
               )}
             </span>
             <span className="flex items-center gap-1">
-              <span className="inline-block h-2 w-2 rounded-full bg-extra_red" />
+              <span className="bg-extra_red inline-block h-2 w-2 rounded-full" />
               <span className="text-gray-400">No</span>
-              <span className="font-semibold text-gray-700">{noStake > 0 ? fmtAda(noStake) : noCount}</span>
+              <span className="font-semibold text-gray-700">
+                {noStake > 0 ? fmtAda(noStake) : noCount}
+              </span>
               {noStake > 0 && totalActiveDRepStake > 0 && (
                 <span className="text-gray-300">·</span>
               )}
               {noStake > 0 && totalActiveDRepStake > 0 && (
-                <span className="text-gray-600">{((noStake / totalActiveDRepStake) * 100).toFixed(1)}%</span>
+                <span className="text-gray-600">
+                  {((noStake / totalActiveDRepStake) * 100).toFixed(1)}%
+                </span>
               )}
             </span>
             <span className="flex items-center gap-1">
-              <span className="inline-block h-2 w-2 rounded-full bg-complementary-200" />
+              <span className="bg-complementary-200 inline-block h-2 w-2 rounded-full" />
               <span className="text-gray-400">Abstain</span>
-              <span className="font-semibold text-gray-700">{abstainStake > 0 ? fmtAda(abstainStake) : abstainCount}</span>
+              <span className="font-semibold text-gray-700">
+                {abstainStake > 0 ? fmtAda(abstainStake) : abstainCount}
+              </span>
             </span>
           </div>
         </div>
@@ -361,7 +499,11 @@ const DrepVoteTimelineCard = ({
       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-gray-50 pt-3">
         <CopyToClipboard text={govActionHash || txHash} truncate>
           <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-[10px] text-gray-400 hover:text-gray-600">
-            <img src="/svgs/copy.svg" alt="copy" className="h-2.5 w-2.5 opacity-50" />
+            <img
+              src="/svgs/copy.svg"
+              alt="copy"
+              className="h-2.5 w-2.5 opacity-50"
+            />
             Hash
           </span>
         </CopyToClipboard>
@@ -369,7 +511,7 @@ const DrepVoteTimelineCard = ({
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => setOverlayOpen(true)}
-            className="flex items-center gap-1.5 rounded-full bg-primary-50 px-3 py-1.5 text-xs font-semibold text-primary-300 hover:bg-primary-100"
+            className="bg-primary-50 text-primary-300 hover:bg-primary-100 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold"
           >
             <MenuBookOutlined sx={{ fontSize: 13 }} />
             Read Rationale
@@ -377,19 +519,21 @@ const DrepVoteTimelineCard = ({
 
           {!item?.vote_rationale && isVoteOwner && !isEnacted && !isExpired && (
             <Button
-              handleClick={() => setRationalModalOptions({
-                mode: 'edit',
-                open: true,
-                onClose: handleRationaleModalClose,
-                rationaleUrl: item?.vote_rationale,
-                extraData: {
-                  vote: item?.vote,
-                  voteTxHash: item?.gov_action_proposal_id,
-                  voteTxIndex: Number(item?.gov_action_proposal_index) || 0,
-                  voterId: item?.view,
-                  isOwner: isVoteOwner,
-                },
-              })}
+              handleClick={() =>
+                setRationalModalOptions({
+                  mode: 'edit',
+                  open: true,
+                  onClose: handleRationaleModalClose,
+                  rationaleUrl: item?.vote_rationale,
+                  extraData: {
+                    vote: item?.vote,
+                    voteTxHash: item?.gov_action_proposal_id,
+                    voteTxIndex: Number(item?.gov_action_proposal_index) || 0,
+                    voterId: item?.view,
+                    isOwner: isVoteOwner,
+                  },
+                })
+              }
               color="primary"
               size="small"
             >

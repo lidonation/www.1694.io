@@ -1,4 +1,4 @@
-export const getEpochParams:string = `
+export const getEpochParams: string = `
 SELECT 
     epoch_param.epoch_no,
     epoch_param.min_fee_a,
@@ -60,4 +60,4 @@ LEFT JOIN
     cost_model AS cm ON epoch_param.cost_model_id = cm.id
 ORDER BY 
     "epoch_no" DESC
-LIMIT 1;`
+LIMIT 1;`;

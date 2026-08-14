@@ -31,65 +31,93 @@ export class BlockfrostService {
   ) {
     this.primaryConfig = {
       url: this.configService.get<string>('BLOCKFROST_NETWORK_URL') || '',
-      projectId: this.configService.get<string>(
-        'BLOCKFROST_NETWORK_PROJECT_ID',
-      ) || '',
+      projectId:
+        this.configService.get<string>('BLOCKFROST_NETWORK_PROJECT_ID') || '',
     };
 
     this.fallbackConfig = {
-      url: this.configService.get<string>('BLOCKFROST_NETWORK_URL_FALLBACK') || '',
-      projectId: this.configService.get<string>(
-        'BLOCKFROST_NETWORK_PROJECT_ID_FALLBACK',
-      ) || '',
+      url:
+        this.configService.get<string>('BLOCKFROST_NETWORK_URL_FALLBACK') || '',
+      projectId:
+        this.configService.get<string>(
+          'BLOCKFROST_NETWORK_PROJECT_ID_FALLBACK',
+        ) || '',
     };
-    
-    this.ipfsProjectId = this.configService.get<string>('BLOCKFROST_IPFS_PROJECT_ID') || this.primaryConfig.projectId;
+
+    this.ipfsProjectId =
+      this.configService.get<string>('BLOCKFROST_IPFS_PROJECT_ID') ||
+      this.primaryConfig.projectId;
   }
 
-  private async executeWithFallback<T = any>(options: RequestOptions): Promise<T> {
+  private async executeWithFallback<T = any>(
+    options: RequestOptions,
+  ): Promise<T> {
     const { endpoint } = options;
 
     try {
-      return await this.retryRequest(() => this.makeRequest<T>(this.primaryConfig, options));
+      return await this.retryRequest(() =>
+        this.makeRequest<T>(this.primaryConfig, options),
+      );
     } catch (err) {
       const status = err.status || err.response?.status;
       if (status === 404) throw err;
 
-      this.logger.warn(`Primary failed for ${endpoint} (Status: ${status}). Trying fallback...`);
+      this.logger.warn(
+        `Primary failed for ${endpoint} (Status: ${status}). Trying fallback...`,
+      );
 
       try {
-        return await this.retryRequest(() => this.makeRequest<T>(this.fallbackConfig, options));
+        return await this.retryRequest(() =>
+          this.makeRequest<T>(this.fallbackConfig, options),
+        );
       } catch (fErr) {
         const fStatus = fErr.status || fErr.response?.status;
         if (fStatus !== 404) {
-          this.logger.error(`Fallback failed for ${endpoint}. Statuses: ${status} / ${fStatus}`, { endpoint });
+          this.logger.error(
+            `Fallback failed for ${endpoint}. Statuses: ${status} / ${fStatus}`,
+            { endpoint },
+          );
         }
-        throw new HttpException(fErr?.response?.data || fErr.message || 'API unavailable', fStatus || 500);
+        throw new HttpException(
+          fErr?.response?.data || fErr.message || 'API unavailable',
+          fStatus || 500,
+        );
       }
     }
   }
 
-  async retryRequest<T>(fn: () => Promise<T>, retries = 3, delay = 1000): Promise<T> {
+  async retryRequest<T>(
+    fn: () => Promise<T>,
+    retries = 3,
+    delay = 1000,
+  ): Promise<T> {
     try {
       return await fn();
     } catch (e) {
-      const retryable = e.code === 'ECONNRESET' || e.code === 'ETIMEDOUT' || e.status === 429 || (e.status >= 500 && e.status < 600);
+      const retryable =
+        e.code === 'ECONNRESET' ||
+        e.code === 'ETIMEDOUT' ||
+        e.status === 429 ||
+        (e.status >= 500 && e.status < 600);
       if (retries > 0 && retryable) {
-        this.logger.warn(`Retry ${retries} in ${delay}ms (Code: ${e.code || e.status})`);
-        await new Promise(r => setTimeout(r, delay));
+        this.logger.warn(
+          `Retry ${retries} in ${delay}ms (Code: ${e.code || e.status})`,
+        );
+        await new Promise((r) => setTimeout(r, delay));
         return this.retryRequest(fn, retries - 1, delay * 2);
       }
       throw e;
     }
   }
 
-
   private async makeRequest<T>(
     config: BlockfrostConfig,
     options: RequestOptions,
   ): Promise<T> {
     const { method, endpoint, data, headers = {} } = options;
-    const url = options.baseUrl ? `${options.baseUrl}${endpoint}` : `${config.url}${endpoint}`;
+    const url = options.baseUrl
+      ? `${options.baseUrl}${endpoint}`
+      : `${config.url}${endpoint}`;
 
     const requestHeaders = {
       project_id: config.projectId,
@@ -101,9 +129,9 @@ export class BlockfrostService {
 
       if (method === 'GET') {
         response = await lastValueFrom(
-          this.httpService.get(url, { 
+          this.httpService.get(url, {
             headers: requestHeaders,
-            responseType: options.responseType || 'json'
+            responseType: options.responseType || 'json',
           }),
         );
       } else if (method === 'POST') {
@@ -152,10 +180,13 @@ export class BlockfrostService {
   }> {
     let primaryEpoch: number;
     try {
-      const res = await this.makeRequest<{ epoch: number }>(this.primaryConfig, {
-        method: 'GET',
-        endpoint: '/epochs/latest',
-      });
+      const res = await this.makeRequest<{ epoch: number }>(
+        this.primaryConfig,
+        {
+          method: 'GET',
+          endpoint: '/epochs/latest',
+        },
+      );
       if (typeof res?.epoch !== 'number') {
         return {
           ok: false,
@@ -260,7 +291,12 @@ export class BlockfrostService {
     });
   }
 
-  async getDRepDelegators(drepId: string, page = 1, count = 100, order = 'asc') {
+  async getDRepDelegators(
+    drepId: string,
+    page = 1,
+    count = 100,
+    order = 'asc',
+  ) {
     return this.executeWithFallback({
       method: 'GET',
       endpoint: `/governance/dreps/${drepId}/delegators?page=${page}&count=${count}&order=${order}`,
@@ -288,7 +324,13 @@ export class BlockfrostService {
     });
   }
 
-  async getProposalVotes(txHash: string, certIndex: number, page = 1, count = 100, order = 'asc') {
+  async getProposalVotes(
+    txHash: string,
+    certIndex: number,
+    page = 1,
+    count = 100,
+    order = 'asc',
+  ) {
     return this.executeWithFallback({
       method: 'GET',
       endpoint: `/governance/proposals/${txHash}/${certIndex}/votes?page=${page}&count=${count}&order=${order}`,
@@ -324,11 +366,14 @@ export class BlockfrostService {
   }
 
   async getIpfsContent(ipfsPath: string): Promise<Buffer> {
-    return this.makeRequest({ ...this.primaryConfig, projectId: this.ipfsProjectId }, {
-      method: 'GET',
-      endpoint: `/ipfs/get/${ipfsPath}`,
-      baseUrl: 'https://ipfs.blockfrost.io/api/v0',
-      responseType: 'arraybuffer',
-    });
+    return this.makeRequest(
+      { ...this.primaryConfig, projectId: this.ipfsProjectId },
+      {
+        method: 'GET',
+        endpoint: `/ipfs/get/${ipfsPath}`,
+        baseUrl: 'https://ipfs.blockfrost.io/api/v0',
+        responseType: 'arraybuffer',
+      },
+    );
   }
 }

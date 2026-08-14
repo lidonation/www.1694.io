@@ -14,7 +14,10 @@ interface TabGroupProps {
   tabs: TabItem[];
   defaultTab?: string;
   className?: string;
-  onTabChange?: (tabInfo: { activeTab: string; storedTab: string | null }) => void;
+  onTabChange?: (tabInfo: {
+    activeTab: string;
+    storedTab: string | null;
+  }) => void;
 }
 
 const TabGroup: React.FC<TabGroupProps> = ({
@@ -30,7 +33,9 @@ const TabGroup: React.FC<TabGroupProps> = ({
   const pathnameSegments = pathname.split('/').filter(Boolean);
   const currentTabSegment = pathnameSegments[pathnameSegments.length - 1];
   const tabIds = tabs.map((tab) => tab.id);
-  const activeTab = tabIds.includes(currentTabSegment) ? currentTabSegment : defaultTab;
+  const activeTab = tabIds.includes(currentTabSegment)
+    ? currentTabSegment
+    : defaultTab;
 
   useEffect(() => {
     if (activeTabRef.current && containerRef.current) {

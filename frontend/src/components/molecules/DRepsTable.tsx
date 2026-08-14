@@ -67,13 +67,11 @@ const DRepsTable = ({
     type,
   );
 
-
-
   return (
     <div className="dreps-table-wrapper flex flex-col overflow-x-auto">
       <table className="dreps-table min-w-full">
         <thead className="mb-2">
-          <tr className="overflow-x-auto text-nowrap bg-white text-left text-xl font-black">
+          <tr className="overflow-x-auto bg-white text-left text-xl font-black text-nowrap">
             <th className="py-2">DRep</th>
             <th className="px-4 py-2">
               <div className="flex items-center">
@@ -130,29 +128,34 @@ const DRepsTable = ({
               <tr
                 key={drep.view}
                 data-testid={`drep-id-${drep.view}`}
-                className={`text-nowrap text-left text-sm hover:bg-gray-50 ${drep.view}`}
+                className={`text-left text-sm text-nowrap hover:bg-gray-50 ${drep.view}`}
               >
                 <td className="py-2.5">
                   <Box className="flex flex-row items-center gap-3">
                     {!(
                       drep?.type === 'voting_option' ||
                       drep?.type === 'scripted'
-                                        ) && <DRepLogo drepView={drep?.view} metadata={drep?.metadata?.json_metadata} />}
+                    ) && (
+                      <DRepLogo
+                        drepView={drep?.view}
+                        metadata={drep?.metadata?.json_metadata}
+                      />
+                    )}
 
                     {drep?.type === 'voting_option' ||
-                    drep?.type === 'scripted' && (
-                      <Link
-                        className="flex items-center gap-4"
-                        href={`/dreps/${drep?.view}`}
-                        prefetch={false}
-                      >
-                        <p className="font-medium uppercase hover:font-semibold">
-                          {drep?.type === 'scripted'
-                            ? ''
-                            : drep?.view.replace('drep_', '')}
-                        </p>
-                      </Link>
-                    )}
+                      (drep?.type === 'scripted' && (
+                        <Link
+                          className="flex items-center gap-4"
+                          href={`/dreps/${drep?.view}`}
+                          prefetch={false}
+                        >
+                          <p className="font-medium uppercase hover:font-semibold">
+                            {drep?.type === 'scripted'
+                              ? ''
+                              : drep?.view.replace('drep_', '')}
+                          </p>
+                        </Link>
+                      ))}
 
                     {drep?.type !== 'voting_option' && (
                       <Box className="flex flex-nowrap items-center">
@@ -161,10 +164,7 @@ const DRepsTable = ({
                             <IconButton
                               size="small"
                               onClick={() =>
-                                handleCopyText(
-                                  drep?.view,
-                                  addSuccessAlert,
-                                )
+                                handleCopyText(drep?.view, addSuccessAlert)
                               }
                             >
                               <CopyToClipBoard width={18} height={18} />
@@ -176,36 +176,35 @@ const DRepsTable = ({
                           href={`/dreps/${drep?.view}`}
                           prefetch={false}
                           onClick={(e) => {
-                            e.preventDefault(); 
+                            e.preventDefault();
                             navigateToDRepWithLastTab(drep?.view);
                           }}
                         >
                           <p className="hover:font-semibold">
-                            {convertString(
-                              drep?.view,
-                              isMobile,
-                            )}
+                            {convertString(drep?.view, isMobile)}
                           </p>
                         </Link>
                       </Box>
                     )}
 
                     <Box className="flex flex-row items-center gap-1.5">
-                      {typeof drep?.given_name === 'string' && drep.given_name.trim() ? (
+                      {typeof drep?.given_name === 'string' &&
+                      drep.given_name.trim() ? (
                         <Tooltip title="DRep given name">
                           <Link
                             className="inline-flex"
                             href={`/dreps/${drep?.view}`}
                             prefetch={false}
                             onClick={(e) => {
-                              e.preventDefault(); 
+                              e.preventDefault();
                               navigateToDRepWithLastTab(drep?.view);
                             }}
                           >
                             <span className="inline-block rounded-xl border border-black px-1.5 py-0.5 text-xs font-black text-black">
                               {(() => {
                                 const gName = drep.given_name;
-                                return typeof gName === 'string' && gName.length > 25
+                                return typeof gName === 'string' &&
+                                  gName.length > 25
                                   ? `${gName.slice(0, 25)}...`
                                   : gName;
                               })()}
@@ -220,10 +219,7 @@ const DRepsTable = ({
                             prefetch={false}
                           >
                             <span className="inline-block rounded-xl border border-gray-400 bg-gray-50 px-1.5 py-0.5 text-xs font-medium text-gray-600">
-                              {convertString(
-                                drep?.view,
-                                true
-                              )}
+                              {convertString(drep?.view, true)}
                             </span>
                           </Link>
                         </Tooltip>
@@ -231,7 +227,7 @@ const DRepsTable = ({
 
                       <Tooltip title="DRep onchain status" disableFocusListener>
                         <span>
-                          <button className="flex gap-2 shrink-0 hover:cursor-default">
+                          <button className="flex shrink-0 gap-2 hover:cursor-default">
                             <StatusChip
                               status={
                                 drep?.type === 'voting_option'
@@ -249,7 +245,7 @@ const DRepsTable = ({
                       {drep.type === 'scripted' && (
                         <Tooltip title="Scripted DRep" disableFocusListener>
                           <span>
-                            <button className="flex gap-2 shrink-0 hover:cursor-default">
+                            <button className="flex shrink-0 gap-2 hover:cursor-default">
                               <StatusChip status="Scripted" />
                             </button>
                           </span>
@@ -258,7 +254,7 @@ const DRepsTable = ({
 
                       {drep.governance_vote_count && (
                         <Tooltip title="Governance votes">
-                          <span className="inline-block text-nowrap rounded-full border border-blue-200 bg-blue-50 px-1.5 py-0.5 text-center text-xs font-normal text-black shrink-0">
+                          <span className="inline-block shrink-0 rounded-full border border-blue-200 bg-blue-50 px-1.5 py-0.5 text-center text-xs font-normal text-nowrap text-black">
                             Votes: {drep.governance_vote_count}
                           </span>
                         </Tooltip>

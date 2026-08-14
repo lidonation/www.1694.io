@@ -6,7 +6,9 @@ export const useGetSingleNoteQuery = (noteId?: any, reload?: boolean) => {
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['note', noteId, reload],
     queryFn: async () => getSingleNote(noteId),
-    enabled: typeof window !== "undefined" && (reload !== undefined ? Boolean(noteId && reload) : Boolean(noteId)),
+    enabled:
+      typeof window !== 'undefined' &&
+      (reload !== undefined ? Boolean(noteId && reload) : Boolean(noteId)),
     refetchOnWindowFocus: false,
   });
 

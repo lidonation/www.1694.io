@@ -27,7 +27,7 @@ function GovToolUserNameModal({
   const {
     wallet: { dRepId, isDRep },
     activeWallet,
-    signMessage
+    signMessage,
   } = useWallet();
 
   const validateUsername = (username) => {
@@ -99,7 +99,7 @@ function GovToolUserNameModal({
         activeWallet === AuthMethod.HOT_WALLET ? true : false,
         activeWallet === AuthMethod.LOGIN_FILE ? true : false,
       );
-      
+
       const drepResponse = await loginUserToPdf({
         identifier: dRepId,
         signedMessage: {
@@ -118,10 +118,7 @@ function GovToolUserNameModal({
   };
 
   return (
-    <ModalWrapper
-      hideCloseButton={hideCloseButton}
-      onClose={onClose}
-    >
+    <ModalWrapper hideCloseButton={hideCloseButton} onClose={onClose}>
       <ModalHeader>Add your GovTool username</ModalHeader>
       <ModalContents>
         <Typography

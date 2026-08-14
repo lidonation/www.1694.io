@@ -4,7 +4,6 @@ import { DataSource } from 'typeorm';
 import { Drep } from '../entities/governance/drep.entity';
 import { DrepDelegator } from '../entities/governance/drep-delegator.entity';
 import { Proposal } from '../entities/governance/proposal.entity';
-import { ProposalMetadata } from '../entities/governance/proposal-metadata.entity';
 import { ProposalVote } from '../entities/governance/proposal-vote.entity';
 
 @Injectable()
@@ -21,38 +20,47 @@ export class GovernanceMigrationService {
    */
   async checkGovernanceDataStatus() {
     try {
-      const [drepsCount, proposalsCount, votesCount, delegatorsCount] = await Promise.all([
-        this.dataSource.getRepository(Drep).count(),
-        this.dataSource.getRepository(Proposal).count(),
-        this.dataSource.getRepository(ProposalVote).count(),
-        this.dataSource.getRepository(DrepDelegator).count(),
-      ]);
+      const [drepsCount, proposalsCount, votesCount, delegatorsCount] =
+        await Promise.all([
+          this.dataSource.getRepository(Drep).count(),
+          this.dataSource.getRepository(Proposal).count(),
+          this.dataSource.getRepository(ProposalVote).count(),
+          this.dataSource.getRepository(DrepDelegator).count(),
+        ]);
 
       const status = {
         hasData: drepsCount > 0 || proposalsCount > 0,
         counts: {
           dreps: drepsCount,
-          proposals: proposalsCount, 
+          proposals: proposalsCount,
           votes: votesCount,
           delegators: delegatorsCount,
         },
-        recommendations: [] as string[]
+        recommendations: [] as string[],
       };
 
       if (drepsCount === 0) {
-        status.recommendations.push('Run governance sync job to populate DReps data');
+        status.recommendations.push(
+          'Run governance sync job to populate DReps data',
+        );
       }
 
       if (proposalsCount === 0) {
-        status.recommendations.push('Run governance sync job to populate proposals data');
+        status.recommendations.push(
+          'Run governance sync job to populate proposals data',
+        );
       }
 
       if (delegatorsCount === 0) {
-        status.recommendations.push('Run governance sync job to populate delegators data');
+        status.recommendations.push(
+          'Run governance sync job to populate delegators data',
+        );
       }
 
       if (status.recommendations.length === 0) {
-        status.recommendations.push('Governance data is populated and ready to use');
+        status.recommendations.push(
+          'Governance data is populated and ready to use',
+        );
       }
 
       return status;
@@ -84,7 +92,7 @@ export class GovernanceMigrationService {
           type: 'missing_delegators',
           count: drepsWithoutDelegators.length,
           description: 'DReps with voting power but no delegators found',
-          sample: drepsWithoutDelegators.slice(0, 3)
+          sample: drepsWithoutDelegators.slice(0, 3),
         });
       }
 
@@ -102,7 +110,7 @@ export class GovernanceMigrationService {
           type: 'missing_metadata',
           count: proposalsWithoutMetadata.length,
           description: 'Proposals without metadata found',
-          sample: proposalsWithoutMetadata.slice(0, 3)
+          sample: proposalsWithoutMetadata.slice(0, 3),
         });
       }
 
@@ -121,14 +129,14 @@ export class GovernanceMigrationService {
           type: 'orphaned_votes',
           count: orphanedVotes.length,
           description: 'Votes referencing non-existent proposals',
-          sample: orphanedVotes.slice(0, 3)
+          sample: orphanedVotes.slice(0, 3),
         });
       }
 
       return {
         isValid: issues.length === 0,
         issues,
-        summary: `Found ${issues.length} data integrity issues`
+        summary: `Found ${issues.length} data integrity issues`,
       };
     } catch (error) {
       this.logger.error('Failed to validate governance data integrity', error);
