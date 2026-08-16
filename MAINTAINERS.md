@@ -15,7 +15,6 @@ The following people are currently responsible for maintaining this project:
 |------|--------|------|--------------------------------------|
 | **Darlington Wleh** | [@profd2004](https://github.com/profd2004) | Lead Maintainer | Full-stack development, Architecture |
 | **Emmanuel Mutisya** | [@emmanuel-musau](https://github.com/emmanuel-musau) | Core Maintainer | Frontend and Backend  Development    |
-| **Darlington Kofa** | commits under the same `darlington@lidonation.com` identity as Darlington Wleh; distinct GitHub login not resolvable from commit history | Core Maintainer | DevOps & Infrastructure, Database |
 
 ### Active Contributors (Not Paid)
 
@@ -32,7 +31,6 @@ The following people are currently responsible for maintaining this project:
 | Name                         | GitHub | Contributions                    |
 |------------------------------|--------|----------------------------------|
 | **theeurbanlegend (Bewton)** | [@theeurbanlegend](https://github.com/theeurbanlegend) | Frontend and Backend development |
-| **Byron Ochara**             | not linked to a GitHub account in commit history | Development                      |
 | **Bewton Maina**             | [@theeurbanlegend](https://github.com/theeurbanlegend) | Frontend and Backend development |
 | **cjoan**                    | [@Jo1cindi](https://github.com/Jo1cindi) | Development |
 | **Mechack 8pro**             | [@Mechack08](https://github.com/Mechack08) | Development |
@@ -68,19 +66,18 @@ The following people are currently responsible for maintaining this project:
 - **Supporting**: Bewton Maina, Emmanuel Titi (etiti)
 
 ### Backend (Node.js/Nest.js)
-- **Primary**: Darlington Kofa, Darlington Wleh
+- **Primary**: Darlington Wleh
 - **Supporting**: theeurbanlegend, etiti
 
 ### DevOps & Infrastructure
-- **Primary**: Darlington Kofa
-- **Supporting**: Darlington Wleh
+- **Primary**: Darlington Wleh
 
 ### Database (PostgreSQL)
-- **Primary**: Darlington Kofa, Darlington Wleh
+- **Primary**: Darlington Wleh
 - **Supporting**: theeurbanlegend
 
 ### Blockchain Integration (Cardano)
-- **Primary**: Darlington Wleh, Darlington Kofa
+- **Primary**: Darlington Wleh
 - **Supporting**: theeurbanlegend
 
 ## Contact Information
@@ -121,7 +118,7 @@ See [GOVERNANCE.md](./GOVERNANCE.md) for how decisions are made, how releases ar
 ## Project Statistics
 
 As of the last update:
-- **Total Contributors**: 21 unique commit identities on `dev`
+- **Total Contributors**: 19 unique commit identities on `dev`
 - **Total Commits**: 1,487
 - **Primary Language**: TypeScript/JavaScript
 - **Architecture**: Full-stack web application with blockchain integration
