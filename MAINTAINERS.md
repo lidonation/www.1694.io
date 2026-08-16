@@ -13,16 +13,17 @@ The following people are currently responsible for maintaining this project:
 
 | Name | GitHub | Role | Areas of Focus                       |
 |------|--------|------|--------------------------------------|
-| **Darlington Wleh** | - | Lead Maintainer | Full-stack development, Architecture |
-| **Emmanuel Mutisya** | - | Core Maintainer | Frontend and Backend  Development    |
+| **Darlington Wleh** | [@profd2004](https://github.com/profd2004) | Lead Maintainer | Full-stack development, Architecture |
+| **Emmanuel Mutisya** | [@emmanuel-musau](https://github.com/emmanuel-musau) | Core Maintainer | Frontend and Backend  Development    |
+| **Darlington Kofa** | commits under the same `darlington@lidonation.com` identity as Darlington Wleh; distinct GitHub login not resolvable from commit history | Core Maintainer | DevOps & Infrastructure, Database |
 
 ### Active Contributors (Not Paid)
 
 | Name | GitHub | Contributions                    |
 |------|--------|----------------------------------|
-| **etiti** | - | Development and Testing          |
-| **Mwangi Brian** | - | Development                      |
-| **Emmanuel Titi** | - | Development                      |
+| **etiti** | [@Emmanuel-Tyty](https://github.com/Emmanuel-Tyty) | Development and Testing          |
+| **Mwangi Brian** | [@mwangi-student](https://github.com/mwangi-student) | Development                      |
+| **Emmanuel Titi** | [@Emmanuel-Tyty](https://github.com/Emmanuel-Tyty) | Development                      |
 
 
 
@@ -30,8 +31,13 @@ The following people are currently responsible for maintaining this project:
 
 | Name                         | GitHub | Contributions                    |
 |------------------------------|--------|----------------------------------|
-| **theeurbanlegend (Bewton)** | - | Frontend and Backend development |
-| **Byron Ochara**             | - | Development                      |
+| **theeurbanlegend (Bewton)** | [@theeurbanlegend](https://github.com/theeurbanlegend) | Frontend and Backend development |
+| **Byron Ochara**             | not linked to a GitHub account in commit history | Development                      |
+| **Bewton Maina**             | [@theeurbanlegend](https://github.com/theeurbanlegend) | Frontend and Backend development |
+| **cjoan**                    | [@Jo1cindi](https://github.com/Jo1cindi) | Development |
+| **Mechack 8pro**             | [@Mechack08](https://github.com/Mechack08) | Development |
+| **gmunga**                   | [@giremunga](https://github.com/giremunga) | Development |
+| **Obarajames**               | [@Obarajames](https://github.com/Obarajames) | Development |
 
 ## Responsibilities
 
@@ -59,7 +65,7 @@ The following people are currently responsible for maintaining this project:
 
 ### Frontend (Next.js/React)
 - **Primary**: Emmanuel Mutisya, theeurbanlegend
-- **Supporting**: Bewton Maina, Emmanuel Titi
+- **Supporting**: Bewton Maina, Emmanuel Titi (etiti)
 
 ### Backend (Node.js/Nest.js)
 - **Primary**: Darlington Kofa, Darlington Wleh
@@ -115,8 +121,8 @@ See [GOVERNANCE.md](./GOVERNANCE.md) for how decisions are made, how releases ar
 ## Project Statistics
 
 As of the last update:
-- **Total Contributors**: 19
-- **Total Commits**: 1,300+
+- **Total Contributors**: 21 unique commit identities on `dev`
+- **Total Commits**: 1,487
 - **Primary Language**: TypeScript/JavaScript
 - **Architecture**: Full-stack web application with blockchain integration
 
@@ -129,6 +135,6 @@ Special thanks to:
 
 ---
 
-*Last updated: February 26, 2026*
+*Last updated: August 16, 2026*
 
 *For the most current information, please check the git commit history and active pull requests.*
