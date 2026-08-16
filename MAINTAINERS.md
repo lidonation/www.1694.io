@@ -31,7 +31,6 @@ The following people are currently responsible for maintaining this project:
 | Name                         | GitHub | Contributions                    |
 |------------------------------|--------|----------------------------------|
 | **theeurbanlegend (Bewton)** | [@theeurbanlegend](https://github.com/theeurbanlegend) | Frontend and Backend development |
-| **Bewton Maina**             | [@theeurbanlegend](https://github.com/theeurbanlegend) | Frontend and Backend development |
 | **cjoan**                    | [@Jo1cindi](https://github.com/Jo1cindi) | Development |
 | **Mechack 8pro**             | [@Mechack08](https://github.com/Mechack08) | Development |
 | **gmunga**                   | [@giremunga](https://github.com/giremunga) | Development |
@@ -63,7 +62,7 @@ The following people are currently responsible for maintaining this project:
 
 ### Frontend (Next.js/React)
 - **Primary**: Emmanuel Mutisya, theeurbanlegend
-- **Supporting**: Bewton Maina, Emmanuel Titi (etiti)
+- **Supporting**: Emmanuel Titi (etiti)
 
 ### Backend (Node.js/Nest.js)
 - **Primary**: Darlington Wleh
