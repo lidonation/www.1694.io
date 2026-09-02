@@ -135,3 +135,6 @@ node_modules
 # local development secrets (never commit real values)
 config/secrets/*
 !config/secrets/*.example
+
+# Claude Code local workspace
+.claude/
