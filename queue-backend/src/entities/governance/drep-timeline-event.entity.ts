@@ -26,6 +26,9 @@ export class DrepTimelineEvent {
   @Column({ name: 'tx_hash', type: 'text' })
   txHash: string;
 
+  @Column({ name: 'tx_index', type: 'integer' })
+  txIndex: number;
+
   @Column({ name: 'block_hash', type: 'text', nullable: true })
   blockHash: string | null;
 
@@ -34,6 +37,12 @@ export class DrepTimelineEvent {
 
   @Column({ name: 'metadata', type: 'jsonb' })
   metadata: any;
+
+  @Column({ name: 'stake_address', type: 'text', nullable: true })
+  stakeAddress: string | null;
+
+  @Column({ name: 'previous_drep', type: 'text', nullable: true })
+  previousDrep: string | null;
 
   @Column({ name: 'created_at', type: 'timestamptz', default: () => 'now()' })
   createdAt: Date;

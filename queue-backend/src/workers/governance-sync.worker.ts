@@ -177,6 +177,7 @@ export class GovernanceSyncWorker extends WorkerHost {
              for (let i = 0; i < deleteAddresses.length; i += chunkSize) {
                await repo.createQueryBuilder().delete().where("drepId = :dId", { dId: drep.drepId }).andWhere("stakeAddress IN (:...ids)", { ids: deleteAddresses.slice(i, i + chunkSize) }).execute();
              }
+             // Synthetic tx_hash is unique per (drep, address); tx_index 0 clears the NOT NULL + (tx_hash, tx_index) index.
              const undelegationEvents: Partial<DrepTimelineEvent>[] = toDelete.map(({ address, amountLovelace }) => ({
                drepId: drep.drepId,
                eventType: 'undelegation' as const,
@@ -184,11 +185,14 @@ export class GovernanceSyncWorker extends WorkerHost {
                epoch: 0,
                slot: '0',
                txHash: `synthetic-undelegation-${drep.drepId}-${address}`,
+               txIndex: 0,
                blockHash: null,
+               stakeAddress: address,
+               previousDrep: drep.drepId,
                metadata: { stake_address: address, previous_drep: drep.drepId, target_drep: null, added_power: false, total_stake: amountLovelace },
              }));
              for (let i = 0; i < undelegationEvents.length; i += chunkSize) {
-               await timelineRepo.upsert(undelegationEvents.slice(i, i + chunkSize) as any, { conflictPaths: ['txHash', 'drepId'], skipUpdateIfNoValuesChanged: true });
+               await timelineRepo.upsert(undelegationEvents.slice(i, i + chunkSize) as any, { conflictPaths: ['txHash', 'txIndex'], skipUpdateIfNoValuesChanged: true });
              }
           }
 
