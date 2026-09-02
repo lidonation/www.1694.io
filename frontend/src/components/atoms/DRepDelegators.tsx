@@ -78,7 +78,7 @@ const DRepDelegators = ({ voterId }: { voterId: string }) => {
       </Box>
       <Box className="my-5 overflow-x-auto rounded-md border border-gray-200 bg-white shadow-sm">
         <table className="min-w-full divide-y divide-gray-200 text-left rtl:text-right">
-          <thead className="mb-2 whitespace-nowrap bg-gray-50 text-xl">
+          <thead className="mb-2 bg-gray-50 text-xl whitespace-nowrap">
             <tr>
               <th
                 scope="col"
@@ -148,7 +148,7 @@ const DRepDelegators = ({ voterId }: { voterId: string }) => {
               Delegators?.data.map((delegator) => (
                 <tr
                   key={delegator.stakeAddress}
-                  className="w-full text-nowrap bg-white transition-all hover:bg-gray-50"
+                  className="w-full bg-white text-nowrap transition-all hover:bg-gray-50"
                 >
                   <td className="px-4 py-3 font-medium">
                     <div className="group flex items-center">
@@ -184,11 +184,10 @@ const DRepDelegators = ({ voterId }: { voterId: string }) => {
                   </td>
                   <td className="flex w-full flex-nowrap items-center justify-start px-4 py-3">
                     <Tooltip
-                      title={
-                        `₳ ${shortNumber(delegator?.votingPower, 2)}`}
+                      title={`₳ ${shortNumber(delegator?.votingPower, 2)}`}
                     >
                       <Typography>
-                        ₳ {shortNumber(delegator?.votingPower, 2)}                        
+                        ₳ {shortNumber(delegator?.votingPower, 2)}
                       </Typography>
                     </Tooltip>
                   </td>

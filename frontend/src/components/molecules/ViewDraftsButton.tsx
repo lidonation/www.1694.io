@@ -1,7 +1,7 @@
 import React from 'react';
 import Button from '../atoms/Button';
 
-const ViewDraftsButton = ({isUpdating=false}:{isUpdating?: boolean}) => {
+const ViewDraftsButton = ({ isUpdating = false }: { isUpdating?: boolean }) => {
   return (
     <Button
       variant="outlined"
@@ -12,7 +12,7 @@ const ViewDraftsButton = ({isUpdating=false}:{isUpdating?: boolean}) => {
       size="extraLarge"
       disabled={!isUpdating}
     >
-      <p className="text-center text-sm font-medium leading-4 text-blue-800">
+      <p className="text-center text-sm leading-4 font-medium text-blue-800">
         My Notes
       </p>
     </Button>

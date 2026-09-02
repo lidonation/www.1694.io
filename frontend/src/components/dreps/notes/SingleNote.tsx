@@ -96,7 +96,7 @@ const SingleNote = ({
 
   const handleOpenLoginModal = () => {
     openModal(ModalType.LOGIN);
-  }
+  };
 
   const startCommenting = () => {
     if (!isConnected) {
@@ -250,7 +250,7 @@ const SingleNote = ({
           </div>
         )}
       </div>
-      <div className="flex items-center gap-5 bg-extra_gray px-5 py-1">
+      <div className="bg-extra_gray flex items-center gap-5 px-5 py-1">
         <p className="text-sm">Submission Date:</p>
         <p className="text-sm">
           {new Date(note.note_createdAt).toDateString()}

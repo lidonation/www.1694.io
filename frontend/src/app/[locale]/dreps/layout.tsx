@@ -1,7 +1,7 @@
 'use client';
 import { Background } from '@/components/atoms/Background';
 import Footer from '@/components/atoms/Footer';
-import {Header} from '@/components/atoms/Header';
+import { Header } from '@/components/atoms/Header';
 export default function RootLayout({
   children,
 }: {

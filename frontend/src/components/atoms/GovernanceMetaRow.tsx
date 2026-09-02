@@ -1,6 +1,9 @@
 import React from 'react';
 import { Tooltip } from '@mui/material';
-import { GovernanceThresholds, LifecycleStatus } from '@/lib/governanceThresholds';
+import {
+  GovernanceThresholds,
+  LifecycleStatus,
+} from '@/lib/governanceThresholds';
 import GovernanceLifecycleBadge from './GovernanceLifecycleBadge';
 
 interface GovernanceMetaRowProps {
@@ -23,25 +26,38 @@ const GovernanceMetaRow = ({
       <GovernanceLifecycleBadge status={status} />
 
       {isInfoAction ? (
-        <span className="italic text-gray-400">No ratification threshold</span>
-      ) : dvt !== null && (
-        <Tooltip
-          title={pvt !== null ? `DRep ≥${dvt}%  ·  SPO ≥${pvt}%` : `${dvtLabel ?? 'DRep'} ≥${dvt}%`}
-          placement="top"
-          arrow
-        >
-          <span className="cursor-default border-b border-dashed border-gray-300">
-            <span className="font-semibold text-gray-600">{dvtLabel ?? 'DRep'}</span>
-            {' ≥'}{dvt}%
-            {pvt !== null && <span className="text-gray-400">  ·  SPO ≥{pvt}%</span>}
-          </span>
-        </Tooltip>
+        <span className="text-gray-400 italic">No ratification threshold</span>
+      ) : (
+        dvt !== null && (
+          <Tooltip
+            title={
+              pvt !== null
+                ? `DRep ≥${dvt}%  ·  SPO ≥${pvt}%`
+                : `${dvtLabel ?? 'DRep'} ≥${dvt}%`
+            }
+            placement="top"
+            arrow
+          >
+            <span className="cursor-default border-b border-dashed border-gray-300">
+              <span className="font-semibold text-gray-600">
+                {dvtLabel ?? 'DRep'}
+              </span>
+              {' ≥'}
+              {dvt}%
+              {pvt !== null && (
+                <span className="text-gray-400"> · SPO ≥{pvt}%</span>
+              )}
+            </span>
+          </Tooltip>
+        )
       )}
 
       {govActionLifetime !== null && (
         <span>
           Active{' '}
-          <span className="font-semibold text-gray-600">{govActionLifetime}</span>{' '}
+          <span className="font-semibold text-gray-600">
+            {govActionLifetime}
+          </span>{' '}
           epochs
         </span>
       )}

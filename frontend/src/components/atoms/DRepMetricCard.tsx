@@ -11,7 +11,7 @@ export const AnimatedOdometer = ({
   height = 40,
   className = '',
   isLoading = false,
-  format = "(,ddd).dd"
+  format = '(,ddd).dd',
 }) => {
   const [isClientLoaded, setIsClientLoaded] = useState(false);
   const [displayValue, setDisplayValue] = useState(0);
@@ -71,6 +71,6 @@ export const MetricCard = ({
         isLoading={isLoading}
       />
     </div>
-    <div className="min-h-5 text-wrap text-xs text-gray-500">{label}</div>
+    <div className="min-h-5 text-xs text-wrap text-gray-500">{label}</div>
   </td>
 );

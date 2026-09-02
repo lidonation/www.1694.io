@@ -17,9 +17,11 @@ const Page = () => {
     setUserInfo,
   } = useWallet();
   const { openModal, closeModal } = useModals();
-  const isOwner = isCurrentOwnerOfDRepToClaim || dRepProfilesClaimed?.some((drep) =>
-    compareDRepIDs(drep.claimedDRepBech32, dRepIDToClaimBech32),
-  );
+  const isOwner =
+    isCurrentOwnerOfDRepToClaim ||
+    dRepProfilesClaimed?.some((drep) =>
+      compareDRepIDs(drep.claimedDRepBech32, dRepIDToClaimBech32),
+    );
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -81,20 +83,20 @@ const Page = () => {
       const checkIfExistingDRep = async () => {
         try {
           const drep = await getSingleDRepViaVoterId(dRepIdBech32);
-            if (drep?.drep_id && isOwner) {
-              setUserInfo({
-                dRepClaimProgress: {
-                  [ProfileWorkflowStepKey.PROFILE]: 'update',
-                },
-              });
-              router.push(`/dreps/workflow/profile/update/step1`);
-            } else {
-              setUserInfo({
-                dRepClaimProgress: {
-                  [ProfileWorkflowStepKey.PROFILE]: 'active',
-                },
-              });
-            }
+          if (drep?.drep_id && isOwner) {
+            setUserInfo({
+              dRepClaimProgress: {
+                [ProfileWorkflowStepKey.PROFILE]: 'update',
+              },
+            });
+            router.push(`/dreps/workflow/profile/update/step1`);
+          } else {
+            setUserInfo({
+              dRepClaimProgress: {
+                [ProfileWorkflowStepKey.PROFILE]: 'active',
+              },
+            });
+          }
         } catch (error) {
           if (
             error.response?.status === 404 &&

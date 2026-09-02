@@ -79,17 +79,24 @@ export function UserLoginModal({
     }
     setIsLoading(true);
     try {
-      const { success, error } = await connectWallet(ExtendedAuthMethod.LOGIN_FILE, {
-        file: selectedFile,
-      });
+      const { success, error } = await connectWallet(
+        ExtendedAuthMethod.LOGIN_FILE,
+        {
+          file: selectedFile,
+        },
+      );
       if (!success) {
-        addErrorAlert(typeof error === 'string' ? error : 'Error logging in with file');
+        addErrorAlert(
+          typeof error === 'string' ? error : 'Error logging in with file',
+        );
         return;
       }
       onClose();
     } catch (error) {
       console.error('Error logging in with file:', error);
-      addErrorAlert(typeof error === 'string' ? error : 'Error logging in with file');
+      addErrorAlert(
+        typeof error === 'string' ? error : 'Error logging in with file',
+      );
     } finally {
       setIsLoading(false);
     }

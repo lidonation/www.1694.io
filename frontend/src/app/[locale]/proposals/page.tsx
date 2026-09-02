@@ -102,7 +102,7 @@ function ProposalsPage() {
           {!isPaginatedLoading && proposalsData.length === 0 ? (
             <RecordsNotFound message="No proposals match your criteria." />
           ) : (
-            <ul className="grid grid-cols-1 gap-6 pb-2 pt-1 xl:grid-cols-2 2xl:grid-cols-3">
+            <ul className="grid grid-cols-1 gap-6 pt-1 pb-2 xl:grid-cols-2 2xl:grid-cols-3">
               {isPaginatedLoading
                 ? Array.from({ length: pageSize }).map((_, index) => (
                     <li key={index}>

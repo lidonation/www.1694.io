@@ -18,6 +18,8 @@ export interface VerifyLoginFileSigsPayloadResponse {
 export const verifyLoginFileSigs = async (
   payload: VerifyLoginFileSigsPayloadRequest,
 ) => {
-  const response = await axiosInstance.post('auth/login/verify-sigs', {payload});
+  const response = await axiosInstance.post('auth/login/verify-sigs', {
+    payload,
+  });
   return response.data as VerifyLoginFileSigsPayloadResponse;
 };

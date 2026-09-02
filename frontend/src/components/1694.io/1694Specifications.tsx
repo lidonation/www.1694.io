@@ -71,7 +71,7 @@ const CIPSpecifications = () => {
         <Separator />
         <div
           id="state-of-no-confidence"
-          className="my-5 flex  w-full flex-col items-start justify-center gap-5 font-extralight"
+          className="my-5 flex w-full flex-col items-start justify-center gap-5 font-extralight"
         >
           <p className="text-2xl font-bold">State of no-confidence</p>
           <p>

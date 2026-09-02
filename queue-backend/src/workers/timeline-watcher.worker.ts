@@ -8,6 +8,7 @@ import { DrepTimelineEvent } from '../entities/governance/drep-timeline-event.en
 import { DrepDelegator } from '../entities/governance/drep-delegator.entity';
 import { SyncState } from '../entities/sync-state.entity';
 import { BlockfrostService } from '../blockfrost/blockfrost.service';
+import { SYNTHETIC_TX_INDEX_OFFSET } from '../queue.constants';
 
 @Injectable()
 @Processor(Queues.TIMELINE_WATCHER)
@@ -54,56 +55,25 @@ export class TimelineWatcherWorker extends WorkerHost {
     const triggeredSyncs = new Set<string>();
 
     for (const event of newEvents) {
-      switch (event.eventType) {
-        case 'registration':
-        case 'retirement':
-          triggeredSyncs.add('dreps');
-          break;
-        case 'delegation': {
-          const stakeAddress = event.metadata?.stake_address;
-          if (stakeAddress) {
-            await this.updateDelegatorVotingPower(stakeAddress);
-
-            const prevRows = await this.dataSource.query<{ drep_id: string }[]>(
-              `SELECT drep_id FROM drep_timeline_event
-               WHERE event_type = 'delegation'
-                 AND metadata->>'stake_address' = $1
-                 AND id < $2
-               ORDER BY id DESC LIMIT 1`,
-              [stakeAddress, event.id],
-            );
-            const previousDrepId = prevRows[0]?.drep_id ?? null;
-
-            if (previousDrepId && previousDrepId !== event.drepId) {
-              const alreadySynthesized = await timelineRepo.findOne({
-                where: { eventType: 'undelegation', txHash: event.txHash, drepId: previousDrepId },
-              });
-
-              if (!alreadySynthesized) {
-                this.logger.debug(`Synthesizing undelegation: ${previousDrepId} → ${event.drepId} (${stakeAddress})`);
-                await timelineRepo.save(
-                  timelineRepo.create({
-                    eventType: 'undelegation',
-                    timestamp: event.timestamp,
-                    epoch: event.epoch,
-                    slot: event.slot,
-                    txHash: event.txHash,
-                    blockHash: event.blockHash,
-                    drepId: previousDrepId,
-                    metadata: { ...event.metadata, target_drep: event.drepId },
-                  }),
-                );
-              }
-            }
-          }
-          break;
+      try {
+        switch (event.eventType) {
+          case 'registration':
+          case 'retirement':
+            triggeredSyncs.add('dreps');
+            break;
+          case 'delegation':
+            await this.handleDelegation(event);
+            break;
+          case 'proposal':
+            triggeredSyncs.add('proposals');
+            break;
+          case 'vote':
+            triggeredSyncs.add('votes');
+            break;
         }
-        case 'proposal':
-          triggeredSyncs.add('proposals');
-          break;
-        case 'vote':
-          triggeredSyncs.add('votes');
-          break;
+      } catch (err) {
+        // One bad event must not wedge the cursor — log and let the batch advance.
+        this.logger.error(`Failed to process timeline event ${event.id} (${event.eventType}): ${err.message}`);
       }
     }
 
@@ -130,6 +100,52 @@ export class TimelineWatcherWorker extends WorkerHost {
       lastId: state.lastProcessedId,
       triggers: Array.from(triggeredSyncs),
     };
+  }
+
+  private async handleDelegation(event: DrepTimelineEvent): Promise<void> {
+    const stakeAddress = event.metadata?.stake_address;
+    if (!stakeAddress) return;
+
+    await this.updateDelegatorVotingPower(stakeAddress);
+
+    const prevRows = await this.dataSource.query<{ drep_id: string }[]>(
+      `SELECT drep_id FROM drep_timeline_event
+       WHERE event_type = 'delegation'
+         AND metadata->>'stake_address' = $1
+         AND id < $2
+       ORDER BY id DESC LIMIT 1`,
+      [stakeAddress, event.id],
+    );
+    const previousDrepId = prevRows[0]?.drep_id ?? null;
+
+    if (!previousDrepId || previousDrepId === event.drepId) return;
+
+    // Offset tx_index off the real cert so it clears the (tx_hash, tx_index) unique index; orIgnore keeps retries safe.
+    const syntheticTxIndex = (event.txIndex ?? 0) + SYNTHETIC_TX_INDEX_OFFSET;
+
+    const result = await this.dataSource
+      .createQueryBuilder()
+      .insert()
+      .into(DrepTimelineEvent)
+      .values({
+        eventType: 'undelegation',
+        timestamp: event.timestamp,
+        epoch: event.epoch,
+        slot: event.slot,
+        txHash: event.txHash,
+        txIndex: syntheticTxIndex,
+        blockHash: event.blockHash,
+        drepId: previousDrepId,
+        stakeAddress,
+        previousDrep: previousDrepId,
+        metadata: { ...event.metadata, target_drep: event.drepId },
+      })
+      .orIgnore()
+      .execute();
+
+    if (result.identifiers.length > 0) {
+      this.logger.debug(`Synthesized undelegation: ${previousDrepId} → ${event.drepId} (${stakeAddress})`);
+    }
   }
 
   private async updateDelegatorVotingPower(stakeAddress: string): Promise<void> {

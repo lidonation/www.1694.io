@@ -16,7 +16,10 @@ export class GovernanceService {
     private configService: ConfigService,
   ) {
     this.EPOCH_ANCHOR_MS = Number(
-      this.configService.get<string>('CARDANO_EPOCH_ANCHOR_MS', '1506203091000')
+      this.configService.get<string>(
+        'CARDANO_EPOCH_ANCHOR_MS',
+        '1506203091000',
+      ),
     );
   }
 
@@ -28,7 +31,7 @@ export class GovernanceService {
     order: 'ASC' | 'DESC' = 'DESC',
     onChainStatus?: 'active' | 'inactive',
     campaignStatus?: 'claimed' | 'unclaimed',
-    includeRetired: boolean = false,
+    _includeRetired: boolean = false,
     type?: 'has_script',
   ) {
     const queryBuilder = this.governanceDataSource
@@ -91,9 +94,13 @@ export class GovernanceService {
       loadDirection?: 'older' | 'newer';
     } = {},
   ) {
-    const startTime = options.startTimeCursor ? new Date(options.startTimeCursor) : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000); // 7 days ago
-    const endTime = options.endTimeCursor ? new Date(options.endTimeCursor) : new Date();
-    
+    const startTime = options.startTimeCursor
+      ? new Date(options.startTimeCursor)
+      : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000); // 7 days ago
+    const endTime = options.endTimeCursor
+      ? new Date(options.endTimeCursor)
+      : new Date();
+
     // Build query for timeline events
     const queryBuilder = this.governanceDataSource
       .getRepository(DrepTimelineEvent)
@@ -105,15 +112,19 @@ export class GovernanceService {
     } else {
       queryBuilder.andWhere('event.timestamp > :startTime', { startTime });
     }
-    
+
     queryBuilder.andWhere('event.timestamp >= :startTime', { startTime });
     queryBuilder.andWhere('event.timestamp <= :endTime', { endTime });
 
     // Map frontend filter values to database event types
     if (options.filterValues && options.filterValues.length > 0) {
-      const mappedTypes = this.mapFilterValuesToEventTypes(options.filterValues);
+      const mappedTypes = this.mapFilterValuesToEventTypes(
+        options.filterValues,
+      );
       if (mappedTypes.length > 0) {
-        queryBuilder.andWhere('event.eventType IN (:...types)', { types: mappedTypes });
+        queryBuilder.andWhere('event.eventType IN (:...types)', {
+          types: mappedTypes,
+        });
       }
     }
 
@@ -125,12 +136,13 @@ export class GovernanceService {
 
     // Convert events to timeline format
     const timelineEvents = events.map(this.formatTimelineEventForAPI);
-    
+
     // Add epoch markers if not filtering for specific types or if epochs are requested
-    const shouldIncludeEpochs = !options.filterValues || 
-      options.filterValues.length === 0 || 
+    const shouldIncludeEpochs =
+      !options.filterValues ||
+      options.filterValues.length === 0 ||
       options.filterValues.includes('epoch');
-      
+
     if (shouldIncludeEpochs) {
       const epochEvents = await this.getEpochEventsInRange(startTime, endTime);
       timelineEvents.push(...epochEvents);
@@ -138,30 +150,38 @@ export class GovernanceService {
 
     // Sort all events by timestamp descending
     timelineEvents.sort((a, b) => {
-      const aTime = a.timestamp instanceof Date ? a.timestamp.getTime() : new Date(a.timestamp).getTime();
-      const bTime = b.timestamp instanceof Date ? b.timestamp.getTime() : new Date(b.timestamp).getTime();
+      const aTime =
+        a.timestamp instanceof Date
+          ? a.timestamp.getTime()
+          : new Date(a.timestamp).getTime();
+      const bTime =
+        b.timestamp instanceof Date
+          ? b.timestamp.getTime()
+          : new Date(b.timestamp).getTime();
       return bTime - aTime;
     });
-    
+
     // Limit to requested number of items
     const limitedEvents = timelineEvents.slice(0, options.minItems || 20);
 
     return {
       events: limitedEvents,
       hasMore: limitedEvents.length === (options.minItems || 20),
-      cursor: limitedEvents.length > 0 ? 
-        (limitedEvents[limitedEvents.length - 1].timestamp instanceof Date ? 
-         limitedEvents[limitedEvents.length - 1].timestamp.getTime() : 
-         new Date(limitedEvents[limitedEvents.length - 1].timestamp).getTime()) : null,
+      cursor:
+        limitedEvents.length > 0
+          ? limitedEvents[limitedEvents.length - 1].timestamp instanceof Date
+            ? limitedEvents[limitedEvents.length - 1].timestamp.getTime()
+            : new Date(
+                limitedEvents[limitedEvents.length - 1].timestamp,
+              ).getTime()
+          : null,
     };
   }
 
   async getDRepStats(voterId: string) {
-    const drep = await this.governanceDataSource
-      .getRepository(Drep)
-      .findOne({
-        where: { drepId: voterId },
-      });
+    const drep = await this.governanceDataSource.getRepository(Drep).findOne({
+      where: { drepId: voterId },
+    });
 
     if (!drep) {
       return null;
@@ -179,11 +199,9 @@ export class GovernanceService {
   }
 
   async getSingleDRep(voterId: string) {
-    const drep = await this.governanceDataSource
-      .getRepository(Drep)
-      .findOne({
-        where: { drepId: voterId },
-      });
+    const drep = await this.governanceDataSource.getRepository(Drep).findOne({
+      where: { drepId: voterId },
+    });
 
     return drep ? this.formatDRepForAPI(drep) : null;
   }
@@ -236,33 +254,54 @@ export class GovernanceService {
 
   private mapFilterValuesToEventTypes(filterValues: string[]): string[] {
     const mapping = {
-      'voting_activity': 'vote',
-      'delegation': 'delegation', 
-      'registration': 'registration',
-      'retirement': 'retirement',
-      'proposal': 'proposal'
+      voting_activity: 'vote',
+      delegation: 'delegation',
+      registration: 'registration',
+      retirement: 'retirement',
+      proposal: 'proposal',
     };
-    
+
     return filterValues
-      .map(filter => mapping[filter] || filter)
-      .filter(type => ['vote', 'delegation', 'registration', 'retirement', 'proposal'].includes(type));
+      .map((filter) => mapping[filter] || filter)
+      .filter((type) =>
+        [
+          'vote',
+          'delegation',
+          'registration',
+          'retirement',
+          'proposal',
+        ].includes(type),
+      );
   }
 
-  private async getEpochEventsInRange(startTime: Date, endTime: Date): Promise<any[]> {
+  private async getEpochEventsInRange(
+    startTime: Date,
+    endTime: Date,
+  ): Promise<any[]> {
     const epochEvents: any[] = [];
-    const startEpoch = Math.floor((startTime.getTime() - this.EPOCH_ANCHOR_MS) / this.EPOCH_DURATION_MS);
-    const endEpoch = Math.floor((endTime.getTime() - this.EPOCH_ANCHOR_MS) / this.EPOCH_DURATION_MS);
+    const startEpoch = Math.floor(
+      (startTime.getTime() - this.EPOCH_ANCHOR_MS) / this.EPOCH_DURATION_MS,
+    );
+    const endEpoch = Math.floor(
+      (endTime.getTime() - this.EPOCH_ANCHOR_MS) / this.EPOCH_DURATION_MS,
+    );
 
     for (let epoch = Math.max(startEpoch, 0); epoch <= endEpoch; epoch++) {
-      const epochStartTime = this.EPOCH_ANCHOR_MS + (epoch * this.EPOCH_DURATION_MS);
-      if (epochStartTime >= startTime.getTime() && epochStartTime <= endTime.getTime()) {
+      const epochStartTime =
+        this.EPOCH_ANCHOR_MS + epoch * this.EPOCH_DURATION_MS;
+      if (
+        epochStartTime >= startTime.getTime() &&
+        epochStartTime <= endTime.getTime()
+      ) {
         epochEvents.push({
           type: 'epoch',
           timestamp: new Date(epochStartTime),
           no: epoch,
           epochNo: epoch,
           start_time: new Date(epochStartTime).toISOString(),
-          end_time: new Date(epochStartTime + this.EPOCH_DURATION_MS).toISOString()
+          end_time: new Date(
+            epochStartTime + this.EPOCH_DURATION_MS,
+          ).toISOString(),
         });
       }
     }
@@ -273,15 +312,15 @@ export class GovernanceService {
   private formatTimelineEventForAPI(event: DrepTimelineEvent) {
     // Map database event types to frontend expected types
     const typeMapping = {
-      'vote': 'voting_activity',
-      'delegation': 'delegation',
-      'registration': 'registration', 
-      'retirement': 'retirement',
-      'proposal': 'proposal'
+      vote: 'voting_activity',
+      delegation: 'delegation',
+      registration: 'registration',
+      retirement: 'retirement',
+      proposal: 'proposal',
     };
-    
+
     const mappedType = typeMapping[event.eventType] || event.eventType;
-    
+
     return {
       id: event.id,
       eventType: event.eventType,
@@ -296,23 +335,27 @@ export class GovernanceService {
       metadata: event.metadata,
       payload: event.metadata, // Keep backward compatibility
       // Add fields expected by frontend for different event types
-      ...(mappedType === 'delegation' && event.metadata ? {
-        stake_address: event.metadata.stake_address,
-        current_drep: event.metadata.current_drep,
-        previous_drep: event.metadata.previous_drep,
-        total_stake: event.metadata.total_stake,
-        added_power: event.metadata.added_power,
-        delegation_epoch: event.epoch,
-        tx_hash: event.txHash
-      } : {}),
-      ...(mappedType === 'voting_activity' && event.metadata ? {
-        vote: event.metadata.vote,
-        gov_action_proposal_id: event.metadata.gov_action_proposal_id,
-        time_voted: event.timestamp,
-        voting_epoch: event.epoch,
-        url: event.metadata.url,
-        vote_rationale: event.metadata.vote_rationale
-      } : {})
+      ...(mappedType === 'delegation' && event.metadata
+        ? {
+            stake_address: event.metadata.stake_address,
+            current_drep: event.metadata.current_drep,
+            previous_drep: event.metadata.previous_drep,
+            total_stake: event.metadata.total_stake,
+            added_power: event.metadata.added_power,
+            delegation_epoch: event.epoch,
+            tx_hash: event.txHash,
+          }
+        : {}),
+      ...(mappedType === 'voting_activity' && event.metadata
+        ? {
+            vote: event.metadata.vote,
+            gov_action_proposal_id: event.metadata.gov_action_proposal_id,
+            time_voted: event.timestamp,
+            voting_epoch: event.epoch,
+            url: event.metadata.url,
+            vote_rationale: event.metadata.vote_rationale,
+          }
+        : {}),
     };
   }
 }

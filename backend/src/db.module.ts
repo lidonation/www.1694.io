@@ -17,7 +17,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         database: configService.get('DATABASE_NAME', '1694'),
         entities: [
           __dirname + '/entities/*.entity.{ts,js}',
-          __dirname + '/entities/governance/*.entity.{ts,js}'
+          __dirname + '/entities/governance/*.entity.{ts,js}',
         ],
         synchronize: false,
         migrations: [__dirname + '/migrations/*{.ts,.js}'],

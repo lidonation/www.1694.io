@@ -67,7 +67,7 @@ const Pagination = ({
         <Box className="flex flex-col items-end space-y-2">
           <Box className="flex items-center rounded-lg bg-gray-800 px-1 py-1">
             <Box
-              className={`flex items-center space-x-1 rounded-lg px-2 py-1 ${isFirstPage ? 'pointer-events-none text-destructive-300' : 'cursor-pointer text-bar_back hover:bg-primary-300'}`}
+              className={`flex items-center space-x-1 rounded-lg px-2 py-1 ${isFirstPage ? 'text-destructive-300 pointer-events-none' : 'text-bar_back hover:bg-primary-300 cursor-pointer'}`}
               onClick={() => moveToFirstPage(1)}
             >
               <ChevronsLeftIcon
@@ -77,7 +77,7 @@ const Pagination = ({
               <span className="text-xs font-medium">First</span>
             </Box>
             <Box
-              className={`flex items-center rounded-lg px-2 py-1 ${isFirstPage ? 'pointer-events-none' : 'cursor-pointer hover:bg-primary-300'}`}
+              className={`flex items-center rounded-lg px-2 py-1 ${isFirstPage ? 'pointer-events-none' : 'hover:bg-primary-300 cursor-pointer'}`}
               onClick={() =>
                 currentPage > 1 && moveToPreviousPage(currentPage - 1)
               }
@@ -88,11 +88,11 @@ const Pagination = ({
                 height={23}
               />
             </Box>
-            <Box className="cursor-default rounded-lg bg-primary-300 px-3  py-2 text-xs font-medium text-bar_back sm:mx-3">
+            <Box className="bg-primary-300 text-bar_back cursor-default rounded-lg px-3 py-2 text-xs font-medium sm:mx-3">
               <span>Page {currentPage}</span>
             </Box>
             <Box
-              className={`flex items-center rounded-lg px-2 py-1 ${isLastPage ? 'pointer-events-none' : 'cursor-pointer hover:bg-primary-300'}`}
+              className={`flex items-center rounded-lg px-2 py-1 ${isLastPage ? 'pointer-events-none' : 'hover:bg-primary-300 cursor-pointer'}`}
               onClick={() =>
                 currentPage < totalPages && moveToNextPage(currentPage + 1)
               }
@@ -106,8 +106,8 @@ const Pagination = ({
             <Box
               className={`flex items-center space-x-1 rounded-lg px-2 py-1 ${
                 isLastPage
-                  ? 'pointer-events-none text-destructive-300'
-                  : 'cursor-pointer text-bar_back hover:bg-primary-300'
+                  ? 'text-destructive-300 pointer-events-none'
+                  : 'text-bar_back hover:bg-primary-300 cursor-pointer'
               }`}
               onClick={() => moveToLastPage(totalPages)}
             >

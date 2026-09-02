@@ -11,7 +11,7 @@ import theme from '@/assets/theme';
 import ClientAnalyticsWrapper from '@/components/analytics/ClientAnalyticsWrapper';
 
 const poppins = Poppins({
-  weight: ['400',],
+  weight: ['400'],
   style: ['normal'],
   subsets: ['latin'],
   display: 'swap',
@@ -33,14 +33,14 @@ export const metadata = {
 async function RootLayout({ children, params }) {
   // Root layout component, sets up locale, loads messages, and wraps the app with providers.
   const { locale } = await params;
-  unstable_setRequestLocale(locale); 
-  if (!locales.variants.includes(locale)) notFound(); 
+  unstable_setRequestLocale(locale);
+  if (!locales.variants.includes(locale)) notFound();
 
   let messages;
   try {
     messages = (await import(`../../../messages/${locale}.json`)).default;
   } catch (error) {
-    notFound(); 
+    notFound();
   }
 
   return (

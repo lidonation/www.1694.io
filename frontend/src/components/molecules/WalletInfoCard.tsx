@@ -69,7 +69,7 @@ export const WalletInfoCard = ({ test_name }: WalletInfoCardProps) => {
           <ConnectedWalletCard />
 
           <div className="w-fit">
-            <Box className="rounded-3xl bg-primary-300 px-2">
+            <Box className="bg-primary-300 rounded-3xl px-2">
               {' '}
               {showDetails ? (
                 <img
@@ -93,9 +93,9 @@ export const WalletInfoCard = ({ test_name }: WalletInfoCardProps) => {
           style={{ transformOrigin: 'top center' }}
           {...(showDetails ? { timeout: 300 } : {})}
         >
-          <Box className="absolute left-0 right-0 z-50">
+          <Box className="absolute right-0 left-0 z-50">
             <DelegatedTo className="mt-1 rounded-t-3xl" />
-            <Box className="flex w-full justify-end rounded-b-3xl bg-extra_gray p-1.5 shadow">
+            <Box className="bg-extra_gray flex w-full justify-end rounded-b-3xl p-1.5 shadow">
               <Button
                 size="small"
                 sx={{

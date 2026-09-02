@@ -1,14 +1,14 @@
-# Contributing to the `xxxx` project
+# Contributing to the 1694.io project
 
-Thanks for considering contributing and helping us on creating xxxx! 😎
+Thanks for considering contributing to 1694.io! 😎
 
 The best way to contribute right now is to try things out and provide feedback, but we also accept contributions to the documentation and the obviously to the code itself.
 
-This document contains guidelines to help you get started and how to make sure your contribution gets accepted, making you our newest xxxx contributor!
+This document contains guidelines to help you get started and how to make sure your contribution gets accepted, making you our newest 1694.io contributor!
 
 ## Table of Contents
 
-- [Contributing to the `xxxx` project](#contributing-to-the-xxxx-project)
+- [Contributing to the 1694.io project](#contributing-to-the-1694io-project)
   - [Table of Contents](#table-of-contents)
   - [Code of Conduct](#code-of-conduct)
   - [Ask for Help](#ask-for-help)
@@ -39,7 +39,7 @@ This document contains guidelines to help you get started and how to make sure y
 
 ## Code of Conduct
 
-This project and everyone participating in it is governed by the [Code of Conduct](./CODE-OF-CONDUCT.md).
+This project and everyone participating in it is governed by the [Code of Conduct](./CODE_OF_CONDUCT.md).
 By participating, you are expected to uphold this code.
 
 ## Ask for Help
@@ -48,8 +48,9 @@ See [`SUPPORT.md`](./SUPPORT.md) should you have any questions or need some help
 
 ## Roles and Responsibilities
 
-We maintain a [CODEOWNERS file](./CODEOWNERS) which provides information who should review a contributing PR.
-Note that you might need to get approvals from all code owners (even though GitHub doesn't give a way to enforce it).
+Roles, decision making and the maintainer nomination process are described in
+[GOVERNANCE.md](./GOVERNANCE.md); the people currently holding each role are
+listed in [MAINTAINERS.md](./MAINTAINERS.md).
 
 ## I Want To Contribute
 
@@ -77,7 +78,7 @@ Please complete the following steps in advance to help us fix any potential bug 
 
 We use GitHub issues to track bugs and errors. If you run into an issue with the project:
 
-- Open an [Issue](https://github.com/IntersectMBO/xxxx/issues/new).
+- Open an [Issue](https://github.com/lidonation/www.1694.io/issues/new/choose).
   (Since we can't be sure at this point whether it is a bug or not, we ask you not to talk about a bug yet and not to label the issue.)
 - Explain the behavior you would expect and the actual behavior.
 - Please provide as much context as possible.

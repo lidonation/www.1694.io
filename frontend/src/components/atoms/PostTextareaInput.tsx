@@ -97,7 +97,7 @@ const CustomToolbar: FC<{ editor: MDXEditorMethods }> = ({ editor }) => {
                 src="/svgs/paperclip.svg"
                 ref={dropdownRef}
                 alt="expand"
-                className={`h-5 w-5 transform transition-transform `}
+                className={`h-5 w-5 transform transition-transform`}
               />
             }
             title={'Add Attachment'}
@@ -141,7 +141,7 @@ const Editor: FC<EditorProps> = ({
   return (
     <div className="relative flex flex-col items-start justify-center">
       <label>{label}</label>
-      <div className="flex min-h-40 w-full items-center justify-center rounded-bl-xl rounded-br-xl border-b border-l border-r border-zinc-100">
+      <div className="flex min-h-40 w-full items-center justify-center rounded-br-xl rounded-bl-xl border-r border-b border-l border-zinc-100">
         <MDXEditor
           onChange={(content) => onChange(content)}
           ref={editorRef}

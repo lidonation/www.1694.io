@@ -4,11 +4,7 @@ import { DataSource } from 'typeorm';
 import { BlockfrostService } from 'src/blockfrost/blockfrost.service';
 import { BlockfrostBlockRes, Metrics } from 'src/common/types';
 
-import {
-  BlockfrostUTXO,
-  DbSyncUTXO,
-  StandardizedUTXO,
-} from './misc.types';
+import { BlockfrostUTXO, DbSyncUTXO, StandardizedUTXO } from './misc.types';
 import { catchError, firstValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 import { Response } from 'express';
@@ -22,7 +18,7 @@ export class MiscellaneousService {
     private blockfrostService: BlockfrostService,
     private ipfsService: IpfsService,
     private httpService: HttpService,
-  ) { }
+  ) {}
   async getFirstEpoch() {
     try {
       return await this.blockfrostService.getLatestEpoch();
@@ -43,8 +39,6 @@ export class MiscellaneousService {
       return false;
     }
   }
-
-
 
   async getProposalMetadataByHash(hash: string) {
     // Use Blockfrost to get proposal metadata
@@ -225,7 +219,7 @@ export class MiscellaneousService {
 
         const errors = results
           .filter((result) => result.status === 'rejected')
-          .map((result) => (result as PromiseRejectedResult).reason.message);
+          .map((result) => result.reason.message);
 
         throw new Error(`All IPFS gateways failed: ${errors.join(', ')}`);
       } catch (error) {

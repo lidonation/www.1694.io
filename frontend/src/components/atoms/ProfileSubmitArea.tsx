@@ -90,12 +90,12 @@ const ProfileSubmitArea = ({
             }
           }
         >
-          <p className="px-5 text-center text-sm font-medium leading-4">
+          <p className="px-5 text-center text-sm leading-4 font-medium">
             {isFetchingMetadataForClaim ? (
               <CircularProgress
                 size={20}
                 color="inherit"
-                className="text-white place-self-center"
+                className="place-self-center text-white"
               />
             ) : !isUpdate ? (
               'Create'
@@ -106,8 +106,8 @@ const ProfileSubmitArea = ({
         </Button>
         <Button
           handleClick={handleNavigate}
-          variant='outlined'
-          bgcolor='transparent'
+          variant="outlined"
+          bgcolor="transparent"
           id="next_button"
           sx={
             (!isConnected || isDisabled || isFetchingMetadataForClaim) && {
@@ -115,7 +115,7 @@ const ProfileSubmitArea = ({
             }
           }
         >
-          <p className="px-5 text-center text-sm font-medium leading-4 text-blue-800">
+          <p className="px-5 text-center text-sm leading-4 font-medium text-blue-800">
             {isUpdate ? 'Next' : 'Cancel'}
           </p>
         </Button>

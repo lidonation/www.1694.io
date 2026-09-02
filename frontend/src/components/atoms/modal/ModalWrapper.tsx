@@ -80,7 +80,7 @@ export function ModalWrapper({
             style={modalStyle}
           >
             {variant !== 'popup' && !hideCloseButton && (
-              <div className="absolute right-6 top-6 cursor-pointer">
+              <div className="absolute top-6 right-6 cursor-pointer">
                 <img
                   data-testid={'close-modal-button'}
                   src="/svgs/close.svg"

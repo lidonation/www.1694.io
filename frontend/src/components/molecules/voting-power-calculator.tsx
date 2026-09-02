@@ -1,6 +1,12 @@
 'use client';
 import React, { useState } from 'react';
-import { Box, TextField, Typography, Paper, InputAdornment } from '@mui/material';
+import {
+  Box,
+  TextField,
+  Typography,
+  Paper,
+  InputAdornment,
+} from '@mui/material';
 import { useGetMetricsQuery } from '@/hooks/useGetMetricsQuery';
 import { AnimatedCounter } from '../atoms/AnimatedCounter';
 
@@ -20,22 +26,37 @@ const VotingPowerCalculator = () => {
 
   if (isMetricsLoading) {
     return (
-      <Paper elevation={0} className="p-6 rounded-2xl border border-violet-100 bg-violet-50/30 animate-pulse">
-        <Box sx={{ height: 120, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Typography className="text-violet-300">Loading network metrics...</Typography>
+      <Paper
+        elevation={0}
+        className="animate-pulse rounded-2xl border border-violet-100 bg-violet-50/30 p-6"
+      >
+        <Box
+          sx={{
+            height: 120,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Typography className="text-violet-300">
+            Loading network metrics...
+          </Typography>
         </Box>
       </Paper>
     );
   }
 
   return (
-    <Paper elevation={0} className="p-6 rounded-2xl border border-violet-100 bg-violet-50/30">
-      <Typography variant="h6" className="font-bold text-violet-900 mb-4">
+    <Paper
+      elevation={0}
+      className="rounded-2xl border border-violet-100 bg-violet-50/30 p-6"
+    >
+      <Typography variant="h6" className="mb-4 font-bold text-violet-900">
         Voting Power Calculator
       </Typography>
 
-      <div className="flex flex-col md:flex-row gap-6 items-center">
-        <div className="flex-1 w-full">
+      <div className="flex flex-col items-center gap-6 md:flex-row">
+        <div className="w-full flex-1">
           <TextField
             fullWidth
             label="Your ADA Amount"
@@ -44,38 +65,47 @@ const VotingPowerCalculator = () => {
             onChange={(e) => setAdaAmount(e.target.value)}
             placeholder="e.g. 10,000"
             InputProps={{
-              startAdornment: <InputAdornment position="start">₳</InputAdornment>,
+              startAdornment: (
+                <InputAdornment position="start">₳</InputAdornment>
+              ),
             }}
             sx={{
               '& .MuiOutlinedInput-root': {
                 borderRadius: '12px',
                 backgroundColor: 'white',
-              }
+              },
             }}
           />
-          <Typography variant="caption" className="text-zinc-500 mt-2 block">
+          <Typography variant="caption" className="mt-2 block text-zinc-500">
             Enter your ADA balance to see your potential governance share.
           </Typography>
         </div>
 
-        <div className="flex-1 flex flex-col items-center justify-center p-4 bg-white rounded-2xl border border-violet-100 shadow-sm w-full min-h-[120px]">
-          <div className="text-3xl font-black text-violet-600 flex items-baseline">
-            <AnimatedCounter 
-              value={share} 
-              format={adaAmount ? "(,ddd).dddddddd" : "(,ddd)"} 
+        <div className="flex min-h-[120px] w-full flex-1 flex-col items-center justify-center rounded-2xl border border-violet-100 bg-white p-4 shadow-sm">
+          <div className="flex items-baseline text-3xl font-black text-violet-600">
+            <AnimatedCounter
+              value={share}
+              format={adaAmount ? '(,ddd).dddddddd' : '(,ddd)'}
             />
-            <span className="text-lg ml-1">%</span>
+            <span className="ml-1 text-lg">%</span>
           </div>
-          <Typography variant="caption" className="font-bold text-zinc-400 uppercase tracking-widest mt-1">
+          <Typography
+            variant="caption"
+            className="mt-1 font-bold tracking-widest text-zinc-400 uppercase"
+          >
             Your Share of Governance
           </Typography>
         </div>
       </div>
 
-      <Box className="mt-4 p-3 rounded-lg bg-white/50 border border-violet-50 text-xs text-zinc-600 leading-relaxed">
-        <strong>How it works:</strong> Your share is calculated based on the total active voting power currently delegated to DReps
-        (<span className="font-mono">{totalVotingPower?.toLocaleString() ?? '0'} ₳</span>).
-        The higher your share, the more impact your delegation has on the ratification of governance actions.
+      <Box className="mt-4 rounded-lg border border-violet-50 bg-white/50 p-3 text-xs leading-relaxed text-zinc-600">
+        <strong>How it works:</strong> Your share is calculated based on the
+        total active voting power currently delegated to DReps (
+        <span className="font-mono">
+          {totalVotingPower?.toLocaleString() ?? '0'} ₳
+        </span>
+        ). The higher your share, the more impact your delegation has on the
+        ratification of governance actions.
       </Box>
     </Paper>
   );

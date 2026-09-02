@@ -1,6 +1,8 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddGovernanceSyncTables1764661680000 implements MigrationInterface {
+export class AddGovernanceSyncTables1764661680000
+  implements MigrationInterface
+{
   name = 'AddGovernanceSyncTables1764661680000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -21,11 +23,19 @@ export class AddGovernanceSyncTables1764661680000 implements MigrationInterface 
     `);
 
     // Create indexes for dreps
-    await queryRunner.query(`CREATE UNIQUE INDEX "idx_drep_id" ON "dreps" ("drep_id")`);
+    await queryRunner.query(
+      `CREATE UNIQUE INDEX "idx_drep_id" ON "dreps" ("drep_id")`,
+    );
     await queryRunner.query(`CREATE INDEX "idx_drep_hex" ON "dreps" ("hex")`);
-    await queryRunner.query(`CREATE INDEX "idx_drep_retired" ON "dreps" ("retired")`);
-    await queryRunner.query(`CREATE INDEX "idx_drep_expired" ON "dreps" ("expired")`);
-    await queryRunner.query(`CREATE INDEX "idx_drep_active_epoch" ON "dreps" ("last_active_epoch")`);
+    await queryRunner.query(
+      `CREATE INDEX "idx_drep_retired" ON "dreps" ("retired")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_drep_expired" ON "dreps" ("expired")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_drep_active_epoch" ON "dreps" ("last_active_epoch")`,
+    );
 
     // Create drep_delegators table
     await queryRunner.query(`
@@ -41,11 +51,21 @@ export class AddGovernanceSyncTables1764661680000 implements MigrationInterface 
     `);
 
     // Create indexes for drep_delegators
-    await queryRunner.query(`CREATE UNIQUE INDEX "idx_drep_delegator_composite" ON "drep_delegators" ("drep_id", "stake_address")`);
-    await queryRunner.query(`CREATE INDEX "idx_drep_delegator_drep" ON "drep_delegators" ("drep_id")`);
-    await queryRunner.query(`CREATE INDEX "idx_drep_delegator_stake" ON "drep_delegators" ("stake_address")`);
-    await queryRunner.query(`CREATE INDEX "idx_drep_delegator_amount" ON "drep_delegators" ("amount_lovelace")`);
-    await queryRunner.query(`CREATE INDEX "idx_drep_delegator_voting_power" ON "drep_delegators" ("voting_power_lovelace")`);
+    await queryRunner.query(
+      `CREATE UNIQUE INDEX "idx_drep_delegator_composite" ON "drep_delegators" ("drep_id", "stake_address")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_drep_delegator_drep" ON "drep_delegators" ("drep_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_drep_delegator_stake" ON "drep_delegators" ("stake_address")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_drep_delegator_amount" ON "drep_delegators" ("amount_lovelace")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_drep_delegator_voting_power" ON "drep_delegators" ("voting_power_lovelace")`,
+    );
 
     // Create proposals table
     await queryRunner.query(`
@@ -69,13 +89,27 @@ export class AddGovernanceSyncTables1764661680000 implements MigrationInterface 
     `);
 
     // Create indexes for proposals
-    await queryRunner.query(`CREATE UNIQUE INDEX "idx_proposal_id" ON "proposals" ("id")`);
-    await queryRunner.query(`CREATE UNIQUE INDEX "idx_proposal_tx" ON "proposals" ("tx_hash", "cert_index")`);
-    await queryRunner.query(`CREATE INDEX "idx_proposal_type" ON "proposals" ("governance_type")`);
-    await queryRunner.query(`CREATE INDEX "idx_proposal_ratified" ON "proposals" ("ratified_epoch")`);
-    await queryRunner.query(`CREATE INDEX "idx_proposal_enacted" ON "proposals" ("enacted_epoch")`);
-    await queryRunner.query(`CREATE INDEX "idx_proposal_dropped" ON "proposals" ("dropped_epoch")`);
-    await queryRunner.query(`CREATE INDEX "idx_proposal_expired" ON "proposals" ("expired_epoch")`);
+    await queryRunner.query(
+      `CREATE UNIQUE INDEX "idx_proposal_id" ON "proposals" ("id")`,
+    );
+    await queryRunner.query(
+      `CREATE UNIQUE INDEX "idx_proposal_tx" ON "proposals" ("tx_hash", "cert_index")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_proposal_type" ON "proposals" ("governance_type")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_proposal_ratified" ON "proposals" ("ratified_epoch")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_proposal_enacted" ON "proposals" ("enacted_epoch")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_proposal_dropped" ON "proposals" ("dropped_epoch")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_proposal_expired" ON "proposals" ("expired_epoch")`,
+    );
 
     // Create proposal_metadata table
     await queryRunner.query(`
@@ -94,9 +128,15 @@ export class AddGovernanceSyncTables1764661680000 implements MigrationInterface 
     `);
 
     // Create indexes for proposal_metadata
-    await queryRunner.query(`CREATE INDEX "idx_proposal_metadata_proposal" ON "proposal_metadata" ("proposal_id")`);
-    await queryRunner.query(`CREATE INDEX "idx_proposal_metadata_url" ON "proposal_metadata" ("url")`);
-    await queryRunner.query(`CREATE INDEX "idx_proposal_metadata_version" ON "proposal_metadata" ("version")`);
+    await queryRunner.query(
+      `CREATE INDEX "idx_proposal_metadata_proposal" ON "proposal_metadata" ("proposal_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_proposal_metadata_url" ON "proposal_metadata" ("url")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_proposal_metadata_version" ON "proposal_metadata" ("version")`,
+    );
 
     // Create proposal_votes table
     await queryRunner.query(`
@@ -115,11 +155,21 @@ export class AddGovernanceSyncTables1764661680000 implements MigrationInterface 
     `);
 
     // Create indexes for proposal_votes
-    await queryRunner.query(`CREATE INDEX "idx_proposal_vote_proposal" ON "proposal_votes" ("proposal_id")`);
-    await queryRunner.query(`CREATE INDEX "idx_proposal_vote_voter" ON "proposal_votes" ("voter")`);
-    await queryRunner.query(`CREATE INDEX "idx_proposal_vote_role" ON "proposal_votes" ("voter_role")`);
-    await queryRunner.query(`CREATE UNIQUE INDEX "idx_proposal_vote_composite" ON "proposal_votes" ("proposal_id", "voter")`);
-    await queryRunner.query(`CREATE INDEX "idx_proposal_vote_tx" ON "proposal_votes" ("tx_hash", "cert_index")`);
+    await queryRunner.query(
+      `CREATE INDEX "idx_proposal_vote_proposal" ON "proposal_votes" ("proposal_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_proposal_vote_voter" ON "proposal_votes" ("voter")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_proposal_vote_role" ON "proposal_votes" ("voter_role")`,
+    );
+    await queryRunner.query(
+      `CREATE UNIQUE INDEX "idx_proposal_vote_composite" ON "proposal_votes" ("proposal_id", "voter")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "idx_proposal_vote_tx" ON "proposal_votes" ("tx_hash", "cert_index")`,
+    );
 
     // Note: drep_timeline_event now uses unified schema with metadata JSONB column
     // No additional columns needed as all event data is stored in metadata
@@ -149,9 +199,15 @@ export class AddGovernanceSyncTables1764661680000 implements MigrationInterface 
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     // Remove foreign key constraints first
-    await queryRunner.query(`ALTER TABLE "proposal_votes" DROP CONSTRAINT IF EXISTS "FK_proposal_votes_proposal_id"`);
-    await queryRunner.query(`ALTER TABLE "proposal_metadata" DROP CONSTRAINT IF EXISTS "FK_proposal_metadata_proposal_id"`);
-    await queryRunner.query(`ALTER TABLE "drep_delegators" DROP CONSTRAINT IF EXISTS "FK_drep_delegators_drep_id"`);
+    await queryRunner.query(
+      `ALTER TABLE "proposal_votes" DROP CONSTRAINT IF EXISTS "FK_proposal_votes_proposal_id"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "proposal_metadata" DROP CONSTRAINT IF EXISTS "FK_proposal_metadata_proposal_id"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "drep_delegators" DROP CONSTRAINT IF EXISTS "FK_drep_delegators_drep_id"`,
+    );
 
     // Note: drep_timeline_event uses unified schema - no additional columns to drop
 

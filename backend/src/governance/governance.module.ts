@@ -22,9 +22,9 @@ import { BlockfrostModule } from '../blockfrost/blockfrost.module';
         DrepDelegator,
         Proposal,
         ProposalMetadata,
-        ProposalVote
-      ], 
-      'default'
+        ProposalVote,
+      ],
+      'default',
     ),
   ],
   providers: [GovernanceService],

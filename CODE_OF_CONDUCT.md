@@ -60,7 +60,10 @@ representative at an online or offline event.
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
 reported to the community leaders responsible for enforcement at
-[XXXX@intersectmbo.org](XXXX@intersectmbo.org).
+the project maintainers. The fastest route is to open a
+[private security advisory](https://github.com/lidonation/www.1694.io/security/advisories/new)
+on the public mirror, which is visible only to the maintainers, or to contact a
+maintainer listed in [MAINTAINERS.md](./MAINTAINERS.md) directly.
 All complaints will be reviewed and investigated promptly and fairly.
 
 All community leaders are obligated to respect the privacy and security of the

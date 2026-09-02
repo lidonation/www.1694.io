@@ -27,10 +27,10 @@ function TimerCountDown({ minutes }: TimerCountDownProps) {
   const { minutes: minutesLeft, seconds: secondsLeft } = formatTime(timeLeft);
 
   return (
-    <div className=" flex w-full items-start justify-center gap-4">
+    <div className="flex w-full items-start justify-center gap-4">
       <div className="timer w-16">
         <div className="">
-          <h3 className="text-center text-3xl font-bold text-primary-300">
+          <h3 className="text-primary-300 text-center text-3xl font-bold">
             {minutesLeft}
           </h3>
         </div>
@@ -42,7 +42,7 @@ function TimerCountDown({ minutes }: TimerCountDownProps) {
       <h3 className="text-2xl font-bold text-gray-900">:</h3>
       <div className="timer w-16">
         <div className="">
-          <h3 className="text-center text-3xl font-bold text-primary-300">
+          <h3 className="text-primary-300 text-center text-3xl font-bold">
             {secondsLeft}
           </h3>
         </div>

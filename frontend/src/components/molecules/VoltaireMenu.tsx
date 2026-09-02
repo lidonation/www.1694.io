@@ -132,9 +132,9 @@ export default function VoltaireMenu() {
                         />
                       </div>
                     </Box>
-                    <Box className="flex flex-col text-wrap text-complementary-500">
+                    <Box className="text-complementary-500 flex flex-col text-wrap">
                       <p className="p-0 text-base font-normal">{item.label}</p>
-                      <p className="text-xs font-normal leading-4">
+                      <p className="text-xs leading-4 font-normal">
                         {item.text}
                       </p>
                     </Box>
@@ -142,7 +142,7 @@ export default function VoltaireMenu() {
                 </MenuItem>
               </a>
             ))}
-            <div className="absolute inset-y-0 left-1/2 hidden w-px bg-destructive-200 sm:block"></div>
+            <div className="bg-destructive-200 absolute inset-y-0 left-1/2 hidden w-px sm:block"></div>
           </Box>
         </Menu>
       )}

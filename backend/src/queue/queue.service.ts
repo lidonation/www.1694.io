@@ -16,11 +16,18 @@ export class QueueService {
    * @param data The data to be processed by the job.
    * @param options Optional job options including repeat patterns
    */
-  async addToQueue<T>(queue: Queues, jobPayload: QueueJob<T>, options?: { repeat?: { pattern: string } }) {
+  async addToQueue<T>(
+    queue: Queues,
+    jobPayload: QueueJob<T>,
+    options?: { repeat?: { pattern: string } },
+  ) {
     if (queue === Queues.DREP_CLAIM) {
-      return await this.drepClaimQueue.add(jobPayload.name, jobPayload.data, options);
+      return await this.drepClaimQueue.add(
+        jobPayload.name,
+        jobPayload.data,
+        options,
+      );
     }
     throw new Error(`Queue ${queue} is not supported by backend`);
   }
 }
-

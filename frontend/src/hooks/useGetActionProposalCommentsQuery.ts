@@ -7,7 +7,7 @@ export const useGetActionProposalCommentsQuery = (id: number) => {
   const { data, isLoading } = useQuery({
     queryKey: [QUERY_KEYS.getActionProposalCommentsKey, id],
     queryFn: async () => await getActionProposalComments(id),
-    enabled: typeof window !== "undefined",
+    enabled: typeof window !== 'undefined',
     refetchOnWindowFocus: false,
   });
 

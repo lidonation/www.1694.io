@@ -1,31 +1,30 @@
-import { Module } from "@nestjs/common";
-import { HttpModule } from "@nestjs/axios";
-import { AppService } from "./app.service";
-import { BullModule } from "@nestjs/bullmq";
-import { Queues } from "./queue.types";
+import { Module } from '@nestjs/common';
+import { HttpModule } from '@nestjs/axios';
+import { AppService } from './app.service';
+import { BullModule } from '@nestjs/bullmq';
+import { Queues } from './queue.types';
 import {
   DEFAULT_ATTEMPTS,
   MAX_COMPLETED_JOB_AGE,
   MAX_COMPLETED_JOBS,
   MAX_FAILED_JOB_AGE,
   MAX_FAILED_JOBS,
-} from "./queue.constants";
-import { ConfigModule, ConfigService } from "@nestjs/config";
-import { DrepClaimWorker } from "./workers/drep-claim.worker";
-import { StakeSyncWorker } from "./workers/stake-sync.worker";
-import { GovernanceSyncWorker } from "./workers/governance-sync.worker";
-import { DrepVotesSyncWorker } from "./workers/drep-votes-sync.worker";
-import { ProposalsSyncWorker } from "./workers/proposals-sync.worker";
-import { TimelineWatcherWorker } from "./workers/timeline-watcher.worker";
-import { JobSchedulerModule } from "./scheduler/job-scheduler.module";
-import { BullBoardModule } from "@bull-board/nestjs";
-import { ExpressAdapter } from "@bull-board/express";
-import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
-import { BlockfrostModule } from "./blockfrost/blockfrost.module";
-import { TypeOrmModule } from "@nestjs/typeorm";
-import { GovernanceModule } from "./governance/governance.module";
-import { SyncTriggerController } from "./sync-trigger.controller";
-
+} from './queue.constants';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { DrepClaimWorker } from './workers/drep-claim.worker';
+import { StakeSyncWorker } from './workers/stake-sync.worker';
+import { GovernanceSyncWorker } from './workers/governance-sync.worker';
+import { DrepVotesSyncWorker } from './workers/drep-votes-sync.worker';
+import { ProposalsSyncWorker } from './workers/proposals-sync.worker';
+import { TimelineWatcherWorker } from './workers/timeline-watcher.worker';
+import { JobSchedulerModule } from './scheduler/job-scheduler.module';
+import { BullBoardModule } from '@bull-board/nestjs';
+import { ExpressAdapter } from '@bull-board/express';
+import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
+import { BlockfrostModule } from './blockfrost/blockfrost.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { GovernanceModule } from './governance/governance.module';
+import { SyncTriggerController } from './sync-trigger.controller';
 
 @Module({
   imports: [
@@ -41,9 +40,9 @@ import { SyncTriggerController } from "./sync-trigger.controller";
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         connection: {
-          host: configService.get<string>("REDIS_HOST") || "localhost",
-          port: configService.get<number>("REDIS_PORT") || 6379,
-          password: configService.get<string>("REDIS_PASSWORD"),
+          host: configService.get<string>('REDIS_HOST') || 'localhost',
+          port: configService.get<number>('REDIS_PORT') || 6379,
+          password: configService.get<string>('REDIS_PASSWORD'),
         },
         defaultJobOptions: {
           removeOnComplete: {
@@ -77,11 +76,11 @@ import { SyncTriggerController } from "./sync-trigger.controller";
       name: Queues.TIMELINE_WATCHER,
     }),
     BullBoardModule.forRoot({
-      route: "/queues",
+      route: '/queues',
       adapter: ExpressAdapter,
       boardOptions: {
         uiConfig: {
-          boardTitle: "Queue Dashboard",
+          boardTitle: 'Queue Dashboard',
           pollingInterval: {
             showSetting: false,
             forceInterval: 1000, // 1 second
@@ -116,14 +115,14 @@ import { SyncTriggerController } from "./sync-trigger.controller";
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      name: "default",
+      name: 'default',
       useFactory: (configService: ConfigService) => ({
-        type: "postgres",
-        host: configService.get("DATABASE_HOST", "web_db"),
-        port: +configService.get("DATABASE_PORT", 5432),
-        username: configService.get("DATABASE_USERNAME", "voltaire"),
-        password: configService.get("DATABASE_PASSWORD", "postgres"),
-        database: configService.get("DATABASE_NAME", "1694"),
+        type: 'postgres',
+        host: configService.get('DATABASE_HOST', 'web_db'),
+        port: +configService.get('DATABASE_PORT', 5432),
+        username: configService.get('DATABASE_USERNAME', 'voltaire'),
+        password: configService.get('DATABASE_PASSWORD', 'postgres'),
+        database: configService.get('DATABASE_NAME', '1694'),
         autoLoadEntities: true,
         synchronize: false,
       }),
@@ -137,8 +136,7 @@ import { SyncTriggerController } from "./sync-trigger.controller";
     GovernanceSyncWorker,
     DrepVotesSyncWorker,
     ProposalsSyncWorker,
-    TimelineWatcherWorker
+    TimelineWatcherWorker,
   ],
 })
 export class AppModule {}
-

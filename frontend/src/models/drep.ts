@@ -4,7 +4,7 @@ export interface drepInput {
   signatures: {
     signature: string;
     key: string;
-    type: string
+    type: string;
   }[];
   drep_bech32: string;
 }

@@ -125,7 +125,7 @@ export class AuthenticationService {
     const { decodeToken } = await import('@/lib');
     const existingToken = getItemFromLocalStorage(LOGIN_TOKEN_1694);
     let isTokenValid = false;
-    
+
     if (existingToken) {
       const { isExpired } = decodeToken(existingToken);
       isTokenValid = !isExpired;
@@ -137,7 +137,7 @@ export class AuthenticationService {
       if (provider.reconnect) {
         try {
           const result = await provider.reconnect({ silent: isTokenValid });
-          
+
           if (result.success) {
             this.setActiveProvider(lastProvider);
             if (result.walletApi) {
@@ -152,10 +152,13 @@ export class AuthenticationService {
                 method: lastProvider as AuthMethod,
               });
               if (loginRes.success) {
-                setItemToLocalStorage(LOGIN_TOKEN_1694, loginRes.response.access_token);
+                setItemToLocalStorage(
+                  LOGIN_TOKEN_1694,
+                  loginRes.response.access_token,
+                );
               }
             }
-            
+
             return result;
           }
         } catch (error) {

@@ -10,7 +10,7 @@ export const useGetUserNotificationQuery = ({
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['notifications', recipientId],
     queryFn: async () => await getUserNotifications({ recipientId }),
-    enabled: typeof window !== "undefined" && (!!recipientId),
+    enabled: typeof window !== 'undefined' && !!recipientId,
   });
 
   return { notifications: data, loading: isLoading, refetch };

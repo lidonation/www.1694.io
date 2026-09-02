@@ -27,10 +27,7 @@ function DRepIdHolder({
       </p>
       <CopyToClipboard
         text={drepId}
-        
-        onCopy={() => {
-
-        }}
+        onCopy={() => {}}
         className={`clipboard-text flex-shrink-0 cursor-pointer rounded-xl px-1 hover:bg-blue-100 ${loading && 'hidden'}`}
       >
         <img src="/svgs/copy.svg" alt="copy" />

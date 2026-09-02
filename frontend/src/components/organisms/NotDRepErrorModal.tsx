@@ -14,13 +14,8 @@ export function NotDRepErrorModal({
   onCancel = () => {},
   onClose = () => {},
 }: NotDRepErrorModalProps) {
-
-
   return (
-    <ModalWrapper
-      dataTestId="not-drep-error-modal"
-      onClose={onClose}
-    >
+    <ModalWrapper dataTestId="not-drep-error-modal" onClose={onClose}>
       <ModalHeader
         sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
       >
@@ -51,7 +46,7 @@ export function NotDRepErrorModal({
           >
             You seem to not have yet registered as a DRep as your DRep ID is
             required to proceed. <br />
-            <span className='text-sm font-bold'>
+            <span className="text-sm font-bold">
               You may still proceed with the registration process but keep in
               mind that you will be required to identify yourself as a DRep.
             </span>

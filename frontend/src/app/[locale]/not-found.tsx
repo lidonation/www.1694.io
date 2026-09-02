@@ -16,7 +16,7 @@ function NotFound() {
             This Page could not be found.
           </h2>
         </div>
-        <p className="rounded bg-primary-100 px-2 py-1 text-base font-medium">
+        <p className="bg-primary-100 rounded px-2 py-1 text-base font-medium">
           URL: {pathname}
         </p>
       </div>

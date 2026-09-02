@@ -8,4 +8,4 @@ export const getUserNotifications = async ({
 }) => {
   const response = await axiosInstance.get(`/notifications/${recipientId}/all`);
   return response.data as Notification[];
-}
+};

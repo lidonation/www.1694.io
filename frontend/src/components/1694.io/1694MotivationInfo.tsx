@@ -57,7 +57,7 @@ const CIPMotivationInfo = () => {
                   The on-chain Cardano governance mechanism that was introduced
                   in the Shelley ledger era is capable of:
                 </p>
-                <ul className="ml-5 mt-2 flex list-decimal flex-col gap-2">
+                <ul className="mt-2 ml-5 flex list-decimal flex-col gap-2">
                   <li>
                     modifying the values of the protocol parameters (including
                     initiating "hard forks")
@@ -148,7 +148,7 @@ const CIPMotivationInfo = () => {
                 address a number of shortcomings with that design that are
                 apparent as we move into Voltaire.
               </p>
-              <ul className="ml-5 mt-2 flex list-decimal flex-col gap-2">
+              <ul className="mt-2 ml-5 flex list-decimal flex-col gap-2">
                 <li>
                   The Shelley governance design gives no room for active
                   on-chain participation of Ada holders. While changes to the

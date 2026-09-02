@@ -11,7 +11,7 @@ const UpdateNotePostForm = ({
   errors,
   createdAt,
   isLoading,
-  isDisabled
+  isDisabled,
 }) => {
   return (
     <div className="mt-3 flex flex-col gap-3">
@@ -35,8 +35,16 @@ const UpdateNotePostForm = ({
         isDisabled={isDisabled}
       />
       <MarkdownEditor name="postText" control={control} errors={errors} />
-      <PostVisiblityInput registerVisibility={register} errors={errors}  isDisabled={isDisabled}/>
-      <PostSubmitArea isUpdating={true} noteCreatedAt={createdAt} isLoading={isLoading} />
+      <PostVisiblityInput
+        registerVisibility={register}
+        errors={errors}
+        isDisabled={isDisabled}
+      />
+      <PostSubmitArea
+        isUpdating={true}
+        noteCreatedAt={createdAt}
+        isLoading={isLoading}
+      />
     </div>
   );
 };

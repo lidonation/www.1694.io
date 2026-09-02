@@ -18,7 +18,7 @@ function BreadCrumbs({ crumbs }: BreadCrumbsProps) {
   return (
     <nav aria-label="Breadcrumb" className="w-full border-b border-gray-300">
       <div className="base_container">
-        <ol className="inline-flex items-center space-x-1 px-1 py-2 md:space-x-2 rtl:space-x-reverse ">
+        <ol className="inline-flex items-center space-x-1 px-1 py-2 md:space-x-2 rtl:space-x-reverse">
           <li className="inline-flex items-center">
             {crumbs?.length > 0 ? (
               <Link

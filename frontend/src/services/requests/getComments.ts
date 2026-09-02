@@ -1,6 +1,8 @@
-import axiosInstance from "../axiosInstance";
+import axiosInstance from '../axiosInstance';
 
 export const getComments = async (parentId: number, parentEntity: string) => {
-    const response = await axiosInstance.get(`/comments/${parentId}/${parentEntity}`);
-    return response.data;
-}
+  const response = await axiosInstance.get(
+    `/comments/${parentId}/${parentEntity}`,
+  );
+  return response.data;
+};

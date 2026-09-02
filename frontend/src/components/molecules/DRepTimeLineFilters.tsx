@@ -87,7 +87,7 @@ export default function DRepTimeLIneFilters() {
           alt="Filter Sort"
         />
         <Grow in={isFiltering}>
-          <div className="absolute right-0 top-0">
+          <div className="absolute top-0 right-0">
             <DotIcon color="#f97316" width={17} height={17} />
           </div>
         </Grow>

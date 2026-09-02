@@ -23,8 +23,7 @@ spec:
         app: "nextjs"
         service: "{{ .Values.frontend.labels.service }}"
     spec:
-      imagePullSecrets:
-        - name: {{ .Values.image.pullSecret }}
+      # No imagePullSecrets: pulls authenticate at the node level (k3s registries.yaml).
       containers:
         - name: app
           image: "{{ .Values.frontend.image.repository }}:{{ .Values.image.tag }}"

@@ -47,7 +47,9 @@ function ProposalCard({ proposal }: { proposal: any }) {
   const { wallet } = useWallet();
 
   const budgetRequested = Number(proposal?.adaAmount) || 0;
-  const formattedBudget = new Intl.NumberFormat('en-US').format(budgetRequested);
+  const formattedBudget = new Intl.NumberFormat('en-US').format(
+    budgetRequested,
+  );
   const proposalBenefit = proposal?.proposalBenefit || 'No benefit info';
   const username = proposal?.govToolUserName || 'anonymous';
   const { data: proposalMetrics } = useUserParticipationQuery(username);
@@ -56,8 +58,8 @@ function ProposalCard({ proposal }: { proposal: any }) {
     ? format(new Date(proposal.updatedAt), 'dd MMM yyyy')
     : 'Unknown date';
 
-    const handleShareClick = (event) => setShareAnchorEl(event.currentTarget);
-    const handleShareClose = () => setShareAnchorEl(null);
+  const handleShareClick = (event) => setShareAnchorEl(event.currentTarget);
+  const handleShareClose = () => setShareAnchorEl(null);
   const proposalUrl = `${window.location.origin}/proposals/${proposal?.govToolProposalId}`;
   return (
     <Card
@@ -89,7 +91,11 @@ function ProposalCard({ proposal }: { proposal: any }) {
             alignItems="flex-start"
           >
             <Box>
-              <Link href={`/proposals/${proposal?.govToolProposalId}`} passHref legacyBehavior>
+              <Link
+                href={`/proposals/${proposal?.govToolProposalId}`}
+                passHref
+                legacyBehavior
+              >
                 <Typography
                   component="a"
                   variant="h6"
@@ -124,7 +130,7 @@ function ProposalCard({ proposal }: { proposal: any }) {
               </span>
             </Tooltip>
           </Box>
-          <Box className="flex items-center justify-between w-full mb-2">
+          <Box className="mb-2 flex w-full items-center justify-between">
             <Box>
               <Typography
                 component="p"
@@ -133,17 +139,16 @@ function ProposalCard({ proposal }: { proposal: any }) {
               >
                 Budget Category
               </Typography>
-              <Typography
-                component="p"
-                variant="body2"
-                color="text.secondary"
-              >
+              <Typography component="p" variant="body2" color="text.secondary">
                 {proposal?.budgetCat || 'Unspecified'}
               </Typography>
             </Box>
-            <Box className="flex justify-end mr-2">
+            <Box className="mr-2 flex justify-end">
               {poll?.data?.[0]?.id && wallet?.dRepId && (
-                <ProposalVotesBadge pollId={poll.data[0].id} dRepId={wallet.dRepId} />
+                <ProposalVotesBadge
+                  pollId={poll.data[0].id}
+                  dRepId={wallet.dRepId}
+                />
               )}
             </Box>
           </Box>
@@ -155,11 +160,7 @@ function ProposalCard({ proposal }: { proposal: any }) {
             >
               Committee
             </Typography>
-            <Typography
-              component="p"
-              variant="body2"
-              color="text.secondary"
-            >
+            <Typography component="p" variant="body2" color="text.secondary">
               {proposal?.committeeName || 'Unspecified'}
             </Typography>
           </Box>
@@ -191,31 +192,33 @@ function ProposalCard({ proposal }: { proposal: any }) {
               >
                 Proposal Benefit
               </Typography>
-                <Box
-                  sx={{
-                    display: '-webkit-box',
-                    WebkitBoxOrient: 'vertical',
-                    WebkitLineClamp: 3,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    wordWrap: 'break-word',
-                  }}
-                >
-                  <MarkdownParser text={proposalBenefit?.toString() || '-'} />
-                </Box>
+              <Box
+                sx={{
+                  display: '-webkit-box',
+                  WebkitBoxOrient: 'vertical',
+                  WebkitLineClamp: 3,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  wordWrap: 'break-word',
+                }}
+              >
+                <MarkdownParser text={proposalBenefit?.toString() || '-'} />
+              </Box>
             </Box>
           )}
           <Box className="mt-auto">
-            {(!proposalMetrics || typeof proposalMetrics === 'undefined' || !proposalMetrics?.proposals) ? (
-              <Box className="border border-gray-100 p-0 rounded-lg">
+            {!proposalMetrics ||
+            typeof proposalMetrics === 'undefined' ||
+            !proposalMetrics?.proposals ? (
+              <Box className="rounded-lg border border-gray-100 p-0">
                 <Typography
                   component="p"
-                  className="bg-gray-100 p-1 rounded-t-lg"
+                  className="rounded-t-lg bg-gray-100 p-1"
                   variant="subtitle2"
                 >
                   Catalyst Participation
                 </Typography>
-                <Box className="flex flex-col gap-1 items-center justify-center divide-y divide-gray-100 py-4 px-1">
+                <Box className="flex flex-col items-center justify-center gap-1 divide-y divide-gray-100 px-1 py-4">
                   <Typography
                     component="p"
                     variant="subtitle2"
@@ -226,51 +229,55 @@ function ProposalCard({ proposal }: { proposal: any }) {
                 </Box>
               </Box>
             ) : (
-              <Box className="border border-gray-100 p-0 rounded-lg">
+              <Box className="rounded-lg border border-gray-100 p-0">
                 <Typography
                   component="p"
-                  className="bg-gray-100 p-1 rounded-t-lg"
+                  className="rounded-t-lg bg-gray-100 p-1"
                   variant="subtitle2"
                   fontWeight="semi-bold"
                 >
                   Catalyst Participation:
                 </Typography>
-                <Box className="flex flex-col gap-1 divide-y divide-gray-100 py-0.5 px-1">
-                  <Box className="flex flex-row justify-between items-center">
-                    <div className="text-xs inline-flex gap-0.5 flex-nowrap">
-                      <span className="font-bold font-lg">Funded</span>
+                <Box className="flex flex-col gap-1 divide-y divide-gray-100 px-1 py-0.5">
+                  <Box className="flex flex-row items-center justify-between">
+                    <div className="inline-flex flex-nowrap gap-0.5 text-xs">
+                      <span className="font-lg font-bold">Funded</span>
                       <span>/</span>
                       <span>Total Proposals</span>
                     </div>
                     <Typography
                       component="span"
-                      className="inline-flex gap-0.5 flex-nowrap"
+                      className="inline-flex flex-nowrap gap-0.5"
                     >
-                      <span className="font-semibold">{proposalMetrics.funded_proposals}</span>
+                      <span className="font-semibold">
+                        {proposalMetrics.funded_proposals}
+                      </span>
                       <span>/</span>
                       <span>{proposalMetrics.proposals}</span>
                     </Typography>
                   </Box>
-                  <Box className="flex flex-row justify-between items-center">
-                    <div className="text-xs inline-flex gap-0.5 flex-nowrap">
-                      <span className="font-bold font-lg">Completed</span>
+                  <Box className="flex flex-row items-center justify-between">
+                    <div className="inline-flex flex-nowrap gap-0.5 text-xs">
+                      <span className="font-lg font-bold">Completed</span>
                       <span>/</span>
                       <span>Outstanding Proposals</span>
                     </div>
                     <Typography
                       component="span"
-                      className="inline-flex gap-0.5 flex-nowrap"
+                      className="inline-flex flex-nowrap gap-0.5"
                     >
-                      <span className="font-semibold">{proposalMetrics.completed_proposals}</span>
+                      <span className="font-semibold">
+                        {proposalMetrics.completed_proposals}
+                      </span>
                       <span>/</span>
                       <span>{proposalMetrics.outstanding_proposals}</span>
                     </Typography>
                   </Box>
-                  <Box className="flex flex-row justify-between items-center">
-                    <div className="text-xs flex justify-center py-3 px-2 items-center w-full">
+                  <Box className="flex flex-row items-center justify-between">
+                    <div className="flex w-full items-center justify-center px-2 py-3 text-xs">
                       <a
                         target="_blank"
-                        className="font-bold text-primary-400 text-center inline-flex"
+                        className="text-primary-400 inline-flex text-center font-bold"
                         href={`https://www.catalystexplorer.com/cardano/budget-proposals/${username}`}
                         rel="noopener noreferrer"
                       >
@@ -299,11 +306,7 @@ function ProposalCard({ proposal }: { proposal: any }) {
       >
         <Box display="flex" alignItems="center" gap={1}>
           <InfoIcon fontSize="small" color="action" />
-          <Typography
-            component="span"
-            variant="caption"
-            color="text.secondary"
-          >
+          <Typography component="span" variant="caption" color="text.secondary">
             {proposedDate}
           </Typography>
         </Box>
@@ -348,7 +351,7 @@ function ProposalCard({ proposal }: { proposal: any }) {
             Share Link
           </Typography>
 
-          <div className="flex justify-center items-center">
+          <div className="flex items-center justify-center">
             <CopyToClipboard
               text={proposalUrl}
               className="items-center"

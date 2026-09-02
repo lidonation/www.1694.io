@@ -125,7 +125,6 @@ app-preview:
   script:
     - auto-deploy check_kube_domain
     - auto-deploy download_chart
-    - auto-deploy create_secret
     # - auto-deploy ensure_namespace
     - |
       set -xev
@@ -142,23 +141,9 @@ app-preview:
 
       if [ -n "$GLOBAL_ENV_FILE" ]; then cp "$GLOBAL_ENV_FILE" ./chart/global_env; else touch ./chart/global_env; fi
 
-      kubectl delete secret 1694-registry-deploy-token --ignore-not-found --namespace="$KUBE_NAMESPACE"
-
-      kubectl create secret docker-registry 1694-registry-deploy-token \
-        --namespace="$KUBE_NAMESPACE" \
-        --docker-server=registry.2lovelaces.io \
-        --docker-username=$CI_REGISTRY_USER \
-        --docker-password=$CI_REGISTRY_PASSWORD \
-        --docker-email=$REGISTRY_EMAIL
-
-      kubectl delete secret gitlab-registry-token --ignore-not-found --namespace="$KUBE_NAMESPACE"
-
-      kubectl create secret docker-registry gitlab-registry-token \
-        --namespace="$KUBE_NAMESPACE" \
-        --docker-server=gitlab.2lovelaces.io \
-        --docker-username=$CI_REGISTRY_USER \
-        --docker-password=$CI_REGISTRY_PASSWORD \
-        --docker-email=$REGISTRY_EMAIL
+      # No registry pull secrets are created — the cluster nodes authenticate
+      # pulls at the node level (k3s registries.yaml + long-lived read_registry
+      # token). A per-deploy secret would only shadow the node creds.
 
       echo "AUTO_DEVOPS_WEB_DOMAIN: $AUTO_DEVOPS_WEB_DOMAIN"
 
@@ -203,7 +188,6 @@ production:
   script:
     - auto-deploy check_kube_domain
     - auto-deploy download_chart
-    - auto-deploy create_secret
     # - auto-deploy ensure_namespace
     - |
       DEPLOYMENT_NAME="www-1694.$CI_ENVIRONMENT_SLUG"

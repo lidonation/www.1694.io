@@ -7,7 +7,7 @@ export const useGetActionProposalQuery = (id: number) => {
   const { data, isLoading } = useQuery({
     queryKey: [QUERY_KEYS.getActionProposalKey, id],
     queryFn: async () => await getActionProposal(id),
-    enabled: typeof window !== "undefined" && (!!id),
+    enabled: typeof window !== 'undefined' && !!id,
     refetchOnWindowFocus: false,
   });
 

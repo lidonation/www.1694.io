@@ -116,7 +116,10 @@ const HotLinks = ({ seethrough }: HotLinksProps) => {
               key={item.title}
               className="flex items-center justify-center rounded-2xl bg-blue-100 px-2 py-1"
             >
-              <a href={item.link} className="text-center w-fit text-sm text-black">
+              <a
+                href={item.link}
+                className="w-fit text-center text-sm text-black"
+              >
                 {item.title}
               </a>
             </div>

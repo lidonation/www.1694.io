@@ -3,19 +3,53 @@ import { urls } from '@/constants';
 import { useGetProposalsQuery } from '@/hooks/useGetProposalByHashQuery';
 import { useEpochParamsQuery } from '@/hooks/useEpochParamsQuery';
 import { useWallet } from '@/context/globalContext';
-import { getLifecycleStatus, getThresholdsForType } from '@/lib/governanceThresholds';
+import {
+  getLifecycleStatus,
+  getThresholdsForType,
+} from '@/lib/governanceThresholds';
 import GovernanceMetaRow from '@/components/atoms/GovernanceMetaRow';
 import Link from 'next/link';
 import React, { useState, useEffect } from 'react';
 
-const TYPE_CONFIG: Record<string, { cls: string; icon: string; label: string }> = {
-  protocolparameter: { cls: 'bg-secondary-100 text-secondary-400', icon: '/svgs/exchange.svg',         label: 'Protocol Parameters' },
-  info:              { cls: 'bg-primary-100 text-primary-400',     icon: '/svgs/info-circle.svg',      label: 'Info' },
-  hardfork:          { cls: 'bg-complementary-100 text-complementary-400', icon: '/svgs/status-change.svg', label: 'Hard Fork' },
-  newconstitution:   { cls: 'bg-general-100 text-general-400',     icon: '/svgs/notebook.svg',         label: 'New Constitution' },
-  updatecommittee:   { cls: 'bg-extra_gray text-primary-400',      icon: '/svgs/users-group.svg',      label: 'Update Committee' },
-  noconfidence:      { cls: 'bg-red-50 text-red-600',              icon: '/svgs/info-circle.svg',      label: 'No Confidence' },
-  treasury:          { cls: 'bg-secondary-100 text-secondary-400', icon: '/svgs/exchange.svg',         label: 'Treasury Withdrawal' },
+const TYPE_CONFIG: Record<
+  string,
+  { cls: string; icon: string; label: string }
+> = {
+  protocolparameter: {
+    cls: 'bg-secondary-100 text-secondary-400',
+    icon: '/svgs/exchange.svg',
+    label: 'Protocol Parameters',
+  },
+  info: {
+    cls: 'bg-primary-100 text-primary-400',
+    icon: '/svgs/info-circle.svg',
+    label: 'Info',
+  },
+  hardfork: {
+    cls: 'bg-complementary-100 text-complementary-400',
+    icon: '/svgs/status-change.svg',
+    label: 'Hard Fork',
+  },
+  newconstitution: {
+    cls: 'bg-general-100 text-general-400',
+    icon: '/svgs/notebook.svg',
+    label: 'New Constitution',
+  },
+  updatecommittee: {
+    cls: 'bg-extra_gray text-primary-400',
+    icon: '/svgs/users-group.svg',
+    label: 'Update Committee',
+  },
+  noconfidence: {
+    cls: 'bg-red-50 text-red-600',
+    icon: '/svgs/info-circle.svg',
+    label: 'No Confidence',
+  },
+  treasury: {
+    cls: 'bg-secondary-100 text-secondary-400',
+    icon: '/svgs/exchange.svg',
+    label: 'Treasury Withdrawal',
+  },
 };
 
 function getTypeConfig(actionType: string | null | undefined) {
@@ -53,28 +87,40 @@ const DrepGovActionSubmitCard = ({
   const [cardData, setCardData] = useState(item);
   const [actionType, setActionType] = useState(actionTypeParam);
 
-  const { Proposals, isProposalsLoading } = useGetProposalsQuery({ hashQueryString: hash });
+  const { Proposals, isProposalsLoading } = useGetProposalsQuery({
+    hashQueryString: hash,
+  });
   const { epochParams } = useEpochParamsQuery();
   const { latestEpoch } = useWallet();
 
   useEffect(() => {
     if (Proposals?.[0]) {
       setCardData(Proposals[0]);
-      setActionType(Proposals[0].governanceType || Proposals[0].description?.tag?.toLowerCase() || '');
+      setActionType(
+        Proposals[0].governanceType ||
+          Proposals[0].description?.tag?.toLowerCase() ||
+          '',
+      );
     }
   }, [Proposals]);
 
   const typeCfg = getTypeConfig(actionType);
 
-  const lifecycleStatus = getLifecycleStatus({
-    ratified_epoch: cardData?.ratifiedEpoch ?? null,
-    enacted_epoch: cardData?.enactedEpoch ?? null,
-    expired_epoch: cardData?.expiredEpoch ?? null,
-    dropped_epoch: cardData?.droppedEpoch ?? null,
-    expiration_epoch: cardData?.expirationEpoch ?? null,
-  }, latestEpoch);
+  const lifecycleStatus = getLifecycleStatus(
+    {
+      ratified_epoch: cardData?.ratifiedEpoch ?? null,
+      enacted_epoch: cardData?.enactedEpoch ?? null,
+      expired_epoch: cardData?.expiredEpoch ?? null,
+      dropped_epoch: cardData?.droppedEpoch ?? null,
+      expiration_epoch: cardData?.expirationEpoch ?? null,
+    },
+    latestEpoch,
+  );
 
-  const thresholds = getThresholdsForType(cardData?.governanceType || actionType, epochParams);
+  const thresholds = getThresholdsForType(
+    cardData?.governanceType || actionType,
+    epochParams,
+  );
 
   if (isProposalsLoading) return <SkeletonLoader />;
   if (!cardData) return <NotFoundState />;
@@ -86,7 +132,9 @@ const DrepGovActionSubmitCard = ({
       {/* Header: type chip + date */}
       <div className="flex items-center justify-between">
         {typeCfg ? (
-          <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-medium ${typeCfg.cls}`}>
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-medium ${typeCfg.cls}`}
+          >
             <img src={typeCfg.icon} className="h-3 w-3" alt="" />
             {typeCfg.label}
           </span>
@@ -103,7 +151,7 @@ const DrepGovActionSubmitCard = ({
       </div>
 
       {/* Action name */}
-      <p className="text-sm font-semibold leading-snug text-titles">
+      <p className="text-titles text-sm leading-snug font-semibold">
         {typeCfg?.label || actionType || 'Governance Action'}
       </p>
 
@@ -119,7 +167,7 @@ const DrepGovActionSubmitCard = ({
       <Link
         href={`${urls.govToolUrl}/governance_actions/${hash || cardData?.txHash}#0`}
         target="_blank"
-        className="mt-1 text-[11px] font-medium text-primary-300 hover:text-primary-400 hover:underline"
+        className="text-primary-300 hover:text-primary-400 mt-1 text-[11px] font-medium hover:underline"
       >
         View on GovTool →
       </Link>

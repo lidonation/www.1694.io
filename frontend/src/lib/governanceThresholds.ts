@@ -53,7 +53,11 @@ export function getThresholdsForType(
     };
   }
 
-  if (type.includes('updatecommittee') || type.includes('newcommittee') || type === 'new_committee') {
+  if (
+    type.includes('updatecommittee') ||
+    type.includes('newcommittee') ||
+    type === 'new_committee'
+  ) {
     return {
       dvt: pct(epochParams.dvt_committee_normal),
       pvt: pct(epochParams.pvt_committee_normal),
@@ -86,7 +90,9 @@ export function getThresholdsForType(
       epochParams.dvt_p_p_economic_group,
       epochParams.dvt_p_p_technical_group,
       epochParams.dvt_p_p_gov_group,
-    ].map(pct).filter((v): v is number => v !== null);
+    ]
+      .map(pct)
+      .filter((v): v is number => v !== null);
 
     const min = dvts.length ? Math.min(...dvts) : null;
     return {
@@ -109,7 +115,12 @@ export function getThresholdsForType(
   return { dvt: null, pvt: null, dvtLabel: null, isInfoAction: false };
 }
 
-export type LifecycleStatus = 'ratified' | 'enacted' | 'expired' | 'dropped' | 'active';
+export type LifecycleStatus =
+  | 'ratified'
+  | 'enacted'
+  | 'expired'
+  | 'dropped'
+  | 'active';
 
 export function getLifecycleStatus(
   action: {
@@ -125,6 +136,11 @@ export function getLifecycleStatus(
   if (action.ratified_epoch) return 'ratified';
   if (action.expired_epoch) return 'expired';
   if (action.dropped_epoch) return 'dropped';
-  if (action.expiration_epoch && currentEpoch && currentEpoch > action.expiration_epoch) return 'expired';
+  if (
+    action.expiration_epoch &&
+    currentEpoch &&
+    currentEpoch > action.expiration_epoch
+  )
+    return 'expired';
   return 'active';
 }

@@ -53,7 +53,7 @@ const Header = () => {
   //add event listener to the window to check if the screen is mobile
   return (
     <header className="w-full bg-white/50">
-      <div className="base_container flex shrink-0 flex-row items-center justify-between py-6 ">
+      <div className="base_container flex shrink-0 flex-row items-center justify-between py-6">
         <Link href="/">
           <img
             src={renderLogoOnNetworkChange()}
@@ -61,7 +61,7 @@ const Header = () => {
             width={isMobile ? 100 : 150}
           />
         </Link>
-        <div className="flex shrink-0 items-center gap-3 text-nowrap text-sm font-bold">
+        <div className="flex shrink-0 items-center gap-3 text-sm font-bold text-nowrap">
           {!isMobile && (
             <div className="flex flex-row items-center gap-6">
               <Link
@@ -77,16 +77,16 @@ const Header = () => {
 
               <DRepMenu />
               <Link
-                  href={'/proposals'}
-                  className={`${
-                    !!activeLink && activeLink.includes('proposals')
-                      ? 'text-orange-500'
-                      : 'text-gray-800'
-                  }`}
-                >
-                  Proposals
+                href={'/proposals'}
+                className={`${
+                  !!activeLink && activeLink.includes('proposals')
+                    ? 'text-orange-500'
+                    : 'text-gray-800'
+                }`}
+              >
+                Proposals
               </Link>
-              
+
               <VoltaireMenu />
             </div>
           )}

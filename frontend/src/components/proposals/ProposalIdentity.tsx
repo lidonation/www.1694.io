@@ -78,14 +78,14 @@ function ProposalIdentity({
         <Link
           href="#comments"
           onClick={(event) => scrollToElement(event, 'comments')}
-          className="flex items-center gap-1 text-gray-700 hover:text-primary-300"
+          className="hover:text-primary-300 flex items-center gap-1 text-gray-700"
         >
           <ChatBubbleOutlineIcon fontSize="small" />
           <span>{comments} Comments</span>
         </Link>
         <Box className="flex items-center gap-1 text-gray-700">
           <p>Status</p>
-          <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-primary-300">
+          <span className="text-primary-300 inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-sm font-medium">
             {proposal?.attributes?.is_active ? 'Active' : 'Inactive'}
           </span>
         </Box>

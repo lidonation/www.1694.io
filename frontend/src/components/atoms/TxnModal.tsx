@@ -12,7 +12,10 @@ import {
 import Button from './Button';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import CopySnippet from './CopySnippet';
-import { RequiredSigningKeyType, TxnTypes } from '@/hooks/useTransactionHandler';
+import {
+  RequiredSigningKeyType,
+  TxnTypes,
+} from '@/hooks/useTransactionHandler';
 import { helperSnippets } from '@/models/helperSnippets';
 import { ModalWrapper } from './modal/ModalWrapper';
 
@@ -30,7 +33,7 @@ interface CardanoTxModalProps {
   error?: string;
   currentNetwork?: number;
   isLoading?: boolean;
-  requiredSigningKey?: RequiredSigningKeyType
+  requiredSigningKey?: RequiredSigningKeyType;
 }
 
 const CardanoTxModal = ({
@@ -50,13 +53,15 @@ const CardanoTxModal = ({
   requiredSigningKey,
 }: CardanoTxModalProps) => {
   const [step, setStep] = useState<'initial' | 'download'>('initial');
-  const ETA = txType === 'loginViaExpiredTxnSigning' || txType === 'loginViaMessageSigning' ? 0 : 60; //usually expired
+  const ETA =
+    txType === 'loginViaExpiredTxnSigning' ||
+    txType === 'loginViaMessageSigning'
+      ? 0
+      : 60; //usually expired
   const [timeLeft, setTimeLeft] = useState(ETA * 60);
   const { addErrorAlert } = useGlobalNotifications();
   const [signedTxFile, setSignedTxFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  
 
   useEffect(() => {
     let timer;
@@ -162,7 +167,7 @@ const CardanoTxModal = ({
   };
 
   const renderErrorContent = (error: string) => {
-       return (
+    return (
       <Box
         sx={{
           display: 'flex',
@@ -174,11 +179,8 @@ const CardanoTxModal = ({
           borderRadius: 1,
         }}
       >
-        <Box sx={{ display: 'flex', flexDirection:'column',  gap: 1 }}>
-          <CopySnippet
-            extraText={error}
-            isError
-          />
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <CopySnippet extraText={error} isError />
         </Box>
       </Box>
     );
@@ -231,7 +233,9 @@ const CardanoTxModal = ({
         </Box>
         <CopySnippet
           snippetToCopy={renderSnippetContent(txType)?.snippetToCopy(
-            currentNetwork, fileToDownload, requiredSigningKey
+            currentNetwork,
+            fileToDownload,
+            requiredSigningKey,
           )}
           extraText={renderSnippetContent(txType)?.extraText}
         />

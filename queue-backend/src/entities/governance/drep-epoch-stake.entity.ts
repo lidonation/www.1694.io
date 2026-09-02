@@ -20,6 +20,10 @@ export class DrepEpochStake {
   @Column({ name: 'active', type: 'boolean', default: true })
   active: boolean;
 
-  @Column({ name: 'snapshotted_at', type: 'timestamptz', default: () => 'now()' })
+  @Column({
+    name: 'snapshotted_at',
+    type: 'timestamptz',
+    default: () => 'now()',
+  })
   snapshottedAt: Date;
 }

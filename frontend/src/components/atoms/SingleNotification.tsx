@@ -1,11 +1,6 @@
 'use client';
 import React, { useState } from 'react';
-import {
-  Typography,
-  Box,
-  IconButton,
-  Checkbox,
-} from '@mui/material';
+import { Typography, Box, IconButton, Checkbox } from '@mui/material';
 import { formatDistanceToNow } from 'date-fns';
 import { Notification } from '../../../types/commonTypes';
 import * as marked from 'marked';
@@ -75,9 +70,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
           text={notification.isRead ? 'Mark as unread' : 'Mark as read'}
           position="bottom"
         >
-          <Checkbox
-            checked={notification.isRead}
-          />
+          <Checkbox checked={notification.isRead} />
         </HoverChip>
       </IconButton>
     </Box>

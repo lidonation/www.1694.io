@@ -80,7 +80,7 @@ export class ReactionsService {
 
         if (voter !== parent.author?.stakeKey) {
           content = this.notificationsService.newReactionToNoteNotification(
-            reaction.type as any,
+            reaction.type,
             voter,
             parent?.author?.voterId,
             new Date(parent?.createdAt).getTime(),
@@ -97,7 +97,7 @@ export class ReactionsService {
 
         if (voter !== parent.voter) {
           content = this.notificationsService.newReactionForCommentNotification(
-            reaction.type as any,
+            reaction.type,
             voter,
           );
 

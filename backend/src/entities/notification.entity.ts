@@ -1,10 +1,8 @@
-
 import { BaseImmutableEntity } from '../global';
-import { Column, Entity,  PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-
-//for reference to the notifications   
-@Entity() 
+//for reference to the notifications
+@Entity()
 export class Notification extends BaseImmutableEntity {
   declare id: number;
 
@@ -34,6 +32,6 @@ export class Notification extends BaseImmutableEntity {
   @Column({ default: false })
   isPersistent: boolean;
 
-  @Column({nullable: true})
+  @Column({ nullable: true })
   recipient: string;
 }

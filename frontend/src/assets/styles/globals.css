@@ -70,7 +70,6 @@
   color utility to any element that depends on these defaults.
 */
 @layer base {
-
   *,
   ::after,
   ::before,
@@ -140,7 +139,7 @@ body {
 }
 
 /* Hover effect for the role part */
-.table_container tbody tr>td:first-child {
+.table_container tbody tr > td:first-child {
   @apply hover:text-[#5f5e5e];
 }
 
@@ -153,15 +152,19 @@ body {
 }
 
 .drep_radial_bg {
-  background: radial-gradient(circle closest-side,
-      #f10b314d 0%,
-      #ffffff00 100%);
+  background: radial-gradient(
+    circle closest-side,
+    #f10b314d 0%,
+    #ffffff00 100%
+  );
 }
 
 .drep_bg {
-  background-image: linear-gradient(to bottom,
-      rgba(0, 51, 173, 0.97),
-      rgba(0, 41, 138, 0.97));
+  background-image: linear-gradient(
+    to bottom,
+    rgba(0, 51, 173, 0.97),
+    rgba(0, 41, 138, 0.97)
+  );
 }
 
 .note-modal-width {
@@ -232,8 +235,8 @@ table.dreps-table .drep_always_no_confidence {
   @apply my-1 border px-4;
 }
 
-table.dreps-table .drep_always_abstain>td,
-table.dreps-table .drep_always_no_confidence>td {
+table.dreps-table .drep_always_abstain > td,
+table.dreps-table .drep_always_no_confidence > td {
   @apply px-4 py-2;
 }
 

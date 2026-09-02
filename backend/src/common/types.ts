@@ -3,7 +3,6 @@ export type StakeKeys = {
   stakeKeyBech32: string;
 } | null;
 
-
 export type Delegation = {
   drep_raw: string | null;
   drep_view: string | null;
