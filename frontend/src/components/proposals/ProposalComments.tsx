@@ -46,7 +46,7 @@ const CommentForm = ({
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className="w-full resize-none rounded-lg border border-gray-300 p-3 shadow-sm outline-none focus:border-primary-300 focus:ring-1 focus:ring-primary-300"
+        className="focus:border-primary-300 focus:ring-primary-300 w-full resize-none rounded-lg border border-gray-300 p-3 shadow-sm outline-none focus:ring-1"
         rows={3}
         disabled={isLoading}
       />
@@ -101,7 +101,7 @@ const CommentContent = ({ comment }: { comment: any }) => {
             @{comment.attributes.user_govtool_username}
           </h3>
           {registration?.registered && (
-            <span className="rounded-full bg-blue-100 px-3 py-1 text-sm text-primary-300">
+            <span className="text-primary-300 rounded-full bg-blue-100 px-3 py-1 text-sm">
               Drep
             </span>
           )}
@@ -112,7 +112,7 @@ const CommentContent = ({ comment }: { comment: any }) => {
       </Box>
 
       {registration?.view && (
-        <p className="w-1/2 truncate text-xs text-primary-300">
+        <p className="text-primary-300 w-1/2 truncate text-xs">
           <span className="text-gray-700">ID:</span>{' '}
           {registration?.view?.substring(0, 20)}...
         </p>
@@ -133,7 +133,7 @@ const CommentContent = ({ comment }: { comment: any }) => {
         {isClamped && (
           <button
             onClick={() => setExpanded((prev) => !prev)}
-            className="mt-1 text-sm text-primary-300 underline hover:opacity-80"
+            className="text-primary-300 mt-1 text-sm underline hover:opacity-80"
           >
             {expanded ? 'Show less' : 'Read more'}
           </button>
@@ -327,7 +327,7 @@ function ProposalComments({ proposal }: ProposalCommentsProps) {
         <Box className="space-y-6">
           {parentComments.map((comment) => (
             <Box key={comment.id}>
-              <Box className=" flex-1 rounded-md  bg-gray-50 p-2 shadow-sm">
+              <Box className="flex-1 rounded-md bg-gray-50 p-2 shadow-sm">
                 <CommentContent comment={comment} />
 
                 <Box className="mt-2">

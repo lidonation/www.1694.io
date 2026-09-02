@@ -15,7 +15,11 @@ import { useWallet } from '@/context/globalContext';
 
 export default function NotificationDrawer() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const { user:{signatureData:{currentSignatureId}} } = useWallet();
+  const {
+    user: {
+      signatureData: { currentSignatureId },
+    },
+  } = useWallet();
   const open = Boolean(anchorEl);
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -47,7 +51,7 @@ export default function NotificationDrawer() {
     if (notifications.length === 0) {
       return (
         <MenuItem disableRipple className="pointer-events-none">
-          <Box className="mb-4 flex flex-col text-wrap py-2 text-complementary-500">
+          <Box className="text-complementary-500 mb-4 flex flex-col py-2 text-wrap">
             {currentSignatureId ? (
               <>
                 <Typography variant="subtitle2" className="font-bold">

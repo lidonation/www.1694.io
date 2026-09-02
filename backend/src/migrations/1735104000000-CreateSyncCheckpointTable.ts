@@ -1,6 +1,8 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreateSyncCheckpointTable1735104000000 implements MigrationInterface {
+export class CreateSyncCheckpointTable1735104000000
+  implements MigrationInterface
+{
   name = 'CreateSyncCheckpointTable1735104000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -39,7 +41,9 @@ export class CreateSyncCheckpointTable1735104000000 implements MigrationInterfac
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DROP INDEX IF EXISTS idx_sync_checkpoint_updated_at;`);
+    await queryRunner.query(
+      `DROP INDEX IF EXISTS idx_sync_checkpoint_updated_at;`,
+    );
     await queryRunner.query(`DROP TABLE IF EXISTS sync_checkpoint;`);
   }
 }

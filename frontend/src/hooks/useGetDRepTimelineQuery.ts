@@ -26,7 +26,9 @@ export const useGetDRepTimelineQuery = (
     idOrVoterId,
   });
 
-  const [loadDirection, setLoadDirection] = useState<'older' | 'newer'>('older');
+  const [loadDirection, setLoadDirection] = useState<'older' | 'newer'>(
+    'older',
+  );
   const [cursor, setCursor] = useState<string | undefined>(undefined);
   const [hasNextPage, setHasNextPage] = useState(true);
   const [hasPrevPage, setHasPrevPage] = useState(false);
@@ -58,12 +60,7 @@ export const useGetDRepTimelineQuery = (
       stakeKeyBech32,
       idOrVoterId,
     };
-  }, [
-    filterValues,
-    stakeKey,
-    stakeKeyBech32,
-    idOrVoterId,
-  ]);
+  }, [filterValues, stakeKey, stakeKeyBech32, idOrVoterId]);
 
   const { isLoading } = useQuery({
     queryKey: [
@@ -90,11 +87,12 @@ export const useGetDRepTimelineQuery = (
         loadDirection,
       );
     },
-    enabled: typeof window !== "undefined" && (!!idOrVoterId && filterValues !== null),
+    enabled:
+      typeof window !== 'undefined' && !!idOrVoterId && filterValues !== null,
     refetchOnWindowFocus: false,
     onSuccess: (newData) => {
       const incomingEpochs = newData?.epochs || [];
-      
+
       if (incomingEpochs.length === 0 && isInitialLoad) {
         addWarningAlert('No activity found for this DRep.');
         setIsInitialLoad(false);
@@ -122,29 +120,34 @@ export const useGetDRepTimelineQuery = (
 
         // Deduplicate epochs by epochNo
         const seenEpochs = new Set();
-        return combined.reduce((acc, epoch) => {
-          if (!seenEpochs.has(epoch.epochNo)) {
-            seenEpochs.add(epoch.epochNo);
-            acc.push(epoch);
-          } else {
-            // Merge items into existing epoch if it's already there
-            const existingEpoch = acc.find(e => e.epochNo === epoch.epochNo);
-            if (existingEpoch) {
-              const allItems = loadDirection === 'newer' 
-                ? [...epoch.items, ...existingEpoch.items]
-                : [...existingEpoch.items, ...epoch.items];
-              
-              // Deduplicate items by ID
-              const seenItems = new Set();
-              existingEpoch.items = allItems.filter(item => {
-                if (seenItems.has(item.id)) return false;
-                seenItems.add(item.id);
-                return true;
-              });
+        return combined
+          .reduce((acc, epoch) => {
+            if (!seenEpochs.has(epoch.epochNo)) {
+              seenEpochs.add(epoch.epochNo);
+              acc.push(epoch);
+            } else {
+              // Merge items into existing epoch if it's already there
+              const existingEpoch = acc.find(
+                (e) => e.epochNo === epoch.epochNo,
+              );
+              if (existingEpoch) {
+                const allItems =
+                  loadDirection === 'newer'
+                    ? [...epoch.items, ...existingEpoch.items]
+                    : [...existingEpoch.items, ...epoch.items];
+
+                // Deduplicate items by ID
+                const seenItems = new Set();
+                existingEpoch.items = allItems.filter((item) => {
+                  if (seenItems.has(item.id)) return false;
+                  seenItems.add(item.id);
+                  return true;
+                });
+              }
             }
-          }
-          return acc;
-        }, [] as any[]).sort((a, b) => b.epochNo - a.epochNo);
+            return acc;
+          }, [] as any[])
+          .sort((a, b) => b.epochNo - a.epochNo);
       });
       setIsInitialLoad(false);
     },

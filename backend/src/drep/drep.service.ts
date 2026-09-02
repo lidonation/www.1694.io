@@ -90,7 +90,7 @@ export class DrepService {
       includeRetired ?? false,
       type,
     );
-      
+
     return {
       data: result.data,
       totalItems: result.pagination.total,
@@ -110,14 +110,16 @@ export class DrepService {
     } catch (error) {
       if (error instanceof NotFoundException) {
         try {
-          const blockfrostDrep = await this.blockfrostService.getDRepInfo(drepVoterId);
+          const blockfrostDrep =
+            await this.blockfrostService.getDRepInfo(drepVoterId);
           if (!blockfrostDrep) {
             throw new NotFoundException('DRep not found on onchain!');
           }
-          
+
           let metadata = null;
           try {
-            metadata = await this.blockfrostService.getDRepMetadata(drepVoterId);
+            metadata =
+              await this.blockfrostService.getDRepMetadata(drepVoterId);
           } catch (metadataError) {
             // Metadata is optional
           }
@@ -125,8 +127,12 @@ export class DrepService {
             view: blockfrostDrep.drep_id,
             chain_id: blockfrostDrep.hex,
             delegation_vote_count: 0,
-            voting_power: (parseFloat(blockfrostDrep.amount || '0') / 1000000).toString(),
-            live_stake: (parseFloat(blockfrostDrep.amount || '0') / 1000000).toString(),
+            voting_power: (
+              parseFloat(blockfrostDrep.amount || '0') / 1000000
+            ).toString(),
+            live_stake: (
+              parseFloat(blockfrostDrep.amount || '0') / 1000000
+            ).toString(),
             epoch_no: blockfrostDrep.active_epoch,
             retired: blockfrostDrep.retired,
             active: blockfrostDrep.active,
@@ -135,20 +141,25 @@ export class DrepService {
             has_script: blockfrostDrep.has_script,
             given_name: metadata?.json_metadata?.body?.givenName || null,
             image_url: metadata?.json_metadata?.body?.image?.contentUrl || null,
-            payment_address: metadata?.json_metadata?.body?.paymentAddress || null,
+            payment_address:
+              metadata?.json_metadata?.body?.paymentAddress || null,
             objectives: metadata?.json_metadata?.body?.objectives || null,
             motivations: metadata?.json_metadata?.body?.motivations || null,
-            qualifications: metadata?.json_metadata?.body?.qualifications || null,
+            qualifications:
+              metadata?.json_metadata?.body?.qualifications || null,
             governance_vote_count: 0,
             deposit: null,
             active_until: null,
             is_registered_as_sole_voter: false,
             stake_address: null,
             reg_address: null,
-            type: blockfrostDrep.has_script ? 'scripted' : 'drep'
+            type: blockfrostDrep.has_script ? 'scripted' : 'drep',
           };
         } catch (blockfrostError) {
-          throw new NotFoundException(blockfrostError,'DRep not found on onchain (fallback)!');
+          throw new NotFoundException(
+            blockfrostError,
+            'DRep not found on onchain (fallback)!',
+          );
         }
       }
       throw error;
@@ -159,9 +170,7 @@ export class DrepService {
     return this.drepRepository.getDrepDetails(drepVoterId);
   }
 
-
-
-  private getFilters(filterValues?: string[] | undefined): TimelineFilters {
+  private getFilters(filterValues?: string[]): TimelineFilters {
     const showAll = !filterValues || filterValues?.length === 0;
 
     return {
@@ -267,7 +276,10 @@ export class DrepService {
       loadDirection?: 'older' | 'newer';
     } = {},
   ) {
-    const result = await this.governanceService.getDRepTimeline(voterId, options);
+    const result = await this.governanceService.getDRepTimeline(
+      voterId,
+      options,
+    );
     return {
       appliedStartTime: options.startTimeCursor || Date.now() - 432000000, // 5 days ago default
       appliedEndTime: options.endTimeCursor || Date.now(),
@@ -395,20 +407,22 @@ export class DrepService {
     loadDirection = 'older',
   }: any): Observable<TimelineResponse> {
     // Directly expose the structured epoch grouping from governance service
-    return from(this.governanceService.getDRepTimeline(voterId, {
-      cursor,
-      filterValues,
-      minItems,
-      loadDirection: loadDirection as 'older' | 'newer'
-    })).pipe(
-      map(result => ({
+    return from(
+      this.governanceService.getDRepTimeline(voterId, {
+        cursor,
+        filterValues,
+        minItems,
+        loadDirection: loadDirection as 'older' | 'newer',
+      }),
+    ).pipe(
+      map((result) => ({
         appliedStartTime: 0,
         appliedEndTime: 0,
         epochs: result.epochs,
         nextCursor: result.nextCursor,
         prevCursor: result.prevCursor,
         entries: [], // Legacy compat
-      }))
+      })),
     );
   }
 
@@ -417,14 +431,14 @@ export class DrepService {
     cursor,
     filterValues,
     minItems = 10,
-    loadDirection = 'older'
+    loadDirection = 'older',
   }: any): Promise<TimelineResponse> {
     try {
       const result = await this.governanceService.getDRepTimeline(voterId, {
         cursor,
         filterValues,
         minItems,
-        loadDirection: loadDirection as 'older' | 'newer'
+        loadDirection: loadDirection as 'older' | 'newer',
       });
 
       return {
@@ -443,7 +457,7 @@ export class DrepService {
         prevCursor: null,
         appliedStartTime: 0,
         appliedEndTime: 0,
-        entries: []
+        entries: [],
       };
     }
   }
@@ -454,14 +468,14 @@ export class DrepService {
     endTimeCursor,
     filterValues,
     minItems = 10,
-    loadDirection = 'older'
+    loadDirection = 'older',
   }): Promise<TimelineResponse> {
     // Simple fallback that returns empty timeline
     console.warn('Using legacy timeline fallback - returning empty timeline');
     return {
       appliedStartTime: startTimeCursor || Date.now(),
       appliedEndTime: endTimeCursor || Date.now(),
-      entries: []
+      entries: [],
     };
   }
 
@@ -752,7 +766,6 @@ export class DrepService {
     );
   }
 
-
   async updateDrepInfo(drepId: number, drep: createDrepDto) {
     const foundDrep = await this.drepRepository.findById(drepId);
 
@@ -815,7 +828,7 @@ export class DrepService {
       }
     }
 
-    return { status, valid: !Boolean(status), metadata } as any;
+    return { status, valid: !status, metadata } as any;
   }
 
   async saveMetadata(metadata: any) {
@@ -857,36 +870,47 @@ export class DrepService {
    * Enriches delegation activity entries with current stake information
    * This adds voting power data where available from the current delegator table
    */
-  private async enrichDelegationActivitiesWithStake(activities: any[]): Promise<any[]> {
+  private async enrichDelegationActivitiesWithStake(
+    activities: any[],
+  ): Promise<any[]> {
     const enrichedActivities = await Promise.all(
       activities.map(async (activity) => {
         if (activity.type === 'delegation' && activity.stake_address) {
           try {
             // Look up current stake info for this address using raw query
-            const currentDelegation = await this.drepRepository.query(`
+            const currentDelegation = await this.drepRepository.query(
+              `
               SELECT drep_id, stake_address, amount_lovelace, voting_power_lovelace
               FROM drep_delegators 
               WHERE stake_address = $1
               LIMIT 1
-            `, [activity.stake_address]);
-            
+            `,
+              [activity.stake_address],
+            );
+
             if (currentDelegation && currentDelegation.length > 0) {
               const delegation = currentDelegation[0];
               return {
                 ...activity,
                 // Add current stake information
                 current_stake_lovelace: delegation.amount_lovelace,
-                current_stake_ada: delegation.amount_lovelace 
-                  ? (parseFloat(delegation.amount_lovelace) / 1_000_000).toFixed(6)
+                current_stake_ada: delegation.amount_lovelace
+                  ? (
+                      parseFloat(delegation.amount_lovelace) / 1_000_000
+                    ).toFixed(6)
                   : '0',
                 current_voting_power_lovelace: delegation.voting_power_lovelace,
-                current_voting_power_ada: delegation.voting_power_lovelace 
-                  ? (parseFloat(delegation.voting_power_lovelace) / 1_000_000).toFixed(6)
+                current_voting_power_ada: delegation.voting_power_lovelace
+                  ? (
+                      parseFloat(delegation.voting_power_lovelace) / 1_000_000
+                    ).toFixed(6)
                   : '0',
                 current_delegated_drep: delegation.drep_id,
-                delegation_status: delegation.drep_id === activity.target_drep 
-                  ? 'still_delegated' : 'delegated_elsewhere',
-                has_current_stake_info: true
+                delegation_status:
+                  delegation.drep_id === activity.target_drep
+                    ? 'still_delegated'
+                    : 'delegated_elsewhere',
+                has_current_stake_info: true,
               };
             } else {
               return {
@@ -894,21 +918,21 @@ export class DrepService {
                 current_stake_ada: '0',
                 current_voting_power_ada: '0',
                 delegation_status: 'no_current_delegation',
-                has_current_stake_info: false
+                has_current_stake_info: false,
               };
             }
           } catch (error) {
             console.warn('Error enriching delegation with stake info:', error);
             return {
               ...activity,
-              has_current_stake_info: false
+              has_current_stake_info: false,
             };
           }
         }
         return activity;
-      })
+      }),
     );
-    
+
     return enrichedActivities;
   }
 
@@ -935,7 +959,8 @@ export class DrepService {
 
     if (!drepSnapshot || !drepSnapshot.metadata) {
       try {
-        const blockfrostMetadata = await this.blockfrostService.getDRepMetadata(voterId);
+        const blockfrostMetadata =
+          await this.blockfrostService.getDRepMetadata(voterId);
         return blockfrostMetadata?.json_metadata || null;
       } catch (error) {
         if (!drepSnapshot) {
@@ -1028,20 +1053,20 @@ export class DrepService {
 
   async getGovernanceParticipation(voterId: string) {
     if (!voterId) return null;
-    
+
     try {
       return await this.drepRepository.getGovernanceParticipation(voterId);
     } catch (error) {
-      console.error(`Error getting governance participation for ${voterId}:`, error);
+      console.error(
+        `Error getting governance participation for ${voterId}:`,
+        error,
+      );
       return {
         governance_vote_count: 0,
         delegation_vote_count: 0,
       };
     }
   }
-  
-
-  
 
   async getDRepVotedGovActions(
     voterId: string,

@@ -21,18 +21,18 @@ const CopyToClipboard = ({
   textToPrecede,
 }: CopyToClipboardProps) => {
   const { addSuccessAlert } = useGlobalNotifications();
-  
+
   const handleCopy = () => {
     navigator.clipboard.writeText(text);
     addSuccessAlert('Copied to clipboard');
   };
-  
+
   return (
     <div
       className={`clipboard-text flex cursor-pointer gap-1 ${className} ${textToPrecede ? 'flex-row-reverse' : 'flex-row'}`}
       onClick={handleCopy}
     >
-      <p className={`break-all max-w-full ${textStyles || ''}`}>
+      <p className={`max-w-full break-all ${textStyles || ''}`}>
         {truncate ? convertString(text, true) : text}
       </p>
       {children}

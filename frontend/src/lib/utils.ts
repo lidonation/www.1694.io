@@ -109,10 +109,9 @@ export const handleCopyText = (
 };
 
 export const formatNumberTimeToReadable = (time: number) => {
-  if (typeof time !== 'number'){
+  if (typeof time !== 'number') {
     time = parseInt(time);
-  };
-  
+  }
 
   return new Date(time).toLocaleString('en-US', {
     year: 'numeric',
@@ -430,7 +429,7 @@ export const convertAddressToBech32 = (address: string) => {
   if (address.includes('addr') || address.includes('stake')) {
     return address;
   } else if (address.includes('drep')) {
-    return convertDrepPhraseToCIP105(address)
+    return convertDrepPhraseToCIP105(address);
   }
 
   // Pure JS hex to bytes helper for browser compatibility
@@ -450,15 +449,15 @@ export const convertAddressToBech32 = (address: string) => {
     throw new Error('Address class not found');
   } catch (error) {
     console.warn('[Utils] Address conversion fallback triggered for:', address);
-    
+
     // Manual fallback using bech32 library (pure JS)
     try {
       const bytes = hexToBytes(address);
       if (bytes.length === 0) return '';
 
       const firstByte = bytes[0];
-      const networkId = firstByte & 0x0f;  // 0 = testnet, 1 = mainnet
-      const type = firstByte >> 4;         // 14 = stake, 0-3 = payment
+      const networkId = firstByte & 0x0f; // 0 = testnet, 1 = mainnet
+      const type = firstByte >> 4; // 14 = stake, 0-3 = payment
 
       let prefix = '';
       if (type === 14) {

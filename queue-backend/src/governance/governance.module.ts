@@ -24,9 +24,9 @@ import { ConfigModule } from '@nestjs/config';
         Proposal,
         ProposalMetadata,
         ProposalVote,
-        SyncState
-      ], 
-      'default'
+        SyncState,
+      ],
+      'default',
     ),
   ],
   providers: [GovernanceService, GovernanceMigrationService],

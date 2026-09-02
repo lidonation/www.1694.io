@@ -20,7 +20,7 @@ export type DRepClaimJobData = {
   signatureKey: string;
 };
 
-export type DRepClaimJobResponse ={
+export type DRepClaimJobResponse = {
   success: boolean;
   message: string;
   isRegistered?: boolean;
@@ -30,11 +30,11 @@ export type DRepClaimJobResponse ={
   view?: string;
   deposit?: string;
   retired?: boolean;
-}
+};
 
 export interface QueueJob<T> {
   name: string;
-  data: T
+  data: T;
 }
 
 export interface TestJobData {

@@ -44,7 +44,7 @@ const SubmitMetadataModal = ({
         dRepIDToClaimBech32,
         dRepEntityToClaim,
       },
-      dRepProfilesClaimed
+      dRepProfilesClaimed,
     },
     wallet: { addressBech32 },
     buildDRepUpdateCert,
@@ -63,22 +63,21 @@ const SubmitMetadataModal = ({
   useEffect(() => {
     switch (true) {
       case isCurrentlyClaiming === 'yes':
-        setIsDirectOwner(isCurrentOwnerOfDRepToClaim && activeWallet === AuthMethod.HOT_WALLET);
+        setIsDirectOwner(
+          isCurrentOwnerOfDRepToClaim && activeWallet === AuthMethod.HOT_WALLET,
+        );
         break;
       case !!extraData?.voteUpdate:
-        setIsDirectOwner(extraData.voteUpdate.isOwner && activeWallet === AuthMethod.HOT_WALLET);
+        setIsDirectOwner(
+          extraData.voteUpdate.isOwner &&
+            activeWallet === AuthMethod.HOT_WALLET,
+        );
         break;
       default:
         setIsDirectOwner(activeWallet === AuthMethod.HOT_WALLET);
         break;
     }
-  }
-  , [
-    isCurrentlyClaiming,
-    activeWallet,
-    isCurrentOwnerOfDRepToClaim
-  ]);
-
+  }, [isCurrentlyClaiming, activeWallet, isCurrentOwnerOfDRepToClaim]);
 
   useEffect(() => {
     const initiateMetadata = async () => {
@@ -168,7 +167,7 @@ const SubmitMetadataModal = ({
   };
 
   const getAddressToDeriveUtxosFrom = async () => {
-    if (isCurrentlyClaiming === 'yes'){
+    if (isCurrentlyClaiming === 'yes') {
       switch (true) {
         //claiming own drep via login file
         case isCurrentOwnerOfDRepToClaim &&
@@ -184,17 +183,14 @@ const SubmitMetadataModal = ({
           //use address from state
           return null;
       }
-
-    }else if (extraData?.voteUpdate) {
+    } else if (extraData?.voteUpdate) {
       const relatedStakeAddr = dRepProfilesClaimed.find(
-        (profile) =>
-          profile.claimedDRepBech32 === extraData.voteUpdate.voterId,
+        (profile) => profile.claimedDRepBech32 === extraData.voteUpdate.voterId,
       )?.voterStakeKey;
-      const relatedAddresses = await getRelatedPaymentAddrFromStakeAddr(
-          relatedStakeAddr,
-        );
-      return relatedAddresses?.[0]
-      }
+      const relatedAddresses =
+        await getRelatedPaymentAddrFromStakeAddr(relatedStakeAddr);
+      return relatedAddresses?.[0];
+    }
   };
 
   const postSaveMetadata = async () => {

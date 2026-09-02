@@ -7,16 +7,16 @@ const PostInput = ({
   registerValue,
   errors,
   dataTestId,
-  isDisabled
+  isDisabled,
 }) => {
   return (
     <div className="flex flex-col gap-1">
       <label>{inputName}</label>
       <input
         type="text"
-        className={`border py-3 pl-5 pr-3 ${
+        className={`border py-3 pr-3 pl-5 ${
           isDisabled && 'pointer-events-none'
-        }  rounded-full border-zinc-100`}
+        } rounded-full border-zinc-100`}
         data-testid={dataTestId}
         {...registerValue(id)}
         placeholder={placeholder}

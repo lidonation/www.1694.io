@@ -9,7 +9,7 @@ const GovernanceActionsTable = () => {
           <th>Description</th>
         </tr>
       </thead>
-      <tbody className="flex-row ">
+      <tbody className="flex-row">
         <tr>
           <td>Motion of no-confidence</td>
           <td>

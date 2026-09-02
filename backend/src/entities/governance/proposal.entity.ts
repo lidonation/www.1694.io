@@ -1,4 +1,13 @@
-import { Entity, Column, PrimaryColumn, Index, CreateDateColumn, UpdateDateColumn, OneToMany, OneToOne } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryColumn,
+  Index,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany,
+  OneToOne,
+} from 'typeorm';
 import { ProposalVote } from './proposal-vote.entity';
 import { ProposalMetadata } from './proposal-metadata.entity';
 
@@ -21,7 +30,14 @@ export class Proposal {
   certIndex: number;
 
   @Column({ name: 'governance_type', type: 'text' })
-  governanceType: 'hard_fork_initiation' | 'new_committee' | 'new_constitution' | 'info_action' | 'no_confidence' | 'parameter_change' | 'treasury_withdrawals';
+  governanceType:
+    | 'hard_fork_initiation'
+    | 'new_committee'
+    | 'new_constitution'
+    | 'info_action'
+    | 'no_confidence'
+    | 'parameter_change'
+    | 'treasury_withdrawals';
 
   @Column({ name: 'governance_description', type: 'jsonb', nullable: true })
   governanceDescription: any; // Optional JSON map, human-readable

@@ -87,8 +87,11 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
   const activeMetadata = metadata || drep?.metadata?.json_metadata;
 
   const metadataJson =
-    !isMetadataLoading && activeMetadata ? renderJSONLDToJSONArr(activeMetadata) : null;
-  const name = activeMetadata?.body?.givenName || activeMetadata?.body?.dRepName;
+    !isMetadataLoading && activeMetadata
+      ? renderJSONLDToJSONArr(activeMetadata)
+      : null;
+  const name =
+    activeMetadata?.body?.givenName || activeMetadata?.body?.dRepName;
   const displayName = name
     ? renderJsonLdValue(name)
     : drep?.type === 'voting_option'
@@ -329,7 +332,9 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
                   format="(,ddd)"
                 />
               </Box>
-              <Typography sx={{ fontSize: 13, color: 'text.secondary', fontWeight: 500 }}>
+              <Typography
+                sx={{ fontSize: 13, color: 'text.secondary', fontWeight: 500 }}
+              >
                 Total Governance Actions
               </Typography>
             </Box>

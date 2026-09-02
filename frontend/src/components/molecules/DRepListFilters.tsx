@@ -37,28 +37,28 @@ export default function DRepListFilters() {
 
   const getFiltersFromSearchParams = () =>
     Object.fromEntries(
-      FILTER_KEYS.map((key) => [key, searchParams.get(key) || ''])
+      FILTER_KEYS.map((key) => [key, searchParams.get(key) || '']),
     );
 
-    useEffect(() => {
-      const filters = getFiltersFromSearchParams();
-      const hasActiveFilters = Object.values(filters).some(Boolean);
-    
-      if (!hasActiveFilters) {
-        const savedFilters = getItemFromLocalStorage(DREP_FILTERS_LS_KEY);
-        if (savedFilters) {
-          FILTER_KEYS.forEach((key) => {
-            if (savedFilters[key]) {
-              params.set(key, savedFilters[key]);
-            }
-          });
-          replace(`${pathName}?${params.toString()}`);
-        }
+  useEffect(() => {
+    const filters = getFiltersFromSearchParams();
+    const hasActiveFilters = Object.values(filters).some(Boolean);
+
+    if (!hasActiveFilters) {
+      const savedFilters = getItemFromLocalStorage(DREP_FILTERS_LS_KEY);
+      if (savedFilters) {
+        FILTER_KEYS.forEach((key) => {
+          if (savedFilters[key]) {
+            params.set(key, savedFilters[key]);
+          }
+        });
+        replace(`${pathName}?${params.toString()}`);
       }
-    
-      setIsFiltering(hasActiveFilters);
-      setIsInitializing(false);
-    }, [searchParams.toString()]);
+    }
+
+    setIsFiltering(hasActiveFilters);
+    setIsInitializing(false);
+  }, [searchParams.toString()]);
 
   const handleChange = (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -75,15 +75,18 @@ export default function DRepListFilters() {
     } else {
       params.delete(filter);
     }
-  
-    const updatedFilters = FILTER_KEYS.reduce((acc, key) => {
-      const filterKeyValue = key === filter ? value : searchParams.get(key);
-      if (filterKeyValue) acc[key] = filterKeyValue;
-      return acc;
-    }, {} as Record<string, string>);
-  
+
+    const updatedFilters = FILTER_KEYS.reduce(
+      (acc, key) => {
+        const filterKeyValue = key === filter ? value : searchParams.get(key);
+        if (filterKeyValue) acc[key] = filterKeyValue;
+        return acc;
+      },
+      {} as Record<string, string>,
+    );
+
     setItemToLocalStorage(DREP_FILTERS_LS_KEY, updatedFilters);
-  
+
     setIsFiltering(true);
     replace(`${pathName}?${params.toString()}`);
   };
@@ -109,8 +112,8 @@ export default function DRepListFilters() {
   return !isInitializing ? (
     <Box>
       <Box className="relative flex justify-start">
-        <IconButton 
-          color="primary" 
+        <IconButton
+          color="primary"
           sx={{ width: 40, height: 40 }}
           aria-describedby={id}
           onClick={handleShow}
@@ -122,8 +125,8 @@ export default function DRepListFilters() {
           />
         </IconButton>
 
-          <Grow in={isFiltering}>
-          <div className="absolute right-0 top-0">
+        <Grow in={isFiltering}>
+          <div className="absolute top-0 right-0">
             <DotIcon color="#f97316" width={17} height={17} />
           </div>
         </Grow>
@@ -295,8 +298,7 @@ export default function DRepListFilters() {
                   backgroundColor: '#1f2937',
                 }}
                 size="extraSmall"
-                handleClick={() =>
-                  resetFilters(FILTER_KEYS)}
+                handleClick={() => resetFilters(FILTER_KEYS)}
               >
                 <span>Reset</span>
               </Button>

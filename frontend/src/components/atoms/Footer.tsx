@@ -15,26 +15,37 @@ const Footer = () => {
           height={'77px'}
         />
       </div>
-      <div className="mb-16 flex flex-wrap lg:flex-nowrap items-center justify-center gap-4 font-bold text-neutral-300 px-4">
-        <Link target='_blank' href={urls.govToolUrl}>GovTool</Link>
-        <Link target='_blank' href="//www.lidonation.com">Lido Nation</Link>
-        <Link target='_blank' href="//catalystexplorer.com">Catalyst Explorer</Link>
-        <Link target='_blank' href="//cips.cardano.org">Cardano CIPs</Link>
+      <div className="mb-16 flex flex-wrap items-center justify-center gap-4 px-4 font-bold text-neutral-300 lg:flex-nowrap">
+        <Link target="_blank" href={urls.govToolUrl}>
+          GovTool
+        </Link>
+        <Link target="_blank" href="//www.lidonation.com">
+          Lido Nation
+        </Link>
+        <Link target="_blank" href="//catalystexplorer.com">
+          Catalyst Explorer
+        </Link>
+        <Link target="_blank" href="//cips.cardano.org">
+          Cardano CIPs
+        </Link>
       </div>
       <div className="mb-4 flex items-center justify-center gap-3 font-bold">
-        <a target='_blank'
+        <a
+          target="_blank"
           className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900"
           href="//www.facebook.com/lidonation"
         >
           <img src="/svgs/fb.svg" alt="Facebook" />
         </a>
-        <a target='_blank'
+        <a
+          target="_blank"
           className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900"
           href="#"
         >
           <img src="/svgs/ig.svg" alt="Instagram" />
         </a>
-        <a target='_blank'
+        <a
+          target="_blank"
           className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900"
           href="//gitlab.lidonation.com/explore"
         >

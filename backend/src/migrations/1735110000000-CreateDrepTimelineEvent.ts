@@ -1,6 +1,8 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreateDrepTimelineEvent1735110000000 implements MigrationInterface {
+export class CreateDrepTimelineEvent1735110000000
+  implements MigrationInterface
+{
   name = 'CreateDrepTimelineEvent1735110000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -47,11 +49,15 @@ export class CreateDrepTimelineEvent1735110000000 implements MigrationInterface 
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DROP INDEX IF EXISTS "idx_drep_timeline_drep_timeline"`);
+    await queryRunner.query(
+      `DROP INDEX IF EXISTS "idx_drep_timeline_drep_timeline"`,
+    );
     await queryRunner.query(`DROP INDEX IF EXISTS "idx_drep_timeline_drep_id"`);
     await queryRunner.query(`DROP INDEX IF EXISTS "idx_drep_timeline_tx_hash"`);
     await queryRunner.query(`DROP INDEX IF EXISTS "idx_drep_timeline_epoch"`);
-    await queryRunner.query(`DROP INDEX IF EXISTS "idx_drep_timeline_timestamp"`);
+    await queryRunner.query(
+      `DROP INDEX IF EXISTS "idx_drep_timeline_timestamp"`,
+    );
     await queryRunner.query(`DROP INDEX IF EXISTS "idx_drep_timeline_type"`);
     await queryRunner.query(`DROP TABLE IF EXISTS "drep_timeline_event"`);
   }

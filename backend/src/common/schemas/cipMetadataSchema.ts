@@ -7,8 +7,7 @@ const CIP100_URL =
   'https://github.com/cardano-foundation/CIPs/blob/master/CIP-0100/README.md#';
 
 const CIP119_URL =
-'https://github.com/cardano-foundation/CIPs/blob/master/CIP-0119/README.md#';
-
+  'https://github.com/cardano-foundation/CIPs/blob/master/CIP-0119/README.md#';
 
 export const cipStandardSchema: StandardSpecification = {
   [MetadataStandard.CIP100]: Joi.object({
@@ -26,8 +25,7 @@ export const cipStandardSchema: StandardSpecification = {
       bio: Joi.string().allow(''),
       givenName: Joi.string().allow(''),
       email: Joi.string().allow('').required(),
-      references: Joi.array()
+      references: Joi.array(),
     }),
-  })
+  }),
 };
-

@@ -30,13 +30,13 @@ const format = (key: string, val: string) =>
   filterLabelMap[key]?.[val] ||
   val
     .split('_')
-    .map(s => s[0].toUpperCase() + s.slice(1))
+    .map((s) => s[0].toUpperCase() + s.slice(1))
     .join(' ');
 
 const labelFor = (
   key: string,
   label: string,
-  search: ReturnType<typeof useSearchParams>
+  search: ReturnType<typeof useSearchParams>,
 ) => {
   const val = search.get(key);
   if (!val) return null;

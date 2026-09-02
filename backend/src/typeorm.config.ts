@@ -17,5 +17,8 @@ const datasource = new DataSource({
   },
   logging: true,
 });
-datasource.initialize().then();
+datasource.initialize().catch((error) => {
+  console.error('Failed to initialize the TypeORM datasource', error);
+  process.exitCode = 1;
+});
 export default datasource;

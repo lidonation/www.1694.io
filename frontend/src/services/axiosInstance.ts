@@ -5,14 +5,14 @@ import { LOGIN_TOKEN_1694 } from '@/constants/storage';
 
 const baseURL = urls.baseServerUrl;
 
-
 const axiosInstance = axios.create({
   baseURL,
   timeout: 30000,
 });
 
 axiosInstance.interceptors.request.use((config) => {
-  const authToken1694 = typeof window !== 'undefined' && getDataFromSession(LOGIN_TOKEN_1694);
+  const authToken1694 =
+    typeof window !== 'undefined' && getDataFromSession(LOGIN_TOKEN_1694);
   if (authToken1694) {
     config.headers['Authorization-1694'] = `Bearer ${authToken1694}`;
   }

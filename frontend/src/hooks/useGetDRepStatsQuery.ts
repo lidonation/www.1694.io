@@ -12,7 +12,7 @@ export const useGetDRepStatsQuery = (voterId: string) => {
       const cip105Id = convertDrepPhraseToCIP105(voterId);
       return await getDRepStats(cip105Id);
     },
-    enabled: typeof window !== "undefined" && (!!voterId),
+    enabled: typeof window !== 'undefined' && !!voterId,
     refetchOnWindowFocus: false,
   });
 

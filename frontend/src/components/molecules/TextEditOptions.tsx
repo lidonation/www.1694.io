@@ -30,9 +30,9 @@ const DropDownActions = ({
     <div className="relative text-nowrap">
       <div
         onClick={() => setIsOpen(!isOpen)}
-        className="cursor-pointer bg-white shadow-sm rounded-xl px-2 py-1"
+        className="cursor-pointer rounded-xl bg-white px-2 py-1 shadow-sm"
       >
-        <div id="drop-down-actions" className="flex items-center gap-1 ">
+        <div id="drop-down-actions" className="flex items-center gap-1">
           <div>
             {isMobile ? (
               <img
@@ -183,7 +183,7 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({
         className="flex max-h-10 w-full items-center justify-start gap-3 overflow-x-auto bg-slate-50 px-2"
       >
         <div
-          className={`${active ? 'cursor-pointer' : 'pointer-events-none'} shrink-0 `}
+          className={`${active ? 'cursor-pointer' : 'pointer-events-none'} shrink-0`}
           onClick={() => handleFormatText('bold')}
         >
           <img src="/svgs/notesvgs/bold.svg" alt="Bold img" />
@@ -208,14 +208,11 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({
         {showOverlay &&
           ReactDOM.createPortal(
             <div
-              className={`
-              z-50 w-fit
-              ${
+              className={`z-50 w-fit ${
                 isMobile
-                  ? 'fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2'
+                  ? 'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'
                   : 'absolute'
-              }
-            `}
+              } `}
               style={{
                 ...(isMobile
                   ? {}
@@ -253,7 +250,7 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({
               {actions.map((action, index) => (
                 <div
                   key={index}
-                  className={`flex flex-row items-center justify-start gap-5 text-nowrap px-3 py-2 text-zinc-800 ${active ? 'cursor-pointer hover:bg-gray-100' : 'pointer-events-none opacity-50'}`}
+                  className={`flex flex-row items-center justify-start gap-5 px-3 py-2 text-nowrap text-zinc-800 ${active ? 'cursor-pointer hover:bg-gray-100' : 'pointer-events-none opacity-50'}`}
                   onClick={() => {
                     handleFormatText(action.action);
                     setIsOpen(false);

@@ -2,8 +2,10 @@ import { NextResponse } from 'next/server';
 
 export default function middleware(request) {
   // Skip middleware for static files and API routes
-  if (request.nextUrl.pathname.match(/\.(svg|png|ico|css|js)$/) || 
-      request.nextUrl.pathname.startsWith('/api/')) {
+  if (
+    request.nextUrl.pathname.match(/\.(svg|png|ico|css|js)$/) ||
+    request.nextUrl.pathname.startsWith('/api/')
+  ) {
     return NextResponse.next();
   }
 

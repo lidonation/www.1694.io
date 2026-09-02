@@ -7,7 +7,7 @@ const CIPRationale = () => {
         <div>
           <p className="text-start text-5xl font-bold text-white">Rationale</p>
         </div>
-        <div className="flex  flex-col items-center justify-center gap-8 text-white">
+        <div className="flex flex-col items-center justify-center gap-8 text-white">
           <ul className="ml-5 flex list-disc flex-col gap-1">
             <li>Role of the constitutional committee</li>
             <li>Intentional omission of identity verification</li>
@@ -27,7 +27,7 @@ const CIPRationale = () => {
             <li>Controlling the number of active governance actions</li>
             <li>No AVST</li>
           </ul>
-          <section className="flex flex-col gap-3 font-light text-sm md:text-md lg:text-lg">
+          <section className="md:text-md flex flex-col gap-3 text-sm font-light lg:text-lg">
             <p className="text-2xl font-bold">
               Role of the constitutional committee
             </p>
@@ -61,7 +61,7 @@ const CIPRationale = () => {
               accordance with the provisions of the Constitution.
             </p>
           </section>
-          <section className="flex flex-col gap-3 font-light text-sm md:text-md lg:text-lg">
+          <section className="md:text-md flex flex-col gap-3 text-sm font-light lg:text-lg">
             <p className="text-2xl font-bold">
               Reducing the power of entities with large amounts of Ada
             </p>
@@ -74,7 +74,7 @@ const CIPRationale = () => {
               any such measures.
             </p>
           </section>
-          <section className="flex flex-col gap-3 font-light text-sm md:text-md lg:text-lg">
+          <section className="md:text-md flex flex-col gap-3 text-sm font-light lg:text-lg">
             <p className="text-2xl font-bold">
               Piggybanking on stake pool stake distribution
             </p>
@@ -113,7 +113,7 @@ const CIPRationale = () => {
               the governance framework.
             </p>
           </section>
-          <section className="flex flex-col gap-3 font-light text-sm md:text-md lg:text-lg">
+          <section className="md:text-md flex flex-col gap-3 text-sm font-light lg:text-lg">
             <p className="text-2xl font-bold">
               Separation of Hard Fork Initiation from Standard Protocol
               Parameter Changes
@@ -137,7 +137,7 @@ const CIPRationale = () => {
               protocol parameter updates.
             </p>
           </section>
-          <section className="flex flex-col gap-3 font-light text-sm md:text-md lg:text-lg">
+          <section className="md:text-md flex flex-col gap-3 text-sm font-light lg:text-lg">
             <p className="text-2xl font-bold">The purpose of the DReps</p>
             <p>
               Nothing in this proposal limits SPOs from becoming DReps. Why do
@@ -148,7 +148,7 @@ const CIPRationale = () => {
               can choose to represent Ada holders or not.
             </p>
           </section>
-          <section className="flex flex-col gap-3 font-light text-sm md:text-md lg:text-lg">
+          <section className="md:text-md flex flex-col gap-3 text-sm font-light lg:text-lg">
             <p className="text-2xl font-bold">
               Ratification Requirements Table
             </p>
@@ -166,7 +166,7 @@ const CIPRationale = () => {
               <li>Treasury withdrawal</li>
             </ul>
           </section>
-          <section className="flex flex-col gap-3 font-light text-sm md:text-md lg:text-lg">
+          <section className="md:text-md flex flex-col gap-3 text-sm font-light lg:text-lg">
             <p className="text-2xl font-bold">Motion of no-confidence</p>
             <p>
               A motion of no-confidence represents a lack of confidence by the
@@ -176,7 +176,7 @@ const CIPRationale = () => {
               DReps are left to represent the will of the community.
             </p>
           </section>
-          <section className="flex flex-col gap-3 font-light text-sm md:text-md lg:text-lg">
+          <section className="md:text-md flex flex-col gap-3 text-sm font-light lg:text-lg">
             <p className="text-2xl font-bold">
               Update committee/threshold (state-of-no-confidence)
             </p>
@@ -186,7 +186,7 @@ const CIPRationale = () => {
               will of the community.
             </p>
           </section>
-          <section className="flex flex-col gap-3 font-light text-sm md:text-md lg:text-lg">
+          <section className="md:text-md flex flex-col gap-3 text-sm font-light lg:text-lg">
             <p className="text-2xl font-bold">
               The versatility of the info governance action
             </p>
@@ -200,7 +200,7 @@ const CIPRationale = () => {
               <li>recording initial feedback for future governance actions</li>
             </ul>
           </section>
-          <section className="flex flex-col gap-3 font-light text-sm md:text-md lg:text-lg">
+          <section className="md:text-md flex flex-col gap-3 text-sm font-light lg:text-lg">
             <p className="text-2xl font-bold">Hard-Fork initiation</p>
             <p>
               Regardless of any governance mechanism, SPO participation is
@@ -212,7 +212,7 @@ const CIPRationale = () => {
               represent the will of every stake holder.
             </p>
           </section>
-          <section className="flex flex-col gap-3 font-light text-sm md:text-md lg:text-lg">
+          <section className="md:text-md flex flex-col gap-3 text-sm font-light lg:text-lg">
             <p className="text-2xl font-bold">New Metadata structures</p>
             <p>
               The governance actions, the votes and the certificates and the
@@ -233,7 +233,7 @@ const CIPRationale = () => {
               justification on chain?
             </p>
           </section>
-          <section className="flex flex-col gap-3 font-light text-sm md:text-md lg:text-lg">
+          <section className="md:text-md flex flex-col gap-3 text-sm font-light lg:text-lg">
             <p className="text-2xl font-bold">
               Alternative: Use of transaction metadata
             </p>
@@ -263,7 +263,7 @@ const CIPRationale = () => {
               as a ledger state query.
             </p>
           </section>
-          <section className="flex flex-col gap-3 font-light text-sm md:text-md lg:text-lg">
+          <section className="md:text-md flex flex-col gap-3 text-sm font-light lg:text-lg">
             <p className="text-2xl font-bold">
               Controlling the number of active governance actions
             </p>
@@ -289,7 +289,7 @@ const CIPRationale = () => {
               enough votes from the DReps.
             </p>
           </section>
-          <section className="flex flex-col gap-3 font-light text-sm md:text-md lg:text-lg">
+          <section className="md:text-md flex flex-col gap-3 text-sm font-light lg:text-lg">
             <p className="text-2xl font-bold">No AVST</p>
             <p>
               An earlier draft of this CIP included the notion of an "active

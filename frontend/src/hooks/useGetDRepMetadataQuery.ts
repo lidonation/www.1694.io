@@ -11,7 +11,7 @@ export const useGetDRepMetadataQuery = (voterId: string) => {
       const cip105Id = convertDrepPhraseToCIP105(voterId);
       return await getDRepMetadata(cip105Id);
     },
-    enabled: typeof window !== "undefined" && (!!voterId),
+    enabled: typeof window !== 'undefined' && !!voterId,
     retry: 2,
     refetchOnWindowFocus: false,
   });

@@ -131,3 +131,7 @@ infra/terraform/.terraform*
 
 node_modules
 .gitnexus
+
+# local development secrets (never commit real values)
+config/secrets/*
+!config/secrets/*.example

@@ -1,6 +1,8 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class DenormalizeDrepTimelineEvent1735120000000 implements MigrationInterface {
+export class DenormalizeDrepTimelineEvent1735120000000
+  implements MigrationInterface
+{
   name = 'DenormalizeDrepTimelineEvent1735120000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -37,18 +39,18 @@ export class DenormalizeDrepTimelineEvent1735120000000 implements MigrationInter
 
     // Optional: Populate the new columns from existing JSONB data if needed
     // Uncomment and modify the following queries based on your JSONB structure:
-    
+
     // await queryRunner.query(`
-    //   UPDATE drep_timeline_event 
+    //   UPDATE drep_timeline_event
     //   SET stake_address = event_data->>'stake_address'
-    //   WHERE event_data ? 'stake_address' 
+    //   WHERE event_data ? 'stake_address'
     //   AND stake_address IS NULL;
     // `);
 
     // await queryRunner.query(`
-    //   UPDATE drep_timeline_event 
+    //   UPDATE drep_timeline_event
     //   SET previous_drep = event_data->>'previous_drep'
-    //   WHERE event_data ? 'previous_drep' 
+    //   WHERE event_data ? 'previous_drep'
     //   AND previous_drep IS NULL;
     // `);
   }
@@ -57,7 +59,7 @@ export class DenormalizeDrepTimelineEvent1735120000000 implements MigrationInter
     // Recreate the old JSONB functional index if it existed
     // Note: Uncomment and modify based on your original index structure
     // await queryRunner.query(`
-    //   CREATE INDEX IF NOT EXISTS idx_drep_timeline_stake_address 
+    //   CREATE INDEX IF NOT EXISTS idx_drep_timeline_stake_address
     //   ON drep_timeline_event USING GIN ((event_data->>'stake_address'));
     // `);
 

@@ -9,7 +9,7 @@ const CIPDRepInfo = () => {
       <div className="base_container py-10">
         <div
           id="delegated-representatives-dreps"
-          className="mb-5 text-3xl lg:text-6xl font-bold text-violet-50"
+          className="mb-5 text-3xl font-bold text-violet-50 lg:text-6xl"
         >
           <p>Delegated</p>
           <p>Representatives (DReps)</p>
@@ -29,31 +29,36 @@ const CIPDRepInfo = () => {
             <div className="flex w-full items-center justify-center">
               <img src="/img/becomeDrepImg.png" alt="" width={'25%'} />
             </div>
-            <p className="text-2xl lg:text-3xl font-bold">Pre-defined Voting Options </p>
+            <p className="text-2xl font-bold lg:text-3xl">
+              Pre-defined Voting Options{' '}
+            </p>
             <p>
-            In order to participate in governance, a stake credential must be delegated to a DRep. Ada holders will generally delegate their voting rights to a registered DRep that will vote on their behalf. In addition, two pre-defined voting options are available:
+              In order to participate in governance, a stake credential must be
+              delegated to a DRep. Ada holders will generally delegate their
+              voting rights to a registered DRep that will vote on their behalf.
+              In addition, two pre-defined voting options are available:
             </p>
             <ul className="ml-5 flex list-disc flex-col gap-2">
               <li>
-                Abstain 
-                <br/>
-                If an Ada holder delegates to Abstain, then their stake
-                is actively marked as not participating in governance. The
-                effect of delegating to Abstain on chain is that the delegated
-                stake will not be considered to be a part of the active voting
-                stake. However, the stake will be considered to be registered
-                for the purpose of the incentives that are described in
-                Incentives for Ada holders to delegate voting stake.
+                Abstain
+                <br />
+                If an Ada holder delegates to Abstain, then their stake is
+                actively marked as not participating in governance. The effect
+                of delegating to Abstain on chain is that the delegated stake
+                will not be considered to be a part of the active voting stake.
+                However, the stake will be considered to be registered for the
+                purpose of the incentives that are described in Incentives for
+                Ada holders to delegate voting stake.
               </li>
               <li>
                 No Confidence
-                <br/>
-                If an Ada holder delegates to No Confidence, then
-                their stake is counted as a Yes vote on every No Confidence
-                action and a No vote on every other action. The delegated stake
-                will be considered part of the active voting stake. It also
-                serves as a directly auditable measure of the confidence of Ada
-                holders in the constitutional committee.
+                <br />
+                If an Ada holder delegates to No Confidence, then their stake is
+                counted as a Yes vote on every No Confidence action and a No
+                vote on every other action. The delegated stake will be
+                considered part of the active voting stake. It also serves as a
+                directly auditable measure of the confidence of Ada holders in
+                the constitutional committee.
               </li>
             </ul>
             <ToastCard
@@ -70,7 +75,7 @@ const CIPDRepInfo = () => {
             id="registered-dreps"
             className="flex flex-col gap-3 text-white"
           >
-            <p className="text-2xl lg:text-3xl font-bold">Registered DReps </p>
+            <p className="text-2xl font-bold lg:text-3xl">Registered DReps </p>
             <p>
               In Voltaire, existing stake credentials will be able to delegate
               their stake to DReps for voting purposes, in addition to the
@@ -81,12 +86,16 @@ const CIPDRepInfo = () => {
               registered DReps will need to vote regularly to still be
               considered active. Specifically, if a DRep does not submit any
               votes for drepActivity-many epochs, the DRep is considered
-              inactive, where drepActivity is a new protocol parameter. Inactive DReps do not count towards the active voting stake anymore, and can become active again for
-              <strong className='font-bold'> drepActivity </strong>-many epochs by voting on any governance actions or submitting a DRep update certificate. The reason for marking DReps as inactive
-              is so that DReps who stop participating but still have stake
-              delegated to them do not eventually leave the system in a state
-              where no governance action can pass. Registered DReps are
-              identified by a credential that can be either:
+              inactive, where drepActivity is a new protocol parameter. Inactive
+              DReps do not count towards the active voting stake anymore, and
+              can become active again for
+              <strong className="font-bold"> drepActivity </strong>-many epochs
+              by voting on any governance actions or submitting a DRep update
+              certificate. The reason for marking DReps as inactive is so that
+              DReps who stop participating but still have stake delegated to
+              them do not eventually leave the system in a state where no
+              governance action can pass. Registered DReps are identified by a
+              credential that can be either:
             </p>
             <ul className="ml-5 flex list-disc flex-col gap-2">
               <li>A verification Key (Ed25519)</li>
@@ -109,7 +118,9 @@ const CIPDRepInfo = () => {
             id="new-stake-distribution-for-dreps"
             className="flex flex-col gap-3 text-white"
           >
-            <p className="text-2xl lg:text-3xl font-bold">New stake distribution</p>
+            <p className="text-2xl font-bold lg:text-3xl">
+              New stake distribution
+            </p>
             <p>
               In addition to the existing per-stake-credential distribution and
               the per-stake-pool distribution, the ledger will now also
@@ -125,7 +136,7 @@ const CIPDRepInfo = () => {
           </section>
           <Separator />
           <section className="flex flex-col gap-3 text-white">
-            <p className="text-2xl lg:text-3xl font-bold">
+            <p className="text-2xl font-bold lg:text-3xl">
               Incentives for Ada holders to delegate voting stake
             </p>
             <p>
@@ -134,8 +145,9 @@ const CIPDRepInfo = () => {
               any time. After this phase, although rewards will continue to be
               earned for block delegation etc., reward accounts will be blocked
               from withdrawing any rewards unless their associated stake
-              credential is also delegated to a DRep or pre-defined voting option. This helps to ensure high
-              participation, and so, legitimacy.
+              credential is also delegated to a DRep or pre-defined voting
+              option. This helps to ensure high participation, and so,
+              legitimacy.
             </p>
             <ToastCard
               type="warning"
@@ -147,7 +159,7 @@ const CIPDRepInfo = () => {
             id="drep-incentives"
             className="flex flex-col gap-3 text-white"
           >
-            <p className="text-2xl lg:text-3xl font-bold">DRep incentives</p>
+            <p className="text-2xl font-bold lg:text-3xl">DRep incentives</p>
             <p>
               DReps arguably need to be compensated for their work. Research on
               incentive models is still ongoing, and we do not wish to hold up

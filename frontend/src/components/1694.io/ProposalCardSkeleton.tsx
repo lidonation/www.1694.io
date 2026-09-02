@@ -1,5 +1,13 @@
 'use client';
-import { Card, CardContent, Skeleton, Box, Chip, CardActions, Typography } from '@mui/material';
+import {
+  Card,
+  CardContent,
+  Skeleton,
+  Box,
+  Chip,
+  CardActions,
+  Typography,
+} from '@mui/material';
 import React from 'react';
 
 function ProposalCardSkeleton() {
@@ -14,7 +22,11 @@ function ProposalCardSkeleton() {
       }}
     >
       <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <Box display="flex" justifyContent="space-between" alignItems="flex-start">
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="flex-start"
+        >
           <Box>
             <Skeleton width={160} height={24} />
             <Skeleton width={80} height={14} />
@@ -29,7 +41,11 @@ function ProposalCardSkeleton() {
 
         <Box>
           <Skeleton width="50%" height={20} />
-          <Chip label={<Skeleton width={40} />} size="small" variant="outlined" />
+          <Chip
+            label={<Skeleton width={40} />}
+            size="small"
+            variant="outlined"
+          />
         </Box>
 
         <Box>

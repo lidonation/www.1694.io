@@ -7,7 +7,7 @@ export const useGetUserProposalVoteQuery = (pollId: string, dRepId: string) => {
   const { data, isLoading } = useQuery({
     queryKey: [QUERY_KEYS.getUserProposalVoteKey, dRepId, pollId],
     queryFn: async () => await getUserProposalVote(pollId, dRepId),
-    enabled: typeof window !== "undefined" && (!!pollId && !!dRepId),
+    enabled: typeof window !== 'undefined' && !!pollId && !!dRepId,
     refetchOnWindowFocus: false,
   });
 

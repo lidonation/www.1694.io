@@ -39,7 +39,6 @@ const Layout = ({ children }: Props) => {
 
     switch (true) {
       case isInDrepWorkflow && !isMounted:
-
         setTimeout(() => {
           setUserInfo({
             dRepClaimInfo: {
@@ -49,7 +48,6 @@ const Layout = ({ children }: Props) => {
         }, 250);
         break;
       case !isInDrepWorkflow:
-
         setUserInfo({
           dRepClaimInfo: {
             isCurrentlyClaiming: 'no',

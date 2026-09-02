@@ -13,9 +13,15 @@ export class AddDrepEpochStakeTable1778300000000 implements MigrationInterface {
         CONSTRAINT "uq_drep_epoch_stake" UNIQUE ("drep_id", "epoch_no")
       )
     `);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "idx_drep_epoch_stake_epoch"  ON "drep_epoch_stake" ("epoch_no")`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "idx_drep_epoch_stake_active" ON "drep_epoch_stake" ("active")`);
-    await queryRunner.query(`CREATE INDEX IF NOT EXISTS "idx_drep_epoch_stake_drep"   ON "drep_epoch_stake" ("drep_id")`);
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "idx_drep_epoch_stake_epoch"  ON "drep_epoch_stake" ("epoch_no")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "idx_drep_epoch_stake_active" ON "drep_epoch_stake" ("active")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS "idx_drep_epoch_stake_drep"   ON "drep_epoch_stake" ("drep_id")`,
+    );
   }
 
   async down(queryRunner: QueryRunner): Promise<void> {

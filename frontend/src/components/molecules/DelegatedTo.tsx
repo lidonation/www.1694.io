@@ -20,7 +20,9 @@ type DelegatedToProps = {
 };
 
 export const DelegatedTo = ({ className }: DelegatedToProps) => {
-  const { wallet:{stakeKey, stakeKeyBech32}  } = useWallet();
+  const {
+    wallet: { stakeKey, stakeKeyBech32 },
+  } = useWallet();
   const { addSuccessAlert } = useGlobalNotifications();
   const { currentDelegation } = useGetAdaHolderCurrentDelegationQuery(stakeKey);
   const { dRep } = useGetSingleDRepQuery(currentDelegation?.drep_view);
@@ -81,21 +83,21 @@ export const DelegatedTo = ({ className }: DelegatedToProps) => {
                 </Link>
                 <Tooltip title="Copy DRep ID">
                   <span>
-                  <IconButton
-                    size="small"
-                    onClick={() =>
-                      handleCopyText(
-                        currentDelegation?.drep_view,
-                        addSuccessAlert,
-                      )
-                    }
-                  >
-                    <CopyToClipBoardIcon
-                      color="#d1d5db"
-                      width={16}
-                      height={16}
-                    />
-                  </IconButton>
+                    <IconButton
+                      size="small"
+                      onClick={() =>
+                        handleCopyText(
+                          currentDelegation?.drep_view,
+                          addSuccessAlert,
+                        )
+                      }
+                    >
+                      <CopyToClipBoardIcon
+                        color="#d1d5db"
+                        width={16}
+                        height={16}
+                      />
+                    </IconButton>
                   </span>
                 </Tooltip>
               </Box>
@@ -121,7 +123,7 @@ export const DelegatedTo = ({ className }: DelegatedToProps) => {
               <Typography
                 fontSize="0.75rem"
                 fontWeight={600}
-                className="w-full text-wrap tracking-wide text-gray-300"
+                className="w-full tracking-wide text-wrap text-gray-300"
               >
                 You have not yet delegated to a DRep, consider selecting one on
                 the GovTool website.

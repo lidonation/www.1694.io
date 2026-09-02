@@ -5,7 +5,7 @@ const MetadataUpdateTimelineCard = () => {
   return (
     <div className="flex w-full flex-col gap-2 rounded-xl bg-blue-800 p-3 text-white">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1 text-nowrap rounded-full bg-black px-2 py-1 text-white">
+        <div className="flex items-center gap-1 rounded-full bg-black px-2 py-1 text-nowrap text-white">
           <img src="/svgs/reload.svg" alt="" className="h-5 w-5" />
           <p className="text-xs">Metadata Update</p>
         </div>

@@ -1,7 +1,16 @@
-import { Entity, Column, PrimaryColumn, Index, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryColumn,
+  Index,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity('drep_delegators')
-@Index('idx_drep_delegator_composite', ['drepId', 'stakeAddress'], { unique: true })
+@Index('idx_drep_delegator_composite', ['drepId', 'stakeAddress'], {
+  unique: true,
+})
 @Index('idx_drep_delegator_drep', ['drepId'])
 @Index('idx_drep_delegator_stake', ['stakeAddress'])
 @Index('idx_drep_delegator_amount', ['amountLovelace'])

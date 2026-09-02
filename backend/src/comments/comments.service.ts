@@ -17,7 +17,7 @@ export class CommentsService {
   async getComments(parentId: number, parentEntity: string) {
     return await this.commentRepository.getCommentsWithReactionsAndReplies(
       parentId,
-      parentEntity as CommentParentEntityType,
+      parentEntity,
     );
   }
 
@@ -99,7 +99,7 @@ export class CommentsService {
     if (note && voter !== note?.author?.stakeKey) {
       const notificationContent =
         this.notificationsService.newCommentOnNoteNotification(
-          new Date(note?.createdAt as Date).getTime(),
+          new Date(note?.createdAt).getTime(),
           note?.author?.voterId,
           voter,
         );

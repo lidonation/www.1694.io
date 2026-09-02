@@ -33,8 +33,10 @@ const NewNoteForm = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
 
-  const { wallet:{dRepIdBech32, stakeKey, isDRep, isConnected} } = useWallet();
-  const {openModal}=useModals();
+  const {
+    wallet: { dRepIdBech32, stakeKey, isDRep, isConnected },
+  } = useWallet();
+  const { openModal } = useModals();
   const router = useRouter();
   const mutation = usePostNewNoteMutation();
   const { addSuccessAlert, addErrorAlert } = useGlobalNotifications();
@@ -63,7 +65,9 @@ const NewNoteForm = () => {
       addSuccessAlert('Note Created Successfully!');
       setIsLoading(false);
     } catch (error) {
-      addErrorAlert(String(error?.response?.data?.message) || 'Note Creation Failed!');
+      addErrorAlert(
+        String(error?.response?.data?.message) || 'Note Creation Failed!',
+      );
       console.log(error);
       setIsLoading(false);
     }
@@ -75,7 +79,7 @@ const NewNoteForm = () => {
 
   return (
     <form
-      className="mb-48 mt-4 rounded-3xl bg-slate-50 p-5 shadow-lg"
+      className="mt-4 mb-48 rounded-3xl bg-slate-50 p-5 shadow-lg"
       onSubmit={handleSubmit(saveNote, onError)}
     >
       <NewNotePostForm

@@ -3,9 +3,7 @@ import { imageProcessor } from './imageProcessor';
 import { pdfProcessor } from './pdfProcessor';
 import { youtubeVimeoProcessor } from './youtubeVimeoProcessor';
 
-
 export const processContent = (content) => {
-
   const processors = [
     pdfProcessor,
     imageProcessor,
@@ -14,7 +12,7 @@ export const processContent = (content) => {
   ];
 
   let processedContent = content;
-  
+
   processors.forEach((processor) => {
     processedContent = processor(processedContent);
   });

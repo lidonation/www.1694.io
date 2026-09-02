@@ -9,7 +9,7 @@ export const useVoterDataByIdentityQuery = (
   const { data, isLoading } = useQuery({
     queryKey: ['voters', voterIdentity],
     queryFn: async () => await getVoterDataByIdentity({ voterIdentity }),
-    enabled: typeof window !== "undefined" && (!!voterIdentity),
+    enabled: typeof window !== 'undefined' && !!voterIdentity,
     refetchOnWindowFocus: false,
   });
 

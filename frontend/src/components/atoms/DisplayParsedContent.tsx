@@ -16,7 +16,7 @@ const DisplayParsedContent = ({ content }) => {
         } else if (React.isValidElement(item)) {
           return React.cloneElement(item, { key: index });
         }
-        return "";
+        return '';
       })}
     </div>
   );

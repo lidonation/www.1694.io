@@ -28,7 +28,7 @@ export const useGetOAuthProviders = (stakeKeyBech32?: string) => {
     OAUTH_KEYS.providers(stakeKeyBech32),
     () => getOAuthProviders({ stakeKeyBech32: stakeKeyBech32! }),
     {
-      enabled: typeof window !== "undefined" && (!!stakeKeyBech32),
+      enabled: typeof window !== 'undefined' && !!stakeKeyBech32,
     },
   );
 };
@@ -41,7 +41,7 @@ export const useGetOAuthProvider = (
     OAUTH_KEYS.provider(stakeKeyBech32, provider),
     () => getOAuthProvider({ stakeKeyBech32, provider }),
     {
-      enabled: typeof window !== "undefined" && (!!stakeKeyBech32 && !!provider),
+      enabled: typeof window !== 'undefined' && !!stakeKeyBech32 && !!provider,
     },
   );
 };

@@ -3,11 +3,16 @@ import { QueueService } from './queue.service';
 import { BullModule } from '@nestjs/bullmq';
 import { Queues } from './queue.types';
 import { ConfigService } from '@nestjs/config';
-import { DEFAULT_ATTEMPTS, MAX_COMPLETED_JOB_AGE, MAX_COMPLETED_JOBS, MAX_FAILED_JOB_AGE, MAX_FAILED_JOBS } from './queue.constants';
+import {
+  DEFAULT_ATTEMPTS,
+  MAX_COMPLETED_JOB_AGE,
+  MAX_COMPLETED_JOBS,
+  MAX_FAILED_JOB_AGE,
+  MAX_FAILED_JOBS,
+} from './queue.constants';
 import { DRepClaimQueueEvents } from './listeners/queue.events';
 import { BlockfrostModule } from '../blockfrost/blockfrost.module';
 import { GovernanceModule } from '../governance/governance.module';
-
 
 @Global()
 @Module({
@@ -20,12 +25,12 @@ import { GovernanceModule } from '../governance/governance.module';
         connection: {
           host: configService.get<string>('REDIS_HOST') || 'localhost',
           port: configService.get<number>('REDIS_PORT') || 6379,
-          password: configService.get<string>('REDIS_PASSWORD')
+          password: configService.get<string>('REDIS_PASSWORD'),
         },
         defaultJobOptions: {
           removeOnComplete: {
-            age: MAX_COMPLETED_JOB_AGE, 
-            count: MAX_COMPLETED_JOBS, 
+            age: MAX_COMPLETED_JOB_AGE,
+            count: MAX_COMPLETED_JOBS,
           },
           removeOnFail: {
             age: MAX_FAILED_JOB_AGE,
@@ -36,7 +41,7 @@ import { GovernanceModule } from '../governance/governance.module';
       }),
     }),
     BullModule.registerQueue({
-      name: Queues.DREP_CLAIM
+      name: Queues.DREP_CLAIM,
     }),
   ],
   controllers: [],
@@ -44,4 +49,3 @@ import { GovernanceModule } from '../governance/governance.module';
   exports: [QueueService],
 })
 export class QueueModule {}
-

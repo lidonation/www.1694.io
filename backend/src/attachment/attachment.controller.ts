@@ -24,9 +24,8 @@ export class AttachmentController {
     @Res() res: Response,
   ): Promise<StreamableFile | any> {
     //pipe the attachment
-    const attachment = (await this.attachmentService.getSingleAttachmentByName(
-      name,
-    )) as Attachment;
+    const attachment =
+      await this.attachmentService.getSingleAttachmentByName(name);
     if (!attachment) {
       return res
         .status(HttpStatus.NOT_FOUND)

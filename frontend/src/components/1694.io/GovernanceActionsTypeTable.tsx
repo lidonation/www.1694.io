@@ -73,17 +73,13 @@ const GovernanceActionsTypeTable = () => {
   return (
     <table>
       <thead>
-        <tr className="bg-white text-left ">
+        <tr className="bg-white text-left">
           <th className="border border-slate-500/80 p-4">
             Governance action type
           </th>
           <th className="border border-slate-500/80 p-4">CC</th>
-          <th className="border border-slate-500/80 p-4">
-            DReps
-          </th>
-          <th className="border border-slate-500/80 p-4">
-            SPOs
-          </th>
+          <th className="border border-slate-500/80 p-4">DReps</th>
+          <th className="border border-slate-500/80 p-4">SPOs</th>
         </tr>
       </thead>
       <tbody>
@@ -95,15 +91,9 @@ const GovernanceActionsTypeTable = () => {
             <td className="border border-slate-500/50 p-5">
               {index + 1}. {item.actions}
             </td>
-            <td className="border border-slate-500/50 p-5">
-              {item.CC}
-            </td>
-            <td className="border border-slate-500/50 p-5">
-              {item.DReps}
-            </td>
-            <td className="border border-slate-500/50 p-5">
-              {item.SPOs}
-            </td>
+            <td className="border border-slate-500/50 p-5">{item.CC}</td>
+            <td className="border border-slate-500/50 p-5">{item.DReps}</td>
+            <td className="border border-slate-500/50 p-5">{item.SPOs}</td>
           </tr>
         ))}
       </tbody>

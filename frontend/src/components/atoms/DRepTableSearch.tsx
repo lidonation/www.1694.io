@@ -25,7 +25,7 @@ const DRepTableSearch = () => {
 
   return (
     <Box className="flex w-full items-center gap-2">
-      <Box className="relative flex w-full flex-row items-center justify-start rounded-full border border-primary-300">
+      <Box className="border-primary-300 relative flex w-full flex-row items-center justify-start rounded-full border">
         <Box className="pointer-events-none absolute flex items-center justify-center pl-6">
           <img src="/svgs/search.svg" alt="Search Icon" />
         </Box>
@@ -34,7 +34,7 @@ const DRepTableSearch = () => {
           defaultValue={searchParams.get('s')?.toString()}
           onChange={(e) => handleSearch(e.target.value)}
           data-test-id="drep-search-input"
-          className="h-full w-full rounded-full bg-transparent py-3 pl-14 pr-6 ring-primary-300 placeholder:font-black focus:border-none focus:ring-2"
+          className="ring-primary-300 h-full w-full rounded-full bg-transparent py-3 pr-6 pl-14 placeholder:font-black focus:border-none focus:ring-2"
           placeholder="Search..."
         />
       </Box>

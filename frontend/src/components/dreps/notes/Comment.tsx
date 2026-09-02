@@ -189,7 +189,7 @@ const Comment: React.FC<CommentProps> = ({
         <Typography className="font-bold underline" variant="subtitle1">
           {convertString(comment.voter, true)}
         </Typography>
-        <div className="flex items-center gap-2 rounded bg-extra_gray px-2">
+        <div className="bg-extra_gray flex items-center gap-2 rounded px-2">
           <p className="text-sm">Posted:</p>
           <p className="text-sm">
             {new Date(comment?.createdAt).toDateString()}

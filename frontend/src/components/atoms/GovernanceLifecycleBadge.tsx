@@ -2,11 +2,11 @@ import React from 'react';
 import { LifecycleStatus } from '@/lib/governanceThresholds';
 
 const CONFIG: Record<LifecycleStatus, { label: string; cls: string }> = {
-  active:   { label: 'Active',   cls: 'bg-success text-zinc-800' },
+  active: { label: 'Active', cls: 'bg-success text-zinc-800' },
   ratified: { label: 'Ratified', cls: 'bg-complementary-300 text-white' },
-  enacted:  { label: 'Enacted',  cls: 'bg-primary-300 text-white' },
-  expired:  { label: 'Expired',  cls: 'bg-extra_red text-white' },
-  dropped:  { label: 'Dropped',  cls: 'bg-gray-800 text-white' },
+  enacted: { label: 'Enacted', cls: 'bg-primary-300 text-white' },
+  expired: { label: 'Expired', cls: 'bg-extra_red text-white' },
+  dropped: { label: 'Dropped', cls: 'bg-gray-800 text-white' },
 };
 
 interface GovernanceLifecycleBadgeProps {
@@ -14,7 +14,10 @@ interface GovernanceLifecycleBadgeProps {
   minimal?: boolean;
 }
 
-const GovernanceLifecycleBadge = ({ status, minimal = false }: GovernanceLifecycleBadgeProps) => {
+const GovernanceLifecycleBadge = ({
+  status,
+  minimal = false,
+}: GovernanceLifecycleBadgeProps) => {
   const { label, cls } = CONFIG[status];
   return (
     <span

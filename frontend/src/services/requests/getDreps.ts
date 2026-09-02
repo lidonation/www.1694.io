@@ -11,7 +11,16 @@ export const getDReps = async (
   type?: string,
 ) => {
   const response = await axiosInstance.get(`/dreps`, {
-    params: { s, page, sort, order, onChainStatus, campaignStatus, includeRetired, type },
+    params: {
+      s,
+      page,
+      sort,
+      order,
+      onChainStatus,
+      campaignStatus,
+      includeRetired,
+      type,
+    },
   });
 
   return response.data;

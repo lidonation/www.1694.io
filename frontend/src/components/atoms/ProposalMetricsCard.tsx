@@ -1,9 +1,9 @@
 'use client';
 import { Skeleton } from '@mui/material';
 import { useEffect, useState } from 'react';
-import { 
+import {
   ProposalAnimatedMetricProps as AnimatedMetricProps,
-  ProposalMetricsCardProps as MetricsCardProps 
+  ProposalMetricsCardProps as MetricsCardProps,
 } from '../../../types/commonTypes';
 import { AnimatedCounter } from './AnimatedCounter';
 
@@ -35,9 +35,9 @@ const AnimatedMetric = ({
         height={40}
         animation="wave"
         className="rounded"
-        style={{ 
+        style={{
           borderRadius: '4px',
-          margin: '0'
+          margin: '0',
         }}
       />
     );
@@ -46,7 +46,10 @@ const AnimatedMetric = ({
   if (isPercentage) {
     return (
       <div className="flex items-baseline">
-        <AnimatedCounter value={Math.round(displayValue * 100)} duration={duration} />
+        <AnimatedCounter
+          value={Math.round(displayValue * 100)}
+          duration={duration}
+        />
         <span className="ml-1">%</span>
       </div>
     );
@@ -60,11 +63,11 @@ const AnimatedMetric = ({
     if (isBillion) {
       return { value: val / 1_000_000_000, suffix: 'B' };
     }
-    
+
     if (isMillion) {
       return { value: val / 1_000_000, suffix: 'M' };
     }
-    
+
     if (isThousand) {
       return { value: val / 1_000, suffix: 'k' };
     }
@@ -75,16 +78,18 @@ const AnimatedMetric = ({
   const { value: scaledValue, suffix } = formatWithSuffix(displayValue);
 
   const formattedValue =
-  typeof scaledValue === 'number' && !isNaN(scaledValue)
-    ? (Number.isInteger(scaledValue) ? scaledValue : parseFloat(scaledValue.toFixed(1)))
-    : 0;
+    typeof scaledValue === 'number' && !isNaN(scaledValue)
+      ? Number.isInteger(scaledValue)
+        ? scaledValue
+        : parseFloat(scaledValue.toFixed(1))
+      : 0;
 
   return (
     <div className="flex items-baseline">
-      <AnimatedCounter 
-        value={formattedValue} 
-        duration={duration} 
-        format="(,ddd).d" 
+      <AnimatedCounter
+        value={formattedValue}
+        duration={duration}
+        format="(,ddd).d"
       />
       {suffix && <span className="ml-1">{suffix}</span>}
       {isAda && <span className="ml-1">₳</span>}
@@ -93,35 +98,35 @@ const AnimatedMetric = ({
 };
 
 export const MetricsCard = ({
-    value,
-    label,
-    isAda = false,
-    isPercentage = false,
-    isBillion = false,
-    isThousand = false,
-    tooltip = '',
-    isLoading = false,
-    isMillion = false,
-  }: MetricsCardProps) => (
-    <div className="flex flex-col">
-      <div className="text-2xl font-bold text-gray-900">
-        <AnimatedMetric
-          value={value}
-          isAda={isAda}
-          isPercentage={isPercentage}
-          isBillion={isBillion}
-          isThousand={isThousand}
-          isLoading={isLoading}
-          isMillion={isMillion}
-        />
-      </div>
-      <div className="mt-1 text-sm font-medium text-gray-500">
-        {label}
-        {tooltip && (
-          <span className="ml-1 text-gray-400 cursor-help" title={tooltip}>
-            (?)
-          </span>
-        )}
-      </div>
+  value,
+  label,
+  isAda = false,
+  isPercentage = false,
+  isBillion = false,
+  isThousand = false,
+  tooltip = '',
+  isLoading = false,
+  isMillion = false,
+}: MetricsCardProps) => (
+  <div className="flex flex-col">
+    <div className="text-2xl font-bold text-gray-900">
+      <AnimatedMetric
+        value={value}
+        isAda={isAda}
+        isPercentage={isPercentage}
+        isBillion={isBillion}
+        isThousand={isThousand}
+        isLoading={isLoading}
+        isMillion={isMillion}
+      />
     </div>
-  );
+    <div className="mt-1 text-sm font-medium text-gray-500">
+      {label}
+      {tooltip && (
+        <span className="ml-1 cursor-help text-gray-400" title={tooltip}>
+          (?)
+        </span>
+      )}
+    </div>
+  </div>
+);

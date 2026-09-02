@@ -10,5 +10,5 @@ export class createNotificationDto {
   type: keyof typeof NotificationType;
   isRead?: boolean;
   isArchived?: boolean;
-  isPersistent?: boolean;   
+  isPersistent?: boolean;
 }

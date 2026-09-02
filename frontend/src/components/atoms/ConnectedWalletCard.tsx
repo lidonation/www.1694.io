@@ -36,7 +36,7 @@ export const ConnectedWalletCard = () => {
           <Typography
             fontWeight={600}
             fontSize="0.75rem"
-            className="text-xs uppercase tracking-wide text-gray-300"
+            className="text-xs tracking-wide text-gray-300 uppercase"
           >
             {shortenAddress(stakeKeyBech32, 5)}
           </Typography>
@@ -44,7 +44,7 @@ export const ConnectedWalletCard = () => {
           <Typography
             fontWeight={600}
             fontSize="0.75rem"
-            className="text-xs uppercase tracking-wide text-gray-300"
+            className="text-xs tracking-wide text-gray-300 uppercase"
           >
             --
           </Typography>
@@ -73,7 +73,7 @@ export const ConnectedWalletCard = () => {
           <Typography
             fontWeight={600}
             fontSize="0.75rem"
-            className="text-xs uppercase tracking-wide text-gray-300"
+            className="text-xs tracking-wide text-gray-300 uppercase"
           >
             --
           </Typography>

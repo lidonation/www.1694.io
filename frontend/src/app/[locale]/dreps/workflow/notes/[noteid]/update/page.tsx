@@ -56,20 +56,17 @@ const page = ({ params }: PageProps) => {
         ]}
       />
       <div className="drep_radial_bg mt-4 flex items-center justify-center">
-        <div className="form_container h-full ">
+        <div className="form_container h-full">
           <div className="w-full bg-white p-10">
             <div className="flex flex-row items-center justify-between">
-              <h2 className="w-[85%] shrink grow basis-0 text-4xl font-bold leading-10">
+              <h2 className="w-[85%] shrink grow basis-0 text-4xl leading-10 font-bold">
                 Update Note
               </h2>
-              <div className="flex w-[15%] items-center justify-center text-center text-base font-medium leading-4">
+              <div className="flex w-[15%] items-center justify-center text-center text-base leading-4 font-medium">
                 <ViewDraftsButton isUpdating={true} />
               </div>
             </div>
-            <UpdateNoteForm
-              noteId={noteid}
-              initialValues={initialValues}
-            />
+            <UpdateNoteForm noteId={noteid} initialValues={initialValues} />
           </div>
         </div>
       </div>

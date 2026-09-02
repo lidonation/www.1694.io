@@ -6,4 +6,3 @@ export class ValidateMetadataDTO {
   standard?: MetadataStandard;
   noStandard?: boolean;
 }
-

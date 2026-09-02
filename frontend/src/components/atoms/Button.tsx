@@ -1,11 +1,28 @@
 'use client';
 import React from 'react';
-import { Button as MUIButton, ButtonProps as MUIButtonProps } from '@mui/material';
+import {
+  Button as MUIButton,
+  ButtonProps as MUIButtonProps,
+} from '@mui/material';
 
-export interface ButtonProps extends Omit<MUIButtonProps, 'size' | 'onClick' | 'className'> {
-  size?: 'extraLarge' | 'large' | 'medium' | 'small' | 'extraSmall' | 'smallest';
+export interface ButtonProps
+  extends Omit<MUIButtonProps, 'size' | 'onClick' | 'className'> {
+  size?:
+    | 'extraLarge'
+    | 'large'
+    | 'medium'
+    | 'small'
+    | 'extraSmall'
+    | 'smallest';
   variant?: 'text' | 'outlined' | 'contained';
-  color?: 'inherit' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning';
+  color?:
+    | 'inherit'
+    | 'primary'
+    | 'secondary'
+    | 'error'
+    | 'info'
+    | 'success'
+    | 'warning';
   width?: number | string;
   bgcolor?: string;
   id?: string;
@@ -50,7 +67,7 @@ const Button: React.FC<ButtonProps> = ({
     if (preventDefaultClick) {
       event.preventDefault();
     }
-    
+
     if (handleClick) {
       handleClick(event);
     }

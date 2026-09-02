@@ -1,4 +1,3 @@
-
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
@@ -33,8 +32,8 @@ export class JobSchedulerService implements OnModuleInit {
         {},
         {
           repeat: { pattern: '0 * * * *' },
-          jobId: 'stake-sync-recurring' // Static ID to prevent duplicates
-        }
+          jobId: 'stake-sync-recurring', // Static ID to prevent duplicates
+        },
       );
       this.logger.log('Scheduled recurring stake sync job (Hourly)');
 
@@ -44,10 +43,12 @@ export class JobSchedulerService implements OnModuleInit {
         {},
         {
           repeat: { pattern: '0 0 * * *' },
-          jobId: 'governance-sync-recurring' // Static ID to prevent duplicates
-        }
+          jobId: 'governance-sync-recurring', // Static ID to prevent duplicates
+        },
       );
-      this.logger.log('Scheduled recurring governance sync job (Daily at midnight)');
+      this.logger.log(
+        'Scheduled recurring governance sync job (Daily at midnight)',
+      );
 
       // Proposals Sync - Every 6 hours
       await this.proposalsSyncQueue.add(
@@ -58,7 +59,7 @@ export class JobSchedulerService implements OnModuleInit {
           jobId: 'proposals-sync-recurring',
           removeOnComplete: 5,
           removeOnFail: 5,
-        }
+        },
       );
       this.logger.log('Scheduled recurring proposals sync job (Every 6 hours)');
 
@@ -69,7 +70,7 @@ export class JobSchedulerService implements OnModuleInit {
         {
           repeat: { pattern: '0 0 * * 0' },
           jobId: 'drep-votes-sync-recurring',
-        }
+        },
       );
       this.logger.log('Scheduled recurring DRep votes sync job (Weekly)');
 
@@ -79,11 +80,12 @@ export class JobSchedulerService implements OnModuleInit {
         {},
         {
           repeat: { pattern: '*/1 * * * *' },
-          jobId: 'timeline-watcher-recurring'
-        }
+          jobId: 'timeline-watcher-recurring',
+        },
       );
-      this.logger.log('Scheduled recurring timeline watcher job (Every minute)');
-
+      this.logger.log(
+        'Scheduled recurring timeline watcher job (Every minute)',
+      );
     } catch (error) {
       this.logger.error(`Failed to schedule recurring jobs: ${error.message}`);
     }

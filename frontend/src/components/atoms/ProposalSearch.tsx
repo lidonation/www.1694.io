@@ -66,7 +66,7 @@ const ProposalSearch: React.FC<ProposalSearchProps> = ({
           px: 2,
           py: 1,
         }}
-        className="border border-primary-300"
+        className="border-primary-300 border"
       >
         <IconButton sx={{ p: 0, mr: 1 }} aria-label="search" disableRipple>
           <SearchIcon sx={{ color: '#3b82f6' }} />
@@ -90,15 +90,9 @@ const ProposalSearch: React.FC<ProposalSearchProps> = ({
         )}
       </Box>
 
-      <ProposalFilter
-        showFilter={showFilter}
-        setShowFilter={setShowFilter}
-      />
+      <ProposalFilter showFilter={showFilter} setShowFilter={setShowFilter} />
 
-      <ProposalSort
-        showSort={showSort}
-        setShowSort={setShowSort}
-      />
+      <ProposalSort showSort={showSort} setShowSort={setShowSort} />
     </Box>
   );
 };

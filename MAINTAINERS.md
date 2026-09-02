@@ -13,16 +13,16 @@ The following people are currently responsible for maintaining this project:
 
 | Name | GitHub | Role | Areas of Focus                       |
 |------|--------|------|--------------------------------------|
-| **Darlington Wleh** | - | Lead Maintainer | Full-stack development, Architecture |
-| **Emmanuel Mutisya** | - | Core Maintainer | Frontend and Backend  Development    |
+| **Darlington Wleh** | [@profd2004](https://github.com/profd2004) | Lead Maintainer | Full-stack development, Architecture |
+| **Emmanuel Mutisya** | [@emmanuel-musau](https://github.com/emmanuel-musau) | Core Maintainer | Frontend and Backend  Development    |
 
 ### Active Contributors (Not Paid)
 
 | Name | GitHub | Contributions                    |
 |------|--------|----------------------------------|
-| **etiti** | - | Development and Testing          |
-| **Mwangi Brian** | - | Development                      |
-| **Emmanuel Titi** | - | Development                      |
+| **etiti** | [@Emmanuel-Tyty](https://github.com/Emmanuel-Tyty) | Development and Testing          |
+| **Mwangi Brian** | [@mwangi-student](https://github.com/mwangi-student) | Development                      |
+| **Emmanuel Titi** | [@Emmanuel-Tyty](https://github.com/Emmanuel-Tyty) | Development                      |
 
 
 
@@ -30,8 +30,11 @@ The following people are currently responsible for maintaining this project:
 
 | Name                         | GitHub | Contributions                    |
 |------------------------------|--------|----------------------------------|
-| **theeurbanlegend (Bewton)** | - | Frontend and Backend development |
-| **Byron Ochara**             | - | Development                      |
+| **theeurbanlegend (Bewton)** | [@theeurbanlegend](https://github.com/theeurbanlegend) | Frontend and Backend development |
+| **cjoan**                    | [@Jo1cindi](https://github.com/Jo1cindi) | Development |
+| **Mechack 8pro**             | [@Mechack08](https://github.com/Mechack08) | Development |
+| **gmunga**                   | [@giremunga](https://github.com/giremunga) | Development |
+| **Obarajames**               | [@Obarajames](https://github.com/Obarajames) | Development |
 
 ## Responsibilities
 
@@ -59,22 +62,21 @@ The following people are currently responsible for maintaining this project:
 
 ### Frontend (Next.js/React)
 - **Primary**: Emmanuel Mutisya, theeurbanlegend
-- **Supporting**: Bewton Maina, Emmanuel Titi
+- **Supporting**: Emmanuel Titi (etiti)
 
 ### Backend (Node.js/Nest.js)
-- **Primary**: Darlington Kofa, Darlington Wleh
+- **Primary**: Darlington Wleh
 - **Supporting**: theeurbanlegend, etiti
 
 ### DevOps & Infrastructure
-- **Primary**: Darlington Kofa
-- **Supporting**: Darlington Wleh
+- **Primary**: Darlington Wleh
 
 ### Database (PostgreSQL)
-- **Primary**: Darlington Kofa, Darlington Wleh
+- **Primary**: Darlington Wleh
 - **Supporting**: theeurbanlegend
 
 ### Blockchain Integration (Cardano)
-- **Primary**: Darlington Wleh, Darlington Kofa
+- **Primary**: Darlington Wleh
 - **Supporting**: theeurbanlegend
 
 ## Contact Information
@@ -83,8 +85,9 @@ For maintainer-related questions or escalations:
 
 - **General inquiries**: Create an issue in the repository
 - **Security concerns**: See [SECURITY.md](./SECURITY.md)
-- **Code of Conduct violations**: See [CODE-OF-CONDUCT.md](./CODE-OF-CONDUCT.md)
+- **Code of Conduct violations**: See [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)
 - **Contributing guidelines**: See [CONTRIBUTING.md](./CONTRIBUTING.md)
+- **Governance**: See [GOVERNANCE.md](./GOVERNANCE.md)
 
 ## Decision Making Process
 
@@ -107,15 +110,15 @@ The nomination process requires:
 2. Agreement from at least 2/3 of existing core maintainers
 3. Acceptance by the nominee
 
-## Code Ownership
+## Governance
 
-See [CODEOWNERS](./CODEOWNERS) for detailed information about code ownership and automatic review assignments.
+See [GOVERNANCE.md](./GOVERNANCE.md) for how decisions are made, how releases are cut, and how new maintainers are nominated.
 
 ## Project Statistics
 
 As of the last update:
-- **Total Contributors**: 19
-- **Total Commits**: 1,300+
+- **Total Contributors**: 19 unique commit identities on `dev`
+- **Total Commits**: 1,487
 - **Primary Language**: TypeScript/JavaScript
 - **Architecture**: Full-stack web application with blockchain integration
 
@@ -128,6 +131,6 @@ Special thanks to:
 
 ---
 
-*Last updated: February 26, 2026*
+*Last updated: August 16, 2026*
 
 *For the most current information, please check the git commit history and active pull requests.*

@@ -36,19 +36,18 @@ export default function DrepTimelineDesktop({
   isConnected,
   isOwner,
 }: DrepTimelineDesktopProps) {
-
   // Flatten all epochs and items into a single sequence for rendering
   const { flattenedItems, totalItems } = React.useMemo(() => {
     const allRenderable: any[] = [];
-    
+
     epochs.forEach((epoch) => {
       // Add epoch header FIRST
-      allRenderable.push({ 
-        type: 'epoch_header', 
-        epochNo: epoch.epochNo, 
-        startTime: epoch.startTime, 
+      allRenderable.push({
+        type: 'epoch_header',
+        epochNo: epoch.epochNo,
+        startTime: epoch.startTime,
         endTime: epoch.endTime,
-        hasEvents: epoch.items.length > 0
+        hasEvents: epoch.items.length > 0,
       });
 
       // Then process items within epoch
@@ -78,14 +77,17 @@ export default function DrepTimelineDesktop({
         <TimelineItem position="right">
           <TimelineSeparator>
             <TimelineDot color="primary" />
-            <TimelineConnector className="h-10 border-2 border-dotted border-gray-200" sx={{ backgroundColor: 'white' }} />
+            <TimelineConnector
+              className="h-10 border-2 border-dotted border-gray-200"
+              sx={{ backgroundColor: 'white' }}
+            />
           </TimelineSeparator>
           <TimelineContent>
             <div
-              className="flex cursor-pointer items-center gap-2 rounded border border-gray-200 px-4 py-2 hover:bg-gray-50 transition-colors w-fit mx-auto shadow-sm bg-white"
+              className="mx-auto flex w-fit cursor-pointer items-center gap-2 rounded border border-gray-200 bg-white px-4 py-2 shadow-sm transition-colors hover:bg-gray-50"
               onClick={onLoadNewer}
             >
-              <img src="/svgs/reload.svg" alt="reload" className="w-4 h-4" />
+              <img src="/svgs/reload.svg" alt="reload" className="h-4 w-4" />
               <p className="text-sm font-semibold text-orange-500">
                 Load Newer History
               </p>
@@ -97,23 +99,32 @@ export default function DrepTimelineDesktop({
       {flattenedItems.map((item: any, index: number) => {
         if (item.type === 'epoch_header') {
           return (
-            <div key={`header-${item.epochNo}`} className="flex w-full flex-col items-center space-y-2">
+            <div
+              key={`header-${item.epochNo}`}
+              className="flex w-full flex-col items-center space-y-2"
+            >
               <TimelineSeparator>
-                <TimelineConnector className="h-10 border-2 border-dotted border-gray-300" sx={{ backgroundColor: 'white' }} />
+                <TimelineConnector
+                  className="h-10 border-2 border-dotted border-gray-300"
+                  sx={{ backgroundColor: 'white' }}
+                />
               </TimelineSeparator>
               <div className="w-full">
-                <EpochTimelineCard 
+                <EpochTimelineCard
                   hasEvents={item.hasEvents}
                   epoch={{
                     epoch_no: item.epochNo,
                     start_time: item.startTime,
                     end_time: item.endTime,
-                    type: 'epoch'
-                  }} 
+                    type: 'epoch',
+                  }}
                 />
               </div>
               <TimelineSeparator>
-                <TimelineConnector className="h-10 border-2 border-dotted border-gray-300" sx={{ backgroundColor: 'white' }} />
+                <TimelineConnector
+                  className="h-10 border-2 border-dotted border-gray-300"
+                  sx={{ backgroundColor: 'white' }}
+                />
               </TimelineSeparator>
             </div>
           );
@@ -123,26 +134,52 @@ export default function DrepTimelineDesktop({
           <TimelineItem key={item.id} position={item.position}>
             <TimelineSeparator>
               {item.type === 'voting_activity' ? (
-                <TimelineConnector className="border-2 border-dotted border-gray-300" sx={{ backgroundColor: 'white', height: '24px', flexGrow: 0 }} />
+                <TimelineConnector
+                  className="border-2 border-dotted border-gray-300"
+                  sx={{ backgroundColor: 'white', height: '24px', flexGrow: 0 }}
+                />
               ) : null}
-              <TimelineDot sx={item.type === 'bundled_delegations' ? { bgcolor: 'primary.main' } : {}} />
-              <TimelineConnector className="h-10 border-2 border-dotted border-gray-300" sx={{ backgroundColor: 'white' }} />
+              <TimelineDot
+                sx={
+                  item.type === 'bundled_delegations'
+                    ? { bgcolor: 'primary.main' }
+                    : {}
+                }
+              />
+              <TimelineConnector
+                className="h-10 border-2 border-dotted border-gray-300"
+                sx={{ backgroundColor: 'white' }}
+              />
             </TimelineSeparator>
             <TimelineContent sx={{ minWidth: 0 }}>
               {item.type === 'note' && (
-                <SingleNote note={item} currentVoter={stakeKeyBech32} isConnected={isConnected} />
+                <SingleNote
+                  note={item}
+                  currentVoter={stakeKeyBech32}
+                  isConnected={isConnected}
+                />
               )}
               {item.type === 'registration' && (
-                <Link href={`${urls.cexplorerUrl}/tx/${item?.tx_hash}`} target="_blank">
+                <Link
+                  href={`${urls.cexplorerUrl}/tx/${item?.tx_hash}`}
+                  target="_blank"
+                >
                   <div className="flex flex-row items-center justify-center gap-2 text-nowrap text-gray-500 hover:cursor-pointer hover:text-gray-800">
                     <img src="/svgs/external-link.svg" alt="" />
-                    <p className="text-sm sm:text-base">Registered, Epoch {item?.epochNo}</p>
-                    <p className="text-[10px] text-gray-400 font-medium">{new Date(item.timestamp).toLocaleString()}</p>
+                    <p className="text-sm sm:text-base">
+                      Registered, Epoch {item?.epochNo}
+                    </p>
+                    <p className="text-[10px] font-medium text-gray-400">
+                      {new Date(item.timestamp).toLocaleString()}
+                    </p>
                   </div>
                 </Link>
               )}
               {item.type === 'claimed_profile' && (
-                <ProfileClaimedChip claimedAddress={item.claimedDRepId} dateOfClaim={item.timestamp} />
+                <ProfileClaimedChip
+                  claimedAddress={item.claimedDRepId}
+                  dateOfClaim={item.timestamp}
+                />
               )}
               {item.type === 'voting_activity' && (
                 <DrepVoteTimelineCard item={item} isVoteOwner={isOwner} />
@@ -154,7 +191,10 @@ export default function DrepTimelineDesktop({
                 <DrepDelegatorCard item={{ ...item, eventType: item.type }} />
               )}
               {item.type === 'bundled_delegations' && (
-                <BundledDelegations items={item.items} bundleType={item.bundleType} />
+                <BundledDelegations
+                  items={item.items}
+                  bundleType={item.bundleType}
+                />
               )}
             </TimelineContent>
           </TimelineItem>
@@ -164,15 +204,18 @@ export default function DrepTimelineDesktop({
       {!isAtOldestPoint && onLoadOlder && (
         <TimelineItem position={totalItems % 2 === 0 ? 'left' : 'right'}>
           <TimelineSeparator>
-            <TimelineConnector className="h-10 border-2 border-dotted border-gray-200" sx={{ backgroundColor: 'white' }} />
+            <TimelineConnector
+              className="h-10 border-2 border-dotted border-gray-200"
+              sx={{ backgroundColor: 'white' }}
+            />
             <TimelineDot color="primary" />
           </TimelineSeparator>
           <TimelineContent>
             <div
-              className="flex cursor-pointer items-center gap-2 rounded border border-gray-200 px-4 py-2 hover:bg-gray-50 transition-colors w-fit mx-auto shadow-sm bg-white"
+              className="mx-auto flex w-fit cursor-pointer items-center gap-2 rounded border border-gray-200 bg-white px-4 py-2 shadow-sm transition-colors hover:bg-gray-50"
               onClick={onLoadOlder}
             >
-              <img src="/svgs/reload.svg" alt="reload" className="w-4 h-4" />
+              <img src="/svgs/reload.svg" alt="reload" className="h-4 w-4" />
               <p className="text-sm font-semibold text-orange-500">
                 Load Older History
               </p>
@@ -183,5 +226,3 @@ export default function DrepTimelineDesktop({
     </Timeline>
   );
 }
-;
-

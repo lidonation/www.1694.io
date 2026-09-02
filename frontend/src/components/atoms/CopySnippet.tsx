@@ -25,7 +25,7 @@ const CopySnippet = ({
       return () => clearTimeout(timer);
     }
   }, [hasCopied]);
-  
+
   const handleCopyHelperSnippet = () => {
     if (!snippetToCopy) {
       return;
@@ -68,7 +68,11 @@ const CopySnippet = ({
           }}
           onClick={handleCopyHelperSnippet}
         >
-          {hasCopied ? <Check fontSize='small'/> : <ContentCopy fontSize="small" />}
+          {hasCopied ? (
+            <Check fontSize="small" />
+          ) : (
+            <ContentCopy fontSize="small" />
+          )}
         </IconButton>
       </CodeSnippet>
     );
