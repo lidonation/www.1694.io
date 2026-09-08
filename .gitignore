@@ -138,3 +138,6 @@ config/secrets/*
 
 # Claude Code local workspace
 .claude/
+
+# Firecrawl scrape output (local research artifacts, never commit)
+.firecrawl/

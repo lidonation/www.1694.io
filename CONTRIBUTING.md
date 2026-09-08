@@ -6,6 +6,29 @@ The best way to contribute right now is to try things out and provide feedback, 
 
 This document contains guidelines to help you get started and how to make sure your contribution gets accepted, making you our newest 1694.io contributor!
 
+## Where to Contribute: Canonical Repository
+
+> **The canonical repository lives on our self-hosted GitLab.**
+> Clone, branch, push, and open merge requests here:
+>
+> ```bash
+> git clone ssh://git@git.2lovelaces.io:2222/voltaire/www.1694.io.git
+> ```
+>
+> - **Branches:** `dev` is the integration branch (open MRs against `dev`);
+>   `main` is what the production pipeline (`production` job in
+>   `.gitlab-ci.yml`) deploys to www.1694.io — it is promoted by maintainers,
+>   never committed to directly.
+> - **Issues / tickets:** use the
+>   [GitLab issues](https://git.2lovelaces.io/voltaire/www.1694.io/-/issues),
+>   not GitHub issues.
+> - **GitHub** ([IntersectMBO/drep-campaign-platform](https://github.com/IntersectMBO/drep-campaign-platform))
+>   is a **read-only mirror** of the `dev` and `main` branches, synced
+>   automatically by the `mirror_to_github` CI job. Do not clone it for
+>   development and do not open pull requests there — they will not be
+>   reviewed or merged. It exists so the public (e.g. the cardano.org apps
+>   listing) has a stable, browsable copy of the open-source code.
+
 ## Table of Contents
 
 - [Contributing to the 1694.io project](#contributing-to-the-1694io-project)
@@ -18,11 +41,11 @@ This document contains guidelines to help you get started and how to make sure y
       - [How Do I Submit a Good Bug Report?](#how-do-i-submit-a-good-bug-report)
       - [Your First Code Contribution](#your-first-code-contribution)
   - [Working Conventions](#working-conventions)
-    - [Pull Requests](#pull-requests)
+    - [Merge Requests](#merge-requests)
     - [Branch Naming](#branch-naming)
     - [Commit Messages](#commit-messages)
       - [Rationale](#rationale)
-    - [Merge Commit PRs and Rebase Branches on top of Main](#merge-commit-prs-and-rebase-branches-on-top-of-main)
+    - [Merge Commit MRs and Rebase Branches on top of Main](#merge-commit-mrs-and-rebase-branches-on-top-of-main)
       - [Rationale](#rationale-1)
     - [Versioning](#versioning)
     - [Changelog](#changelog)
@@ -76,9 +99,9 @@ Please complete the following steps in advance to help us fix any potential bug 
 
 #### How Do I Submit a Good Bug Report?
 
-We use GitHub issues to track bugs and errors. If you run into an issue with the project:
+We use GitLab issues to track bugs and errors. If you run into an issue with the project:
 
-- Open an [Issue](https://github.com/lidonation/www.1694.io/issues/new/choose).
+- Open an [issue](https://git.2lovelaces.io/voltaire/www.1694.io/-/issues/new).
   (Since we can't be sure at this point whether it is a bug or not, we ask you not to talk about a bug yet and not to label the issue.)
 - Explain the behavior you would expect and the actual behavior.
 - Please provide as much context as possible.
@@ -100,23 +123,27 @@ Once it's filed:
 
 #### Your First Code Contribution
 
-TODO
+New here? Start with the [README](./README.md) (Getting started / Running
+locally) to get the stack running in Docker, then pick a ticket from the
+GitLab issue tracker, create a [well-named branch](#branch-naming) from
+`dev`, and open a merge request back into `dev` (see
+[Developer workflow](#developer-workflow)).
 
 ## Working Conventions
 
-### Pull Requests
+### Merge Requests
 
-Thank you for contributing your changes by opening a pull requests!
+Thank you for contributing your changes by opening a merge request!
 
 To get something merged we usually require:
-- Follow the Pull Request template
+- Follow the merge request template
 - Description of the changes - if your commit messages are great, this is less important
 - Quality of changes is ensured - through new or updated automated tests
 - Change is related to an issue, feature (idea) or bug report - ideally discussed beforehand
-- Well-scoped - we prefer multiple PRs, rather than a big one
+- Well-scoped - we prefer multiple MRs, rather than a big one
 - Add changes to changelog, see [Changelog](#changelog).
 
-Please reuse the branch naming for the pull request naming.
+Please reuse the branch naming for the merge request naming.
 
 ### Branch Naming
 
@@ -158,15 +185,17 @@ There is plenty to say on this topic, but broadly the guidelines in [this post](
 Git commit messages are our only source of why something was changed the way it was changed.
 So we better make the readable, concise and detailed (when required).
 
-### Merge Commit PRs and Rebase Branches on top of Main
+### Merge Commit MRs and Rebase Branches on top of Main
 
-When closing branches / PRs use merge commits, so we have a history of PRs also in the git history.
+When closing branches / MRs use merge commits, so we have a history of MRs also in the git history.
 Do not merge main into side branches, instead rebase them on top of main.
 Try to keep branches up-to-date with main (not strict requirement though).
 Once merged to main, please delete the branch.
 
-**Tip:** Use Github's merge button in PRs to merge with commit.
-If a branch is outdated, use the rebase button in PRs to rebase feature branches (NOT update via merge).
+**Tip:** In GitLab, use the MR's Merge button (merge commit) to merge.
+If a branch is outdated, rebase it onto the target branch locally
+(`git pull --rebase origin dev`) and force-push your branch — do not merge
+the target branch into your feature branch.
 
 #### Rationale
 
@@ -209,20 +238,20 @@ TODO
 <!-- CHANGE TO HOW THE PROJECT NEEDS -->
 
 - Choose ticket/issue to work on from the project, move ticket from `todo` to `in progress`.
-- Create [well named](#branch-naming) branch from `develop` add changes, then make a pull request back to the `develop` branch.
+- Create [well named](#branch-naming) branch from `dev`, add changes, then make a merge request back to the `dev` branch.
 - If the changes are not ready for review then feel free to create a draft PR, and link this to the ticket/issue.
-- Developers should review each other's pull requests, and should be requested via [CODEOWNERS](./CODEOWNERS).
-- Unit tests are run on each pull request to `develop`.
-- Once tests pass and peer review is done the branch can be merged into `develop` by author and then deployed to the dev environment (manually for now).
-- The ticket status can then be moved ticket to `in QA` making sure that the PR/branch has been added to the ticket/issue as a comment.
+- Developers should review each other's merge requests.
+- Unit tests are run on each merge request to `dev`.
+- Once tests pass and peer review is done the branch can be merged into `dev` by author and then deployed to the dev environment (manually for now).
+- The ticket status can then be moved ticket to `in QA` making sure that the MR/branch has been added to the ticket/issue as a comment.
 
 ### QA Workflow
 
 - Choose ticket from `in QA`.
-- Merge in the ticket's changes from `develop` branch into `test` branch.
+- Merge in the ticket's changes from `dev` branch into `test` branch.
 - Deploy to test environment (manually for now).
 - The QA tests the deployed test environment against the ticket.
-- If QA agrees that the code is good, they can make a PR from `test` branch to `staging` branch where end-to-end and performance tests are run.
+- If QA agrees that the code is good, they can make a MR from `test` branch to `staging` branch where end-to-end and performance tests are run.
 - If tests pass, then QA or tech lead can merge and deploy to staging environment (manually for now).
 - Moving ticket to `staging` status this ready for PO check.
   

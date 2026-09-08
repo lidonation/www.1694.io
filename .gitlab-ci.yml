@@ -278,7 +278,35 @@ deploy-indexer-production:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "pipeline" && $INDEXER_TAG && $INDEXER_SHA && $INDEXER_TAG == "latest"'
 
-# ui-chrome-tests:
+# Maps the canonical branches to the public GitHub copy so the open-source
+# listing (e.g. cardano.org) always points at fresh code. GitHub is a
+# READ-ONLY mirror — all development happens on GitLab (see CONTRIBUTING.md).
+#
+# One-time setup (maintainer): create a GitHub fine-grained PAT with
+# Contents: read & write on IntersectMBO/drep-campaign-platform, then save it
+# as a GitLab project CI/CD variable named GITHUB_MIRROR_TOKEN
+# (Settings > CI/CD > Variables; masked, and protected if prod-only).
+# Until the token is set, this job logs a notice and exits green.
+# --force keeps the mirror an exact copy (divergent history from the old
+# one-time export is expected on the first sync).
+mirror_to_github:
+  stage: test
+  image: alpine/git:latest
+  rules:
+    - if: '($CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "dev") && ($CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "web")'
+  script:
+    - |
+      if [ -z "$GITHUB_MIRROR_TOKEN" ]; then
+        echo "GITHUB_MIRROR_TOKEN not set — skipping GitHub mirror."
+        echo "Set it in GitLab project Settings > CI/CD > Variables (masked)."
+        exit 0
+      fi
+      git remote add github "https://oauth2:${GITHUB_MIRROR_TOKEN}@github.com/IntersectMBO/drep-campaign-platform.git" 2>/dev/null || \
+        git remote set-url github "https://oauth2:${GITHUB_MIRROR_TOKEN}@github.com/IntersectMBO/drep-campaign-platform.git"
+      git push github "HEAD:${CI_COMMIT_BRANCH}" --force
+      echo "Mirrored ${CI_COMMIT_BRANCH} to IntersectMBO/drep-campaign-platform."
+
+# ui-chrome-tests (disabled, kept for reference):
 #   image: cypress/included:cypress-13.17.0-node-22.12.0-chrome-131.0.6778.139-1-ff-133.0.3-edge-131.0.2903.94-1
 #   stage: test
 #   cache:
