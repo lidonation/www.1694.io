@@ -242,13 +242,13 @@ TODO
 - If the changes are not ready for review then feel free to create a draft PR, and link this to the ticket/issue.
 - Developers should review each other's merge requests.
 - Unit tests are run on each merge request to `dev`.
-- Once tests pass and peer review is done the branch can be merged into `develop` by author and then deployed to the dev environment (manually for now).
+- Once tests pass and peer review is done the branch can be merged into `dev` by author and then deployed to the dev environment (manually for now).
 - The ticket status can then be moved ticket to `in QA` making sure that the MR/branch has been added to the ticket/issue as a comment.
 
 ### QA Workflow
 
 - Choose ticket from `in QA`.
-- Merge in the ticket's changes from `develop` branch into `test` branch.
+- Merge in the ticket's changes from `dev` branch into `test` branch.
 - Deploy to test environment (manually for now).
 - The QA tests the deployed test environment against the ticket.
 - If QA agrees that the code is good, they can make a MR from `test` branch to `staging` branch where end-to-end and performance tests are run.
