@@ -29,6 +29,17 @@ const Header = () => {
   }, [CONFIGURED_NETWORK_NAME]);
 
   const renderLogoOnNetworkChange = useCallback(() => {
+    // Production domains always serve Cardano mainnet. The build-time
+    // NEXT_PUBLIC_NETWORK_MODE value can go stale (e.g. sanchonet left over
+    // from the testnet era), so the canonical production hosts override it:
+    // the header must never advertise a testnet on the mainnet site.
+    // (Preview/test hosts such as sancho.1694.io keep env-based branding.)
+    if (typeof window !== "undefined") {
+      const host = window.location.hostname.toLowerCase();
+      if (host === "1694.io" || host === "www.1694.io") {
+        return '/img/logos/mainnet-black.png';
+      }
+    }
     if (networkName) {
       switch (networkName) {
         case 'sanchonet':
@@ -38,7 +49,7 @@ const Header = () => {
         case 'preview':
           return '/img/logos/preview-black.png';
         default:
-          return '/img/logos/sancho-black.png';
+          return '/img/logos/mainnet-black.png';
       }
     }
     // Default to voltaire logo
