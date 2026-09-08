@@ -22,7 +22,7 @@ This document contains guidelines to help you get started and how to make sure y
 > - **Issues / tickets:** use the
 >   [GitLab issues](https://git.2lovelaces.io/voltaire/www.1694.io/-/issues),
 >   not GitHub issues.
-> - **GitHub** ([IntersectMBO/drep-campaign-platform](https://github.com/IntersectMBO/drep-campaign-platform))
+> - **GitHub** ([lidonation/www.1694.io](https://github.com/lidonation/www.1694.io))
 >   is a **read-only mirror** of the `dev` and `main` branches, synced
 >   automatically by the `mirror_to_github` CI job. Do not clone it for
 >   development and do not open pull requests there — they will not be
