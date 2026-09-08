@@ -303,8 +303,15 @@ mirror_to_github:
       fi
       git remote add github "https://oauth2:${GITHUB_MIRROR_TOKEN}@github.com/IntersectMBO/drep-campaign-platform.git" 2>/dev/null || \
         git remote set-url github "https://oauth2:${GITHUB_MIRROR_TOKEN}@github.com/IntersectMBO/drep-campaign-platform.git"
-      git push github "HEAD:${CI_COMMIT_BRANCH}" --force
-      echo "Mirrored ${CI_COMMIT_BRANCH} to IntersectMBO/drep-campaign-platform."
+      if [ "$CI_COMMIT_BRANCH" = "main" ]; then
+        git push github "HEAD:main" --force
+        git fetch origin dev
+        git push github FETCH_HEAD:dev --force
+        echo "Mirrored main and dev to IntersectMBO/drep-campaign-platform."
+      else
+        git push github "HEAD:${CI_COMMIT_BRANCH}" --force
+        echo "Mirrored ${CI_COMMIT_BRANCH} to IntersectMBO/drep-campaign-platform."
+      fi
 
 # ui-chrome-tests (disabled, kept for reference):
 #   image: cypress/included:cypress-13.17.0-node-22.12.0-chrome-131.0.6778.139-1-ff-133.0.3-edge-131.0.2903.94-1
