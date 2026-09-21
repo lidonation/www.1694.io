@@ -24,10 +24,9 @@ governanceIndexer:
     sha: ""       # set at deploy time: --set governanceIndexer.image.sha=$CI_COMMIT_SHORT_SHA
   networkMagic: "764824073"
   maxConcurrentWorkers: "16"
-  # DATABASE_URL is injected from www-1694-global-secrets (key: DATABASE_URL).
-  # Set at deploy time via global_env file — never committed. Expected format:
-  # postgres://voltaire:<password>@www-1694-cnpg-pooler:5432/1694_mainnet
-  databaseUrl: ""  # unused — deployment reads from secretKeyRef
+  # DATABASE_URL is injected from www-1694-global-secrets (key: DATABASE_URL),
+  # set at deploy time via the global_env file and never committed. Expected
+  # format: postgres://voltaire:<password>@www-1694-cnpg-pooler:5432/1694_mainnet
   resources:
     requests:
       cpu: 200m
