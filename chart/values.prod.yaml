@@ -1,4 +1,4 @@
-namespace: voltaire-mainnet
+namespace: voltaire
 
 ingress:
   hosts:
@@ -6,6 +6,16 @@ ingress:
   redirectApex: true
   apexHost: 1694.io
   api: api.1694.io
+  # A wildcard does not match the zone apex, so 1694.io is carried as a second
+  # SAN on the same certificate rather than getting one of its own. This list
+  # replaces the one in chart/values.yaml rather than merging with it, which is
+  # how Helm treats lists, and that is deliberate: preview has no apex router
+  # and must not order a certificate for a name it does not serve.
+  tls:
+    - hosts:
+        - "'*.1694.io'"
+        - "1694.io"
+      secretName: wildcard-1694-tls
 
 cnpg:
   bootstrap:
@@ -24,10 +34,9 @@ governanceIndexer:
     sha: ""       # set at deploy time: --set governanceIndexer.image.sha=$CI_COMMIT_SHORT_SHA
   networkMagic: "764824073"
   maxConcurrentWorkers: "16"
-  # DATABASE_URL is injected from www-1694-global-secrets (key: DATABASE_URL).
-  # Set at deploy time via global_env file — never committed. Expected format:
-  # postgres://voltaire:<password>@www-1694-cnpg-pooler:5432/1694_mainnet
-  databaseUrl: ""  # unused — deployment reads from secretKeyRef
+  # DATABASE_URL is injected from www-1694-global-secrets (key: DATABASE_URL),
+  # set at deploy time via the global_env file and never committed. Expected
+  # format: postgres://voltaire:<password>@www-1694-cnpg-pooler:5432/1694_mainnet
   resources:
     requests:
       cpu: 200m

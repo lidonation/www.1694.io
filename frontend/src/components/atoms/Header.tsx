@@ -33,7 +33,7 @@ const Header = () => {
     // NEXT_PUBLIC_NETWORK_MODE value can go stale (e.g. sanchonet left over
     // from the testnet era), so the canonical production hosts override it:
     // the header must never advertise a testnet on the mainnet site.
-    // (Preview/test hosts such as sancho.1694.io keep env-based branding.)
+    // (Preview/test hosts such as preview.1694.io keep env-based branding.)
     if (typeof window !== "undefined") {
       const host = window.location.hostname.toLowerCase();
       if (host === "1694.io" || host === "www.1694.io") {
