@@ -1,86 +1,57 @@
-affinity: {}
-
-app: {
-  ADMIN_EMAIL: "webmaster@lidonation.io",
-  APP_NAME: "1694.io",
-  APP_ENV: "production",
-  APP_DEBUG: "false",
-  APP_SETUP: "false",
-  APP_URL: "https://www.1694.io"
-}
-
-
-
-certmanager:
-  issuer: letsencrypt-prod-issuer
-  email: webmaster@lidonation.io
-  server: https://acme-staging-v02.api.letsencrypt.org/directory
-
-certificate:
-  secretName: www-1694-tls
-  hosts:
-    - "'*.1694.io'"
-
-secrets:
-  NEXT_PUBLIC_GOOGLE_API:
+# Application environment is not set here. CI writes the *_env files into this
+# chart directory and the secret.* templates load them with .Files.Lines, so
+# APP_URL, ADMIN_EMAIL, database credentials and the rest come from GitLab
+# CI/CD file variables. Anything added to this file is only read if a template
+# references it.
 
 image:
-  repository: registry.2lovelaces.io/voltaire/www.1694.io
+  # Only tag and pullPolicy are read. Each deployment takes its image from its
+  # own key below (backend.image.repository and so on), so there is no
+  # top-level repository here. The --set image.repository in the production job
+  # of .gitlab-ci.yml has no effect for the same reason.
   tag: latest
   pullPolicy: Always
 
-imageCredentials:
-  registry: registry.raddcreative.io
-  username: someone
-  password: sillyness
-  email: webmaster@1694.io
+secrets:
+  # Read by deployment.frontend.yaml. It arrives by --set, not from an env
+  # file, and only the app-preview job sets it. Production currently renders
+  # this env var empty, which is a pre-existing gap in .gitlab-ci.yml and not
+  # something this file can fix.
+  NEXT_PUBLIC_GOOGLE_API:
 
+# TLS is issued by cert-manager's ingress-shim, not by a Certificate resource in
+# this chart. The cluster-issuer annotation below, plus the hosts under
+# ingress.tls, are the whole mechanism: cert-manager watches these ingresses,
+# orders the certificate and writes it into the named secret. The ClusterIssuer
+# itself is cluster-scoped and lives in the infrastructure repo, not here.
+#
+# ingress.hosts and ingress.api are overridden at deploy time by .gitlab-ci.yml
+# with --set from the AUTO_DEVOPS_WEB_DOMAIN and API CI/CD variables. The values
+# below are the defaults for a manual helm install, not what is live. Read the
+# live hostnames with: kubectl get ingress -n <namespace>
 ingress:
-  enabled: true
   ingressClassName: traefik
-  controller:
-    headers:
-      HTTPS: "on"
   annotations: {
     cert-manager.io/cluster-issuer: letsencrypt-prod-cluster-issuer,
     traefik.ingress.kubernetes.io/router.entrypoints: "websecure,web",
   }
   hosts:
-    - sancho.1694.io
+    - preview.1694.io
   api: preview-api.1694.io
+  # Preview has no apex router, so it asks for the wildcard alone. Production
+  # adds the apex as a second SAN on this same certificate, in
+  # chart/values.prod.yaml - a wildcard does not match the zone apex.
   tls:
     - hosts:
         - "'*.1694.io'"
       secretName: wildcard-1694-tls
 
-labels:
-  domain: 1694.io
-
 namespace: voltaire-preview
-
-nodeSelector: {}
 
 redis:
   enabled: true
   storage:
     size: "5Gi"
-
-replicaCount: 2
-
-resources:
-  requests:
-    cpu: 100m
-    memory: 128Mi
-  limits:
-    memory: 1024Mi
-    cpu: 300m
-
-serviceAccount:
-  create: true
-
-service:
-  type: ClusterIP
-  port: 80
 
 backend:
   replicaCount: 2
@@ -88,9 +59,6 @@ backend:
     service: backend
   image:
     repository: registry.2lovelaces.io/voltaire/www.1694.io/1694.io-backend
-  ingress:
-    path: /api
-    tls:
 
 queue:
   replicaCount: 2
@@ -98,10 +66,6 @@ queue:
     service: queue
   image:
     repository: registry.2lovelaces.io/voltaire/www.1694.io/1694.io-queue-backend
-  ingress:
-    path: /api
-    tls:
-
 
 frontend:
   replicaCount: 2
@@ -109,9 +73,6 @@ frontend:
     service: frontend
   image:
       repository: registry.2lovelaces.io/voltaire/www.1694.io/1694.io-frontend
-  ingress:
-    path: /
-    tls:
 
 cnpg:
   enabled: true
@@ -147,10 +108,9 @@ governanceIndexer:
   relayAddresses: "backbone.mainnet.emurgornd.com:3001,relays-new.cardano-mainnet.iohk.io:3001,relay1.lidonation.com:3011"
   relayAddress: "backbone.mainnet.emurgornd.com:3001"
 
-  # DATABASE_URL is injected from www-1694-global-secrets (key: DATABASE_URL).
-  # Set at deploy time via global_env file — never committed. Expected format:
-  # postgres://voltaire:<password>@www-1694-cnpg-pooler:5432/1694
-  databaseUrl: ""  # unused — deployment reads from secretKeyRef
+  # DATABASE_URL is injected from www-1694-global-secrets (key: DATABASE_URL),
+  # set at deploy time via the global_env file and never committed. Expected
+  # format: postgres://voltaire:<password>@www-1694-cnpg-pooler:5432/1694
   networkMagic: "764824073"
   maxConcurrentWorkers: "8"
   batchSize: "100"
@@ -162,5 +122,3 @@ governanceIndexer:
     limits:
       memory: 1024Mi
       cpu: 500m
-
-

@@ -16,7 +16,14 @@ export default defineConfig({
     },
     baseUrl: 'http://frontend:3000',
     env: {
-      backendUrl: 'https://sancho.1694.io/api',
+      // Compose-internal, to match baseUrl above. The backend mounts its
+      // controllers at the root, so there is no /api prefix.
+      //
+      // The suite does not pass on this alone: cy.intercept matches the URL the
+      // browser actually requests, which is NEXT_PUBLIC_BASE_URL_API from the
+      // build under test. Whoever re-enables the Cypress job in .gitlab-ci.yml
+      // has to line these two up.
+      backendUrl: 'http://backend:8000',
     },
   },
 
