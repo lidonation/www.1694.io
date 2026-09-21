@@ -16,7 +16,7 @@ export default defineConfig({
     },
     baseUrl: 'http://frontend:3000',
     env: {
-      backendUrl: 'https://sancho.1694.io/api',
+      backendUrl: 'https://preview-api.1694.io',
     },
   },
 

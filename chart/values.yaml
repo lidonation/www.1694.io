@@ -29,7 +29,7 @@ ingress:
     traefik.ingress.kubernetes.io/router.entrypoints: "websecure,web",
   }
   hosts:
-    - sancho.1694.io
+    - preview.1694.io
   api: preview-api.1694.io
   tls:
     - hosts:
