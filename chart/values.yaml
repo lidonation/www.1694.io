@@ -5,11 +5,18 @@
 # references it.
 
 image:
-  repository: registry.2lovelaces.io/voltaire/www.1694.io
+  # Only tag and pullPolicy are read. Each deployment takes its image from its
+  # own key below (backend.image.repository and so on), so there is no
+  # top-level repository here. The --set image.repository in the production job
+  # of .gitlab-ci.yml has no effect for the same reason.
   tag: latest
   pullPolicy: Always
 
 secrets:
+  # Read by deployment.frontend.yaml. It arrives by --set, not from an env
+  # file, and only the app-preview job sets it. Production currently renders
+  # this env var empty, which is a pre-existing gap in .gitlab-ci.yml and not
+  # something this file can fix.
   NEXT_PUBLIC_GOOGLE_API:
 
 # TLS is issued by cert-manager's ingress-shim, not by a Certificate resource in
@@ -31,16 +38,13 @@ ingress:
   hosts:
     - preview.1694.io
   api: preview-api.1694.io
+  # Preview has no apex router, so it asks for the wildcard alone. Production
+  # adds the apex as a second SAN on this same certificate, in
+  # chart/values.prod.yaml - a wildcard does not match the zone apex.
   tls:
     - hosts:
         - "'*.1694.io'"
       secretName: wildcard-1694-tls
-  # A wildcard does not match the zone apex, so 1694.io needs a certificate of
-  # its own. It is kept in a separate secret on purpose: if the apex order ever
-  # fails, it must not block renewal of the wildcard that serves www, api and
-  # the preview names. Only rendered when ingress.redirectApex is true, which is
-  # production only.
-  apexTlsSecretName: apex-1694-tls
 
 namespace: voltaire-preview
 
