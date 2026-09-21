@@ -35,6 +35,13 @@ ingress:
     - hosts:
         - "'*.1694.io'"
       secretName: wildcard-1694-tls
+  # A wildcard does not match the zone apex, so 1694.io needs a certificate of
+  # its own. It is kept in a separate secret on purpose: if the apex order ever
+  # fails, it must not block renewal of the wildcard that serves www, api and
+  # the preview names. Only rendered when ingress.redirectApex is true, which is
+  # production only.
+  apexTlsSecretName: apex-1694-tls
+
 namespace: voltaire-preview
 
 redis:

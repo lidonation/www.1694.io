@@ -64,10 +64,13 @@ for production and 219 to 220 for preview:
 ```
 
 `--set` beats `-f`, and neither variable is defined in this repository - they are
-GitLab CI/CD variables. That is why the preview frontend serves
-`preview.1694.io` while `chart/values.yaml` still says `sancho.1694.io`, and why
-`frontend/cypress.config.ts` still points at `sancho.1694.io` too. Both are
-stale.
+GitLab CI/CD variables. So the values file can drift from what is live without
+anything failing, and it had. `chart/values.yaml` still named `sancho.1694.io` as
+the preview frontend host and `frontend/cypress.config.ts` still pointed its
+tests at `https://sancho.1694.io/api`, while the live preview host has been
+`preview.1694.io` for some time and `sancho.1694.io` now answers 525. Both were
+corrected in this change. Expect the drift to come back: a default nobody reads
+is a default nobody notices going wrong.
 
 The authority is the cluster, not the values file:
 
@@ -214,29 +217,50 @@ configurable default that someone could have switched off, and looking for such 
 toggle will waste time. Because the record is also proxied, clients resolve
 Cloudflare's own addresses and Cloudflare uses `edge.2lovelaces.io` as its origin.
 
-The served certificate does not cover the apex. cert-manager issues the wildcard
-from the `cert-manager.io/cluster-issuer: letsencrypt-prod-cluster-issuer`
-annotation the ingresses inherit from `chart/values.yaml`, for the hosts in
-`ingress.tls[].hosts`, into the secret `wildcard-1694-tls`. That is `*.1694.io`,
-and a wildcard does not match the apex, so `1694.io` is served Traefik's default
-self-signed certificate.
+The apex needs a certificate of its own, and now has one. Every certificate here
+is issued by cert-manager's ingress-shim rather than by a `Certificate` resource
+in the chart: the `cert-manager.io/cluster-issuer: letsencrypt-prod-cluster-issuer`
+annotation that all three ingresses inherit from `chart/values.yaml` is the whole
+mechanism. The frontend and backend ingresses ask for the hosts under
+`ingress.tls[].hosts`, which is `*.1694.io`, into the secret `wildcard-1694-tls`.
+A wildcard does not match the apex, so the apex-redirect ingress asks separately
+for `1694.io` alone, into `apex-1694-tls`.
 
-It works today only because the zone is on Cloudflare **Full**, which does not
-verify the origin certificate. The apex redirect to `www` is not what saves it:
-the TLS handshake completes before any Traefik middleware runs, so the wrong
-certificate is presented first and the redirect happens after. If this zone is
-ever moved to **Full (strict)**, the apex answers 526, which is a handshake
-failure, and no amount of redirect configuration changes that.
+Two secrets rather than one is deliberate. Both names could have gone on a single
+certificate, but then a failed apex order would fail the whole order and quietly
+block renewal of the wildcard that serves `www`, `api`, `preview` and
+`preview-api`. That would not show up on the day it broke. It would show up about
+30 days later when the wildcard expired. Keeping them apart confines an apex
+failure to the apex, which is the name that was already broken.
 
-The fix, if that day comes, is to add `1694.io` to `ingress.tls[].hosts` in
-`chart/values.yaml` and redeploy. A wildcard SAN implies a DNS-01 order, and the
-`letsencrypt-prod-cluster-issuer` ClusterIssuer lives in the infrastructure repo,
-not here.
+Before this change, and until the certificate is issued, the apex is served
+Traefik's default self-signed certificate. That passes only because the zone is on
+Cloudflare **Full**, which does not verify the origin certificate. The apex
+redirect to `www` is not what saves it: the TLS handshake completes before any
+Traefik middleware runs, so the wrong certificate is presented first and the
+redirect happens afterwards. On **Full (strict)** the apex would answer 526, a
+handshake failure, and no amount of redirect configuration changes that.
 
-Ignore the `certificate:` and `certmanager:` blocks at the top of
-`chart/values.yaml`. No template reads them. They name a different secret
-(`www-1694-tls`) and a Let's Encrypt staging endpoint, and both are inert.
-Editing them changes nothing.
+After the next production deploy, confirm the certificate actually issued rather
+than assuming the gap is closed:
+
+```bash
+kubectl get certificate apex-1694-tls -n voltaire-mainnet
+kubectl describe certificate apex-1694-tls -n voltaire-mainnet
+
+EDGE=$(dig +short A edge.2lovelaces.io | sort -u | head -1)
+openssl s_client -connect "$EDGE:443" -servername 1694.io </dev/null 2>/dev/null \
+  | openssl x509 -noout -subject -ext subjectAltName
+```
+
+Look for `READY=True` on the Certificate and `DNS:1694.io` in the SANs. Issuance
+normally takes a minute or two. The wildcard already proves a DNS-01 solver exists
+for this zone, and the apex validates at the same `_acme-challenge.1694.io` name,
+so the same solver applies. The `letsencrypt-prod-cluster-issuer` ClusterIssuer
+itself is cluster-scoped and lives in the infrastructure repo, not here.
+
+If it does not go ready, nothing regresses: the apex keeps serving the self-signed
+certificate it served before, and Cloudflare **Full** keeps passing it through.
 
 Second, the apex only has a Traefik router at all because
 `ingress.redirectApex` is `true` in `chart/values.prod.yaml`. If that is ever

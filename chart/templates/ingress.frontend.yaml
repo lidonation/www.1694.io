@@ -58,14 +58,13 @@ spec:
   {{- if .Values.ingress.ingressClassName }}
   ingressClassName: {{ .Values.ingress.ingressClassName }}
   {{- end }}
+  # The wildcard in ingress.tls does not match the apex, so this ingress asks
+  # cert-manager for a certificate covering {{ .Values.ingress.apexHost }} alone, in its own
+  # secret. A failed apex order then cannot block renewal of the wildcard.
   tls:
-  {{- range .Values.ingress.tls }}
   - hosts:
-  {{- range .hosts }}
-    - {{ . }}
-  {{- end }}
-    secretName: {{ .secretName }}
-  {{- end }}
+    - {{ .Values.ingress.apexHost | quote }}
+    secretName: {{ .Values.ingress.apexTlsSecretName | default "apex-1694-tls" }}
   rules:
   - host: {{ .Values.ingress.apexHost }}
     http:
