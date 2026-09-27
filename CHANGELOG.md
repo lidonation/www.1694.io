@@ -11,12 +11,12 @@ changes.
 ## [UNRELEASED]
 
 ### Added
-- Preview and production deploys give the backend and queue pods the four
+- Preview, production and governance indexer deploys give the backend and queue pods the four
   IPFS cluster settings (`IPFS_CLUSTER_API_URL`, `IPFS_CLUSTER_API_USER`,
   `IPFS_CLUSTER_API_PASSWORD`, `IPFS_GATEWAY_URL`) from CI/CD variables, and
   stop before `helm` when one is missing or also set in an env file
   (lidonation/lidonation#791).
-- `test_deploy_config` CI job runs the deploy check and chart tests on every
+- `test_deploy_config` CI job runs the deploy check, chart and CI config tests on every
   branch and merge request pipeline.
 
 ### Fixed

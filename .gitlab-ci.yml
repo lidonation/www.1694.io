@@ -260,6 +260,9 @@ deploy-indexer-preview:
   environment:
     name: preview
   script:
+    # --reuse-values still re-renders every template, secret.backend.yaml
+    # included, so this job passes the IPFS settings too (lidonation#791).
+    - !reference [.check_ipfs_settings, script]
     - |
       DEPLOYMENT_NAME="www-1694.$CI_ENVIRONMENT_SLUG"
       echo "Deploying governance-indexer $INDEXER_TAG ($INDEXER_SHA) to preview..."
@@ -269,7 +272,11 @@ deploy-indexer-preview:
         --wait \
         --namespace="$KUBE_NAMESPACE" \
         --set governanceIndexer.image.tag="$INDEXER_TAG" \
-        --set governanceIndexer.image.sha="$INDEXER_SHA"
+        --set governanceIndexer.image.sha="$INDEXER_SHA" \
+        --set-string ipfs.clusterApiUrl="$IPFS_CLUSTER_API_URL" \
+        --set-string ipfs.clusterApiUser="$IPFS_CLUSTER_API_USER" \
+        --set-string ipfs.clusterApiPassword="$IPFS_CLUSTER_API_PASSWORD" \
+        --set-string ipfs.gatewayUrl="$IPFS_GATEWAY_URL"
       echo "Done."
   rules:
     - if: '$CI_PIPELINE_SOURCE == "pipeline" && $INDEXER_TAG && $INDEXER_SHA'
@@ -280,6 +287,9 @@ deploy-indexer-production:
   environment:
     name: production
   script:
+    # --reuse-values still re-renders every template, secret.backend.yaml
+    # included, so this job passes the IPFS settings too (lidonation#791).
+    - !reference [.check_ipfs_settings, script]
     - |
       DEPLOYMENT_NAME="www-1694.$CI_ENVIRONMENT_SLUG"
       echo "Deploying governance-indexer $INDEXER_TAG ($INDEXER_SHA) to production..."
@@ -289,7 +299,11 @@ deploy-indexer-production:
         --wait \
         --namespace="$KUBE_NAMESPACE" \
         --set governanceIndexer.image.tag="$INDEXER_TAG" \
-        --set governanceIndexer.image.sha="$INDEXER_SHA"
+        --set governanceIndexer.image.sha="$INDEXER_SHA" \
+        --set-string ipfs.clusterApiUrl="$IPFS_CLUSTER_API_URL" \
+        --set-string ipfs.clusterApiUser="$IPFS_CLUSTER_API_USER" \
+        --set-string ipfs.clusterApiPassword="$IPFS_CLUSTER_API_PASSWORD" \
+        --set-string ipfs.gatewayUrl="$IPFS_GATEWAY_URL"
       echo "Done."
   needs:
     - job: deploy-indexer-preview
@@ -311,6 +325,7 @@ test_deploy_config:
   script:
     - sh ci/tests/check-ipfs-settings.test.sh
     - sh ci/tests/chart-ipfs.test.sh
+    - sh ci/tests/ci-config-ipfs.test.sh
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH
