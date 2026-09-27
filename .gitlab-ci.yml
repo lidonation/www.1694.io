@@ -48,6 +48,14 @@ services:
   retry: 0
   cache: {}
 
+# First step of every full deploy, before any helm or kubectl call (auto-deploy
+# download_chart runs helm). It stops the job when one of the four IPFS cluster
+# settings is missing for this environment, or when an env file the job loads
+# also sets it (lidonation#791). It names keys, never values.
+.check_ipfs_settings:
+  script:
+    - sh ci/check-ipfs-settings.sh "$ENV_FILE_BACKEND" "$ENV_FILE_QUEUE" "$ENV_FILE_FRONTEND" ${GLOBAL_ENV_FILE:+"$GLOBAL_ENV_FILE"}
+
 
 
 build_frontend:
@@ -123,6 +131,7 @@ app-preview:
   image: "${CI_TEMPLATE_REGISTRY_HOST}/gitlab-org/cluster-integration/auto-deploy-image:${AUTO_DEPLOY_IMAGE_VERSION}"
   stage: preview
   script:
+    - !reference [.check_ipfs_settings, script]
     - auto-deploy check_kube_domain
     - auto-deploy download_chart
     # - auto-deploy ensure_namespace
@@ -159,6 +168,10 @@ app-preview:
         --set governanceIndexer.replicaCount=1 \
         --set governanceIndexer.image.tag=$INDEXER_TAG \
         --set cnpg.superuserPassword="$CNPG_SUPERUSER_PASSWORD" \
+        --set-string ipfs.clusterApiUrl="$IPFS_CLUSTER_API_URL" \
+        --set-string ipfs.clusterApiUser="$IPFS_CLUSTER_API_USER" \
+        --set-string ipfs.clusterApiPassword="$IPFS_CLUSTER_API_PASSWORD" \
+        --set-string ipfs.gatewayUrl="$IPFS_GATEWAY_URL" \
         --set secrets.NEXT_PUBLIC_GOOGLE_API="$NEXT_PUBLIC_GOOGLE_API" \
         --set ingress.hosts[0]="$AUTO_DEVOPS_WEB_DOMAIN" \
         --set ingress.api="$API" \
@@ -186,6 +199,7 @@ production:
   environment:
     name: production
   script:
+    - !reference [.check_ipfs_settings, script]
     - auto-deploy check_kube_domain
     - auto-deploy download_chart
     # - auto-deploy ensure_namespace
@@ -216,6 +230,10 @@ production:
         --set governanceIndexer.replicaCount=1 \
         --set governanceIndexer.image.tag=$INDEXER_TAG \
         --set cnpg.superuserPassword="$CNPG_SUPERUSER_PASSWORD" \
+        --set-string ipfs.clusterApiUrl="$IPFS_CLUSTER_API_URL" \
+        --set-string ipfs.clusterApiUser="$IPFS_CLUSTER_API_USER" \
+        --set-string ipfs.clusterApiPassword="$IPFS_CLUSTER_API_PASSWORD" \
+        --set-string ipfs.gatewayUrl="$IPFS_GATEWAY_URL" \
         --set ingress.hosts[0]="$AUTO_DEVOPS_WEB_DOMAIN" \
         --set ingress.api="$API" \
         --set namespace=$KUBE_NAMESPACE \
@@ -242,6 +260,9 @@ deploy-indexer-preview:
   environment:
     name: preview
   script:
+    # --reuse-values still re-renders every template, secret.backend.yaml
+    # included, so this job passes the IPFS settings too (lidonation#791).
+    - !reference [.check_ipfs_settings, script]
     - |
       DEPLOYMENT_NAME="www-1694.$CI_ENVIRONMENT_SLUG"
       echo "Deploying governance-indexer $INDEXER_TAG ($INDEXER_SHA) to preview..."
@@ -251,7 +272,11 @@ deploy-indexer-preview:
         --wait \
         --namespace="$KUBE_NAMESPACE" \
         --set governanceIndexer.image.tag="$INDEXER_TAG" \
-        --set governanceIndexer.image.sha="$INDEXER_SHA"
+        --set governanceIndexer.image.sha="$INDEXER_SHA" \
+        --set-string ipfs.clusterApiUrl="$IPFS_CLUSTER_API_URL" \
+        --set-string ipfs.clusterApiUser="$IPFS_CLUSTER_API_USER" \
+        --set-string ipfs.clusterApiPassword="$IPFS_CLUSTER_API_PASSWORD" \
+        --set-string ipfs.gatewayUrl="$IPFS_GATEWAY_URL"
       echo "Done."
   rules:
     - if: '$CI_PIPELINE_SOURCE == "pipeline" && $INDEXER_TAG && $INDEXER_SHA'
@@ -262,6 +287,9 @@ deploy-indexer-production:
   environment:
     name: production
   script:
+    # --reuse-values still re-renders every template, secret.backend.yaml
+    # included, so this job passes the IPFS settings too (lidonation#791).
+    - !reference [.check_ipfs_settings, script]
     - |
       DEPLOYMENT_NAME="www-1694.$CI_ENVIRONMENT_SLUG"
       echo "Deploying governance-indexer $INDEXER_TAG ($INDEXER_SHA) to production..."
@@ -271,12 +299,36 @@ deploy-indexer-production:
         --wait \
         --namespace="$KUBE_NAMESPACE" \
         --set governanceIndexer.image.tag="$INDEXER_TAG" \
-        --set governanceIndexer.image.sha="$INDEXER_SHA"
+        --set governanceIndexer.image.sha="$INDEXER_SHA" \
+        --set-string ipfs.clusterApiUrl="$IPFS_CLUSTER_API_URL" \
+        --set-string ipfs.clusterApiUser="$IPFS_CLUSTER_API_USER" \
+        --set-string ipfs.clusterApiPassword="$IPFS_CLUSTER_API_PASSWORD" \
+        --set-string ipfs.gatewayUrl="$IPFS_GATEWAY_URL"
       echo "Done."
   needs:
     - job: deploy-indexer-preview
   rules:
     - if: '$CI_PIPELINE_SOURCE == "pipeline" && $INDEXER_TAG && $INDEXER_SHA && $INDEXER_TAG == "latest"'
+
+# Tests for the deploy checks and the chart (lidonation#791). Runs in seconds
+# with no cluster access, on every branch and merge request pipeline.
+test_deploy_config:
+  stage: test
+  image:
+    name: alpine/helm:3.18.2
+    entrypoint: [""]
+  services: []
+  cache: {}
+  before_script: []
+  needs: []
+  dependencies: []
+  script:
+    - sh ci/tests/check-ipfs-settings.test.sh
+    - sh ci/tests/chart-ipfs.test.sh
+    - sh ci/tests/ci-config-ipfs.test.sh
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH
 
 # Maps the canonical branches to the public GitHub copy so the open-source
 # listing (e.g. cardano.org) always points at fresh code. GitHub is a
