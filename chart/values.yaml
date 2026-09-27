@@ -48,6 +48,16 @@ ingress:
 
 namespace: voltaire-preview
 
+# IPFS cluster settings for the backend and queue pods (lidonation#791).
+# Deploys fill all four with --set-string from CI/CD variables of the same
+# names (IPFS_CLUSTER_API_URL and so on). secret.backend.yaml will not render
+# while any of them is empty. Never commit a value here.
+ipfs:
+  clusterApiUrl: ""
+  clusterApiUser: ""
+  clusterApiPassword: ""
+  gatewayUrl: ""
+
 redis:
   enabled: true
   storage:
