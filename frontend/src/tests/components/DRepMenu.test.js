@@ -2,19 +2,28 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import DRepMenu from '@/components/molecules/DRepMenu';
 
+let mockPathname = '/dreps/list';
+
 jest.mock('@/navigation', () => {
   const React = require('react');
   const NextLink = require('next/link').default;
+  const MockLink = React.forwardRef(({ href, ...rest }, ref) => (
+    <NextLink ref={ref} href={'/de' + href} {...rest} />
+  ));
+  MockLink.displayName = 'MockLink';
+
   return {
     __esModule: true,
-    Link: React.forwardRef(({ href, ...rest }, ref) => (
-      <NextLink ref={ref} href={`/de${href}`} {...rest} />
-    )),
-    usePathname: () => '/dreps/list',
+    Link: MockLink,
+    usePathname: () => mockPathname,
   };
 });
 
 describe('DRepMenu direct list link (issue 232)', () => {
+  beforeEach(() => {
+    mockPathname = '/dreps/list';
+  });
+
   test('renders one locale-qualified DReps link to the list, no dropdown', () => {
     const { container } = render(<DRepMenu />);
 
@@ -28,8 +37,16 @@ describe('DRepMenu direct list link (issue 232)', () => {
     ).not.toBeInTheDocument();
   });
 
-  test('marks the entry active on a dreps route', () => {
+  test('marks the entry active on a DRep route', () => {
     render(<DRepMenu />);
     expect(screen.getByTestId('nav-dreps-link')).toHaveClass('text-orange-500');
+  });
+
+  test('does not mark a lookalike route active', () => {
+    mockPathname = '/dreps-archive';
+
+    render(<DRepMenu />);
+
+    expect(screen.getByTestId('nav-dreps-link')).toHaveClass('text-gray-800');
   });
 });

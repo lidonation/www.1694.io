@@ -4,7 +4,7 @@ import { Link, usePathname } from '@/navigation';
 
 export default function DRepMenu() {
   const pathname = usePathname();
-  const isActive = !!pathname && pathname.startsWith('/dreps');
+  const isActive = pathname === '/dreps' || pathname?.startsWith('/dreps/');
 
   return (
     <Link

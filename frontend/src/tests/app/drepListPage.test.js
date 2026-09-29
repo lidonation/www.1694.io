@@ -5,11 +5,14 @@ import React from 'react';
 jest.mock('@/navigation', () => {
   const React = require('react');
   const NextLink = require('next/link').default;
+  const MockLink = React.forwardRef(({ href, ...rest }, ref) => (
+    <NextLink ref={ref} href={`/de${href}`} {...rest} />
+  ));
+  MockLink.displayName = 'MockLink';
+
   return {
     __esModule: true,
-    Link: React.forwardRef(({ href, ...rest }, ref) => (
-      <NextLink ref={ref} href={`/de${href}`} {...rest} />
-    )),
+    Link: MockLink,
     usePathname: () => '/dreps/list',
     useRouter: () => ({ replace: jest.fn() }),
   };
@@ -56,6 +59,7 @@ describe('DRep list page Learn about DReps CTA (issue 232)', () => {
 
     const cta = screen.getByRole('link', { name: /learn about dreps/i });
     expect(cta).toHaveAttribute('href', '/de/dreps');
+    expect(cta).toHaveClass('MuiButton-root');
 
     const heading = container.querySelector('h2');
     expect(heading).toHaveTextContent('Available DReps');

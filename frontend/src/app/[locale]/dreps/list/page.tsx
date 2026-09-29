@@ -4,7 +4,7 @@ import DRepTableSearch from '@/components/atoms/DRepTableSearch';
 import BreadCrumbs from '@/components/molecules/BreadCrumbs';
 import DRepsTable from '@/components/molecules/DRepsTable';
 import DRepFilterChips from '@/components/atoms/DRepFilterChips';
-import { Link } from '@/navigation';
+import DRepOverviewLink from '@/components/molecules/DRepOverviewLink';
 import React, { use } from 'react';
 
 type PageProps = {
@@ -20,7 +20,7 @@ type PageProps = {
   }>;
 };
 
-const page = ({ searchParams }: PageProps) => {
+const DRepListPage = ({ searchParams }: PageProps) => {
   const params = use(searchParams);
   const query = params?.s || '';
   const page = Number(params?.page) || 1;
@@ -47,12 +47,7 @@ const page = ({ searchParams }: PageProps) => {
       <div className="base_container min-h-screen py-10">
         <section className="mb-12 flex flex-wrap items-center justify-between gap-4">
           <h2 className="text-7xl font-black">Available DReps</h2>
-          <Link
-            href="/dreps"
-            className="inline-flex shrink-0 items-center justify-center rounded-md bg-orange-500 px-6 py-3 text-base font-bold text-white transition-colors hover:bg-orange-600"
-          >
-            Learn about DReps
-          </Link>
+          <DRepOverviewLink />
         </section>
         <section className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <DRepsMetrics />
@@ -79,4 +74,4 @@ const page = ({ searchParams }: PageProps) => {
   );
 };
 
-export default page;
+export default DRepListPage;
