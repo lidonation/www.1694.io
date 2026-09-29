@@ -1,7 +1,22 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
+import {
+  BadGatewayException,
+  Injectable,
+  Logger,
+  NotFoundException,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { catchError, firstValueFrom } from 'rxjs';
+
+type UpstreamError = {
+  response?: {
+    status?: number;
+    data?: unknown;
+  };
+  code?: string;
+  message?: string;
+};
 
 @Injectable()
 export class ActionsProposalsService {
@@ -14,6 +29,31 @@ export class ActionsProposalsService {
   ) {
     this.BASE_URL = this.configService.get<string>('PDF_BASE_URL') || '';
     this.CX_BASE_URL = this.configService.get<string>('METRICS_BASE_URL') || '';
+  }
+
+  private readonly logger = new Logger(ActionsProposalsService.name);
+
+  private formatLogDetail(value: unknown): string {
+    try {
+      const detail = typeof value === 'string' ? value : JSON.stringify(value);
+      return (detail || '[unavailable]').slice(0, 500);
+    } catch {
+      return '[unserializable]';
+    }
+  }
+
+  private mapUpstreamError(error: unknown, context: string): never {
+    const upstreamError: UpstreamError =
+      typeof error === 'object' && error !== null ? error : {};
+    const status = upstreamError.response?.status;
+    const upstreamBody = upstreamError.response?.data;
+    this.logger.error(
+      `${context} upstream=${this.BASE_URL || '(PDF_BASE_URL unset)'} status=${status ?? upstreamError.code ?? 'no-response'} detail=${this.formatLogDetail(upstreamBody ?? upstreamError.message ?? error)}`,
+    );
+    if (status === 404) throw new NotFoundException(`${context} not found`);
+    if (typeof status === 'number')
+      throw new BadGatewayException(`${context} upstream error`);
+    throw new ServiceUnavailableException(`${context} unavailable`);
   }
   async findAll({
     page = 1,
@@ -103,15 +143,19 @@ export class ActionsProposalsService {
           })
           .pipe(
             catchError((error) => {
-              console.error(`Error fetching data for ID ${id}:`, error);
-              throw error;
+              this.mapUpstreamError(error, `Proposal ${id}`);
             }),
           ),
       );
       return data;
     } catch (error) {
-      console.error(`Error fetching data for ID ${id}:`, error);
-      throw error;
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadGatewayException ||
+        error instanceof ServiceUnavailableException
+      )
+        throw error;
+      this.mapUpstreamError(error, `Proposal ${id}`);
     }
   }
 
@@ -134,15 +178,19 @@ export class ActionsProposalsService {
           })
           .pipe(
             catchError((error) => {
-              console.error(`Error fetching comments for ID ${id}:`, error);
-              throw error;
+              this.mapUpstreamError(error, `Comments for proposal ${id}`);
             }),
           ),
       );
       return data;
     } catch (error) {
-      console.error(`Error fetching comments for ID ${id}:`, error);
-      throw error;
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadGatewayException ||
+        error instanceof ServiceUnavailableException
+      )
+        throw error;
+      this.mapUpstreamError(error, `Comments for proposal ${id}`);
     }
   }
 
@@ -187,15 +235,19 @@ export class ActionsProposalsService {
           })
           .pipe(
             catchError((error) => {
-              console.error(`Error fetching poll for ID ${id}:`, error);
-              throw error;
+              this.mapUpstreamError(error, `Poll for proposal ${id}`);
             }),
           ),
       );
       return data;
     } catch (error) {
-      console.error(`Error fetching poll for ID ${id}:`, error);
-      throw error;
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadGatewayException ||
+        error instanceof ServiceUnavailableException
+      )
+        throw error;
+      this.mapUpstreamError(error, `Poll for proposal ${id}`);
     }
   }
 
