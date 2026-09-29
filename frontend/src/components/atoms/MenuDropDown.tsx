@@ -4,8 +4,8 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Grow from '@mui/material/Grow';
 import { Box } from '@mui/material';
-import { usePathname } from 'next/navigation';
-import Link from 'next/link';
+import { usePathname } from '@/navigation';
+import { Link } from '@/navigation';
 
 type MenuDropDownProps = {
   title: string;

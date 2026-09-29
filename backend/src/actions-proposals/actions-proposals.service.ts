@@ -91,6 +91,10 @@ export class ActionsProposalsService {
           backendSortField = 'updatedAt';
       }
 
+      if (!this.CX_BASE_URL)
+        throw new ServiceUnavailableException(
+          'Budget proposals upstream is not configured (METRICS_BASE_URL unset)',
+        );
       const url = `${this.CX_BASE_URL}/cardano/budget-proposals`;
       const sanitizedSearch = search ? search.replace(/'/g, "''") : '';
 
@@ -122,6 +126,52 @@ export class ActionsProposalsService {
         error?.response?.data || error,
       );
       throw error;
+    }
+  }
+  async getDatasetFreshness(thresholdDays = 90): Promise<{
+    newestUpdatedAt: string | null;
+    ageDays: number | null;
+    stale: boolean;
+    thresholdDays: number;
+  }> {
+    if (!this.CX_BASE_URL)
+      throw new ServiceUnavailableException(
+        'Budget proposals upstream is not configured (METRICS_BASE_URL unset)',
+      );
+    const url = `${this.CX_BASE_URL}/cardano/budget-proposals`;
+    try {
+      const { data } = await firstValueFrom(
+        this.httpService.get(url, {
+          params: { page: 1, limit: 1, sortBy: 'updatedAt', sortOrder: 'desc' },
+        }),
+      );
+      const rows = Array.isArray(data?.data) ? data.data : [];
+      const newestUpdatedAt: string | null =
+        rows.length > 0 && rows[0]?.updatedAt
+          ? String(rows[0].updatedAt)
+          : null;
+      if (!newestUpdatedAt)
+        return { newestUpdatedAt, ageDays: null, stale: true, thresholdDays };
+      const ageMs = Date.now() - new Date(newestUpdatedAt).getTime();
+      if (!Number.isFinite(ageMs))
+        return {
+          newestUpdatedAt: null,
+          ageDays: null,
+          stale: true,
+          thresholdDays,
+        };
+      const ageDays = Math.max(0, Math.floor(ageMs / 86400000));
+      return {
+        newestUpdatedAt,
+        ageDays,
+        stale: ageMs > thresholdDays * 86400000,
+        thresholdDays,
+      };
+    } catch (error) {
+      if (error instanceof ServiceUnavailableException) throw error;
+      throw new ServiceUnavailableException(
+        'Budget proposals upstream unavailable',
+      );
     }
   }
   async findOne(id: string): Promise<any> {

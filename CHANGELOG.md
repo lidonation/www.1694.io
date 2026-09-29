@@ -11,6 +11,7 @@ changes.
 ## [UNRELEASED]
 
 ### Added
+- Budget Proposals identifies its 2025 archive, shows the newest record date, and warns when the upstream dataset is stale (issue #226).
 - Preview, production and governance indexer deploys give the backend and queue pods the four
   IPFS cluster settings (`IPFS_CLUSTER_API_URL`, `IPFS_CLUSTER_API_USER`,
   `IPFS_CLUSTER_API_PASSWORD`, `IPFS_GATEWAY_URL`) from CI/CD variables, and
