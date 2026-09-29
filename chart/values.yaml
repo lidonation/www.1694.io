@@ -13,10 +13,9 @@ image:
   pullPolicy: Always
 
 secrets:
-  # Read by deployment.frontend.yaml. It arrives by --set, not from an env
-  # file, and only the app-preview job sets it. Production currently renders
-  # this env var empty, which is a pre-existing gap in .gitlab-ci.yml and not
-  # something this file can fix.
+  # Read by deployment.frontend.yaml. It arrives by --set, and both the
+  # app-preview and production jobs set it (#228). An empty value fails the
+  # frontend entrypoint at startup rather than shipping a placeholder.
   NEXT_PUBLIC_GOOGLE_API:
 
 # TLS is issued by cert-manager's ingress-shim, not by a Certificate resource in
