@@ -31,8 +31,6 @@ export class ActionsProposalsService {
       `${context} upstream=${this.BASE_URL || '(PDF_BASE_URL unset)'} status=${status ?? error?.code ?? 'no-response'} detail=${JSON.stringify(upstreamBody ?? error?.message ?? error)?.slice(0, 500)}`,
     );
     if (status === 404) throw new NotFoundException(`${context} not found`);
-    if (typeof status === 'number' && status >= 500)
-      throw new BadGatewayException(`${context} upstream error`);
     if (typeof status === 'number')
       throw new BadGatewayException(`${context} upstream error`);
     throw new ServiceUnavailableException(`${context} unavailable`);

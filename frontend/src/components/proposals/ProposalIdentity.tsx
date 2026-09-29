@@ -32,7 +32,7 @@ function ProposalIdentity({
     proposal?.attributes?.bd_proposal_detail?.data?.attributes?.proposal_name ||
     'Proposal unavailable';
   const author =
-    proposal?.attributes?.creator?.data?.attributes.govtool_username;
+    proposal?.attributes?.creator?.data?.attributes?.govtool_username;
   const category =
     proposal?.attributes?.bd_psapb?.data?.attributes?.type_name?.data
       ?.attributes?.type_name || '-';
