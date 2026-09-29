@@ -21,17 +21,11 @@ const CIPSpecifications = () => {
         >
           <p className="text-2xl font-bold">The Cardano Constitution</p>
           <p>
-            The Cardano Constitution is a text document that defines Cardano's
-            shared values and guiding principles. At this stage, the
-            Constitution is an informational document that unambiguously
-            captures the core values of Cardano and acts to ensure its long-term
-            sustainability. At a later stage, we can imagine the Constitution
-            perhaps evolving into a smart-contract based set of rules that
-            drives the entire governance framework. For now, however, the
-            Constitution will remain an off-chain document whose hash digest
-            value will be recorded on-chain. As discussed above, the
-            Constitution is not yet defined and its content is out of scope for
-            this CIP.
+            The Cardano Constitution defines the shared values and guiding
+            principles for Cardano. It was ratified on-chain in February 2025
+            and amended in January 2026. Governance actions are subject to
+            constitutional review by the Constitutional Committee, while the
+            Constitution itself remains a human-readable document.
           </p>
         </div>
         <Separator />
@@ -189,13 +183,12 @@ const CIPSpecifications = () => {
         >
           <p className="text-2xl font-bold">Guardrails Script</p>
           <p>
-            While the constitution is an informal, off-chain document, there
-            will also be an optional script that can enforce some guidelines.
-            This script acts to supplement the constitutional committee by
-            restricting some proposal types. For example, if the community
-            wishes to have some hard rules for the treasury that cannot be
-            violated, a script that enforces these these rules can be voted in
-            as the guardrails script.
+            The Constitution sets the principles used to assess whether
+            governance actions are constitutional. An optional guardrails script
+            can also enforce on-chain constraints for protocol parameter updates
+            and treasury withdrawals. It supplements constitutional review by
+            restricting these proposal types according to rules adopted by the
+            community.
           </p>
           <p>
             The guardrails script applies only to protocol parameter update and
