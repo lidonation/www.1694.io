@@ -155,7 +155,7 @@ const CIPChangelog = () => {
             </p>
             <ul className="ml-5 flex list-disc flex-col gap-2">
               <li>
-                The Chang hard fork in August 2024 began on-chain governance
+                The Chang hard fork in September 2024 began on-chain governance
                 under the bootstrap provisions.
               </li>
               <li>

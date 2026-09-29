@@ -178,8 +178,8 @@ const CIPPathtoactive = () => {
               <p className="text-2xl font-bold">Bootstrapping Phase</p>
               <p>
                 Cardano's governance bootstrap began with the Chang hard fork in
-                August 2024. The transition introduced governance in stages so
-                participants could register and become familiar with the
+                September 2024. The transition introduced governance in stages
+                so participants could register and become familiar with the
                 process.
               </p>
               <p>

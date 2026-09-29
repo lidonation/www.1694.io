@@ -8,12 +8,21 @@ describe('CIP specifications', () => {
 
     const constitution = container.querySelector('#the-cardano-constitution');
     expect(constitution).not.toBeNull();
-    const text = within(constitution as HTMLElement).getByText(
+    const constitutionText = within(constitution as HTMLElement).getByText(
       /The Cardano Constitution defines/,
     );
-    expect(text).toHaveTextContent('ratified on-chain in February 2025');
-    expect(text).toHaveTextContent('amended in January 2026');
-    expect(text).not.toHaveTextContent(
+    expect(constitutionText).toHaveTextContent(
+      'ratified on-chain in February 2025',
+    );
+    expect(constitutionText).toHaveTextContent('amended in January 2026');
+
+    const guardrails = container.querySelector('#guardrails-script');
+    expect(guardrails).not.toBeNull();
+    expect(guardrails).toHaveTextContent(
+      'optional guardrails script can also enforce on-chain constraints',
+    );
+
+    expect(container).not.toHaveTextContent(
       /informational document|informal, off-chain document|not yet defined/i,
     );
   });
