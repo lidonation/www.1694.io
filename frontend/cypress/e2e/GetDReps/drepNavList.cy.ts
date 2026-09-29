@@ -26,6 +26,7 @@ describe('DRep nav opens the list, list links back to overview (issue 232)', () 
 
     cy.contains('a', 'Learn about DReps').click();
 
-    cy.url().should('include', '/en/dreps');
+    cy.url().should('not.include', '/list');
+    cy.url().should('match', /\/en\/dreps$/);
   });
 });
