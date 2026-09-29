@@ -35,6 +35,16 @@ export class ActionsProposalsController {
     });
   }
 
+  @Get('freshness')
+  getFreshness(@Query('thresholdDays') thresholdDays?: string) {
+    const parsed = thresholdDays ? Number(thresholdDays) : 90;
+    const days =
+      Number.isFinite(parsed) && parsed > 0
+        ? Math.max(1, Math.min(Math.floor(parsed), 3650))
+        : 90;
+    return this.actionsProposalsService.getDatasetFreshness(days);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.actionsProposalsService.findOne(id);
