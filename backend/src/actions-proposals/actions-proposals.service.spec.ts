@@ -215,6 +215,20 @@ describe('ActionsProposalsService upstream mapping (issues 226, 227)', () => {
     );
   });
 
+  test('getDatasetFreshness treats invalid upstream date as stale', async () => {
+    const module: TestingModule = await buildService('http://cx', http);
+    const service = module.get(ActionsProposalsService);
+    http.get.mockReturnValue(
+      of({ data: { data: [{ updatedAt: 'not-a-date' }] } }),
+    );
+    await expect(service.getDatasetFreshness()).resolves.toEqual({
+      newestUpdatedAt: null,
+      ageDays: null,
+      stale: true,
+      thresholdDays: 90,
+    });
+  });
+
   test('getDatasetFreshness maps upstream failure to 503', async () => {
     const module: TestingModule = await buildService('http://cx', http);
     const service = module.get(ActionsProposalsService);

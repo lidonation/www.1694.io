@@ -36,6 +36,13 @@ describe('getDatasetFreshness (issue 226)', () => {
     const result = getDatasetFreshness([{ updatedAt: fresh }], now, 90);
     expect(result.stale).toBe(false);
     expect(result.ageDays).toBe(5);
+    const justPastThreshold = new Date(
+      now - 90 * 86400000 - 1000,
+    ).toISOString();
+    expect(
+      getDatasetFreshness([{ updatedAt: justPastThreshold }], now, 90).stale,
+    ).toBe(true);
+    expect(result.thresholdDays).toBe(90);
   });
 
   test('empty or invalid sets report stale with null age', () => {
@@ -43,6 +50,7 @@ describe('getDatasetFreshness (issue 226)', () => {
       newestUpdatedAt: null,
       ageDays: null,
       stale: true,
+      thresholdDays: 90,
     });
     expect(getDatasetFreshness([{ updatedAt: 'garbage' }], now, 90).stale).toBe(
       true,

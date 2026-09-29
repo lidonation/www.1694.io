@@ -12,7 +12,11 @@ import { ProposalDownloadButton } from '@/components/molecules/ProposalDownloadB
 import { useGetActionsProposalsQuery } from '@/hooks/useGetActionsProposalsQuery';
 import { useDebounce } from 'use-debounce';
 import { useEffect } from 'react';
-import { formatProposalCardDate, getDatasetFreshness } from '@/lib/utils';
+import {
+  FRESHNESS_STALE_THRESHOLD_DAYS,
+  formatProposalCardDate,
+  getDatasetFreshness,
+} from '@/lib/utils';
 import axiosInstance from '@/services/axiosInstance';
 
 function ProposalsPage() {
@@ -65,12 +69,15 @@ function ProposalsPage() {
     newestUpdatedAt: string | null;
     ageDays: number | null;
     stale: boolean;
+    thresholdDays: number;
   } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     axiosInstance
-      .get('/actions-proposals/freshness')
+      .get('/actions-proposals/freshness', {
+        params: { thresholdDays: FRESHNESS_STALE_THRESHOLD_DAYS },
+      })
       .then((res) => {
         if (!cancelled) setServerFreshness(res.data);
       })
@@ -110,8 +117,8 @@ function ProposalsPage() {
               role="status"
               className="mt-2 inline-block rounded bg-amber-100 px-3 py-1 text-sm text-amber-900"
             >
-              Data may be stale: no new budget records in over 90 days. Source:
-              Catalyst Explorer.
+              Data may be stale: no new budget records in over{' '}
+              {fresh.thresholdDays} days. Source: Catalyst Explorer.
             </p>
           ) : null}
         </div>

@@ -442,6 +442,7 @@ export function getDatasetFreshness(
   newestUpdatedAt: string | null;
   ageDays: number | null;
   stale: boolean;
+  thresholdDays: number;
 } {
   const rows = Array.isArray(proposals) ? proposals : [];
   let newestMs: number | null = null;
@@ -457,12 +458,14 @@ export function getDatasetFreshness(
     }
   }
   if (newestMs === null)
-    return { newestUpdatedAt: null, ageDays: null, stale: true };
-  const ageDays = Math.floor((nowMs - newestMs) / 86400000);
+    return { newestUpdatedAt: null, ageDays: null, stale: true, thresholdDays };
+  const ageMs = nowMs - newestMs;
+  const ageDays = Math.floor(ageMs / 86400000);
   return {
     newestUpdatedAt: newestRaw,
     ageDays,
-    stale: ageDays > thresholdDays,
+    stale: ageMs > thresholdDays * 86400000,
+    thresholdDays,
   };
 }
 
