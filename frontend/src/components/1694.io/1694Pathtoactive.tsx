@@ -177,42 +177,34 @@ const CIPPathtoactive = () => {
             <div className="md:text-md flex flex-col gap-4 text-sm lg:text-lg">
               <p className="text-2xl font-bold">Bootstrapping Phase</p>
               <p>
-                We will need to be careful how we bootstrap this fledgling
-                government. All the parties that are involved will need ample
-                time to register themselves and to become familiar with the
+                Cardano's governance bootstrap began with the Chang hard fork in
+                September 2024. The transition introduced governance in stages
+                so participants could register and become familiar with the
                 process.
               </p>
               <p>
-                Special provisions will apply in the initial bootstrap phase.
-                Firstly, during the bootstrap phase, a vote from the
-                constitutional committee is sufficient to change the protocol
-                parameters. Secondly, during the bootstrap phase, a vote from
-                the constitutional committee, together with a sufficient SPO
-                vote, is sufficient to initiate a hard fork.
+                During the bootstrap phase, special provisions applied to
+                protocol parameter changes and hard forks. Constitutional
+                Committee approval was required for parameter changes, and
+                Constitutional Committee and sufficient SPO approval were
+                required for hard forks.
               </p>
               <p>
-                The bootstrap phase ends when a given number of epochs has
-                elapsed, as specified in the next ledger era configuration file.
-                This is likely to be a number of months after the hard fork.
+                The Plomin hard fork in January 2025 completed the governance
+                transition and enabled full DRep participation in governance.
               </p>
               <p>
-                Thirdly, info actions will be available. No other actions other
-                than those mentioned in this paragraph are possible during the
-                bootstrap phase. The bootstrap phase ends when the
-                Constitutional Committee and SPOs ratify a subsequent hard fork,
-                enabling the remaining governance actions and DRep
-                participation. This is likely to be a number of months after the
-                Chang hard fork. Although all features will be technically
-                available at this point, additional requirements for using each
-                feature may be specified in the constitution.
+                Info actions were available during the bootstrap phase. The
+                Plomin hard fork activated the remaining governance actions and
+                DRep participation. The Constitution now provides the principles
+                for governance, and on-chain rules define how actions are
+                submitted, voted on, and enacted.
               </p>
               <p>
-                Moreover, there will be an interim Constitutional committee with
-                a set term, also specified in the next ledger era configuration
-                file. The rotational schedule of the first non-interim committee
-                could be included in the constitution itself. Note, however,
-                that since the constitutional committee never votes on new
-                committees, it cannot actually enforce the rotation.
+                An interim Constitutional Committee served during the bootstrap
+                period. The community now elects committee members through
+                governance actions, under the Constitution and the on-chain
+                governance rules.
               </p>
             </div>
           </section>
