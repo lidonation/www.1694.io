@@ -32,7 +32,8 @@ The indexer is configured with these default values:
 - **Memory Request**: 256Mi
 - **CPU Limit**: 500m  
 - **Memory Limit**: 1024Mi
-- **Relay Address**: backbone.mainnet.emurgornd.com:3001
+- **Relays**: relay1.lidonation.com:3011, backbone.cardano.iog.io:3001, backbone.mainnet.cardanofoundation.org:3001
+- **Primary Relay Address**: relay1.lidonation.com:3011
 - **Network Magic**: 764824073 (Mainnet)
 - **Max Workers**: 8
 - **Batch Size**: 100

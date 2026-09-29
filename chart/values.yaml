@@ -105,8 +105,17 @@ governanceIndexer:
     repository: registry.2lovelaces.io/voltaire/governance-indexer
     tag: dev      # mutable branch tag — always points to latest build on this branch
     sha: initial  # overwritten by CI with $CI_COMMIT_SHORT_SHA on every deploy
-  relayAddresses: "backbone.mainnet.emurgornd.com:3001,relays-new.cardano-mainnet.iohk.io:3001,relay1.lidonation.com:3011"
-  relayAddress: "backbone.mainnet.emurgornd.com:3001"
+  # Cardano mainnet relays, tried in this order. All three were verified on
+  # 2026-09-22 with a real node-to-node handshake (each accepts protocol
+  # version 14). The previous list held two hostnames that no longer resolve:
+  # relays-new.cardano-mainnet.iohk.io returns NXDOMAIN, and
+  # backbone.mainnet.emurgornd.com resolves with no A and no AAAA record. Both
+  # failed on every bootstrap with "error connecting bearer", which left the
+  # indexer running on relay1 alone.
+  relayAddresses: "relay1.lidonation.com:3011,backbone.cardano.iog.io:3001,backbone.mainnet.cardanofoundation.org:3001"
+  # The indexer prepends this to the list above when it is not already in it,
+  # so keep it equal to one of the entries.
+  relayAddress: "relay1.lidonation.com:3011"
 
   # DATABASE_URL is injected from www-1694-global-secrets (key: DATABASE_URL),
   # set at deploy time via the global_env file and never committed. Expected
