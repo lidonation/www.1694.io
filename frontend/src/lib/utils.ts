@@ -418,6 +418,81 @@ export function decodeJWT(jwt?: string) {
   return JSON.parse(decoded);
 }
 
+export const FRESHNESS_STALE_THRESHOLD_DAYS = 90;
+
+export type DatasetFreshness = {
+  newestUpdatedAt: string | null;
+  ageDays: number | null;
+  stale: boolean;
+  thresholdDays: number;
+};
+
+export function selectDatasetFreshness(
+  serverFreshness: DatasetFreshness | null,
+  localFreshness: DatasetFreshness,
+  hasActiveFilters: boolean,
+  isLoading: boolean,
+): DatasetFreshness | null {
+  return (
+    serverFreshness ?? (hasActiveFilters || isLoading ? null : localFreshness)
+  );
+}
+
+export function shouldShowDatasetStaleWarning(
+  freshness: DatasetFreshness | null,
+): boolean {
+  return freshness?.stale === true && freshness.newestUpdatedAt !== null;
+}
+
+export function formatProposalCardDate(
+  value: unknown,
+  fallback = 'Unknown date',
+): string {
+  if (value === null || typeof value === 'undefined' || value === '')
+    return fallback;
+  const date = value instanceof Date ? value : new Date(String(value));
+  if (Number.isNaN(date.getTime())) return fallback;
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = date.toLocaleString('en-US', { month: 'short' });
+  const year = date.getFullYear();
+  return `${day} ${month} ${year}`;
+}
+
+export function getDatasetFreshness(
+  proposals: Array<{ updatedAt?: unknown }> | null | undefined,
+  nowMs: number = Date.now(),
+  thresholdDays: number = FRESHNESS_STALE_THRESHOLD_DAYS,
+): {
+  newestUpdatedAt: string | null;
+  ageDays: number | null;
+  stale: boolean;
+  thresholdDays: number;
+} {
+  const rows = Array.isArray(proposals) ? proposals : [];
+  let newestMs: number | null = null;
+  let newestRaw: string | null = null;
+  for (const row of rows) {
+    const raw = row?.updatedAt;
+    if (raw === null || typeof raw === 'undefined' || raw === '') continue;
+    const ms = new Date(String(raw)).getTime();
+    if (Number.isNaN(ms)) continue;
+    if (newestMs === null || ms > newestMs) {
+      newestMs = ms;
+      newestRaw = String(raw);
+    }
+  }
+  if (newestMs === null)
+    return { newestUpdatedAt: null, ageDays: null, stale: true, thresholdDays };
+  const ageMs = nowMs - newestMs;
+  const ageDays = Math.max(0, Math.floor(ageMs / 86400000));
+  return {
+    newestUpdatedAt: newestRaw,
+    ageDays,
+    stale: ageMs > thresholdDays * 86400000,
+    thresholdDays,
+  };
+}
+
 export const formatIsoTime = (timestamp: string): string => {
   try {
     const date = new Date(timestamp);
