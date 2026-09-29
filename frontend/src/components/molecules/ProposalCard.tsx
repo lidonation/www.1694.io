@@ -16,7 +16,7 @@ import {
 } from '@mui/material';
 import MarkdownParser from '@/components/atoms/MarkdownParser';
 import React, { useState, useEffect } from 'react';
-import { format } from 'date-fns';
+import { formatProposalCardDate } from '@/lib/utils';
 import {
   Chat as ChatIcon,
   Info as InfoIcon,
@@ -54,9 +54,7 @@ function ProposalCard({ proposal }: { proposal: any }) {
   const username = proposal?.govToolUserName || 'anonymous';
   const { data: proposalMetrics } = useUserParticipationQuery(username);
 
-  const proposedDate = proposal?.updatedAt
-    ? format(new Date(proposal.updatedAt), 'dd MMM yyyy')
-    : 'Unknown date';
+  const proposedDate = formatProposalCardDate(proposal?.updatedAt);
 
   const handleShareClick = (event) => setShareAnchorEl(event.currentTarget);
   const handleShareClose = () => setShareAnchorEl(null);

@@ -149,6 +149,25 @@ const CIPChangelog = () => {
               <li>Various small fixes/consistency changes.</li>
             </ul>
           </section>
+          <section className="flex flex-col gap-4">
+            <p className="text-2xl font-bold">
+              Governance implementation (2024-2026)
+            </p>
+            <ul className="ml-5 flex list-disc flex-col gap-2">
+              <li>
+                The Chang hard fork in September 2024 began on-chain governance
+                under the bootstrap provisions.
+              </li>
+              <li>
+                The Plomin hard fork in January 2025 completed the move to
+                community-led governance, including DRep participation.
+              </li>
+              <li>
+                Cardano's Constitution was ratified on-chain in February 2025
+                and amended in January 2026.
+              </li>
+            </ul>
+          </section>
           <Separator />
         </div>
       </div>

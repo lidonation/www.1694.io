@@ -2,8 +2,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import WalletConnectButton from '@/components/molecules/WalletConnectButton';
 import { WalletInfoCard } from '@/components/molecules';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { Link } from '@/navigation';
+import { usePathname } from '@/navigation';
 import { useScreenDimension } from '@/hooks';
 import VoltaireMenu from '../molecules/VoltaireMenu';
 import DRepMenu from '../molecules/DRepMenu';
@@ -15,7 +15,6 @@ import { ModalType, useModals, useWallet } from '@/context/globalContext';
 const Header = () => {
   const {
     wallet: { isConnected, isConnecting },
-    currentLocale,
   } = useWallet();
   const { openModal } = useModals();
   const [networkName, setNetworkName] = useState('');
@@ -34,9 +33,9 @@ const Header = () => {
     // from the testnet era), so the canonical production hosts override it:
     // the header must never advertise a testnet on the mainnet site.
     // (Preview/test hosts such as preview.1694.io keep env-based branding.)
-    if (typeof window !== "undefined") {
+    if (typeof window !== 'undefined') {
       const host = window.location.hostname.toLowerCase();
-      if (host === "1694.io" || host === "www.1694.io") {
+      if (host === '1694.io' || host === 'www.1694.io') {
         return '/img/logos/mainnet-black.png';
       }
     }
@@ -76,11 +75,10 @@ const Header = () => {
           {!isMobile && (
             <div className="flex flex-row items-center gap-6">
               <Link
-                href={'/'}
+                href="/"
+                data-testid="nav-cip-link"
                 className={`${
-                  activeLink === `/${currentLocale}`
-                    ? 'text-orange-500'
-                    : 'text-gray-800'
+                  activeLink === '/' ? 'text-orange-500' : 'text-gray-800'
                 }`}
               >
                 CIP

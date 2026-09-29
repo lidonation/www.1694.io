@@ -13,10 +13,9 @@ image:
   pullPolicy: Always
 
 secrets:
-  # Read by deployment.frontend.yaml. It arrives by --set, not from an env
-  # file, and only the app-preview job sets it. Production currently renders
-  # this env var empty, which is a pre-existing gap in .gitlab-ci.yml and not
-  # something this file can fix.
+  # Read by deployment.frontend.yaml. It arrives by --set, and both the
+  # app-preview and production jobs set it (#228). An empty value fails the
+  # frontend entrypoint at startup rather than shipping a placeholder.
   NEXT_PUBLIC_GOOGLE_API:
 
 # TLS is issued by cert-manager's ingress-shim, not by a Certificate resource in
@@ -48,6 +47,16 @@ ingress:
 
 namespace: voltaire-preview
 
+# IPFS cluster settings for the backend and queue pods (lidonation#791).
+# Deploys fill all four with --set-string from CI/CD variables of the same
+# names (IPFS_CLUSTER_API_URL and so on). secret.backend.yaml will not render
+# while any of them is empty. Never commit a value here.
+ipfs:
+  clusterApiUrl: ""
+  clusterApiUser: ""
+  clusterApiPassword: ""
+  gatewayUrl: ""
+
 redis:
   enabled: true
   storage:
@@ -62,10 +71,26 @@ backend:
 
 queue:
   replicaCount: 2
+  # lidonation's relays admit the queue's node socket connection by its pod
+  # labels, app: nestjs (set in the template) and this service label, together
+  # with the namespace (lidonation chart/values.yaml,
+  # networkPolicy.relays.crossNamespaceIpc). Renaming either label, or moving
+  # the queue to another namespace, cuts it off from the node until
+  # lidonation's list is changed to match.
   labels:
     service: queue
   image:
     repository: registry.2lovelaces.io/voltaire/www.1694.io/1694.io-queue-backend
+  # Where the ipc sidecar finds a Cardano node. The relays run in lidonation's
+  # namespaces, not ours, so this has to be the full Service name: a short name
+  # only resolves inside the pod's own namespace, and neither voltaire nor
+  # voltaire-preview has a Service by that name (voltaire/www.1694.io#230). The chart refuses to
+  # render with anything that does not end in .svc.cluster.local.
+  # Preview dials the preview relays; chart/values.prod.yaml points production
+  # at mainnet.
+  nodeSocket:
+    host: lidolovelace-cardano-relay-1-service.lidolovelace-test.svc.cluster.local
+    port: 30111
 
 frontend:
   replicaCount: 2
@@ -105,8 +130,17 @@ governanceIndexer:
     repository: registry.2lovelaces.io/voltaire/governance-indexer
     tag: dev      # mutable branch tag — always points to latest build on this branch
     sha: initial  # overwritten by CI with $CI_COMMIT_SHORT_SHA on every deploy
-  relayAddresses: "backbone.mainnet.emurgornd.com:3001,relays-new.cardano-mainnet.iohk.io:3001,relay1.lidonation.com:3011"
-  relayAddress: "backbone.mainnet.emurgornd.com:3001"
+  # Cardano mainnet relays, tried in this order. All three were verified on
+  # 2026-09-22 with a real node-to-node handshake (each accepts protocol
+  # version 14). The previous list held two hostnames that no longer resolve:
+  # relays-new.cardano-mainnet.iohk.io returns NXDOMAIN, and
+  # backbone.mainnet.emurgornd.com resolves with no A and no AAAA record. Both
+  # failed on every bootstrap with "error connecting bearer", which left the
+  # indexer running on relay1 alone.
+  relayAddresses: "relay1.lidonation.com:3011,backbone.cardano.iog.io:3001,backbone.mainnet.cardanofoundation.org:3001"
+  # The indexer prepends this to the list above when it is not already in it,
+  # so keep it equal to one of the entries.
+  relayAddress: "relay1.lidonation.com:3011"
 
   # DATABASE_URL is injected from www-1694-global-secrets (key: DATABASE_URL),
   # set at deploy time via the global_env file and never committed. Expected

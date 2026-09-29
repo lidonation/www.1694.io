@@ -1,7 +1,22 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
+import {
+  BadGatewayException,
+  Injectable,
+  Logger,
+  NotFoundException,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { catchError, firstValueFrom } from 'rxjs';
+
+type UpstreamError = {
+  response?: {
+    status?: number;
+    data?: unknown;
+  };
+  code?: string;
+  message?: string;
+};
 
 @Injectable()
 export class ActionsProposalsService {
@@ -14,6 +29,31 @@ export class ActionsProposalsService {
   ) {
     this.BASE_URL = this.configService.get<string>('PDF_BASE_URL') || '';
     this.CX_BASE_URL = this.configService.get<string>('METRICS_BASE_URL') || '';
+  }
+
+  private readonly logger = new Logger(ActionsProposalsService.name);
+
+  private formatLogDetail(value: unknown): string {
+    try {
+      const detail = typeof value === 'string' ? value : JSON.stringify(value);
+      return (detail || '[unavailable]').slice(0, 500);
+    } catch {
+      return '[unserializable]';
+    }
+  }
+
+  private mapUpstreamError(error: unknown, context: string): never {
+    const upstreamError: UpstreamError =
+      typeof error === 'object' && error !== null ? error : {};
+    const status = upstreamError.response?.status;
+    const upstreamBody = upstreamError.response?.data;
+    this.logger.error(
+      `${context} upstream=${this.BASE_URL || '(PDF_BASE_URL unset)'} status=${status ?? upstreamError.code ?? 'no-response'} detail=${this.formatLogDetail(upstreamBody ?? upstreamError.message ?? error)}`,
+    );
+    if (status === 404) throw new NotFoundException(`${context} not found`);
+    if (typeof status === 'number')
+      throw new BadGatewayException(`${context} upstream error`);
+    throw new ServiceUnavailableException(`${context} unavailable`);
   }
   async findAll({
     page = 1,
@@ -51,6 +91,10 @@ export class ActionsProposalsService {
           backendSortField = 'updatedAt';
       }
 
+      if (!this.CX_BASE_URL)
+        throw new ServiceUnavailableException(
+          'Budget proposals upstream is not configured (METRICS_BASE_URL unset)',
+        );
       const url = `${this.CX_BASE_URL}/cardano/budget-proposals`;
       const sanitizedSearch = search ? search.replace(/'/g, "''") : '';
 
@@ -84,6 +128,52 @@ export class ActionsProposalsService {
       throw error;
     }
   }
+  async getDatasetFreshness(thresholdDays = 90): Promise<{
+    newestUpdatedAt: string | null;
+    ageDays: number | null;
+    stale: boolean;
+    thresholdDays: number;
+  }> {
+    if (!this.CX_BASE_URL)
+      throw new ServiceUnavailableException(
+        'Budget proposals upstream is not configured (METRICS_BASE_URL unset)',
+      );
+    const url = `${this.CX_BASE_URL}/cardano/budget-proposals`;
+    try {
+      const { data } = await firstValueFrom(
+        this.httpService.get(url, {
+          params: { page: 1, limit: 1, sortBy: 'updatedAt', sortOrder: 'desc' },
+        }),
+      );
+      const rows = Array.isArray(data?.data) ? data.data : [];
+      const newestUpdatedAt: string | null =
+        rows.length > 0 && rows[0]?.updatedAt
+          ? String(rows[0].updatedAt)
+          : null;
+      if (!newestUpdatedAt)
+        return { newestUpdatedAt, ageDays: null, stale: true, thresholdDays };
+      const ageMs = Date.now() - new Date(newestUpdatedAt).getTime();
+      if (!Number.isFinite(ageMs))
+        return {
+          newestUpdatedAt: null,
+          ageDays: null,
+          stale: true,
+          thresholdDays,
+        };
+      const ageDays = Math.max(0, Math.floor(ageMs / 86400000));
+      return {
+        newestUpdatedAt,
+        ageDays,
+        stale: ageMs > thresholdDays * 86400000,
+        thresholdDays,
+      };
+    } catch (error) {
+      if (error instanceof ServiceUnavailableException) throw error;
+      throw new ServiceUnavailableException(
+        'Budget proposals upstream unavailable',
+      );
+    }
+  }
   async findOne(id: string): Promise<any> {
     try {
       const url = `${this.BASE_URL}/bds/${id}`;
@@ -103,15 +193,19 @@ export class ActionsProposalsService {
           })
           .pipe(
             catchError((error) => {
-              console.error(`Error fetching data for ID ${id}:`, error);
-              throw error;
+              this.mapUpstreamError(error, `Proposal ${id}`);
             }),
           ),
       );
       return data;
     } catch (error) {
-      console.error(`Error fetching data for ID ${id}:`, error);
-      throw error;
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadGatewayException ||
+        error instanceof ServiceUnavailableException
+      )
+        throw error;
+      this.mapUpstreamError(error, `Proposal ${id}`);
     }
   }
 
@@ -134,15 +228,19 @@ export class ActionsProposalsService {
           })
           .pipe(
             catchError((error) => {
-              console.error(`Error fetching comments for ID ${id}:`, error);
-              throw error;
+              this.mapUpstreamError(error, `Comments for proposal ${id}`);
             }),
           ),
       );
       return data;
     } catch (error) {
-      console.error(`Error fetching comments for ID ${id}:`, error);
-      throw error;
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadGatewayException ||
+        error instanceof ServiceUnavailableException
+      )
+        throw error;
+      this.mapUpstreamError(error, `Comments for proposal ${id}`);
     }
   }
 
@@ -187,15 +285,19 @@ export class ActionsProposalsService {
           })
           .pipe(
             catchError((error) => {
-              console.error(`Error fetching poll for ID ${id}:`, error);
-              throw error;
+              this.mapUpstreamError(error, `Poll for proposal ${id}`);
             }),
           ),
       );
       return data;
     } catch (error) {
-      console.error(`Error fetching poll for ID ${id}:`, error);
-      throw error;
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadGatewayException ||
+        error instanceof ServiceUnavailableException
+      )
+        throw error;
+      this.mapUpstreamError(error, `Poll for proposal ${id}`);
     }
   }
 
