@@ -1,22 +1,14 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
+import { NextIntlClientProvider } from 'next-intl';
+import { usePathname as useNextPathname } from 'next/navigation';
 import { Header } from '@/components/atoms/Header';
 
-jest.mock('@/navigation', () => {
-  const React = require('react');
-  const NextLink = require('next/link').default;
-  return {
-    __esModule: true,
-    Link: React.forwardRef(({ href, ...rest }, ref) => (
-      <NextLink
-        ref={ref}
-        href={href === '/' ? '/de' : `/de${href}`}
-        {...rest}
-      />
-    )),
-    usePathname: () => '/',
-  };
-});
+jest.mock('next/navigation', () => ({
+  __esModule: true,
+  usePathname: jest.fn(),
+  useParams: () => ({ locale: 'de' }),
+}));
 
 jest.mock('@/hooks', () => ({
   useScreenDimension: () => ({ isMobile: false, screenWidth: 1280 }),
@@ -35,7 +27,6 @@ jest.mock('@/context/globalContext', () => ({
   __esModule: true,
   useWallet: () => ({
     wallet: { isConnected: false, isConnecting: false },
-    currentLocale: 'de',
   }),
   useModals: () => ({ openModal: jest.fn() }),
   ModalType: { LOGIN: 'LOGIN' },
@@ -82,18 +73,34 @@ jest.mock('@/components/organisms/SliderMenu', () => ({
 
 jest.mock('@/constants', () => ({
   CONFIGURED_NETWORK_NAME: 'mainnet',
+  locales: { variants: ['en', 'de'] },
 }));
 
+const mockUsePathname = useNextPathname as jest.MockedFunction<
+  typeof useNextPathname
+>;
+
+const renderHeader = () =>
+  render(
+    <NextIntlClientProvider locale="de" messages={{}}>
+      <Header />
+    </NextIntlClientProvider>,
+  );
+
 describe('Header CIP nav entry', () => {
+  beforeEach(() => {
+    mockUsePathname.mockReturnValue('/de');
+  });
+
   it('renders a locale-qualified CIP link, never a bare /', () => {
-    render(<Header />);
+    renderHeader();
     const cip = screen.getByTestId('nav-cip-link');
     expect(cip).toHaveAttribute('href', '/de');
     expect(cip.getAttribute('href')).not.toBe('/');
   });
 
   it('keeps every internal link inside the active locale', () => {
-    render(<Header />);
+    renderHeader();
     const links = screen
       .getAllByRole('link')
       .map((a) => a.getAttribute('href') ?? '');
@@ -105,7 +112,7 @@ describe('Header CIP nav entry', () => {
   });
 
   it('marks CIP active on the /de locale root', () => {
-    render(<Header />);
+    renderHeader();
     expect(screen.getByTestId('nav-cip-link')).toHaveClass('text-orange-500');
   });
 });

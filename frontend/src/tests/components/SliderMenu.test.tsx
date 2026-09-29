@@ -1,22 +1,14 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
+import { NextIntlClientProvider } from 'next-intl';
+import { usePathname as useNextPathname } from 'next/navigation';
 import { SliderMenu } from '@/components/organisms/SliderMenu';
 
-jest.mock('@/navigation', () => {
-  const React = require('react');
-  const NextLink = require('next/link').default;
-  return {
-    __esModule: true,
-    Link: React.forwardRef(({ href, ...rest }, ref) => (
-      <NextLink
-        ref={ref}
-        href={href === '/' ? '/de' : `/de${href}`}
-        {...rest}
-      />
-    )),
-    usePathname: () => '/',
-  };
-});
+jest.mock('next/navigation', () => ({
+  __esModule: true,
+  usePathname: jest.fn(),
+  useParams: () => ({ locale: 'de' }),
+}));
 
 jest.mock('@/hooks', () => ({
   useScreenDimension: () => ({ isMobile: true, screenWidth: 390 }),
@@ -35,7 +27,6 @@ jest.mock('@/context/globalContext', () => ({
   __esModule: true,
   useWallet: () => ({
     wallet: { isConnected: false, isConnecting: false },
-    currentLocale: 'de',
   }),
   useModals: () => ({ openModal: jest.fn() }),
   ModalType: { LOGIN: 'LOGIN' },
@@ -70,9 +61,28 @@ jest.mock('@/components/molecules/DRepMenu', () => ({
   default: () => <div />,
 }));
 
+jest.mock('@/constants', () => ({
+  locales: { variants: ['en', 'de'] },
+}));
+
+const mockUsePathname = useNextPathname as jest.MockedFunction<
+  typeof useNextPathname
+>;
+
+const renderSliderMenu = () =>
+  render(
+    <NextIntlClientProvider locale="de" messages={{}}>
+      <SliderMenu isOpen handleClose={() => {}} />
+    </NextIntlClientProvider>,
+  );
+
 describe('SliderMenu CIP nav entry', () => {
+  beforeEach(() => {
+    mockUsePathname.mockReturnValue('/de');
+  });
+
   it('renders a locale-qualified CIP link, never a bare /', () => {
-    render(<SliderMenu isOpen handleClose={() => {}} />);
+    renderSliderMenu();
     const cip = screen.getByTestId('mobile-nav-cip-link');
     expect(cip).toHaveAttribute('href', '/de');
     expect(cip.getAttribute('href')).not.toBe('/');
