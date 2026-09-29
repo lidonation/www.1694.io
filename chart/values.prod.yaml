@@ -1,5 +1,10 @@
 namespace: voltaire
 
+# The mainnet relays. Preview's are in chart/values.yaml.
+queue:
+  nodeSocket:
+    host: lidolovelace-cardano-relay-1-service.lidolovelace.svc.cluster.local
+
 ingress:
   hosts:
     - www.1694.io
