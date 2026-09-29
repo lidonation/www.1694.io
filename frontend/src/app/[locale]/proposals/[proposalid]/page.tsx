@@ -16,12 +16,17 @@ import { useUserParticipationQuery } from '@/hooks/useUserCatalystParticipationQ
 
 function page() {
   const { proposalid } = useParams();
-  const { actionProposal, isActionProposalLoading } = useGetActionProposalQuery(
+  const { actionProposal, isActionProposalLoading, isActionProposalError } =
+    useGetActionProposalQuery(Number(proposalid));
+  const { poll, isPollLoading, isPollError } = useGetActionProposalPollQuery(
     Number(proposalid),
   );
-  const { poll, isPollLoading } = useGetActionProposalPollQuery(
-    Number(proposalid),
-  );
+  const proposalName =
+    actionProposal?.data?.attributes?.bd_proposal_detail?.data?.attributes
+      ?.proposal_name;
+  const breadcrumbLabel = isActionProposalLoading
+    ? '...'
+    : proposalName || 'Proposal unavailable';
   const {
     wallet: { isConnected, isDRep },
   } = useWallet();
@@ -40,16 +45,21 @@ function page() {
             href: `/proposals`,
           },
           {
-            label: `${
-              isActionProposalLoading
-                ? '...'
-                : actionProposal?.data?.attributes?.bd_proposal_detail?.data
-                    ?.attributes?.proposal_name
-            }`,
+            label: breadcrumbLabel,
             href: `/proposals/${proposalid}`,
           },
         ]}
       />
+      {(isActionProposalError || isPollError) &&
+        !isActionProposalLoading &&
+        !isPollLoading && (
+          <Box className="base_container w-full pt-4">
+            <Box className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+              Proposal details are currently unavailable. The list page still
+              works; please try again later.
+            </Box>
+          </Box>
+        )}
       <section className="base_container flex h-full min-h-screen w-full py-4">
         <main className="w-full space-y-6">
           <ProposalIdentity

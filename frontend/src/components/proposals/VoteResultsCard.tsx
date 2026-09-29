@@ -36,20 +36,30 @@ export default function VoteResultsCard({
     return <PollResultsSkeleton />;
   }
 
-  const totalVotes = pollData?.poll_yes + pollData?.poll_no;
-  const yesPercentage =
-    totalVotes > 0
-      ? ((voteData?.totalYesPower / voteData?.totalVotingPower) * 100).toFixed(
-          2,
-        )
-      : 0;
-  const noPercentage =
-    totalVotes > 0
-      ? ((voteData?.totalNoPower / voteData?.totalVotingPower) * 100).toFixed(2)
-      : 0;
+  const yesCount = Number(pollData?.poll_yes);
+  const noCount = Number(pollData?.poll_no);
+  const hasVoteCounts = Number.isFinite(yesCount) && Number.isFinite(noCount);
+  const totalVotes = hasVoteCounts ? yesCount + noCount : null;
+  const powerRatio = (part?: number, whole?: number): string | null => {
+    if (!Number.isFinite(part) || !Number.isFinite(whole) || !whole)
+      return null;
+    return (((part as number) / (whole as number)) * 100).toFixed(2);
+  };
+  const yesPercentage = powerRatio(
+    voteData?.totalYesPower,
+    voteData?.totalVotingPower,
+  );
+  const noPercentage = powerRatio(
+    voteData?.totalNoPower,
+    voteData?.totalVotingPower,
+  );
+  const yesLabel = yesPercentage === null ? 'Unknown' : `${yesPercentage}%`;
+  const noLabel = noPercentage === null ? 'Unknown' : `${noPercentage}%`;
 
-  const formatVotingPower = (power: number) => {
-    return formatAsCurrency(lovelaceToAda(power));
+  const formatVotingPower = (power: number | string | null | undefined) => {
+    const ada = lovelaceToAda(power);
+    if (ada === null) return 'Unknown';
+    return formatAsCurrency(ada);
   };
 
   const dRepInfluence = (power: number) => {
@@ -80,14 +90,18 @@ export default function VoteResultsCard({
       <Box className="mb-6">
         <Box className="mb-1 flex justify-between">
           <p className="text-sm font-medium text-gray-700">
-            {totalVotes} total vote(s)
+            {hasVoteCounts
+              ? `${totalVotes} total vote(s)`
+              : 'Vote counts unavailable'}
           </p>
         </Box>
 
         <Box className="mb-1 h-3 w-full rounded-full bg-gray-200">
           <Box
             className="bg-primary-300 h-3 rounded-full"
-            style={{ width: `${yesPercentage}%` }}
+            style={{
+              width: yesPercentage === null ? '0%' : `${yesPercentage}%`,
+            }}
           ></Box>
         </Box>
 
@@ -99,7 +113,7 @@ export default function VoteResultsCard({
             <Box>
               <p className="text-sm font-semibold text-gray-700">Yes</p>
               <Typography sx={{ fontSize: 14 }} className="text-gray-700">
-                {pollData?.poll_yes} -{' '}
+                {hasVoteCounts ? pollData?.poll_yes : 'Unknown'} -{' '}
                 <Typography
                   component="span"
                   className="text-gray-400"
@@ -112,7 +126,7 @@ export default function VoteResultsCard({
                   >
                     ₳ {formatVotingPower(voteData?.totalYesPower)}
                   </Typography>
-                  ({yesPercentage}%)
+                  ({yesLabel})
                 </Typography>
               </Typography>
             </Box>
@@ -125,12 +139,12 @@ export default function VoteResultsCard({
             <Box>
               <p className="text-sm font-semibold text-gray-700">No</p>
               <p className="text-gray-700">
-                {pollData?.poll_no} -{' '}
+                {hasVoteCounts ? pollData?.poll_no : 'Unknown'} -{' '}
                 <span className="text-sm text-gray-400">
                   <span className="font-bold text-black">
                     ₳ {formatVotingPower(voteData?.totalNoPower)}
                   </span>
-                  ({noPercentage}%)
+                  ({noLabel})
                 </span>
               </p>
             </Box>

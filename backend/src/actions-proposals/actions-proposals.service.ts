@@ -1,5 +1,11 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
+import {
+  BadGatewayException,
+  Injectable,
+  Logger,
+  NotFoundException,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { catchError, firstValueFrom } from 'rxjs';
 
@@ -14,6 +20,22 @@ export class ActionsProposalsService {
   ) {
     this.BASE_URL = this.configService.get<string>('PDF_BASE_URL') || '';
     this.CX_BASE_URL = this.configService.get<string>('METRICS_BASE_URL') || '';
+  }
+
+  private readonly logger = new Logger(ActionsProposalsService.name);
+
+  private mapUpstreamError(error: any, context: string): never {
+    const status = error?.response?.status;
+    const upstreamBody = error?.response?.data;
+    this.logger.error(
+      `${context} upstream=${this.BASE_URL || '(PDF_BASE_URL unset)'} status=${status ?? error?.code ?? 'no-response'} detail=${JSON.stringify(upstreamBody ?? error?.message ?? error)?.slice(0, 500)}`,
+    );
+    if (status === 404) throw new NotFoundException(`${context} not found`);
+    if (typeof status === 'number' && status >= 500)
+      throw new BadGatewayException(`${context} upstream error`);
+    if (typeof status === 'number')
+      throw new BadGatewayException(`${context} upstream error`);
+    throw new ServiceUnavailableException(`${context} unavailable`);
   }
   async findAll({
     page = 1,
@@ -103,15 +125,19 @@ export class ActionsProposalsService {
           })
           .pipe(
             catchError((error) => {
-              console.error(`Error fetching data for ID ${id}:`, error);
-              throw error;
+              this.mapUpstreamError(error, `Proposal ${id}`);
             }),
           ),
       );
       return data;
     } catch (error) {
-      console.error(`Error fetching data for ID ${id}:`, error);
-      throw error;
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadGatewayException ||
+        error instanceof ServiceUnavailableException
+      )
+        throw error;
+      this.mapUpstreamError(error, `Proposal ${id}`);
     }
   }
 
@@ -134,15 +160,19 @@ export class ActionsProposalsService {
           })
           .pipe(
             catchError((error) => {
-              console.error(`Error fetching comments for ID ${id}:`, error);
-              throw error;
+              this.mapUpstreamError(error, `Comments for proposal ${id}`);
             }),
           ),
       );
       return data;
     } catch (error) {
-      console.error(`Error fetching comments for ID ${id}:`, error);
-      throw error;
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadGatewayException ||
+        error instanceof ServiceUnavailableException
+      )
+        throw error;
+      this.mapUpstreamError(error, `Comments for proposal ${id}`);
     }
   }
 
@@ -187,15 +217,19 @@ export class ActionsProposalsService {
           })
           .pipe(
             catchError((error) => {
-              console.error(`Error fetching poll for ID ${id}:`, error);
-              throw error;
+              this.mapUpstreamError(error, `Poll for proposal ${id}`);
             }),
           ),
       );
       return data;
     } catch (error) {
-      console.error(`Error fetching poll for ID ${id}:`, error);
-      throw error;
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadGatewayException ||
+        error instanceof ServiceUnavailableException
+      )
+        throw error;
+      this.mapUpstreamError(error, `Poll for proposal ${id}`);
     }
   }
 

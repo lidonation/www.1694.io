@@ -25,9 +25,12 @@ function ProposalIdentity({
     return <ProposalIdentityLoader />;
   }
 
+  const hasProposal = Boolean(
+    proposal?.attributes?.bd_proposal_detail?.data?.attributes?.proposal_name,
+  );
   const title =
     proposal?.attributes?.bd_proposal_detail?.data?.attributes?.proposal_name ||
-    '_';
+    'Proposal unavailable';
   const author =
     proposal?.attributes?.creator?.data?.attributes.govtool_username;
   const category =
@@ -60,11 +63,19 @@ function ProposalIdentity({
       </Box>
 
       <Box className="pt-2">
-        <VoteResultsCard
-          poll={poll}
-          showFullDetails={false}
-          isPollLoading={isPollLoading || isProposalLoading}
-        />
+        {hasProposal && poll ? (
+          <VoteResultsCard
+            poll={poll}
+            showFullDetails={false}
+            isPollLoading={isPollLoading || isProposalLoading}
+          />
+        ) : (
+          <Box className="rounded-md border border-gray-200 p-4 text-sm text-gray-600">
+            {isProposalLoading || isPollLoading
+              ? 'Loading poll results...'
+              : 'Poll results are currently unavailable.'}
+          </Box>
+        )}
       </Box>
 
       <Box className="flex flex-wrap items-center gap-6 text-sm">
