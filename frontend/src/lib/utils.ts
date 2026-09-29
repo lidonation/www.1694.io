@@ -420,6 +420,30 @@ export function decodeJWT(jwt?: string) {
 
 export const FRESHNESS_STALE_THRESHOLD_DAYS = 90;
 
+export type DatasetFreshness = {
+  newestUpdatedAt: string | null;
+  ageDays: number | null;
+  stale: boolean;
+  thresholdDays: number;
+};
+
+export function selectDatasetFreshness(
+  serverFreshness: DatasetFreshness | null,
+  localFreshness: DatasetFreshness,
+  hasActiveFilters: boolean,
+  isLoading: boolean,
+): DatasetFreshness | null {
+  return (
+    serverFreshness ?? (hasActiveFilters || isLoading ? null : localFreshness)
+  );
+}
+
+export function shouldShowDatasetStaleWarning(
+  freshness: DatasetFreshness | null,
+): boolean {
+  return freshness?.stale === true && freshness.newestUpdatedAt !== null;
+}
+
 export function formatProposalCardDate(
   value: unknown,
   fallback = 'Unknown date',

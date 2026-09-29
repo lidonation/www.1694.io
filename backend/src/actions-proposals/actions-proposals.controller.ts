@@ -40,7 +40,7 @@ export class ActionsProposalsController {
     const parsed = thresholdDays ? Number(thresholdDays) : 90;
     const days =
       Number.isFinite(parsed) && parsed > 0
-        ? Math.min(Math.floor(parsed), 3650)
+        ? Math.max(1, Math.min(Math.floor(parsed), 3650))
         : 90;
     return this.actionsProposalsService.getDatasetFreshness(days);
   }

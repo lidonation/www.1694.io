@@ -1,4 +1,9 @@
-import { formatProposalCardDate, getDatasetFreshness } from '@/lib/utils';
+import {
+  formatProposalCardDate,
+  getDatasetFreshness,
+  selectDatasetFreshness,
+  shouldShowDatasetStaleWarning,
+} from '@/lib/utils';
 
 describe('formatProposalCardDate (issue 226)', () => {
   test('formats a valid date like the old card', () => {
@@ -62,5 +67,33 @@ describe('getDatasetFreshness (issue 226)', () => {
     expect(getDatasetFreshness([{ updatedAt: 'garbage' }], now, 90).stale).toBe(
       true,
     );
+  });
+});
+
+describe('budget freshness display policy (issue 226)', () => {
+  const local = {
+    newestUpdatedAt: '2025-10-15 09:20:16',
+    ageDays: 349,
+    stale: true,
+    thresholdDays: 90,
+  };
+  const server = { ...local, newestUpdatedAt: '2025-10-16 09:20:16' };
+
+  test('uses server-wide freshness even when list filters are active', () => {
+    expect(selectDatasetFreshness(server, local, true, false)).toBe(server);
+  });
+
+  test('does not call a filtered or loading list the newest dataset record', () => {
+    expect(selectDatasetFreshness(null, local, true, false)).toBeNull();
+    expect(selectDatasetFreshness(null, local, false, true)).toBeNull();
+    expect(selectDatasetFreshness(null, local, false, false)).toBe(local);
+  });
+
+  test('shows a stale warning only when a record date proves staleness', () => {
+    expect(shouldShowDatasetStaleWarning(local)).toBe(true);
+    expect(
+      shouldShowDatasetStaleWarning({ ...local, newestUpdatedAt: null }),
+    ).toBe(false);
+    expect(shouldShowDatasetStaleWarning(null)).toBe(false);
   });
 });

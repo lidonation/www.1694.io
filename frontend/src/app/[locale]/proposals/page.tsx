@@ -16,6 +16,9 @@ import {
   FRESHNESS_STALE_THRESHOLD_DAYS,
   formatProposalCardDate,
   getDatasetFreshness,
+  selectDatasetFreshness,
+  shouldShowDatasetStaleWarning,
+  type DatasetFreshness,
 } from '@/lib/utils';
 import axiosInstance from '@/services/axiosInstance';
 
@@ -65,12 +68,8 @@ function ProposalsPage() {
   const proposalsData = paginatedProposals?.data || [];
   const allProposals = allFilteredProposals?.data || [];
   const freshness = getDatasetFreshness(allProposals);
-  const [serverFreshness, setServerFreshness] = useState<{
-    newestUpdatedAt: string | null;
-    ageDays: number | null;
-    stale: boolean;
-    thresholdDays: number;
-  } | null>(null);
+  const [serverFreshness, setServerFreshness] =
+    useState<DatasetFreshness | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -91,12 +90,14 @@ function ProposalsPage() {
 
   const hasActiveFilters =
     debouncedSearch !== '' || categories.length > 0 || committees.length > 0;
-  const fresh = serverFreshness ?? freshness;
-  const showStale =
-    fresh.stale &&
-    !isAllLoading &&
-    (serverFreshness !== null || !hasActiveFilters);
-  const newestLabel = fresh.newestUpdatedAt
+  const fresh = selectDatasetFreshness(
+    serverFreshness,
+    freshness,
+    hasActiveFilters,
+    isAllLoading,
+  );
+  const showStale = shouldShowDatasetStaleWarning(fresh);
+  const newestLabel = fresh?.newestUpdatedAt
     ? formatProposalCardDate(fresh.newestUpdatedAt)
     : null;
 
