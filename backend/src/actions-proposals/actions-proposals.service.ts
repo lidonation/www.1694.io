@@ -9,6 +9,15 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { catchError, firstValueFrom } from 'rxjs';
 
+type UpstreamError = {
+  response?: {
+    status?: number;
+    data?: unknown;
+  };
+  code?: string;
+  message?: string;
+};
+
 @Injectable()
 export class ActionsProposalsService {
   private readonly BASE_URL: string;
@@ -24,11 +33,22 @@ export class ActionsProposalsService {
 
   private readonly logger = new Logger(ActionsProposalsService.name);
 
-  private mapUpstreamError(error: any, context: string): never {
-    const status = error?.response?.status;
-    const upstreamBody = error?.response?.data;
+  private formatLogDetail(value: unknown): string {
+    try {
+      const detail = typeof value === 'string' ? value : JSON.stringify(value);
+      return (detail || '[unavailable]').slice(0, 500);
+    } catch {
+      return '[unserializable]';
+    }
+  }
+
+  private mapUpstreamError(error: unknown, context: string): never {
+    const upstreamError: UpstreamError =
+      typeof error === 'object' && error !== null ? error : {};
+    const status = upstreamError.response?.status;
+    const upstreamBody = upstreamError.response?.data;
     this.logger.error(
-      `${context} upstream=${this.BASE_URL || '(PDF_BASE_URL unset)'} status=${status ?? error?.code ?? 'no-response'} detail=${JSON.stringify(upstreamBody ?? error?.message ?? error)?.slice(0, 500)}`,
+      `${context} upstream=${this.BASE_URL || '(PDF_BASE_URL unset)'} status=${status ?? upstreamError.code ?? 'no-response'} detail=${this.formatLogDetail(upstreamBody ?? upstreamError.message ?? error)}`,
     );
     if (status === 404) throw new NotFoundException(`${context} not found`);
     if (typeof status === 'number')

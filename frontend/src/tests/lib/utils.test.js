@@ -17,6 +17,12 @@ describe('honest formatters (issue 227)', () => {
     expect(out).toContain('2025');
   });
 
+  test('formatNumberTimeToReadable preserves numeric timestamp strings', () => {
+    const out = formatNumberTimeToReadable('1722470400000');
+    expect(out).not.toBe('Unknown date');
+    expect(out).toContain('2024');
+  });
+
   test('formatAsCurrency(undefined) has no NaN, null has no misleading 0', () => {
     expect(formatAsCurrency(undefined)).toBe('Unknown');
     expect(formatAsCurrency(null)).toBe('Unknown');

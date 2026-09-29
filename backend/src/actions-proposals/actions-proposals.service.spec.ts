@@ -58,6 +58,17 @@ describe('ActionsProposalsService upstream mapping (issue 227)', () => {
     );
   });
 
+  test('findOne preserves mapped status when upstream body is circular', async () => {
+    const upstreamBody: Record<string, unknown> = {};
+    upstreamBody.self = upstreamBody;
+    http.get.mockReturnValue(
+      throwError(() => ({ response: { status: 500, data: upstreamBody } })),
+    );
+    await expect(service.findOne('20')).rejects.toBeInstanceOf(
+      BadGatewayException,
+    );
+  });
+
   test('findComments maps connection failure to 503', async () => {
     http.get.mockReturnValue(
       throwError(() => ({ code: 'ENOTFOUND', message: 'dns' })),

@@ -129,8 +129,9 @@ export const formatNumberTimeToReadable = (
 ): string => {
   if (time === null || typeof time === 'undefined' || time === '')
     return fallback;
-  const date =
-    typeof time === 'number' ? new Date(time) : new Date(String(time));
+  const normalizedTime =
+    typeof time === 'string' && /^\d+$/.test(time) ? Number(time) : time;
+  const date = new Date(normalizedTime);
   if (Number.isNaN(date.getTime())) return fallback;
   return date.toLocaleString('en-US', {
     year: 'numeric',

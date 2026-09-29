@@ -25,4 +25,11 @@ describe('VoteResultsCard honest empty state (issue 227)', () => {
     const text = container.textContent || '';
     expect(text).not.toMatch(/NaN/);
   });
+
+  test('treats null vote counts as unavailable, not zero', () => {
+    const poll = [{ id: '1', attributes: { poll_yes: null, poll_no: null } }];
+    render(<VoteResultsCard poll={poll} showFullDetails={false} />);
+    expect(screen.getByText(/Vote counts unavailable/i)).toBeInTheDocument();
+    expect(screen.queryByText(/0 total vote/i)).not.toBeInTheDocument();
+  });
 });

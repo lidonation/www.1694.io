@@ -36,9 +36,15 @@ export default function VoteResultsCard({
     return <PollResultsSkeleton />;
   }
 
-  const yesCount = Number(pollData?.poll_yes);
-  const noCount = Number(pollData?.poll_no);
-  const hasVoteCounts = Number.isFinite(yesCount) && Number.isFinite(noCount);
+  const finiteVoteCount = (value: unknown): number | null => {
+    if (value === null || typeof value === 'undefined' || value === '')
+      return null;
+    const count = Number(value);
+    return Number.isFinite(count) ? count : null;
+  };
+  const yesCount = finiteVoteCount(pollData?.poll_yes);
+  const noCount = finiteVoteCount(pollData?.poll_no);
+  const hasVoteCounts = yesCount !== null && noCount !== null;
   const totalVotes = hasVoteCounts ? yesCount + noCount : null;
   const powerRatio = (part?: number, whole?: number): string | null => {
     if (!Number.isFinite(part) || !Number.isFinite(whole) || !whole)
@@ -113,7 +119,7 @@ export default function VoteResultsCard({
             <Box>
               <p className="text-sm font-semibold text-gray-700">Yes</p>
               <Typography sx={{ fontSize: 14 }} className="text-gray-700">
-                {hasVoteCounts ? pollData?.poll_yes : 'Unknown'} -{' '}
+                {hasVoteCounts ? yesCount : 'Unknown'} -{' '}
                 <Typography
                   component="span"
                   className="text-gray-400"
@@ -139,7 +145,7 @@ export default function VoteResultsCard({
             <Box>
               <p className="text-sm font-semibold text-gray-700">No</p>
               <p className="text-gray-700">
-                {hasVoteCounts ? pollData?.poll_no : 'Unknown'} -{' '}
+                {hasVoteCounts ? noCount : 'Unknown'} -{' '}
                 <span className="text-sm text-gray-400">
                   <span className="font-bold text-black">
                     ₳ {formatVotingPower(voteData?.totalNoPower)}
