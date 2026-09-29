@@ -38,9 +38,11 @@ export class ActionsProposalsController {
   @Get('freshness')
   getFreshness(@Query('thresholdDays') thresholdDays?: string) {
     const parsed = thresholdDays ? Number(thresholdDays) : 90;
-    return this.actionsProposalsService.getDatasetFreshness(
-      Number.isFinite(parsed) && parsed > 0 ? parsed : 90,
-    );
+    const days =
+      Number.isFinite(parsed) && parsed > 0
+        ? Math.min(Math.floor(parsed), 3650)
+        : 90;
+    return this.actionsProposalsService.getDatasetFreshness(days);
   }
 
   @Get(':id')

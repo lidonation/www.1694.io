@@ -460,7 +460,7 @@ export function getDatasetFreshness(
   if (newestMs === null)
     return { newestUpdatedAt: null, ageDays: null, stale: true, thresholdDays };
   const ageMs = nowMs - newestMs;
-  const ageDays = Math.floor(ageMs / 86400000);
+  const ageDays = Math.max(0, Math.floor(ageMs / 86400000));
   return {
     newestUpdatedAt: newestRaw,
     ageDays,

@@ -229,6 +229,16 @@ describe('ActionsProposalsService upstream mapping (issues 226, 227)', () => {
     });
   });
 
+  test('getDatasetFreshness clamps future record age to 0', async () => {
+    const module: TestingModule = await buildService('http://cx', http);
+    const service = module.get(ActionsProposalsService);
+    const future = new Date(Date.now() + 5 * 86400000).toISOString();
+    http.get.mockReturnValue(of({ data: { data: [{ updatedAt: future }] } }));
+    const result = await service.getDatasetFreshness(90);
+    expect(result.ageDays).toBe(0);
+    expect(result.stale).toBe(false);
+  });
+
   test('getDatasetFreshness maps upstream failure to 503', async () => {
     const module: TestingModule = await buildService('http://cx', http);
     const service = module.get(ActionsProposalsService);

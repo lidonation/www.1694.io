@@ -89,7 +89,13 @@ function ProposalsPage() {
     };
   }, []);
 
+  const hasActiveFilters =
+    debouncedSearch !== '' || categories.length > 0 || committees.length > 0;
   const fresh = serverFreshness ?? freshness;
+  const showStale =
+    fresh.stale &&
+    !isAllLoading &&
+    (serverFreshness !== null || !hasActiveFilters);
   const newestLabel = fresh.newestUpdatedAt
     ? formatProposalCardDate(fresh.newestUpdatedAt)
     : null;
@@ -112,7 +118,7 @@ function ProposalsPage() {
                 : ''}
             </p>
           ) : null}
-          {fresh.stale && !isAllLoading ? (
+          {showStale ? (
             <p
               role="status"
               className="mt-2 inline-block rounded bg-amber-100 px-3 py-1 text-sm text-amber-900"

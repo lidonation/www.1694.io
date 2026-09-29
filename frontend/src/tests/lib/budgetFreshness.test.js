@@ -45,6 +45,13 @@ describe('getDatasetFreshness (issue 226)', () => {
     expect(result.thresholdDays).toBe(90);
   });
 
+  test('future record clamps age to 0 and is not stale', () => {
+    const future = new Date(now + 5 * 86400000).toISOString();
+    const result = getDatasetFreshness([{ updatedAt: future }], now, 90);
+    expect(result.ageDays).toBe(0);
+    expect(result.stale).toBe(false);
+  });
+
   test('empty or invalid sets report stale with null age', () => {
     expect(getDatasetFreshness([], now, 90)).toEqual({
       newestUpdatedAt: null,
