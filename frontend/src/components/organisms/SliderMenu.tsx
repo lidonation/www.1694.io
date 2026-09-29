@@ -1,8 +1,8 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { Box, Drawer, Grid, IconButton } from '@mui/material';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { Link } from '@/navigation';
+import { usePathname } from '@/navigation';
 import { Background } from '../atoms/Background';
 import WalletConnectButton from '@/components/molecules/WalletConnectButton';
 import { WalletInfoCard } from '@/components/molecules';
@@ -22,7 +22,6 @@ const CALCULATED_DRAWER_PADDING = DRAWER_PADDING * 8 * 2;
 export const SliderMenu = ({ isOpen, handleClose }: SliderMenuProps) => {
   const {
     wallet: { isConnected, isConnecting },
-    currentLocale,
   } = useWallet();
   const { openModal } = useModals();
   const { screenWidth } = useScreenDimension();
@@ -90,11 +89,10 @@ export const SliderMenu = ({ isOpen, handleClose }: SliderMenuProps) => {
               </Grid>
               <Grid item>
                 <Link
-                  href={'/'}
+                  href="/"
+                  data-testid="mobile-nav-cip-link"
                   className={`${
-                    activeLink === `/${currentLocale}`
-                      ? 'text-orange-500'
-                      : 'text-gray-800'
+                    activeLink === '/' ? 'text-orange-500' : 'text-gray-800'
                   }`}
                 >
                   CIP
