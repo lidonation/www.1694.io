@@ -62,10 +62,26 @@ backend:
 
 queue:
   replicaCount: 2
+  # lidonation's relays admit the queue's node socket connection by its pod
+  # labels, app: nestjs (set in the template) and this service label, together
+  # with the namespace (lidonation chart/values.yaml,
+  # networkPolicy.relays.crossNamespaceIpc). Renaming either label, or moving
+  # the queue to another namespace, cuts it off from the node until
+  # lidonation's list is changed to match.
   labels:
     service: queue
   image:
     repository: registry.2lovelaces.io/voltaire/www.1694.io/1694.io-queue-backend
+  # Where the ipc sidecar finds a Cardano node. The relays run in lidonation's
+  # namespaces, not ours, so this has to be the full Service name: a short name
+  # only resolves inside the pod's own namespace, and neither voltaire nor
+  # voltaire-preview has a Service by that name (voltaire/www.1694.io#230). The chart refuses to
+  # render with anything that does not end in .svc.cluster.local.
+  # Preview dials the preview relays; chart/values.prod.yaml points production
+  # at mainnet.
+  nodeSocket:
+    host: lidolovelace-cardano-relay-1-service.lidolovelace-test.svc.cluster.local
+    port: 30111
 
 frontend:
   replicaCount: 2

@@ -1,3 +1,14 @@
+{{- /* The deploy-indexer jobs upgrade with --reuse-values, which keeps the
+     values of the release already installed. A release installed before
+     queue.nodeSocket existed has none, so say what to do instead of failing on
+     a nil map. */ -}}
+{{- $nodeSocketHost := dig "nodeSocket" "host" "" .Values.queue }}
+{{- if not $nodeSocketHost }}
+{{- fail "queue.nodeSocket.host is not set. If this is helm upgrade --reuse-values on a release installed before voltaire/www.1694.io#230, run the full app-preview or production deploy once first." }}
+{{- end }}
+{{- if not (hasSuffix ".svc.cluster.local" $nodeSocketHost) }}
+{{- fail (printf "queue.nodeSocket.host must be a full Service name ending in .svc.cluster.local, got %q. The relays are in another namespace, where a short name does not resolve (voltaire/www.1694.io#230)." $nodeSocketHost) }}
+{{- end }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -96,20 +107,24 @@ spec:
             - name: node-ipc
               mountPath: /ipc
               readOnly: false
+        # Bridges the app's /ipc/node.socket to a lidonation relay over TCP.
+        # No ignoreeof: with it socat treats end-of-file as "keep waiting", so
+        # a relay that restarts is never reported to the app, which waits on a
+        # connection nobody will answer (lidonation/lidonation#783). keepalive
+        # drops a connection to a relay that vanished without closing, after
+        # about two minutes idle. Same flags and image as lidonation's bridges.
         - name: ipc
-          image: alpine/socat:1.7.4.4
+          image: alpine/socat:1.8.0.3
           env:
             - name: CARDANO_NODE_SOCKET_TCP_HOST
-              value: "lidolovelace-cardano-relay-1-service"
+              value: {{ $nodeSocketHost | quote }}
             - name: CARDANO_NODE_SOCKET_TCP_PORT
-              value: "30111"
-            - name: SOCAT_TIMEOUT
-              value: "3600"
+              value: {{ dig "nodeSocket" "port" 30111 .Values.queue | quote }}
           command:
             [
               "sh",
               "-c",
-              "socat UNIX-LISTEN:/ipc/node.socket,fork TCP:${CARDANO_NODE_SOCKET_TCP_HOST}:${CARDANO_NODE_SOCKET_TCP_PORT},ignoreeof",
+              "socat UNIX-LISTEN:/ipc/node.socket,fork TCP:${CARDANO_NODE_SOCKET_TCP_HOST}:${CARDANO_NODE_SOCKET_TCP_PORT},keepalive,keepidle=60,keepintvl=10,keepcnt=6",
             ]
           volumeMounts:
             - mountPath: /ipc
