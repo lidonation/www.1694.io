@@ -11,6 +11,9 @@ import ProposalsFilterChips from '@/components/atoms/ProposalsFilterChips';
 import { ProposalDownloadButton } from '@/components/molecules/ProposalDownloadButton';
 import { useGetActionsProposalsQuery } from '@/hooks/useGetActionsProposalsQuery';
 import { useDebounce } from 'use-debounce';
+import { useEffect } from 'react';
+import { formatProposalCardDate, getDatasetFreshness } from '@/lib/utils';
+import axiosInstance from '@/services/axiosInstance';
 
 function ProposalsPage() {
   const searchParams = useSearchParams();
@@ -56,6 +59,33 @@ function ProposalsPage() {
     sortOrder,
   );
   const proposalsData = paginatedProposals?.data || [];
+  const allProposals = allFilteredProposals?.data || [];
+  const freshness = getDatasetFreshness(allProposals);
+  const [serverFreshness, setServerFreshness] = useState<{
+    newestUpdatedAt: string | null;
+    ageDays: number | null;
+    stale: boolean;
+  } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    axiosInstance
+      .get('/actions-proposals/freshness')
+      .then((res) => {
+        if (!cancelled) setServerFreshness(res.data);
+      })
+      .catch(() => {
+        if (!cancelled) setServerFreshness(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const fresh = serverFreshness ?? freshness;
+  const newestLabel = fresh.newestUpdatedAt
+    ? formatProposalCardDate(fresh.newestUpdatedAt)
+    : null;
 
   return (
     <div className="base_container min-h-screen py-10">
@@ -63,9 +93,27 @@ function ProposalsPage() {
         <h2 className="text-7xl font-black">Budget Proposals</h2>
         <div className="py-3 pr-16 lg:pr-56">
           <p>
-            Cardano 2025 budget proposals. Your comments and responses to polls
-            here will also be published back to gov.tools and other interfaces.
+            Archive of the Cardano 2025 budget cycle. Your comments and
+            responses to polls here will also be published back to gov.tools and
+            other interfaces.
           </p>
+          {newestLabel ? (
+            <p className="pt-1 text-sm text-gray-500">
+              Newest record: {newestLabel}
+              {typeof fresh.ageDays === 'number'
+                ? ` (${fresh.ageDays} days ago)`
+                : ''}
+            </p>
+          ) : null}
+          {fresh.stale && !isAllLoading ? (
+            <p
+              role="status"
+              className="mt-2 inline-block rounded bg-amber-100 px-3 py-1 text-sm text-amber-900"
+            >
+              Data may be stale: no new budget records in over 90 days. Source:
+              Catalyst Explorer.
+            </p>
+          ) : null}
         </div>
       </section>
 
