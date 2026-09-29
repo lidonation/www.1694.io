@@ -80,20 +80,35 @@ export function shortNumberWithAnnotation(value: number, decimals: number = 2) {
   }
 }
 
-export function lovelaceToAda(lovelace: number) {
-  // convert lovelace to ada, assuming 1 lovelace = 1000000 ada
+export function lovelaceToAda(
+  lovelace: number | string | null | undefined,
+): number | null {
+  if (lovelace === null || typeof lovelace === 'undefined' || lovelace === '')
+    return null;
+  const value = Number(lovelace);
+  if (!Number.isFinite(value)) return null;
   const divisibility = 1000000;
-  return Number(lovelace) / divisibility;
+  return value / divisibility;
 }
 
-export function formattedAda(lovelace: number | string, decimals: number) {
-  let numberLovelace = Number(lovelace);
-  let ada = lovelaceToAda(numberLovelace);
+export function formattedAda(
+  lovelace: number | string | null | undefined,
+  decimals: number,
+  fallback = 'Unknown',
+) {
+  const ada = lovelaceToAda(lovelace);
+  if (ada === null || !Number.isFinite(ada)) return fallback;
   return shortNumber(ada, decimals);
 }
 
-export function formatAsCurrency(amount: number | string) {
-  let numberAmount = Number(amount);
+export function formatAsCurrency(
+  amount: number | string | null | undefined,
+  fallback = 'Unknown',
+) {
+  if (amount === null || typeof amount === 'undefined' || amount === '')
+    return fallback;
+  const numberAmount = Number(amount);
+  if (!Number.isFinite(numberAmount)) return fallback;
   return numberAmount.toLocaleString('en-US');
 }
 
@@ -108,12 +123,17 @@ export const handleCopyText = (
   });
 };
 
-export const formatNumberTimeToReadable = (time: number) => {
-  if (typeof time !== 'number') {
-    time = parseInt(time);
-  }
-
-  return new Date(time).toLocaleString('en-US', {
+export const formatNumberTimeToReadable = (
+  time: number | string | null | undefined,
+  fallback = 'Unknown date',
+): string => {
+  if (time === null || typeof time === 'undefined' || time === '')
+    return fallback;
+  const normalizedTime =
+    typeof time === 'string' && /^\d+$/.test(time) ? Number(time) : time;
+  const date = new Date(normalizedTime);
+  if (Number.isNaN(date.getTime())) return fallback;
+  return date.toLocaleString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',

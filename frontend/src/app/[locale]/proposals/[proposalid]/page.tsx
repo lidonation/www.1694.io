@@ -14,20 +14,26 @@ import { useWallet } from '@/context/globalContext';
 import CatalystParticipation from '@/components/proposals/CatalystParticipation';
 import { useUserParticipationQuery } from '@/hooks/useUserCatalystParticipationQuery';
 
-function page() {
+function ProposalDetailPage() {
   const { proposalid } = useParams();
-  const { actionProposal, isActionProposalLoading } = useGetActionProposalQuery(
+  const { actionProposal, isActionProposalLoading, isActionProposalError } =
+    useGetActionProposalQuery(Number(proposalid));
+  const { poll, isPollLoading, isPollError } = useGetActionProposalPollQuery(
     Number(proposalid),
   );
-  const { poll, isPollLoading } = useGetActionProposalPollQuery(
-    Number(proposalid),
-  );
+  const proposal = actionProposal?.data;
+  const proposalName =
+    proposal?.attributes?.bd_proposal_detail?.data?.attributes?.proposal_name;
+  const breadcrumbLabel = isActionProposalLoading
+    ? '...'
+    : proposalName || 'Proposal unavailable';
+  const isProposalUnavailable =
+    !isActionProposalLoading && (isActionProposalError || !proposal);
   const {
     wallet: { isConnected, isDRep },
   } = useWallet();
   const username =
-    actionProposal?.data?.attributes?.creator?.data?.attributes
-      ?.govtool_username || 'anonymous';
+    proposal?.attributes?.creator?.data?.attributes?.govtool_username || '';
   const { data: proposalMetrics, isLoading } =
     useUserParticipationQuery(username);
 
@@ -40,56 +46,75 @@ function page() {
             href: `/proposals`,
           },
           {
-            label: `${
-              isActionProposalLoading
-                ? '...'
-                : actionProposal?.data?.attributes?.bd_proposal_detail?.data
-                    ?.attributes?.proposal_name
-            }`,
+            label: breadcrumbLabel,
             href: `/proposals/${proposalid}`,
           },
         ]}
       />
+      {isProposalUnavailable && (
+        <Box className="base_container w-full pt-4">
+          <Box className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+            Proposal details are currently unavailable. The list page still
+            works; please try again later.
+          </Box>
+        </Box>
+      )}
+      {!isProposalUnavailable && isPollError && !isPollLoading && proposal && (
+        <Box className="base_container w-full pt-4">
+          <Box className="rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+            Poll results are currently unavailable. Proposal details remain
+            available below.
+          </Box>
+        </Box>
+      )}
       <section className="base_container flex h-full min-h-screen w-full py-4">
         <main className="w-full space-y-6">
-          <ProposalIdentity
-            proposal={actionProposal?.data}
-            isProposalLoading={isActionProposalLoading}
-            poll={poll?.data}
-            isPollLoading={isPollLoading}
-          />
-
-          <ProposalDetails
-            proposal={actionProposal?.data}
-            isProposalLoading={isActionProposalLoading}
-          />
-
-          <Box className="rounded-md bg-white p-6 shadow-sm">
-            <CatalystParticipation
-              metrics={proposalMetrics}
-              isLoading={isLoading}
+          {!isProposalUnavailable && (
+            <ProposalIdentity
+              proposal={proposal}
+              isProposalLoading={isActionProposalLoading}
+              poll={poll?.data}
+              isPollLoading={isPollLoading}
             />
-          </Box>
-
-          {isConnected && isDRep && <VotingSection poll={poll?.data} />}
-
-          {poll?.data && (
-            <Box
-              id="vote-results"
-              className="rounded-md bg-white p-6 shadow-sm"
-            >
-              <VoteResultsCard
-                poll={poll?.data}
-                isPollLoading={isPollLoading}
-              />
-            </Box>
           )}
 
-          <ProposalComments proposal={actionProposal?.data} />
+          {proposal && (
+            <>
+              <ProposalDetails
+                proposal={proposal}
+                isProposalLoading={isActionProposalLoading}
+              />
+
+              <Box className="rounded-md bg-white p-6 shadow-sm">
+                <CatalystParticipation
+                  metrics={proposalMetrics}
+                  isLoading={isLoading}
+                />
+              </Box>
+
+              {isConnected && isDRep && poll?.data && (
+                <VotingSection poll={poll.data} />
+              )}
+
+              {poll?.data && (
+                <Box
+                  id="vote-results"
+                  className="rounded-md bg-white p-6 shadow-sm"
+                >
+                  <VoteResultsCard
+                    poll={poll.data}
+                    isPollLoading={isPollLoading}
+                  />
+                </Box>
+              )}
+
+              <ProposalComments proposal={proposal} />
+            </>
+          )}
         </main>
       </section>
     </Box>
   );
 }
 
-export default page;
+export default ProposalDetailPage;
