@@ -1,24 +1,18 @@
+'use client';
 import React from 'react';
-import MenuDropDown from '../atoms/MenuDropDown';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export default function DRepMenu() {
-  const menuItems = [
-    {
-      label: 'DReps',
-      text: 'Learn about Cardano’s revised on-chain governance system.',
-      to: '/dreps',
-    },
-    {
-      label: 'DRep List',
-      text: 'Delegate your voting power or become a DRep.',
-      to: '/dreps/list',
-    },
-    // {
-    //   label: 'DRep Notes',
-    //   text: 'Check out notes written by DReps in the Cardano community.',
-    //   to: '/dreps/notes',
-    // },
-  ];
+  const pathname = usePathname();
+  const isActive = !!pathname && pathname.includes('dreps');
 
-  return <MenuDropDown title="DReps" menuItems={menuItems} />;
+  return (
+    <Link
+      href="https://www.1694.io/en/dreps/list"
+      className={isActive ? 'text-orange-500' : 'text-gray-800'}
+    >
+      DReps
+    </Link>
+  );
 }

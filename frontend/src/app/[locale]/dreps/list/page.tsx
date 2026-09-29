@@ -44,8 +44,14 @@ const page = ({ searchParams }: PageProps) => {
         ]}
       />
       <div className="base_container min-h-screen py-10">
-        <section className="mb-12">
+        <section className="mb-12 flex flex-wrap items-center justify-between gap-4">
           <h2 className="text-7xl font-black">Available DReps</h2>
+          <a
+            href="https://www.1694.io/en/dreps"
+            className="inline-flex shrink-0 items-center justify-center rounded-md bg-orange-500 px-6 py-3 text-base font-bold text-white transition-colors hover:bg-orange-600"
+          >
+            Learn about DReps
+          </a>
         </section>
         <section className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <DRepsMetrics />
