@@ -1,7 +1,6 @@
 'use client';
 import React from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { Link, usePathname } from '@/navigation';
 
 export default function DRepMenu() {
   const pathname = usePathname();
@@ -9,7 +8,8 @@ export default function DRepMenu() {
 
   return (
     <Link
-      href="https://www.1694.io/en/dreps/list"
+      href="/dreps/list"
+      data-testid="nav-dreps-link"
       className={isActive ? 'text-orange-500' : 'text-gray-800'}
     >
       DReps
