@@ -172,7 +172,6 @@ app-preview:
         --set-string ipfs.clusterApiUser="$IPFS_CLUSTER_API_USER" \
         --set-string ipfs.clusterApiPassword="$IPFS_CLUSTER_API_PASSWORD" \
         --set-string ipfs.gatewayUrl="$IPFS_GATEWAY_URL" \
-        --set secrets.NEXT_PUBLIC_GOOGLE_API="$NEXT_PUBLIC_GOOGLE_API" \
         --set ingress.hosts[0]="$AUTO_DEVOPS_WEB_DOMAIN" \
         --set ingress.api="$API" \
         --set namespace=$KUBE_NAMESPACE \
@@ -234,7 +233,6 @@ production:
         --set-string ipfs.clusterApiUser="$IPFS_CLUSTER_API_USER" \
         --set-string ipfs.clusterApiPassword="$IPFS_CLUSTER_API_PASSWORD" \
         --set-string ipfs.gatewayUrl="$IPFS_GATEWAY_URL" \
-        --set secrets.NEXT_PUBLIC_GOOGLE_API="$NEXT_PUBLIC_GOOGLE_API" \
         --set ingress.hosts[0]="$AUTO_DEVOPS_WEB_DOMAIN" \
         --set ingress.api="$API" \
         --set namespace=$KUBE_NAMESPACE \
@@ -328,6 +326,7 @@ test_deploy_config:
     - sh ci/tests/chart-ipfs.test.sh
     - sh ci/tests/ci-config-ipfs.test.sh
     - sh ci/tests/entrypoint-placeholder.test.sh
+    - sh ci/tests/frontend-runtime-env.test.sh
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH
