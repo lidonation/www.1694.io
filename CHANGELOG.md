@@ -21,7 +21,8 @@ changes.
   branch and merge request pipeline.
 
 ### Fixed
--
+- Frontend preview and production deployments no longer override the generated
+  frontend Secret with an empty, unused public Google API value.
 
 ### Changed
 -
