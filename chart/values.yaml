@@ -12,32 +12,35 @@ image:
   tag: latest
   pullPolicy: Always
 
-# TLS is issued by cert-manager's ingress-shim, not by a Certificate resource in
-# this chart. The cluster-issuer annotation below, plus the hosts under
-# ingress.tls, are the whole mechanism: cert-manager watches these ingresses,
-# orders the certificate and writes it into the named secret. The ClusterIssuer
-# itself is cluster-scoped and lives in the infrastructure repo, not here.
+# TLS comes from the Certificate in templates/certificate.yaml (cert-manager,
+# the ClusterIssuer named under gateway.tls); the ClusterIssuer itself is
+# cluster-scoped and lives in the infrastructure repo, not here.
 #
-# ingress.hosts and ingress.api are overridden at deploy time by .gitlab-ci.yml
+# gateway.hosts and gateway.api are overridden at deploy time by .gitlab-ci.yml
 # with --set from the AUTO_DEVOPS_WEB_DOMAIN and API CI/CD variables. The values
 # below are the defaults for a manual helm install, not what is live. Read the
-# live hostnames with: kubectl get ingress -n <namespace>
-ingress:
-  ingressClassName: traefik
-  annotations: {
-    cert-manager.io/cluster-issuer: letsencrypt-prod-cluster-issuer,
-    traefik.ingress.kubernetes.io/router.entrypoints: "websecure,web",
-  }
+# live hostnames with: kubectl get httproute -n <namespace>
+gateway:
+  # Traffic enters through this release's own Gateway (templates/gateway.yaml)
+  # and HTTPRoutes, served by Traefik's Gateway API provider. The ports are
+  # Traefik's websecure/web entryPoint ports: Traefik binds listeners to
+  # entryPoints by port.
+  className: traefik
+  httpsPort: 8443
+  httpPort: 8000
   hosts:
     - preview.1694.io
   api: preview-api.1694.io
-  # Preview has no apex router, so it asks for the wildcard alone. Production
-  # adds the apex as a second SAN on this same certificate, in
-  # chart/values.prod.yaml - a wildcard does not match the zone apex.
+  redirectApex: false
+  apexHost: ""
   tls:
-    - hosts:
-        - "'*.1694.io'"
-      secretName: wildcard-1694-tls
+    secretName: wildcard-1694-tls
+    clusterIssuer: letsencrypt-prod-cluster-issuer
+    # Preview has no apex route, so it asks for the wildcard alone. Production
+    # adds the apex as a second SAN in chart/values.prod.yaml - a wildcard does
+    # not match the zone apex.
+    dnsNames:
+      - "*.1694.io"
 
 namespace: voltaire-preview
 

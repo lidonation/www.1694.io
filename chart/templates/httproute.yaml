@@ -1,0 +1,98 @@
+{{- $gw := printf "%s" $.Chart.Name }}
+{{- $hosts := include "www-1694.gateway.hostnames" . | fromJsonArray }}
+# Site: the configured hosts -> frontend.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: "{{ $.Chart.Name }}-frontend"
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: "nextjs"
+    release: "{{ $.Release.Name }}"
+    service: "{{ .Values.frontend.labels.service }}"
+spec:
+  parentRefs: {{- include "www-1694.gateway.parentRefs" (dict "hosts" .Values.gateway.hosts "gateway" $gw) | nindent 4 }}
+  hostnames:
+  {{- range .Values.gateway.hosts }}
+    - {{ . | quote }}
+  {{- end }}
+  rules:
+    - matches:
+        - path: {type: PathPrefix, value: /}
+      filters: {{- include "www-1694.gateway.securityHeaders" . | nindent 8 }}
+      backendRefs:
+        - name: "{{ $.Chart.Name }}-frontend-service"
+          port: 80
+{{- if .Values.gateway.api }}
+---
+# API host -> backend.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: "{{ $.Chart.Name }}-backend"
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: "nextjs"
+    release: "{{ $.Release.Name }}"
+    service: "{{ .Values.backend.labels.service }}"
+spec:
+  parentRefs: {{- include "www-1694.gateway.parentRefs" (dict "hosts" (list .Values.gateway.api) "gateway" $gw) | nindent 4 }}
+  hostnames:
+    - {{ .Values.gateway.api | quote }}
+  rules:
+    - matches:
+        - path: {type: PathPrefix, value: /}
+      filters: {{- include "www-1694.gateway.securityHeaders" . | nindent 8 }}
+      backendRefs:
+        - name: "{{ $.Chart.Name }}-backend-service"
+          port: 80
+{{- end }}
+{{- if .Values.gateway.redirectApex }}
+---
+# Apex (1694.io) -> https://www.<apex>, path and query kept (was the
+# redirect-to-www Traefik Middleware).
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: "{{ $.Chart.Name }}-apex-redirect"
+  namespace: {{ .Values.namespace }}
+  labels:
+    release: "{{ $.Release.Name }}"
+spec:
+  parentRefs: {{- include "www-1694.gateway.parentRefs" (dict "hosts" (list .Values.gateway.apexHost) "gateway" $gw) | nindent 4 }}
+  hostnames:
+    - {{ .Values.gateway.apexHost | quote }}
+  rules:
+    - filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+            hostname: "www.{{ .Values.gateway.apexHost }}"
+            statusCode: 301
+{{- end }}
+---
+# Plain HTTP for every hostname -> HTTPS on the same host (was the
+# traefik/redirect-http-to-https middleware).
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: "{{ $.Chart.Name }}-http-redirect"
+  namespace: {{ .Values.namespace }}
+  labels:
+    release: "{{ $.Release.Name }}"
+spec:
+  parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: {{ $gw }}
+      sectionName: http
+  hostnames:
+  {{- range $hosts }}
+    - {{ . | quote }}
+  {{- end }}
+  rules:
+    - filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+            statusCode: 301

@@ -1,0 +1,35 @@
+{{- /*
+The release's own Gateway: one HTTPS listener per hostname, all terminating
+with the same certificate, plus a plain-HTTP listener that only redirects.
+Traefik maps Gateway listeners to its entryPoints by port, so the ports are
+Traefik's websecure/web container ports, not 443/80.
+*/ -}}
+{{- $hosts := include "www-1694.gateway.hostnames" . | fromJsonArray }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: "{{ $.Chart.Name }}"
+  namespace: {{ .Values.namespace }}
+  labels:
+    release: "{{ $.Release.Name }}"
+spec:
+  gatewayClassName: {{ .Values.gateway.className }}
+  listeners:
+  {{- range $hosts }}
+    - name: {{ include "www-1694.gateway.listener" . }}
+      hostname: {{ . | quote }}
+      protocol: HTTPS
+      port: {{ $.Values.gateway.httpsPort }}
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: {{ $.Values.gateway.tls.secretName }}
+      allowedRoutes:
+        namespaces: {from: Same}
+  {{- end }}
+    - name: http
+      protocol: HTTP
+      port: {{ .Values.gateway.httpPort }}
+      allowedRoutes:
+        namespaces: {from: Same}
