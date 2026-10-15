@@ -1,5 +1,15 @@
 # Moving 1694.io off 167.235.218.39 onto the shared edge
 
+> **Superseded (chart 0.2.0, 2026-10-15):** the chart no longer ships Ingresses
+> or the `redirect-to-www` Traefik Middleware. Traffic now enters through the
+> release's own Gateway API `Gateway` and `HTTPRoute`s
+> (`chart/templates/gateway.yaml`, `httproute.yaml`), and TLS comes from an
+> explicit cert-manager `Certificate` (`certificate.yaml`) instead of
+> ingress-shim. The values moved from `ingress.*` to `gateway.*`, and CI now sets
+> `gateway.hosts[0]` / `gateway.api`. Read live hostnames with
+> `kubectl get httproute -n voltaire`. The Ingress-specific commands below are
+> kept as history.
+
 This records how the `1694.io` zone was moved from the old single-VM proxy at
 `167.235.218.39` onto the cluster's public edge on 2026-09-21, and how to put it
 back.

@@ -6,8 +6,10 @@ WORKDIR /app
 
 COPY frontend/package.json frontend/yarn.lock* frontend/package-lock.json* frontend/pnpm-lock.yaml* ./
 
+# --network-timeout: registry.yarnpkg.com regularly takes longer than yarn's 30s
+# default to serve @mui/icons-material's ~20MB tarball (ESOCKETTIMEDOUT).
 RUN \
-  if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
+  if [ -f yarn.lock ]; then yarn --frozen-lockfile --network-timeout 600000; \
   elif [ -f package-lock.json ]; then npm ci; \
   elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --frozen-lockfile; \
   else echo "Lockfile not found." && exit 1; \
@@ -22,6 +24,9 @@ COPY --from=dependencies /app/node_modules ./node_modules
 COPY ./frontend .
 
 ENV NEXT_TELEMETRY_DISABLED=1
+# next build exhausts Node's default heap (~2GB in a memory-limited build
+# container): "JavaScript heap out of memory".
+ENV NODE_OPTIONS=--max-old-space-size=6144
 
 RUN \
   if [ -f yarn.lock ]; then yarn run build; \
