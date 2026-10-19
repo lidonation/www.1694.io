@@ -312,6 +312,7 @@ deploy-indexer-production:
 # Tests for the deploy checks and the chart (lidonation#791). Runs in seconds
 # with no cluster access, on every branch and merge request pipeline.
 test_deploy_config:
+  tags: [lido-ci]   # portable: cluster runner or a Mac docker runner, whichever is free
   stage: test
   image:
     name: alpine/helm:3.18.2
@@ -343,8 +344,12 @@ test_deploy_config:
 # --force keeps the mirror an exact copy (divergent history from the old
 # one-time export is expected on the first sync).
 mirror_to_github:
+  tags: [lido-ci]   # portable: cluster runner or a Mac docker runner, whichever is free
   stage: test
   image: alpine/git:latest
+  # No docker here: drop the global docker:dind service, which the unprivileged
+  # Mac docker runners cannot start.
+  services: []
   rules:
     - if: '($CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "dev") && ($CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "web")'
   script:
