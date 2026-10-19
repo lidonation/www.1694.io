@@ -29,6 +29,8 @@ spec:
       log_disconnections: "1"
   template:
     spec:
+      nodeSelector:
+        worker: "true"
       containers:
         - name: pgbouncer
           resources:

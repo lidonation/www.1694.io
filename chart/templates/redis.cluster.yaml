@@ -10,6 +10,8 @@ metadata:
     app.kubernetes.io/component: cache
     app.kubernetes.io/part-of: {{ $.Chart.Name }}
 spec:
+  nodeSelector:
+    worker: "true"
   clusterSize: 1
   clusterVersion: v8
   clusterMode: Standalone
