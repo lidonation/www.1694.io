@@ -1,0 +1,155 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "preserveExistingAppEnv": {
+      "type": "boolean"
+    },
+    "httpRoute": {
+      "type": "object",
+      "required": [
+        "enabled",
+        "gateway"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "gateway": {
+          "type": "object",
+          "required": [
+            "name",
+            "namespace"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 63,
+              "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+            },
+            "namespace": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 63,
+              "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+            }
+          }
+        },
+        "listenerSet": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "clusterIssuer": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 253,
+              "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$"
+            },
+            "secretName": {
+              "type": "string",
+              "minLength": 0,
+              "maxLength": 253,
+              "pattern": "^$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$"
+            },
+            "keepGatewayParent": {
+              "type": "boolean"
+            },
+            "certificates": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "dnsNames"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 253,
+                    "pattern": "^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)*$"
+                  },
+                  "dnsNames": {
+                    "type": "array",
+                    "minItems": 1,
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 253,
+                      "pattern": "^(\\*\\.)?[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)*$"
+                    }
+                  },
+                  "usages": {
+                    "type": "array",
+                    "minItems": 1,
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "signing",
+                        "digital signature",
+                        "content commitment",
+                        "key encipherment",
+                        "key agreement",
+                        "data encipherment",
+                        "cert sign",
+                        "crl sign",
+                        "encipher only",
+                        "decipher only",
+                        "any",
+                        "server auth",
+                        "client auth",
+                        "code signing",
+                        "email protection",
+                        "s/mime",
+                        "ipsec end system",
+                        "ipsec tunnel",
+                        "ipsec user",
+                        "timestamping",
+                        "ocsp signing",
+                        "microsoft sgc",
+                        "netscape sgc"
+                      ]
+                    }
+                  },
+                  "manage": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "gateway": {
+      "type": "object",
+      "required": [
+        "hosts"
+      ],
+      "properties": {
+        "hosts": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "api": {
+          "type": "string"
+        },
+        "redirectApex": {
+          "type": "boolean"
+        },
+        "apexHost": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

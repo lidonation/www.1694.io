@@ -1,0 +1,87 @@
+{{- $route := .Values.httpRoute | default dict }}
+{{- $settings := $route.listenerSet | default dict }}
+{{- if and $settings.enabled (not $route.enabled) }}
+{{- fail "httpRoute.listenerSet.enabled requires httpRoute.enabled=true" }}
+{{- end }}
+{{- if $settings.enabled }}
+{{- $certificates := $settings.certificates | default (list) }}
+{{- $names := dict }}
+{{- range $certificate := $certificates }}
+{{- if hasKey $names $certificate.name }}
+{{- fail "ListenerSet certificate names must be unique" }}
+{{- end }}
+{{- $_ := set $names $certificate.name true }}
+{{- end }}
+{{- $hosts := include "www-1694.listenerSetHosts" . | fromJsonArray }}
+{{- if not $hosts }}
+{{- fail "ListenerSet requires at least one application route hostname" }}
+{{- end }}
+{{- range $host := $hosts }}
+{{- if not (kindIs "string" $host) }}
+{{- fail "ListenerSet hostname must be a DNS string" }}
+{{- end }}
+{{- if or (gt (len $host) 253) (not (regexMatch "^(\\*\\.)?[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)*$" $host)) }}
+{{- fail "ListenerSet hostname must be an exact DNS name or a leading wildcard" }}
+{{- end }}
+{{- end }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: ListenerSet
+metadata:
+  name: {{ include "www-1694.listenerSetName" . | quote }}
+  namespace: {{ .Values.namespace | quote }}
+  {{- if not $certificates }}
+  annotations:
+    cert-manager.io/cluster-issuer: {{ default "letsencrypt-prod-cluster-issuer" $settings.clusterIssuer | quote }}
+  {{- end }}
+spec:
+  parentRef:
+    group: gateway.networking.k8s.io
+    kind: Gateway
+    name: {{ $route.gateway.name | quote }}
+    namespace: {{ $route.gateway.namespace | quote }}
+  listeners:
+    {{- range $index, $host := $hosts }}
+    - name: {{ printf "https-%d" $index }}
+      hostname: {{ $host | quote }}
+      protocol: HTTPS
+      port: 8443
+      tls:
+        mode: Terminate
+        certificateRefs:
+          {{- if $certificates }}
+          {{- range $certificate := $certificates }}
+          - group: ""
+            kind: Secret
+            name: {{ $certificate.name | quote }}
+          {{- end }}
+          {{- else }}
+          - group: ""
+            kind: Secret
+            name: {{ default (printf "%s-tls" (include "www-1694.listenerSetName" $)) $settings.secretName | quote }}
+          {{- end }}
+      allowedRoutes:
+        namespaces:
+          from: Same
+        kinds:
+          - group: gateway.networking.k8s.io
+            kind: HTTPRoute
+    {{- end }}
+{{- range $certificate := $certificates }}
+{{- if or (not (hasKey $certificate "manage")) $certificate.manage }}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ $certificate.name | quote }}
+  namespace: {{ $.Values.namespace | quote }}
+spec:
+  secretName: {{ $certificate.name | quote }}
+  dnsNames: {{ $certificate.dnsNames | toYaml | nindent 4 }}
+  usages: {{ default (list "digital signature" "key encipherment") $certificate.usages | toYaml | nindent 4 }}
+  issuerRef:
+    name: {{ default "letsencrypt-prod-cluster-issuer" $settings.clusterIssuer | quote }}
+    kind: ClusterIssuer
+    group: cert-manager.io
+{{- end }}
+{{- end }}
+{{- end }}

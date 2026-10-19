@@ -12,17 +12,11 @@ image:
   tag: latest
   pullPolicy: Always
 
-# TLS is issued by cert-manager's ingress-shim, not by a Certificate resource in
-# this chart. The cluster-issuer annotation below, plus the hosts under
-# ingress.tls, are the whole mechanism: cert-manager watches these ingresses,
-# orders the certificate and writes it into the named secret. The ClusterIssuer
-# itself is cluster-scoped and lives in the infrastructure repo, not here.
-#
-# ingress.hosts and ingress.api are overridden at deploy time by .gitlab-ci.yml
-# with --set from the AUTO_DEVOPS_WEB_DOMAIN and API CI/CD variables. The values
-# below are the defaults for a manual helm install, not what is live. Read the
-# live hostnames with: kubectl get ingress -n <namespace>
+# Explicit legacy Ingress mode only: cert-manager's ingress-shim issues TLS
+# from these annotations and hosts. Shared HTTPRoute mode below uses gateway.*
+# hosts and platform-owned TLS instead. CI overrides gateway.hosts and gateway.api.
 ingress:
+  enabled: false
   ingressClassName: traefik
   annotations: {
     cert-manager.io/cluster-issuer: letsencrypt-prod-cluster-issuer,
@@ -150,3 +144,30 @@ governanceIndexer:
     limits:
       memory: 1024Mi
       cpu: 500m
+
+# Shared public routing is the default; enable ingress only when httpRoute is off.
+httpRoute:
+  enabled: true
+  gateway:
+    name: public
+    namespace: traefik
+  # Optional independent-domain TLS, owned by this release's namespace.
+  listenerSet:
+    enabled: false
+    # Temporary migration stage: retain the public parent until local TLS is ready.
+    keepGatewayParent: false
+    # Existing certificate adoption: local Secret refs plus optional managed Certificates.
+    certificates: []
+    clusterIssuer: letsencrypt-prod-cluster-issuer
+    secretName: ""
+# Host settings retain the deployed Gateway chart's shape. TLS is platform-owned.
+gateway:
+  hosts:
+  - preview.1694.io
+  api: preview-api.1694.io
+  redirectApex: false
+  apexHost: ''
+
+# One-off routing upgrade without CI *_env files: server-side lookup preserves
+# only this exact release's nonempty Opaque Secrets. Normal CI must set false.
+preserveExistingAppEnv: false
