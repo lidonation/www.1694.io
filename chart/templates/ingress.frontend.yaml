@@ -1,3 +1,4 @@
+{{- if and (.Values.ingress | default dict).enabled (not (.Values.httpRoute | default dict).enabled) }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -88,4 +89,5 @@ spec:
     regex: "^https?://{{ .Values.ingress.apexHost }}/(.*)"
     replacement: "https://www.{{ .Values.ingress.apexHost }}/${1}"
     permanent: true
+{{- end }}
 {{- end }}

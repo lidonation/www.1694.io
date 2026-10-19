@@ -1,0 +1,78 @@
+{{- if (.Values.httpRoute | default dict).enabled }}
+{{- if (.Values.ingress | default dict).enabled }}
+{{- fail "enable either ingress or httpRoute, not both" }}
+{{- end }}
+{{- $_ := required "gateway.hosts must contain the application hostname" .Values.gateway.hosts }}
+# Site: the configured hosts -> frontend.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: "{{ $.Chart.Name }}-frontend"
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: "nextjs"
+    release: "{{ $.Release.Name }}"
+    service: "{{ .Values.frontend.labels.service }}"
+spec:
+  parentRefs: {{- include "www-1694.gateway.parentRefs" (dict "root" $) | nindent 4 }}
+  hostnames:
+  {{- range .Values.gateway.hosts }}
+    - {{ . | quote }}
+  {{- end }}
+  rules:
+    - matches:
+        - path: {type: PathPrefix, value: /}
+      filters: {{- include "www-1694.gateway.securityHeaders" . | nindent 8 }}
+      backendRefs:
+        - name: "{{ $.Chart.Name }}-frontend-service"
+          port: 80
+{{- if .Values.gateway.api }}
+---
+# API host -> backend.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: "{{ $.Chart.Name }}-backend"
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: "nextjs"
+    release: "{{ $.Release.Name }}"
+    service: "{{ .Values.backend.labels.service }}"
+spec:
+  parentRefs: {{- include "www-1694.gateway.parentRefs" (dict "root" $) | nindent 4 }}
+  hostnames:
+    - {{ .Values.gateway.api | quote }}
+  rules:
+    - matches:
+        - path: {type: PathPrefix, value: /}
+      filters: {{- include "www-1694.gateway.securityHeaders" . | nindent 8 }}
+      backendRefs:
+        - name: "{{ $.Chart.Name }}-backend-service"
+          port: 80
+{{- end }}
+{{- if .Values.gateway.redirectApex }}
+{{- $apex := required "gateway.apexHost is required when gateway.redirectApex is true" .Values.gateway.apexHost }}
+---
+# Apex (1694.io) -> https://www.<apex>, path and query kept (was the
+# redirect-to-www Traefik Middleware).
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: "{{ $.Chart.Name }}-apex-redirect"
+  namespace: {{ .Values.namespace }}
+  labels:
+    release: "{{ $.Release.Name }}"
+spec:
+  parentRefs: {{- include "www-1694.gateway.parentRefs" (dict "root" $) | nindent 4 }}
+  hostnames:
+    - {{ $apex | quote }}
+  rules:
+    - filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+            hostname: {{ printf "www.%s" $apex | quote }}
+            statusCode: 301
+{{- end }}
+
+{{- end }}

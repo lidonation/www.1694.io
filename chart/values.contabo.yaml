@@ -1,0 +1,19 @@
+# Contabo routing ownership after shared-domain listener migration.
+# TLS Secrets are copied in memory before the initial adoption; no credentials here.
+httpRoute:
+  enabled: true
+  gateway:
+    name: public
+    namespace: traefik
+  listenerSet:
+    enabled: true
+    keepGatewayParent: false
+    clusterIssuer: letsencrypt-prod-cluster-issuer
+    certificates:
+    - name: adopted-1694-io-tls
+      dnsNames:
+      - 1694.io
+      - '*.1694.io'
+      usages:
+      - digital signature
+      - key encipherment
