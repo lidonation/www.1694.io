@@ -419,6 +419,7 @@ test_shared_gateway:
     - apk add --no-cache python3 py3-yaml py3-jsonschema
   script:
     - python3 ci/tests/chart-gateway.test.py
+    - python3 ci/tests/acme-enrollment.test.py
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'

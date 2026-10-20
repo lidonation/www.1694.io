@@ -158,7 +158,8 @@ httpRoute:
     keepGatewayParent: false
     # Existing certificate adoption: local Secret refs plus optional managed Certificates.
     certificates: []
-    clusterIssuer: letsencrypt-prod-cluster-issuer
+    # Empty uses the platform ZeroSSL-first policy; explicit native overrides remain supported.
+    clusterIssuer: ""
     secretName: ""
 # Host settings retain the deployed Gateway chart's shape. TLS is platform-owned.
 gateway:

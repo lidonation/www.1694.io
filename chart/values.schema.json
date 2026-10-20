@@ -44,9 +44,9 @@
             },
             "clusterIssuer": {
               "type": "string",
-              "minLength": 1,
+              "minLength": 0,
               "maxLength": 253,
-              "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$"
+              "pattern": "^$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$"
             },
             "secretName": {
               "type": "string",
@@ -118,6 +118,25 @@
                   },
                   "manage": {
                     "type": "boolean"
+                  },
+                  "issuerRef": {
+                    "enum": [
+                      {
+                        "group": "cert-manager.io",
+                        "kind": "ClusterIssuer",
+                        "name": "letsencrypt-prod-cluster-issuer"
+                      },
+                      {
+                        "group": "cert-manager.io",
+                        "kind": "ClusterIssuer",
+                        "name": "zerossl-prod-cluster-issuer"
+                      },
+                      {
+                        "group": "tls.2lovelaces.io",
+                        "kind": "ClusterACMEIssuer",
+                        "name": "public-acme"
+                      }
+                    ]
                   }
                 }
               }

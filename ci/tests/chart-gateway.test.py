@@ -79,6 +79,26 @@ class SharedGateway(unittest.TestCase):
                 self.assertEqual(certificate['spec']['dnsNames'], ['1694.io', '*.1694.io'])
                 self.assertEqual(certificate['spec']['secretName'], 'adopted-1694-io-tls')
 
+    def test_new_listeners_use_platform_policy_and_native_override_is_explicit(self):
+        docs = render(extra=['httpRoute.listenerSet.enabled=true'])
+        listener = next(d for d in docs if d['kind'] == 'ListenerSet')
+        self.assertEqual(listener['metadata']['annotations'], {
+            'cert-manager.io/issuer': 'public-acme',
+            'cert-manager.io/issuer-kind': 'ClusterACMEIssuer',
+            'cert-manager.io/issuer-group': 'tls.2lovelaces.io'})
+        docs = render(extra=['httpRoute.listenerSet.enabled=true',
+                             'httpRoute.listenerSet.clusterIssuer=custom-issuer'])
+        listener = next(d for d in docs if d['kind'] == 'ListenerSet')
+        self.assertEqual(listener['metadata']['annotations'],
+                         {'cert-manager.io/cluster-issuer': 'custom-issuer'})
+        docs = render(extra=['httpRoute.listenerSet.enabled=true',
+                             'httpRoute.listenerSet.certificates[0].name=reflected',
+                             'httpRoute.listenerSet.certificates[0].dnsNames[0]=example.net',
+                             'httpRoute.listenerSet.certificates[0].manage=false'])
+        self.assertFalse(any(d['kind'] == 'Certificate' for d in docs))
+        listener = next(d for d in docs if d['kind'] == 'ListenerSet')
+        self.assertFalse(listener['metadata'].get('annotations'))
+
     def test_existing_certificate_adoption_preserves_sans_usages_and_local_refs(self):
         options = ['httpRoute.listenerSet.enabled=true',
                    'httpRoute.listenerSet.certificates[0].name=existing-domain',
@@ -95,8 +115,8 @@ class SharedGateway(unittest.TestCase):
             self.assertEqual(item['tls']['certificateRefs'], [{'group': '', 'kind': 'Secret', 'name': name} for name in ('existing-domain', 'other-release')])
         certs = [d for d in docs if d['kind'] == 'Certificate']
         self.assertEqual(len(certs), 1)
-        self.assertEqual(certs[0]['metadata'], {'name': 'existing-domain', 'namespace': 'test-app'})
-        self.assertEqual(certs[0]['spec'], {'secretName': 'existing-domain', 'dnsNames': ['example.net', '*.example.net'], 'usages': ['digital signature', 'key encipherment'], 'issuerRef': {'name': 'letsencrypt-prod-cluster-issuer', 'kind': 'ClusterIssuer', 'group': 'cert-manager.io'}})
+        self.assertEqual(certs[0]['metadata'], {'name': 'existing-domain', 'namespace': 'test-app', 'labels': {'tls.2lovelaces.io/renewal-policy': 'public-acme'}})
+        self.assertEqual(certs[0]['spec'], {'secretName': 'existing-domain', 'dnsNames': ['example.net', '*.example.net'], 'usages': ['digital signature', 'key encipherment'], 'issuerRef': {'name': 'public-acme', 'kind': 'ClusterACMEIssuer', 'group': 'tls.2lovelaces.io'}})
         self.assertFalse(any(d['kind'] == 'Secret' and d['metadata']['name'] in ('existing-domain', 'other-release') for d in docs))
         docs = render(extra=options + ['httpRoute.listenerSet.certificates[0].usages[0]=server auth', 'httpRoute.listenerSet.clusterIssuer=custom-issuer'])
         cert = next(d for d in docs if d['kind'] == 'Certificate')
