@@ -31,7 +31,13 @@ metadata:
   namespace: {{ .Values.namespace | quote }}
   {{- if not $certificates }}
   annotations:
-    cert-manager.io/cluster-issuer: {{ default "letsencrypt-prod-cluster-issuer" $settings.clusterIssuer | quote }}
+    {{- if $settings.clusterIssuer }}
+    cert-manager.io/cluster-issuer: {{ $settings.clusterIssuer | quote }}
+    {{- else }}
+    cert-manager.io/issuer: public-acme
+    cert-manager.io/issuer-kind: ClusterACMEIssuer
+    cert-manager.io/issuer-group: tls.2lovelaces.io
+    {{- end }}
   {{- end }}
 spec:
   parentRef:
@@ -74,14 +80,16 @@ kind: Certificate
 metadata:
   name: {{ $certificate.name | quote }}
   namespace: {{ $.Values.namespace | quote }}
+  {{- if not $settings.clusterIssuer }}
+  labels:
+    tls.2lovelaces.io/renewal-policy: public-acme
+  {{- end }}
 spec:
   secretName: {{ $certificate.name | quote }}
   dnsNames: {{ $certificate.dnsNames | toYaml | nindent 4 }}
   usages: {{ default (list "digital signature" "key encipherment") $certificate.usages | toYaml | nindent 4 }}
   issuerRef:
-    name: {{ default "letsencrypt-prod-cluster-issuer" $settings.clusterIssuer | quote }}
-    kind: ClusterIssuer
-    group: cert-manager.io
+    {{- include "www-1694.certificateIssuer" (dict "root" $ "certificate" $certificate) | nindent 4 }}
 {{- end }}
 {{- end }}
 {{- end }}
