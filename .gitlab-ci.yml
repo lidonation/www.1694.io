@@ -166,7 +166,7 @@ app-preview:
         --set backend.replicaCount=1 \
         --set frontend.replicaCount=1 \
         --set queue.replicaCount=1 \
-        --set governanceIndexer.replicaCount=1 \
+        --set governanceIndexer.replicaCount="${GOVERNANCE_INDEXER_REPLICAS:-0}" \
         --set governanceIndexer.image.tag=$INDEXER_TAG \
         --set cnpg.superuserPassword="$CNPG_SUPERUSER_PASSWORD" \
         --set-string ipfs.clusterApiUrl="$IPFS_CLUSTER_API_URL" \
@@ -217,6 +217,10 @@ production:
 
       if [ -n "$GLOBAL_ENV_FILE" ]; then cp "$GLOBAL_ENV_FILE" ./chart/global_env; else touch ./chart/global_env; fi
 
+      # GOVERNANCE_INDEXER_REPLICAS (CI/CD variable) defaults to 0: the
+      # voltaire/governance-indexer repo and its image were lost with the old
+      # cluster, and a replica that cannot pull fails `helm --wait`. Set it to
+      # 1 once that image exists again.
       helm upgrade $DEPLOYMENT_NAME ./chart --install \
         -f ./chart/values.yaml \
         -f ./chart/values.prod.yaml \
@@ -228,7 +232,7 @@ production:
         --set backend.replicaCount=5 \
         --set frontend.replicaCount=5 \
         --set queue.replicaCount=2 \
-        --set governanceIndexer.replicaCount=1 \
+        --set governanceIndexer.replicaCount="${GOVERNANCE_INDEXER_REPLICAS:-0}" \
         --set governanceIndexer.image.tag=$INDEXER_TAG \
         --set cnpg.superuserPassword="$CNPG_SUPERUSER_PASSWORD" \
         --set-string ipfs.clusterApiUrl="$IPFS_CLUSTER_API_URL" \

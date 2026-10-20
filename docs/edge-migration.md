@@ -1,5 +1,16 @@
 # Moving 1694.io off 167.235.218.39 onto the shared edge
 
+> **Superseded (chart 0.2.4, 2026-10-19):** traffic no longer enters through
+> per-release Ingresses or the `redirect-to-www` Traefik Middleware. The release
+> renders Gateway API `HTTPRoute`s (`chart/templates/httproute.yaml`) parented to
+> the platform's shared `public` Gateway in `traefik`, and — on Contabo — a
+> namespace-owned `ListenerSet` carrying adopted TLS Secrets
+> (`chart/templates/listenerset.yaml`, values in `chart/values.contabo.yaml`).
+> `gateway.*` holds the host settings CI overrides; `ingress.*` is legacy,
+> disabled by default. Read live hostnames with
+> `kubectl get httproute -n voltaire`. The Ingress-specific commands below are
+> kept as history.
+
 This records how the `1694.io` zone was moved from the old single-VM proxy at
 `167.235.218.39` onto the cluster's public edge on 2026-09-21, and how to put it
 back.

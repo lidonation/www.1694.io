@@ -28,7 +28,10 @@ cnpg:
     owner: "voltaire"
   cluster:
     storage:
-      size: "200Gi"
+      # 20Gi since the 2026-10-15 restore onto the new cluster (the database is
+      # ~100 MB of dump; Longhorn has no room for 200Gi x2 replicas there). A
+      # PVC grows in place but never shrinks, so raise this only with disk.
+      size: "20Gi"
   migration:
     sourceDatabase: "1694_mainnet"
     sourceUser: "voltaire"
