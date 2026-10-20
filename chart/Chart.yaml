@@ -2,4 +2,4 @@ apiVersion: v2
 appVersion: "1.0"
 description: A Helm chart for Kubernetes
 name: www-1694
-version: 0.2.5
+version: 0.2.6

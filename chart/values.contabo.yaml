@@ -8,9 +8,11 @@ httpRoute:
   listenerSet:
     enabled: true
     keepGatewayParent: false
-    clusterIssuer: letsencrypt-prod-cluster-issuer
+    clusterIssuer: ""
     certificates:
     - name: adopted-1694-io-tls
+      # Offline bootstrap seed; live issuer is preserved by validated Helm lookup.
+      issuerRef: {group: cert-manager.io, kind: ClusterIssuer, name: letsencrypt-prod-cluster-issuer}
       dnsNames:
       - 1694.io
       - '*.1694.io'
