@@ -1,5 +1,8 @@
-{{- $gw := printf "%s" $.Chart.Name }}
-{{- $hosts := include "www-1694.gateway.hostnames" . | fromJsonArray }}
+{{- if (.Values.httpRoute | default dict).enabled }}
+{{- if (.Values.ingress | default dict).enabled }}
+{{- fail "enable either ingress or httpRoute, not both" }}
+{{- end }}
+{{- $_ := required "gateway.hosts must contain the application hostname" .Values.gateway.hosts }}
 # Site: the configured hosts -> frontend.
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -11,7 +14,7 @@ metadata:
     release: "{{ $.Release.Name }}"
     service: "{{ .Values.frontend.labels.service }}"
 spec:
-  parentRefs: {{- include "www-1694.gateway.parentRefs" (dict "hosts" .Values.gateway.hosts "gateway" $gw) | nindent 4 }}
+  parentRefs: {{- include "www-1694.gateway.parentRefs" (dict "root" $) | nindent 4 }}
   hostnames:
   {{- range .Values.gateway.hosts }}
     - {{ . | quote }}
@@ -36,7 +39,7 @@ metadata:
     release: "{{ $.Release.Name }}"
     service: "{{ .Values.backend.labels.service }}"
 spec:
-  parentRefs: {{- include "www-1694.gateway.parentRefs" (dict "hosts" (list .Values.gateway.api) "gateway" $gw) | nindent 4 }}
+  parentRefs: {{- include "www-1694.gateway.parentRefs" (dict "root" $) | nindent 4 }}
   hostnames:
     - {{ .Values.gateway.api | quote }}
   rules:
@@ -48,6 +51,7 @@ spec:
           port: 80
 {{- end }}
 {{- if .Values.gateway.redirectApex }}
+{{- $apex := required "gateway.apexHost is required when gateway.redirectApex is true" .Values.gateway.apexHost }}
 ---
 # Apex (1694.io) -> https://www.<apex>, path and query kept (was the
 # redirect-to-www Traefik Middleware).
@@ -59,40 +63,16 @@ metadata:
   labels:
     release: "{{ $.Release.Name }}"
 spec:
-  parentRefs: {{- include "www-1694.gateway.parentRefs" (dict "hosts" (list .Values.gateway.apexHost) "gateway" $gw) | nindent 4 }}
+  parentRefs: {{- include "www-1694.gateway.parentRefs" (dict "root" $) | nindent 4 }}
   hostnames:
-    - {{ .Values.gateway.apexHost | quote }}
+    - {{ $apex | quote }}
   rules:
     - filters:
         - type: RequestRedirect
           requestRedirect:
             scheme: https
-            hostname: "www.{{ .Values.gateway.apexHost }}"
+            hostname: {{ printf "www.%s" $apex | quote }}
             statusCode: 301
 {{- end }}
----
-# Plain HTTP for every hostname -> HTTPS on the same host (was the
-# traefik/redirect-http-to-https middleware).
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: "{{ $.Chart.Name }}-http-redirect"
-  namespace: {{ .Values.namespace }}
-  labels:
-    release: "{{ $.Release.Name }}"
-spec:
-  parentRefs:
-    - group: gateway.networking.k8s.io
-      kind: Gateway
-      name: {{ $gw }}
-      sectionName: http
-  hostnames:
-  {{- range $hosts }}
-    - {{ . | quote }}
-  {{- end }}
-  rules:
-    - filters:
-        - type: RequestRedirect
-          requestRedirect:
-            scheme: https
-            statusCode: 301
+
+{{- end }}

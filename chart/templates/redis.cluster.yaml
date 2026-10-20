@@ -6,10 +6,14 @@ metadata:
   name: www-1694-redis-cluster
   namespace: {{ .Values.namespace }}
   labels:
+    # Opstree propagates Redis resource labels to newly created PVCs.
+    backup.2lovelaces.io/exclude: "true"
     app.kubernetes.io/name: www-1694-redis
     app.kubernetes.io/component: cache
     app.kubernetes.io/part-of: {{ $.Chart.Name }}
 spec:
+  nodeSelector:
+    worker: "true"
   clusterSize: 1
   clusterVersion: v8
   clusterMode: Standalone

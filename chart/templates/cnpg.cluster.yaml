@@ -21,6 +21,10 @@ metadata:
     app.kubernetes.io/component: database
     app.kubernetes.io/part-of: {{ $.Chart.Name }}
 spec:
+  # Database workloads stay on the worker pool.
+  affinity:
+    nodeSelector:
+      worker: "true"
   instances: 2
   imageName: ghcr.io/cloudnative-pg/postgresql:17.5
 
