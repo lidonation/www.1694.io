@@ -131,6 +131,7 @@ app-preview:
   stage: preview
   script:
     - !reference [.check_ipfs_settings, script]
+    - sh ci/check-cardano-settings.sh "$ENV_FILE_BACKEND"
     - sh ci/select-kube-context.sh
     - auto-deploy check_kube_domain
     - auto-deploy download_chart
@@ -200,6 +201,7 @@ production:
     name: production
   script:
     - !reference [.check_ipfs_settings, script]
+    - sh ci/check-cardano-settings.sh "$ENV_FILE_BACKEND"
     - sh ci/select-kube-context.sh
     - auto-deploy check_kube_domain
     - auto-deploy download_chart
@@ -269,6 +271,7 @@ deploy-indexer-preview:
     # --reuse-values still re-renders every template, secret.backend.yaml
     # included, so this job passes the IPFS settings too (lidonation#791).
     - !reference [.check_ipfs_settings, script]
+    - sh ci/check-cardano-settings.sh "$ENV_FILE_BACKEND"
     - sh ci/select-kube-context.sh
     - |
       DEPLOYMENT_NAME="www-1694.$CI_ENVIRONMENT_SLUG"
@@ -299,6 +302,7 @@ deploy-indexer-production:
     # --reuse-values still re-renders every template, secret.backend.yaml
     # included, so this job passes the IPFS settings too (lidonation#791).
     - !reference [.check_ipfs_settings, script]
+    - sh ci/check-cardano-settings.sh "$ENV_FILE_BACKEND"
     - sh ci/select-kube-context.sh
     - |
       DEPLOYMENT_NAME="www-1694.$CI_ENVIRONMENT_SLUG"
@@ -339,6 +343,7 @@ test_deploy_config:
     - sh ci/tests/check-ipfs-settings.test.sh
     - sh ci/tests/chart-ipfs.test.sh
     - sh ci/tests/chart-cardano-api.test.sh
+    - sh ci/tests/check-cardano-settings.test.sh
     - sh ci/tests/backup-exclusions.test.sh
     - sh ci/tests/ci-config-ipfs.test.sh
     - sh ci/tests/select-kube-context.test.sh
