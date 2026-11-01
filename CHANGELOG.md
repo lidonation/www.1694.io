@@ -25,7 +25,11 @@ changes.
   frontend Secret with an empty, unused public Google API value.
 
 ### Changed
--
+- Backend and queue on-chain calls use the internal Cardano API gateway's
+  Blockfrost-compatible interface, with separate preview/mainnet routing and
+  gateway credentials. Legacy local configuration, fallback, freshness guards
+  and independent IPFS credentials remain supported. Malformed gateway base URLs
+  fail at startup rather than silently selecting fallback traffic.
 
 ### Removed
 -

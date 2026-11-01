@@ -29,11 +29,45 @@ export class BlockfrostService {
     private readonly configService: ConfigService,
     private readonly httpService: HttpService,
   ) {
-    this.primaryConfig = {
-      url: this.configService.get<string>('BLOCKFROST_NETWORK_URL') || '',
-      projectId:
-        this.configService.get<string>('BLOCKFROST_NETWORK_PROJECT_ID') || '',
-    };
+    const gatewayUrl = this.configService
+      .get<string>('CARDANO_API_URL')
+      ?.trim();
+    const gatewayProjectId = this.configService
+      .get<string>('CARDANO_API_PROJECT_ID')
+      ?.trim();
+    if (Boolean(gatewayUrl) !== Boolean(gatewayProjectId)) {
+      throw new Error(
+        'CARDANO_API_URL and CARDANO_API_PROJECT_ID must be configured together',
+      );
+    }
+
+    if (gatewayUrl) {
+      try {
+        const parsedUrl = new URL(gatewayUrl);
+        if (
+          !/^https?:\/\//.test(gatewayUrl) ||
+          parsedUrl.username ||
+          parsedUrl.password ||
+          gatewayUrl.includes('?') ||
+          gatewayUrl.includes('#')
+        ) {
+          throw new Error('Invalid gateway base URL');
+        }
+      } catch {
+        throw new Error(
+          'CARDANO_API_URL must be an HTTP(S) base URL without credentials, query or fragment',
+        );
+      }
+    }
+
+    this.primaryConfig = gatewayUrl
+      ? { url: gatewayUrl.replace(/\/+$/, ''), projectId: gatewayProjectId }
+      : {
+          url: this.configService.get<string>('BLOCKFROST_NETWORK_URL') || '',
+          projectId:
+            this.configService.get<string>('BLOCKFROST_NETWORK_PROJECT_ID') ||
+            '',
+        };
 
     this.fallbackConfig = {
       url:
@@ -46,7 +80,8 @@ export class BlockfrostService {
 
     this.ipfsProjectId =
       this.configService.get<string>('BLOCKFROST_IPFS_PROJECT_ID') ||
-      this.primaryConfig.projectId;
+      this.configService.get<string>('BLOCKFROST_NETWORK_PROJECT_ID') ||
+      '';
   }
 
   private async executeWithFallback<T = any>(
