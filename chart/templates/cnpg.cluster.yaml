@@ -30,6 +30,9 @@ spec:
 
   postgresql:
     parameters:
+      pg_stat_statements.max: "10000"
+      pg_stat_statements.track: "top"
+      track_io_timing: "on"
       max_connections: "200"
       shared_buffers: "256MB"
       effective_cache_size: "2GB"
