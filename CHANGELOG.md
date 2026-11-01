@@ -21,6 +21,8 @@ changes.
   branch and merge request pipeline.
 
 ### Fixed
+- Deployments reject missing or malformed Cardano gateway client credentials before
+  Helm changes the release. Internal cluster routing continues to require authentication.
 - Frontend preview and production deployments no longer override the generated
   frontend Secret with an empty, unused public Google API value.
 

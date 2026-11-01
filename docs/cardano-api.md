@@ -14,6 +14,8 @@ must not be substituted as the base URL.
 | Production | `mainnet` (`values.prod.yaml`) | `http://koios-gateway-mainnet-koios-gateway.koios-gateway.svc.cluster.local/api/v0` |
 
 These namespace-qualified Services bypass the public per-IP gateway quota.
+They still require the `project_id` request header: missing or invalid client
+credentials receive HTTP 403, including through the cluster FQDN.
 This does **not** remove Koios/hosted Blockfrost upstream quotas, outages or
 charges. Do not use `cardanoapis.2lovelaces.com` or
 `preview-cardanoapis.2lovelaces.com` for indexing. HTTP/1.1 works on the internal
@@ -31,7 +33,9 @@ client project ID (infrastructure vault key
 Koios JWT, or the gateway's own upstream credential. Use the normal authorized
 secret-management process; never put the value in an MR, chart values or chat.
 Do not put this key in frontend/global/queue env files. No new CI variable
-outside the existing backend env file is needed. A missing key prevents the
+outside the existing backend env file is needed. The deployment preflight
+requires exactly one unquoted gateway key (at least 32 letters, digits,
+underscores or hyphens) in that file before any Kubernetes operation. A missing Secret key prevents the
 app containers from starting; an empty key fails client initialization.
 
 The first upgrade must be the full application deployment with the current
