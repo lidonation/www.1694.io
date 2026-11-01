@@ -5,7 +5,6 @@ variables:
   DOCKER_HOST: tcp://docker:2375/
   DOCKER_DRIVER: overlay2
   HELM_VERSION: 3.10.2
-  KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: gitlab-admin
   KUBERNETES_VERSION: 1.24.9
   DEPLOY_CARDANO_DBSYNC:
     value: "false"
@@ -132,6 +131,7 @@ app-preview:
   stage: preview
   script:
     - !reference [.check_ipfs_settings, script]
+    - sh ci/select-kube-context.sh
     - auto-deploy check_kube_domain
     - auto-deploy download_chart
     # - auto-deploy ensure_namespace
@@ -200,6 +200,7 @@ production:
     name: production
   script:
     - !reference [.check_ipfs_settings, script]
+    - sh ci/select-kube-context.sh
     - auto-deploy check_kube_domain
     - auto-deploy download_chart
     # - auto-deploy ensure_namespace
@@ -268,11 +269,13 @@ deploy-indexer-preview:
     # --reuse-values still re-renders every template, secret.backend.yaml
     # included, so this job passes the IPFS settings too (lidonation#791).
     - !reference [.check_ipfs_settings, script]
+    - sh ci/select-kube-context.sh
     - |
       DEPLOYMENT_NAME="www-1694.$CI_ENVIRONMENT_SLUG"
       echo "Deploying governance-indexer $INDEXER_TAG ($INDEXER_SHA) to preview..."
       helm upgrade $DEPLOYMENT_NAME ./chart \
         --reuse-values \
+        --set preserveExistingAppEnv=true \
         -f ./chart/values.contabo.yaml \
         --timeout 120s \
         --wait \
@@ -296,11 +299,13 @@ deploy-indexer-production:
     # --reuse-values still re-renders every template, secret.backend.yaml
     # included, so this job passes the IPFS settings too (lidonation#791).
     - !reference [.check_ipfs_settings, script]
+    - sh ci/select-kube-context.sh
     - |
       DEPLOYMENT_NAME="www-1694.$CI_ENVIRONMENT_SLUG"
       echo "Deploying governance-indexer $INDEXER_TAG ($INDEXER_SHA) to production..."
       helm upgrade $DEPLOYMENT_NAME ./chart \
         --reuse-values \
+        --set preserveExistingAppEnv=true \
         -f ./chart/values.contabo.yaml \
         --timeout 120s \
         --wait \
@@ -336,6 +341,7 @@ test_deploy_config:
     - sh ci/tests/chart-cardano-api.test.sh
     - sh ci/tests/backup-exclusions.test.sh
     - sh ci/tests/ci-config-ipfs.test.sh
+    - sh ci/tests/select-kube-context.test.sh
     - sh ci/tests/entrypoint-placeholder.test.sh
     - sh ci/tests/frontend-runtime-env.test.sh
   rules:
