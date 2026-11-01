@@ -45,6 +45,12 @@ ipfs:
   clusterApiPassword: ""
   gatewayUrl: ""
 
+# Chain API gateway. The internal Service bypasses public quotas, not upstream
+# limits. Its network-specific client key belongs in backend_env as
+# CARDANO_API_PROJECT_ID (not in these values or a frontend env file).
+cardanoApi:
+  network: preview
+
 redis:
   enabled: true
   storage:
