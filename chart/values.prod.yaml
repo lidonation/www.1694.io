@@ -1,5 +1,8 @@
 namespace: voltaire
 
+cardanoApi:
+  network: mainnet
+
 # The mainnet relays. Preview's are in chart/values.yaml.
 queue:
   nodeSocket:

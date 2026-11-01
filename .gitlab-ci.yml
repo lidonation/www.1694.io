@@ -333,6 +333,7 @@ test_deploy_config:
   script:
     - sh ci/tests/check-ipfs-settings.test.sh
     - sh ci/tests/chart-ipfs.test.sh
+    - sh ci/tests/chart-cardano-api.test.sh
     - sh ci/tests/backup-exclusions.test.sh
     - sh ci/tests/ci-config-ipfs.test.sh
     - sh ci/tests/entrypoint-placeholder.test.sh

@@ -40,6 +40,7 @@ spec:
           image: "{{ .Values.queue.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
+            {{- include "www-1694.cardanoApiEnv" . | nindent 12 }}
             - name: PORT
               value: "9999"
             - name: HOST

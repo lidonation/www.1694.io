@@ -76,6 +76,7 @@ spec:
           image: "{{ .Values.backend.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
+            {{- include "www-1694.cardanoApiEnv" . | nindent 12 }}
             - name: DATABASE_USERNAME
               valueFrom:
                 secretKeyRef:
