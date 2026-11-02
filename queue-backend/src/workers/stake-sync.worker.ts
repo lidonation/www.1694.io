@@ -9,57 +9,65 @@ import { DataSource } from 'typeorm';
 import { Drep } from '../entities/governance/drep.entity';
 import { DrepDelegator } from '../entities/governance/drep-delegator.entity';
 import { DrepEpochStake } from '../entities/governance/drep-epoch-stake.entity';
+import { ProviderDeferred } from '../blockfrost/request-budget';
+import {
+  batchDatabase,
+  runBatch,
+  syncItem,
+  targets,
+  stakeEpoch,
+} from '../blockfrost/sync-run';
 
 @Injectable()
 @Processor(Queues.STAKE_SYNC, { lockDuration: LOCK_DURATION_MEDIUM })
 export class StakeSyncWorker extends WorkerHost {
   private readonly logger = new Logger(StakeSyncWorker.name);
-
   constructor(
     private readonly blockfrostService: BlockfrostService,
-    @InjectDataSource('default')
-    private readonly dataSource: DataSource,
+    @InjectDataSource('default') private readonly dataSource: DataSource,
   ) {
     super();
   }
 
   async process(
     job: Job<StakeSyncJobData, StakeSyncJobResponse>,
+    token?: string,
   ): Promise<StakeSyncJobResponse> {
-    this.logger.log(`Starting stake sync: ${job.id}`);
-
-    try {
+    return runBatch(this.dataSource, job, token, async () => {
       const source = await this.blockfrostService.assertGovernanceSourceFresh();
-      if (!source.ok) {
-        this.logger.error(`Aborting stake sync: ${source.reason}`);
-        return { success: false, message: source.reason };
-      }
-
+      if (!source.ok)
+        throw new ProviderDeferred('source', 'transient', Date.now() + 60000);
       const epochNo = source.epoch;
-      const drepsRepo = this.dataSource.getRepository(Drep);
-      const delegatorsRepo = this.dataSource.getRepository(DrepDelegator);
-      const epochStakeRepo = this.dataSource.getRepository(DrepEpochStake);
-      const dreps = await drepsRepo.find();
-
+      await stakeEpoch(epochNo);
+      const dreps = await targets('stake-dreps', () =>
+        batchDatabase(this.dataSource)
+          .getRepository(Drep)
+          .find({ order: { drepId: 'ASC' } }),
+      );
       let updated = 0;
-      const epochSnapshots: Partial<DrepEpochStake>[] = [];
-
       for (const d of dreps) {
-        try {
-          const info = await this.blockfrostService.getDRepInfo(d.drepId);
-          // Only write a numeric lovelace amount. `info.amount` is a string, so
-          // the prior `if (info.amount)` accepted "0" and stub values as truthy
-          // and let bad upstreams overwrite real voting power. A genuine 0 is
-          // valid (the source is verified fresh above); null/non-numeric is not.
-          const lovelace = info?.amount;
-          const amount = lovelace == null ? NaN : Number(lovelace);
-          if (Number.isFinite(amount) && amount >= 0) {
-            const isActive = info.active || false;
-            await drepsRepo.update(
+        updated += await syncItem(`stake:${d.drepId}`, async () => {
+          let info: any;
+          try {
+            info = await this.blockfrostService.getDRepInfo(d.drepId);
+          } catch (e) {
+            if (e.status === 404) return 0;
+            throw e;
+          }
+          const amount = info?.amount == null ? NaN : Number(info.amount);
+          if (!Number.isFinite(amount) || amount < 0)
+            throw new ProviderDeferred(
+              'source',
+              'transient',
+              Date.now() + 60000,
+            );
+          // Detail and epoch snapshot commit together; replay cannot leave half a snapshot.
+          await batchDatabase(this.dataSource).transaction(async (manager) => {
+            await manager.getRepository(Drep).update(
               { drepId: d.drepId },
               {
                 votingPowerAda: (amount / 1_000_000).toString(),
-                active: isActive,
+                active: info.active || false,
                 retired: info.retired || false,
                 expired: info.expired || false,
                 lastActiveEpoch: info.last_active_epoch,
@@ -67,71 +75,66 @@ export class StakeSyncWorker extends WorkerHost {
                 updatedAt: new Date(),
               },
             );
-            epochSnapshots.push({
-              drepId: d.drepId,
-              epochNo,
-              amountLovelace: String(lovelace),
-              active: isActive,
-            });
-            updated++;
-          } else {
-            this.logger.warn(
-              `Skipping ${d.drepId}: non-numeric amount "${lovelace}"`,
+            await manager.getRepository(DrepEpochStake).upsert(
+              {
+                drepId: d.drepId,
+                epochNo,
+                amountLovelace: String(info.amount),
+                active: info.active || false,
+              },
+              {
+                conflictPaths: ['drepId', 'epochNo'],
+                skipUpdateIfNoValuesChanged: true,
+              },
             );
-          }
-          await new Promise((r) => setTimeout(r, 20));
-        } catch (e) {
-          this.logger.warn(`DRep stake failed (${d.drepId}): ${e.message}`);
-        }
+          });
+          return 1;
+        });
       }
-
-      // Upsert epoch snapshots in chunks — this is our drep_distr equivalent
-      const chunkSize = 500;
-      for (let i = 0; i < epochSnapshots.length; i += chunkSize) {
-        await epochStakeRepo.upsert(
-          epochSnapshots.slice(i, i + chunkSize) as any,
-          {
-            conflictPaths: ['drepId', 'epochNo'],
-            skipUpdateIfNoValuesChanged: true,
-          },
-        );
-      }
-
-      const updatedDelegators =
-        await this.syncDelegatorVotingPower(delegatorsRepo);
-      this.logger.log(
-        `Stake sync completed: ${updated} DReps, ${updatedDelegators} delegators`,
-      );
-
+      const updatedDelegators = await this.syncDelegatorVotingPower();
+      this.logger.log('Stake sync completed');
       return {
         success: true,
-        message: `Updated ${updated} DReps, ${updatedDelegators} delegators`,
+        message: 'Updated stake data',
         updatedDRepsCount: updated,
         updatedDelegatorsCount: updatedDelegators,
         epochNo,
       };
-    } catch (e) {
-      this.logger.error(`Stake sync failed: ${e.message}`, e.stack);
-      return { success: false, message: e.message };
-    }
+    });
   }
-
-  private async syncDelegatorVotingPower(repo): Promise<number> {
-    const targets = await repo
-      .createQueryBuilder('d')
-      .where(
-        "d.voting_power_lovelace IS NULL OR d.updated_at < NOW() - INTERVAL '1 day'",
-      )
-      .limit(100)
-      .getMany();
-
+  private async syncDelegatorVotingPower(): Promise<number> {
+    const repo = batchDatabase(this.dataSource).getRepository(DrepDelegator);
+    const delegators = await targets('stake-delegators', () =>
+      repo
+        .createQueryBuilder('d')
+        .where(
+          "d.voting_power_lovelace IS NULL OR d.updated_at < NOW() - INTERVAL '1 day'",
+        )
+        .orderBy('d.drepId', 'ASC')
+        .addOrderBy('d.stakeAddress', 'ASC')
+        .limit(100)
+        .getMany(),
+    );
     let count = 0;
-    for (const d of targets) {
-      try {
-        const info = await this.blockfrostService.getStakeAddressInfo(
-          d.stakeAddress,
-        );
-        if (info?.controlled_amount) {
+    for (const d of delegators) {
+      count += await syncItem(
+        `delegator-power:${d.drepId}:${d.stakeAddress}`,
+        async () => {
+          let info: any;
+          try {
+            info = await this.blockfrostService.getStakeAddressInfo(
+              d.stakeAddress,
+            );
+          } catch (e) {
+            if (e.status === 404) return 0;
+            throw e;
+          }
+          if (info?.controlled_amount == null)
+            throw new ProviderDeferred(
+              'source',
+              'transient',
+              Date.now() + 60000,
+            );
           await repo.update(
             { drepId: d.drepId, stakeAddress: d.stakeAddress },
             {
@@ -139,14 +142,9 @@ export class StakeSyncWorker extends WorkerHost {
               updatedAt: new Date(),
             },
           );
-          count++;
-        }
-        await new Promise((r) => setTimeout(r, 100));
-      } catch (e) {
-        this.logger.warn(
-          `Delegator VP failed (${d.stakeAddress}): ${e.message}`,
-        );
-      }
+          return 1;
+        },
+      );
     }
     return count;
   }

@@ -435,3 +435,35 @@ test_shared_gateway:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+# Quota regression checks use disposable CI services, never the deployed database/Redis.
+test_cardano_quota:
+  stage: test
+  needs: []
+  dependencies: []
+  image: node:22-bookworm
+  services:
+    - name: postgres:17
+      alias: postgres
+    - name: redis:7
+      alias: redis
+  variables:
+    NODE_ENV: test
+    POSTGRES_HOST_AUTH_METHOD: trust
+    QUOTA_TEST_DB_URL: postgres://postgres@postgres:5432/postgres
+    QUOTA_TEST_REDIS_HOST: redis
+    QUOTA_TEST_REDIS_PORT: "6379"
+  cache: {}
+  before_script: []
+  script:
+    - yarn --cwd backend install --frozen-lockfile --ignore-scripts
+    - yarn --cwd queue-backend install --frozen-lockfile --ignore-scripts
+    - yarn --cwd backend test --maxWorkers=6
+    - yarn --cwd backend tsc --project tsconfig.prod.json --noEmit
+    - yarn --cwd queue-backend test --maxWorkers=6
+    - yarn --cwd queue-backend build
+    - yarn --cwd queue-backend ts-node test/quota.integration.ts
+    - yarn --cwd queue-backend ts-node test/quota-bullmq.integration.ts
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'

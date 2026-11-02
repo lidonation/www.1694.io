@@ -63,6 +63,7 @@ export type GovernanceSyncJobData = {
 };
 
 export type GovernanceSyncJobResponse = {
+  delegatorReconciliation?: 'complete' | 'upsert-only';
   success: boolean;
   message: string;
   drepsCount?: number;

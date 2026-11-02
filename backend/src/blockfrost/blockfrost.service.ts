@@ -2,6 +2,7 @@ import { HttpService } from '@nestjs/axios';
 import { HttpException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { lastValueFrom } from 'rxjs';
+import { RequestBudget, ProviderDeferred } from './request-budget';
 import { BlockfrostUTXO } from 'src/miscellaneous/misc.types';
 
 interface BlockfrostConfig {
@@ -14,6 +15,7 @@ interface RequestOptions {
   endpoint: string;
   data?: any;
   headers?: Record<string, string>;
+  live?: boolean;
 }
 
 @Injectable()
@@ -25,6 +27,7 @@ export class BlockfrostService {
   constructor(
     private readonly configService: ConfigService,
     private readonly httpService: HttpService,
+    private readonly budget: RequestBudget,
   ) {
     const gatewayUrl = this.configService
       .get<string>('CARDANO_API_URL')
@@ -74,38 +77,35 @@ export class BlockfrostService {
           'BLOCKFROST_NETWORK_PROJECT_ID_FALLBACK',
         ) || '',
     };
+    this.logger.log(
+      `Cardano routing configured gateway=${Boolean(gatewayUrl)} fallbackIndependent=${this.scope(this.primaryConfig, { method: 'GET', endpoint: '' }) !== this.scope(this.fallbackConfig, { method: 'GET', endpoint: '' })}`,
+    );
+  }
+
+  private scope(config: BlockfrostConfig, options: RequestOptions): string {
+    const route = config === this.primaryConfig ? 'primary' : 'fallback';
+    return this.budget.scope(
+      route,
+      options.headers?.project_id || config.projectId,
+    );
   }
 
   private async executeWithFallback<T = any>(
     options: RequestOptions,
   ): Promise<T> {
-    const { endpoint } = options;
-
     try {
       return await this.makeRequest<T>(this.primaryConfig, options);
-    } catch (primaryError) {
-      this.logger.warn(
-        `Primary request failed for ${endpoint}: ${primaryError.message}. Trying fallback...`,
-      );
-
-      try {
-        return await this.makeRequest<T>(this.fallbackConfig, options);
-      } catch (fallbackError) {
-        this.logger.error(
-          `Both primary and fallback requests failed for ${endpoint}`,
-          {
-            primaryError: primaryError.message,
-            fallbackError: fallbackError.message,
-          },
-        );
-
-        throw new HttpException(
-          fallbackError?.response?.data ||
-            fallbackError.message ||
-            'Blockfrost API unavailable',
-          fallbackError?.response?.status || 500,
-        );
-      }
+    } catch (error) {
+      // POST outcomes may be ambiguous: never retry or fail over a submission.
+      if (options.method !== 'GET' || !(error instanceof ProviderDeferred))
+        throw error;
+      if (
+        !this.fallbackConfig.url ||
+        this.scope(this.primaryConfig, options) ===
+          this.scope(this.fallbackConfig, options)
+      )
+        throw error;
+      return this.makeRequest<T>(this.fallbackConfig, options);
     }
   }
 
@@ -113,34 +113,71 @@ export class BlockfrostService {
     config: BlockfrostConfig,
     options: RequestOptions,
   ): Promise<T> {
-    const { method, endpoint, data, headers = {} } = options;
-    const url = `${config.url}${endpoint}`;
-
-    const requestHeaders = {
-      project_id: config.projectId,
-      ...headers,
-    };
-
-    try {
-      let response;
-
-      if (method === 'GET') {
-        response = await lastValueFrom(
-          this.httpService.get(url, { headers: requestHeaders }),
-        );
-      } else if (method === 'POST') {
-        response = await lastValueFrom(
-          this.httpService.post(url, data, { headers: requestHeaders }),
-        );
+    const scope = this.scope(config, options);
+    const dispatch = async (): Promise<T> => {
+      for (let attempt = 0; ; attempt++) {
+        await this.budget.acquire(scope, false);
+        try {
+          const url = config.url + options.endpoint;
+          const settings = {
+            headers: { project_id: config.projectId, ...options.headers },
+            timeout: 30000,
+            maxRedirects: 0,
+          };
+          const response = await lastValueFrom(
+            options.method === 'GET'
+              ? this.httpService.get(url, settings)
+              : this.httpService.post(url, options.data, settings),
+          );
+          const listRequest =
+            /^\/governance\/(dreps|proposals)(\?|$)/.test(options.endpoint) ||
+            /\/(delegators|votes)\?/.test(options.endpoint);
+          if (listRequest && !Array.isArray(response.data))
+            throw new HttpException('Invalid Cardano list response', 503);
+          const amountField = /^\/governance\/dreps\/[^/?]+$/.test(
+            options.endpoint,
+          )
+            ? 'amount'
+            : /^\/accounts\/[^/?]+$/.test(options.endpoint)
+              ? 'controlled_amount'
+              : undefined;
+          if (
+            amountField &&
+            (!/^\d+$/.test(String(response.data?.[amountField])) ||
+              !Number.isFinite(Number(response.data[amountField])))
+          )
+            throw new HttpException('Invalid Cardano amount response', 503);
+          return response.data as T;
+        } catch (error) {
+          const status = error?.response?.status;
+          const transient = !status || (status >= 500 && status < 600);
+          // Long Retry-After is handled as durable deferral, never an in-worker sleep.
+          if (
+            options.method === 'GET' &&
+            transient &&
+            !error?.response?.headers?.['retry-after'] &&
+            attempt < 2
+          ) {
+            await new Promise((resolve) =>
+              setTimeout(resolve, 250 * 2 ** attempt),
+            );
+            continue;
+          }
+          const failure = await this.budget.failure(scope, error);
+          if (options.method === 'POST' && transient)
+            throw new HttpException(
+              {
+                message:
+                  'Transaction submission outcome unknown; reconcile its hash before retrying',
+                code: 'SUBMISSION_OUTCOME_UNKNOWN',
+              },
+              503,
+            );
+          throw failure;
+        }
       }
-
-      return response.data;
-    } catch (error) {
-      throw new HttpException(
-        error?.response?.data || error.message || 'Request failed',
-        error?.response?.status || 500,
-      );
-    }
+    };
+    return dispatch();
   }
 
   async getLatestBlock() {

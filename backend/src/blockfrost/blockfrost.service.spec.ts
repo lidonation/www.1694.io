@@ -1,6 +1,7 @@
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { of, throwError } from 'rxjs';
+import { ProviderDeferred } from './request-budget';
 import { BlockfrostService } from './blockfrost.service';
 
 const gateway =
@@ -17,7 +18,23 @@ const settings = {
 function setup(overrides: Record<string, string> = {}) {
   const config = new ConfigService({ ...settings, ...overrides });
   const http = { get: jest.fn(), post: jest.fn() };
-  const service = new BlockfrostService(config, http as unknown as HttpService);
+  const service = new BlockfrostService(
+    config,
+    http as unknown as HttpService,
+    {
+      scope: () => 'shared',
+      acquire: async () => undefined,
+      failure: async (_scope: string, e: any) =>
+        e.response?.status === 404
+          ? Object.assign(new Error('not found'), { status: 404 })
+          : new ProviderDeferred(
+              'shared',
+              e.response?.status === 429 ? 'throttle' : 'transient',
+              Date.now() + 60000,
+              e.response?.status || 503,
+            ),
+    } as any,
+  );
   return { service, http };
 }
 
@@ -43,7 +60,10 @@ describe('Cardano gateway routing', () => {
     'routes %s through the authenticated gateway without changing its response',
     async (method, args, endpoint) => {
       const { service, http } = setup();
-      const payload = [{ amount: '9007199254740993', tx_hash: 'hash' }];
+      const payload =
+        method === 'getDRepInfo'
+          ? { amount: '9007199254740993' }
+          : [{ amount: '9007199254740993', tx_hash: 'hash' }];
       http.get.mockReturnValue(of({ data: payload }));
       // A heterogeneous table exercises the same transport contract for each public method.
       const call = service[method] as (
@@ -65,17 +85,18 @@ describe('Cardano gateway routing', () => {
     expect(http.post).toHaveBeenCalledWith(
       `${gateway}/tx/submit`,
       Buffer.from('a100', 'hex'),
-      {
+      expect.objectContaining({
         headers: {
           project_id: 'gateway-key',
           'Content-Type': 'application/cbor',
         },
-      },
+      }),
     );
   });
 
   it('keeps the existing fallback key separate from the gateway key', async () => {
     const { service, http } = setup();
+    (service as any).budget.scope = (route: string) => route;
     http.get
       .mockReturnValueOnce(
         throwError(() => ({ response: { status: 403, data: 'denied' } })),
