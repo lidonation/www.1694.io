@@ -1,6 +1,7 @@
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { of, throwError } from 'rxjs';
+import { ProviderDeferred } from './request-budget';
 import { BlockfrostService } from './blockfrost.service';
 
 const gateway =
@@ -17,7 +18,23 @@ const settings = {
 function setup(overrides: Record<string, string> = {}) {
   const config = new ConfigService({ ...settings, ...overrides });
   const http = { get: jest.fn(), post: jest.fn() };
-  const service = new BlockfrostService(config, http as unknown as HttpService);
+  const service = new BlockfrostService(
+    config,
+    http as unknown as HttpService,
+    {
+      scope: () => 'shared',
+      acquire: async () => undefined,
+      failure: async (_scope: string, e: any) =>
+        e.response?.status === 404
+          ? Object.assign(new Error('not found'), { status: 404 })
+          : new ProviderDeferred(
+              'shared',
+              e.response?.status === 429 ? 'throttle' : 'transient',
+              Date.now() + 60000,
+              e.response?.status || 503,
+            ),
+    } as any,
+  );
   return { service, http };
 }
 
@@ -43,7 +60,10 @@ describe('Cardano gateway routing', () => {
     'routes %s through the authenticated gateway without changing its response',
     async (method, args, endpoint) => {
       const { service, http } = setup();
-      const payload = [{ amount: '9007199254740993', tx_hash: 'hash' }];
+      const payload =
+        method === 'getDRepInfo'
+          ? { amount: '9007199254740993' }
+          : [{ amount: '9007199254740993', tx_hash: 'hash' }];
       http.get.mockReturnValue(of({ data: payload }));
       // A heterogeneous table exercises the same transport contract for each public method.
       const call = service[method] as (
@@ -65,17 +85,18 @@ describe('Cardano gateway routing', () => {
     expect(http.post).toHaveBeenCalledWith(
       `${gateway}/tx/submit`,
       Buffer.from('a100', 'hex'),
-      {
+      expect.objectContaining({
         headers: {
           project_id: 'gateway-key',
           'Content-Type': 'application/cbor',
         },
-      },
+      }),
     );
   });
 
   it('keeps the existing fallback key separate from the gateway key', async () => {
     const { service, http } = setup();
+    (service as any).budget.scope = (route: string) => route;
     http.get
       .mockReturnValueOnce(
         throwError(() => ({ response: { status: 403, data: 'denied' } })),
@@ -150,24 +171,13 @@ describe('Gateway indexing safeguards', () => {
     expect(http.get).toHaveBeenCalledTimes(1);
   });
 
-  it('retries a transient gateway rate limit before using fallback', async () => {
-    jest.useFakeTimers();
-    try {
-      const { service, http } = setup();
-      http.get
-        .mockReturnValueOnce(throwError(() => ({ response: { status: 429 } })))
-        .mockReturnValueOnce(of({ data: { epoch: 500 } }));
-      const result = service.getLatestEpoch();
-      await jest.advanceTimersByTimeAsync(1000);
-      await expect(result).resolves.toEqual({ epoch: 500 });
-      expect(http.get).toHaveBeenCalledTimes(2);
-      expect(http.get).toHaveBeenLastCalledWith(
-        `${gateway}/epochs/latest`,
-        expect.objectContaining({ headers: { project_id: 'gateway-key' } }),
-      );
-    } finally {
-      jest.useRealTimers();
-    }
+  it('defers throttling instead of immediately retrying the primary', async () => {
+    const { service, http } = setup();
+    http.get.mockReturnValue(throwError(() => ({ response: { status: 429 } })));
+    await expect(service.getLatestEpoch()).rejects.toBeInstanceOf(
+      ProviderDeferred,
+    );
+    expect(http.get).toHaveBeenCalledTimes(1);
   });
 
   it('denies stale primary epochs before updating voting power', async () => {
@@ -194,15 +204,19 @@ describe('Gateway indexing safeguards', () => {
     expect(http.get).toHaveBeenCalledTimes(1);
   });
 
-  it('allows a fresh primary when the comparison source is unavailable', async () => {
-    const { service, http } = setup();
-    http.get
-      .mockReturnValueOnce(of({ data: { epoch: 500 } }))
-      .mockReturnValueOnce(throwError(() => ({ response: { status: 503 } })));
-    await expect(service.assertGovernanceSourceFresh()).resolves.toEqual({
-      ok: true,
-      epoch: 500,
-    });
+  it('allows a fresh primary when the comparison source is transiently unavailable', async () => {
+    jest.useFakeTimers();
+    try {
+      const { service, http } = setup();
+      http.get
+        .mockReturnValueOnce(of({ data: { epoch: 500 } }))
+        .mockReturnValue(throwError(() => ({ response: { status: 503 } })));
+      const result = service.assertGovernanceSourceFresh();
+      await jest.runAllTimersAsync();
+      await expect(result).resolves.toEqual({ ok: true, epoch: 500 });
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it.each(['ipfs-key', ''])(
@@ -214,10 +228,10 @@ describe('Gateway indexing safeguards', () => {
       await expect(service.getIpfsContent('cid')).resolves.toBe(payload);
       expect(http.get).toHaveBeenCalledWith(
         'https://ipfs.blockfrost.io/api/v0/ipfs/get/cid',
-        {
+        expect.objectContaining({
           headers: { project_id: ipfsKey || 'legacy-key' },
           responseType: 'arraybuffer',
-        },
+        }),
       );
     },
   );

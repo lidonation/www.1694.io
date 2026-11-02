@@ -1,3 +1,5 @@
+import { ProviderDeferred } from '../blockfrost/request-budget';
+import { batchDatabase, runBatch, targets } from '../blockfrost/sync-run';
 import { Processor, WorkerHost, InjectQueue } from '@nestjs/bullmq';
 import { Injectable, Logger } from '@nestjs/common';
 import { Job, Queue } from 'bullmq';
@@ -30,76 +32,97 @@ export class TimelineWatcherWorker extends WorkerHost {
     super();
   }
 
-  async process(_job: Job): Promise<any> {
-    const syncStateRepo = this.dataSource.getRepository(SyncState);
-    const timelineRepo = this.dataSource.getRepository(DrepTimelineEvent);
+  async process(_job: Job, token?: string): Promise<any> {
+    return runBatch(this.dataSource, _job, token, async () => {
+      const syncStateRepo = batchDatabase(this.dataSource).getRepository(
+        SyncState,
+      );
+      const timelineRepo = batchDatabase(this.dataSource).getRepository(
+        DrepTimelineEvent,
+      );
 
-    let state = await syncStateRepo.findOne({ where: { key: this.STATE_KEY } });
-    if (!state) {
-      state = syncStateRepo.create({ key: this.STATE_KEY, lastProcessedId: '0' });
-      await syncStateRepo.save(state);
-    }
-
-    const newEvents = await timelineRepo.find({
-      where: { id: MoreThan(state.lastProcessedId) },
-      order: { id: 'ASC' },
-      take: 50,
-    });
-
-    if (newEvents.length === 0) {
-      return { success: true, processed: 0 };
-    }
-
-    this.logger.log(`Found ${newEvents.length} new timeline events to process`);
-
-    const triggeredSyncs = new Set<string>();
-
-    for (const event of newEvents) {
-      try {
-        switch (event.eventType) {
-          case 'registration':
-          case 'retirement':
-            triggeredSyncs.add('dreps');
-            break;
-          case 'delegation':
-            await this.handleDelegation(event);
-            break;
-          case 'proposal':
-            triggeredSyncs.add('proposals');
-            break;
-          case 'vote':
-            triggeredSyncs.add('votes');
-            break;
-        }
-      } catch (err) {
-        // One bad event must not wedge the cursor — log and let the batch advance.
-        this.logger.error(`Failed to process timeline event ${event.id} (${event.eventType}): ${err.message}`);
+      let state = await syncStateRepo.findOne({
+        where: { key: this.STATE_KEY },
+      });
+      if (!state) {
+        state = syncStateRepo.create({
+          key: this.STATE_KEY,
+          lastProcessedId: '0',
+        });
+        await syncStateRepo.save(state);
       }
-    }
 
-    if (triggeredSyncs.has('dreps')) {
-      await this.governanceSyncQueue.add(JobTypes.GOVERNANCE_SYNC, { syncOnly: 'dreps' });
-      this.logger.debug('Triggered DRep sync');
-    }
-    if (triggeredSyncs.has('proposals')) {
-      await this.proposalsSyncQueue.add(JobTypes.PROPOSALS_SYNC, {});
-      this.logger.debug('Triggered proposals sync');
-    }
-    if (triggeredSyncs.has('votes')) {
-      await this.drepVotesSyncQueue.add(JobTypes.DREP_VOTES_SYNC, {});
-      this.logger.debug('Triggered votes sync');
-    }
+      const newEvents = await targets('timeline-events', () =>
+        timelineRepo.find({
+          where: { id: MoreThan(state.lastProcessedId) },
+          order: { id: 'ASC' },
+          take: 50,
+        }),
+      );
 
-    state.lastProcessedId = newEvents[newEvents.length - 1].id;
-    state.updatedAt = new Date();
-    await syncStateRepo.save(state);
+      if (newEvents.length === 0) {
+        return { success: true, processed: 0 };
+      }
 
-    return {
-      success: true,
-      processed: newEvents.length,
-      lastId: state.lastProcessedId,
-      triggers: Array.from(triggeredSyncs),
-    };
+      this.logger.log(
+        `Found ${newEvents.length} new timeline events to process`,
+      );
+
+      const triggeredSyncs = new Set<string>();
+
+      for (const event of newEvents) {
+        try {
+          await batchDatabase(this.dataSource).transaction(async () => {
+            switch (event.eventType) {
+              case 'registration':
+              case 'retirement':
+                triggeredSyncs.add('dreps');
+                break;
+              case 'delegation':
+                await this.handleDelegation(event);
+                break;
+              case 'proposal':
+                triggeredSyncs.add('proposals');
+                break;
+              case 'vote':
+                triggeredSyncs.add('votes');
+                break;
+            }
+          });
+        } catch (err) {
+          if (err instanceof ProviderDeferred) throw err;
+
+          // One bad event must not wedge the cursor — log and let the batch advance.
+          this.logger.error('Failed to process timeline event');
+        }
+      }
+
+      if (triggeredSyncs.has('dreps')) {
+        await this.governanceSyncQueue.add(JobTypes.GOVERNANCE_SYNC, {
+          syncOnly: 'dreps',
+        });
+        this.logger.debug('Triggered DRep sync');
+      }
+      if (triggeredSyncs.has('proposals')) {
+        await this.proposalsSyncQueue.add(JobTypes.PROPOSALS_SYNC, {});
+        this.logger.debug('Triggered proposals sync');
+      }
+      if (triggeredSyncs.has('votes')) {
+        await this.drepVotesSyncQueue.add(JobTypes.DREP_VOTES_SYNC, {});
+        this.logger.debug('Triggered votes sync');
+      }
+
+      state.lastProcessedId = newEvents[newEvents.length - 1].id;
+      state.updatedAt = new Date();
+      await syncStateRepo.save(state);
+
+      return {
+        success: true,
+        processed: newEvents.length,
+        lastId: state.lastProcessedId,
+        triggers: Array.from(triggeredSyncs),
+      };
+    });
   }
 
   private async handleDelegation(event: DrepTimelineEvent): Promise<void> {
@@ -108,7 +131,9 @@ export class TimelineWatcherWorker extends WorkerHost {
 
     await this.updateDelegatorVotingPower(stakeAddress);
 
-    const prevRows = await this.dataSource.query<{ drep_id: string }[]>(
+    const prevRows = await batchDatabase(this.dataSource).query<
+      { drep_id: string }[]
+    >(
       `SELECT drep_id FROM drep_timeline_event
        WHERE event_type = 'delegation'
          AND metadata->>'stake_address' = $1
@@ -123,7 +148,7 @@ export class TimelineWatcherWorker extends WorkerHost {
     // Offset tx_index off the real cert so it clears the (tx_hash, tx_index) unique index; orIgnore keeps retries safe.
     const syntheticTxIndex = (event.txIndex ?? 0) + SYNTHETIC_TX_INDEX_OFFSET;
 
-    const result = await this.dataSource
+    const result = await batchDatabase(this.dataSource)
       .createQueryBuilder()
       .insert()
       .into(DrepTimelineEvent)
@@ -144,23 +169,31 @@ export class TimelineWatcherWorker extends WorkerHost {
       .execute();
 
     if (result.identifiers.length > 0) {
-      this.logger.debug(`Synthesized undelegation: ${previousDrepId} → ${event.drepId} (${stakeAddress})`);
+      this.logger.debug('Synthesized undelegation');
     }
   }
 
-  private async updateDelegatorVotingPower(stakeAddress: string): Promise<void> {
+  private async updateDelegatorVotingPower(
+    stakeAddress: string,
+  ): Promise<void> {
     try {
-      const info = await this.blockfrostService.getStakeAddressInfo(stakeAddress);
+      const info =
+        await this.blockfrostService.getStakeAddressInfo(stakeAddress);
       if (!info?.controlled_amount) return;
 
-      await this.dataSource
+      await batchDatabase(this.dataSource)
         .createQueryBuilder()
         .update(DrepDelegator)
-        .set({ votingPowerLovelace: info.controlled_amount, updatedAt: new Date() })
+        .set({
+          votingPowerLovelace: info.controlled_amount,
+          updatedAt: new Date(),
+        })
         .where('stake_address = :stakeAddress', { stakeAddress })
         .execute();
     } catch (err) {
-      this.logger.warn(`Voting power update failed for ${stakeAddress}: ${err.message}`);
+      if (err instanceof ProviderDeferred) throw err;
+
+      this.logger.warn('Voting power update failed');
     }
   }
 }
