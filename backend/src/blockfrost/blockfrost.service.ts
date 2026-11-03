@@ -22,7 +22,7 @@ interface RequestOptions {
 export class BlockfrostService {
   private readonly logger = new Logger(BlockfrostService.name);
   private readonly primaryConfig: BlockfrostConfig;
-  private readonly fallbackConfig: BlockfrostConfig;
+  private readonly fallbackConfig?: BlockfrostConfig;
 
   constructor(
     private readonly configService: ConfigService,
@@ -69,16 +69,19 @@ export class BlockfrostService {
             '',
         };
 
-    this.fallbackConfig = {
-      url:
-        this.configService.get<string>('BLOCKFROST_NETWORK_URL_FALLBACK') || '',
-      projectId:
-        this.configService.get<string>(
-          'BLOCKFROST_NETWORK_PROJECT_ID_FALLBACK',
-        ) || '',
-    };
+    this.fallbackConfig = gatewayUrl
+      ? undefined
+      : {
+          url:
+            this.configService.get<string>('BLOCKFROST_NETWORK_URL_FALLBACK') ||
+            '',
+          projectId:
+            this.configService.get<string>(
+              'BLOCKFROST_NETWORK_PROJECT_ID_FALLBACK',
+            ) || '',
+        };
     this.logger.log(
-      `Cardano routing configured gateway=${Boolean(gatewayUrl)} fallbackIndependent=${this.scope(this.primaryConfig, { method: 'GET', endpoint: '' }) !== this.scope(this.fallbackConfig, { method: 'GET', endpoint: '' })}`,
+      `Cardano routing configured gateway=${Boolean(gatewayUrl)} fallbackIndependent=${Boolean(this.fallbackConfig?.url) && this.scope(this.primaryConfig, { method: 'GET', endpoint: '' }) !== this.scope(this.fallbackConfig, { method: 'GET', endpoint: '' })}`,
     );
   }
 
@@ -100,7 +103,7 @@ export class BlockfrostService {
       if (options.method !== 'GET' || !(error instanceof ProviderDeferred))
         throw error;
       if (
-        !this.fallbackConfig.url ||
+        !this.fallbackConfig?.url ||
         this.scope(this.primaryConfig, options) ===
           this.scope(this.fallbackConfig, options)
       )

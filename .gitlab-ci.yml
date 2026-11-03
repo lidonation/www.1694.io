@@ -87,9 +87,9 @@ build_backend:
       set -xev
 
       cat $ENV_FILE > backend/.env.production
-      cat $ENV_FILE_BACKEND > backend/.env.production
+      sh ci/prepare-cardano-env.sh "$ENV_FILE_BACKEND" backend/.env.production
       cat $ENV_FILE_FRONTEND > frontend/.env.production
-      cat $ENV_FILE_BACKEND > ./chart/backend_env
+      cp backend/.env.production ./chart/backend_env
             
       docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
       echo "Building Dockerfile with tags $CI_APPLICATION_REPOSITORY/1694.io-backend:$CI_APPLICATION_TAG and $CI_APPLICATION_REPOSITORY/www.1694.io-backend:latest ..."
@@ -110,8 +110,8 @@ build_queue_backend:
     - |
       set -xev
 
-      cat $ENV_FILE_QUEUE > queue-backend/.env.production
-      cat $ENV_FILE_QUEUE > ./chart/queue_env
+      sh ci/prepare-cardano-env.sh "$ENV_FILE_QUEUE" queue-backend/.env.production
+      cp queue-backend/.env.production ./chart/queue_env
             
       docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
       echo "Building Dockerfile with tags $CI_APPLICATION_REPOSITORY/1694.io-queue-backend:$CI_APPLICATION_TAG and $CI_APPLICATION_REPOSITORY/www.1694.io-queue-backend:latest ..."
@@ -140,14 +140,14 @@ app-preview:
       set -xev
 
       DEPLOYMENT_NAME="www-1694.$CI_ENVIRONMENT_SLUG"    
-      cat $ENV_FILE_BACKEND > backend/.env.production
+      sh ci/prepare-cardano-env.sh "$ENV_FILE_BACKEND" backend/.env.production
       cat $ENV_FILE_FRONTEND > frontend/.env.production
       cp backend/.env.production ./chart/backend_env
 
       cp $ENV_FILE_FRONTEND ./chart/frontend_env
 
-      cat $ENV_FILE_QUEUE > queue-backend/.env.production
-      cp $ENV_FILE_QUEUE ./chart/queue_env
+      sh ci/prepare-cardano-env.sh "$ENV_FILE_QUEUE" queue-backend/.env.production
+      cp queue-backend/.env.production ./chart/queue_env
 
       if [ -n "$GLOBAL_ENV_FILE" ]; then cp "$GLOBAL_ENV_FILE" ./chart/global_env; else touch ./chart/global_env; fi
 
@@ -209,14 +209,14 @@ production:
     - |
       DEPLOYMENT_NAME="www-1694.$CI_ENVIRONMENT_SLUG"
 
-      cat $ENV_FILE_BACKEND > backend/.env.production
+      sh ci/prepare-cardano-env.sh "$ENV_FILE_BACKEND" backend/.env.production
       cat $ENV_FILE_FRONTEND > frontend/.env.production
       cp backend/.env.production ./chart/backend_env
 
       cp $ENV_FILE_FRONTEND ./chart/frontend_env
 
-      cat $ENV_FILE_QUEUE > queue-backend/.env.production
-      cp $ENV_FILE_QUEUE ./chart/queue_env
+      sh ci/prepare-cardano-env.sh "$ENV_FILE_QUEUE" queue-backend/.env.production
+      cp queue-backend/.env.production ./chart/queue_env
 
       if [ -n "$GLOBAL_ENV_FILE" ]; then cp "$GLOBAL_ENV_FILE" ./chart/global_env; else touch ./chart/global_env; fi
 
@@ -430,6 +430,7 @@ test_shared_gateway:
   before_script:
     - apk add --no-cache python3 py3-yaml py3-jsonschema
   script:
+    - python3 ci/tests/cardano-fallback.test.py
     - python3 ci/tests/chart-gateway.test.py
     - python3 ci/tests/acme-enrollment.test.py
   rules:

@@ -25,7 +25,7 @@ interface RequestOptions {
 export class BlockfrostService {
   private readonly logger = new Logger(BlockfrostService.name);
   private readonly primaryConfig: BlockfrostConfig;
-  private readonly fallbackConfig: BlockfrostConfig;
+  private readonly fallbackConfig?: BlockfrostConfig;
   private readonly ipfsProjectId: string;
 
   constructor(
@@ -73,21 +73,24 @@ export class BlockfrostService {
             '',
         };
 
-    this.fallbackConfig = {
-      url:
-        this.configService.get<string>('BLOCKFROST_NETWORK_URL_FALLBACK') || '',
-      projectId:
-        this.configService.get<string>(
-          'BLOCKFROST_NETWORK_PROJECT_ID_FALLBACK',
-        ) || '',
-    };
+    this.fallbackConfig = gatewayUrl
+      ? undefined
+      : {
+          url:
+            this.configService.get<string>('BLOCKFROST_NETWORK_URL_FALLBACK') ||
+            '',
+          projectId:
+            this.configService.get<string>(
+              'BLOCKFROST_NETWORK_PROJECT_ID_FALLBACK',
+            ) || '',
+        };
 
     this.ipfsProjectId =
       this.configService.get<string>('BLOCKFROST_IPFS_PROJECT_ID') ||
       this.configService.get<string>('BLOCKFROST_NETWORK_PROJECT_ID') ||
       '';
     this.logger.log(
-      `Cardano routing configured gateway=${Boolean(gatewayUrl)} fallbackIndependent=${this.scope(this.primaryConfig, { method: 'GET', endpoint: '' }) !== this.scope(this.fallbackConfig, { method: 'GET', endpoint: '' })}`,
+      `Cardano routing configured gateway=${Boolean(gatewayUrl)} fallbackIndependent=${Boolean(this.fallbackConfig?.url) && this.scope(this.primaryConfig, { method: 'GET', endpoint: '' }) !== this.scope(this.fallbackConfig, { method: 'GET', endpoint: '' })}`,
     );
   }
 
@@ -113,7 +116,7 @@ export class BlockfrostService {
       if (options.method !== 'GET' || !(error instanceof ProviderDeferred))
         throw error;
       if (
-        !this.fallbackConfig.url ||
+        !this.fallbackConfig?.url ||
         this.scope(this.primaryConfig, options) ===
           this.scope(this.fallbackConfig, options)
       )
@@ -257,17 +260,20 @@ export class BlockfrostService {
     }
 
     let tipEpoch: number | undefined;
-    if (this.fallbackConfig.url) {
+    const comparison = this.fallbackConfig || this.primaryConfig;
+    const endpoint = this.fallbackConfig ? '/epochs/latest' : '/blocks/latest';
+    if (comparison.url) {
       try {
-        const res = await this.makeRequest<{ epoch: number }>(
-          this.fallbackConfig,
-          { method: 'GET', endpoint: '/epochs/latest' },
-        );
+        const res = await this.makeRequest<{ epoch: number }>(comparison, {
+          method: 'GET',
+          endpoint,
+          live: true,
+        });
         if (Number.isSafeInteger(res?.epoch) && res.epoch >= 0)
           tipEpoch = res.epoch;
       } catch (e) {
         if (e instanceof ProviderDeferred && e.reason !== 'transient') throw e;
-        // Fallback unavailable — proceed on the primary epoch rather than block.
+        // A transient comparison outage retains the primary-only policy.
       }
     }
 
