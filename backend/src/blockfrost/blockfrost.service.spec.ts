@@ -1,7 +1,8 @@
 import { HttpService } from '@nestjs/axios';
+import { HttpException } from '@nestjs/common';
+import { RequestBudget, ProviderDeferred } from './request-budget';
 import { ConfigService } from '@nestjs/config';
 import { of, throwError } from 'rxjs';
-import { ProviderDeferred } from './request-budget';
 import { BlockfrostService } from './blockfrost.service';
 
 const gateway =
@@ -11,31 +12,30 @@ const settings = {
   CARDANO_API_PROJECT_ID: 'gateway-key',
   BLOCKFROST_NETWORK_URL: 'https://legacy.test/api/v0',
   BLOCKFROST_NETWORK_PROJECT_ID: 'legacy-key',
-  BLOCKFROST_NETWORK_URL_FALLBACK: 'https://fallback.test/api/v0',
+  BLOCKFROST_NETWORK_URL_FALLBACK:
+    'https://cardano-mainnet.blockfrost.io/api/v0',
   BLOCKFROST_NETWORK_PROJECT_ID_FALLBACK: 'fallback-key',
 };
 
-function setup(overrides: Record<string, string> = {}) {
+function setup(overrides: Record<string, string> = {}, independent = false) {
   const config = new ConfigService({ ...settings, ...overrides });
   const http = { get: jest.fn(), post: jest.fn() };
+  const classifier = new RequestBudget(config, {
+    query: jest.fn().mockResolvedValue([]),
+  } as any);
+  const budget = {
+    scope: jest.fn((route: string) => (independent ? route : 'shared')),
+    acquire: jest.fn(async () => undefined),
+    failure: jest.fn((scope: string, error: unknown) =>
+      classifier.failure(scope, error),
+    ),
+  };
   const service = new BlockfrostService(
     config,
     http as unknown as HttpService,
-    {
-      scope: () => 'shared',
-      acquire: async () => undefined,
-      failure: async (_scope: string, e: any) =>
-        e.response?.status === 404
-          ? Object.assign(new Error('not found'), { status: 404 })
-          : new ProviderDeferred(
-              'shared',
-              e.response?.status === 429 ? 'throttle' : 'transient',
-              Date.now() + 60000,
-              e.response?.status || 503,
-            ),
-    } as any,
+    budget as any,
   );
-  return { service, http };
+  return { service, http, budget };
 }
 
 describe('Cardano gateway routing', () => {
@@ -94,9 +94,14 @@ describe('Cardano gateway routing', () => {
     );
   });
 
-  it('keeps the existing fallback key separate from the gateway key', async () => {
-    const { service, http } = setup();
-    (service as any).budget.scope = (route: string) => route;
+  it('keeps legacy fallback credentials separate without gateway mode', async () => {
+    const { service, http } = setup(
+      {
+        CARDANO_API_URL: '',
+        CARDANO_API_PROJECT_ID: '',
+      },
+      true,
+    );
     http.get
       .mockReturnValueOnce(
         throwError(() => ({ response: { status: 403, data: 'denied' } })),
@@ -105,10 +110,123 @@ describe('Cardano gateway routing', () => {
     await expect(service.getLatestEpoch()).resolves.toEqual({ epoch: 500 });
     expect(http.get).toHaveBeenNthCalledWith(
       2,
-      'https://fallback.test/api/v0/epochs/latest',
+      'https://cardano-mainnet.blockfrost.io/api/v0/epochs/latest',
       expect.objectContaining({ headers: { project_id: 'fallback-key' } }),
     );
   });
+
+  it.each([
+    [
+      'quota',
+      { response: { status: 402, data: 'sensitive quota payload' } },
+      402,
+      'quota',
+      1,
+    ],
+    [
+      'rate limit',
+      { response: { status: 429, data: 'sensitive rate payload' } },
+      429,
+      'throttle',
+      1,
+    ],
+    [
+      'authentication',
+      { response: { status: 403, data: 'sensitive auth payload' } },
+      403,
+      'authentication',
+      1,
+    ],
+    [
+      'upstream',
+      { response: { status: 503, data: 'sensitive upstream payload' } },
+      503,
+      'transient',
+      3,
+    ],
+    [
+      'transport',
+      { code: 'ECONNRESET', message: 'sensitive transport payload' },
+      503,
+      'transient',
+      3,
+    ],
+    [
+      'not found',
+      { response: { status: 404, data: 'sensitive missing payload' } },
+      404,
+      undefined,
+      1,
+    ],
+  ] as const)(
+    'keeps gateway %s failures within the gateway even with independent legacy scopes',
+    async (_name, error, status, reason, attempts) => {
+      jest.useFakeTimers();
+      try {
+        const { service, http, budget } = setup({}, true);
+        http.get.mockImplementation((url: string) =>
+          url.startsWith(gateway)
+            ? throwError(() => error)
+            : of({ data: { epoch: 999 } }),
+        );
+        const result = service.getLatestEpoch().catch((e: unknown) => e);
+        await jest.runAllTimersAsync();
+        const failure = await result;
+        expect(failure).toBeInstanceOf(HttpException);
+        expect(failure).toMatchObject({ status });
+        if (reason) {
+          expect(failure).toBeInstanceOf(ProviderDeferred);
+          expect(failure).toMatchObject({ reason, scope: 'primary' });
+        }
+        expect(JSON.stringify(failure)).not.toContain('sensitive');
+        expect(http.get).toHaveBeenCalledTimes(attempts);
+        expect(
+          http.get.mock.calls.every(
+            ([url]) => url === `${gateway}/epochs/latest`,
+          ),
+        ).toBe(true);
+        expect(budget.acquire).toHaveBeenCalledTimes(attempts);
+        expect(
+          budget.scope.mock.calls.every(([route]) => route === 'primary'),
+        ).toBe(true);
+      } finally {
+        jest.useRealTimers();
+      }
+    },
+  );
+
+  it('does not consult stale fallback quota configuration in gateway mode', () => {
+    const { budget } = setup({}, true);
+    expect(
+      budget.scope.mock.calls.some(([route]) => route === 'fallback'),
+    ).toBe(false);
+  });
+
+  it.each([402, 429, 503, 'timeout'] as const)(
+    'does not retry or fail over a CBOR submission after %s',
+    async (status) => {
+      const { service, http, budget } = setup({}, true);
+      http.post.mockReturnValue(
+        throwError(() => ({
+          code: 'ETIMEDOUT',
+          response: typeof status === 'number' ? { status } : undefined,
+        })),
+      );
+      const failure = await service
+        .submitTransaction('a100')
+        .catch((e: unknown) => e);
+      if (status === 503 || status === 'timeout') {
+        expect(failure).toMatchObject({
+          status: 503,
+          response: { code: 'SUBMISSION_OUTCOME_UNKNOWN' },
+        });
+      } else {
+        expect(failure).toMatchObject({ status });
+      }
+      expect(http.post).toHaveBeenCalledTimes(1);
+      expect(budget.acquire).toHaveBeenCalledTimes(1);
+    },
+  );
 
   it.each(['CARDANO_API_URL', 'CARDANO_API_PROJECT_ID'])(
     'rejects an incomplete gateway pair missing %s',

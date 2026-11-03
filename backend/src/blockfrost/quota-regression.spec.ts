@@ -10,7 +10,7 @@ const settings = {
   BLOCKFROST_NETWORK_URL_FALLBACK: 'https://hosted.test/api/v0',
   BLOCKFROST_NETWORK_PROJECT_ID_FALLBACK: 'fallback-secret',
 };
-function setup(independent = false) {
+function setup(independent = false, gatewayMode = true) {
   const http = { get: jest.fn(), post: jest.fn() };
   const blocked = new Map<string, ProviderDeferred>();
   const budget = {
@@ -39,7 +39,17 @@ function setup(independent = false) {
     }),
   };
   const service = new BlockfrostService(
-    new ConfigService(settings),
+    new ConfigService({
+      ...settings,
+      ...(gatewayMode
+        ? {}
+        : {
+            CARDANO_API_URL: '',
+            CARDANO_API_PROJECT_ID: '',
+            BLOCKFROST_NETWORK_URL: 'https://legacy.test/api/v0',
+            BLOCKFROST_NETWORK_PROJECT_ID: 'primary-secret',
+          }),
+    }),
     http as unknown as HttpService,
     budget as any,
   );
@@ -64,8 +74,8 @@ describe('quota-aware physical dispatch', () => {
       expect(http.get).toHaveBeenCalledTimes(1);
     },
   );
-  it('uses a verified independent fallback after primary quota exhaustion', async () => {
-    const { service, http } = setup(true);
+  it('uses a verified independent fallback after legacy primary quota exhaustion', async () => {
+    const { service, http } = setup(true, false);
     http.get
       .mockReturnValueOnce(throwError(() => ({ response: { status: 402 } })))
       .mockReturnValueOnce(of({ data: { epoch: 600 } }));
