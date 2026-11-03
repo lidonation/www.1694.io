@@ -21,6 +21,8 @@ changes.
   branch and merge request pipeline.
 
 ### Fixed
+- Gateway-mode API and queue failures no longer fall back to direct providers;
+  deployment inputs and preserved Secrets discard obsolete fallback settings (#234).
 - Deployments reject missing or malformed Cardano gateway client credentials before
   Helm changes the release. Internal cluster routing continues to require authentication.
 - Frontend preview and production deployments no longer override the generated

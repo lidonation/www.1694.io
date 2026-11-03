@@ -2,6 +2,8 @@ import { HttpService } from '@nestjs/axios';
 import { HttpException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { lastValueFrom } from 'rxjs';
+import { RequestBudget, ProviderDeferred } from './request-budget';
+import { staged, inBatch, batchAdmission } from './sync-run';
 import { BlockfrostUTXO } from './blockfrost.types';
 
 interface BlockfrostConfig {
@@ -14,6 +16,7 @@ interface RequestOptions {
   endpoint: string;
   data?: any;
   headers?: Record<string, string>;
+  live?: boolean;
   baseUrl?: string;
   responseType?: 'json' | 'arraybuffer';
 }
@@ -22,12 +25,13 @@ interface RequestOptions {
 export class BlockfrostService {
   private readonly logger = new Logger(BlockfrostService.name);
   private readonly primaryConfig: BlockfrostConfig;
-  private readonly fallbackConfig: BlockfrostConfig;
+  private readonly fallbackConfig?: BlockfrostConfig;
   private readonly ipfsProjectId: string;
 
   constructor(
     private readonly configService: ConfigService,
     private readonly httpService: HttpService,
+    private readonly budget: RequestBudget,
   ) {
     const gatewayUrl = this.configService
       .get<string>('CARDANO_API_URL')
@@ -69,79 +73,55 @@ export class BlockfrostService {
             '',
         };
 
-    this.fallbackConfig = {
-      url:
-        this.configService.get<string>('BLOCKFROST_NETWORK_URL_FALLBACK') || '',
-      projectId:
-        this.configService.get<string>(
-          'BLOCKFROST_NETWORK_PROJECT_ID_FALLBACK',
-        ) || '',
-    };
+    this.fallbackConfig = gatewayUrl
+      ? undefined
+      : {
+          url:
+            this.configService.get<string>('BLOCKFROST_NETWORK_URL_FALLBACK') ||
+            '',
+          projectId:
+            this.configService.get<string>(
+              'BLOCKFROST_NETWORK_PROJECT_ID_FALLBACK',
+            ) || '',
+        };
 
     this.ipfsProjectId =
       this.configService.get<string>('BLOCKFROST_IPFS_PROJECT_ID') ||
       this.configService.get<string>('BLOCKFROST_NETWORK_PROJECT_ID') ||
       '';
+    this.logger.log(
+      `Cardano routing configured gateway=${Boolean(gatewayUrl)} fallbackIndependent=${Boolean(this.fallbackConfig?.url) && this.scope(this.primaryConfig, { method: 'GET', endpoint: '' }) !== this.scope(this.fallbackConfig, { method: 'GET', endpoint: '' })}`,
+    );
+  }
+
+  private scope(config: BlockfrostConfig, options: RequestOptions): string {
+    const route = options.baseUrl
+      ? 'ipfs'
+      : config === this.primaryConfig
+        ? 'primary'
+        : 'fallback';
+    return this.budget.scope(
+      route,
+      options.headers?.project_id || config.projectId,
+    );
   }
 
   private async executeWithFallback<T = any>(
     options: RequestOptions,
   ): Promise<T> {
-    const { endpoint } = options;
-
     try {
-      return await this.retryRequest(() =>
-        this.makeRequest<T>(this.primaryConfig, options),
-      );
-    } catch (err) {
-      const status = err.status || err.response?.status;
-      if (status === 404) throw err;
-
-      this.logger.warn(
-        `Primary failed for ${endpoint} (Status: ${status}). Trying fallback...`,
-      );
-
-      try {
-        return await this.retryRequest(() =>
-          this.makeRequest<T>(this.fallbackConfig, options),
-        );
-      } catch (fErr) {
-        const fStatus = fErr.status || fErr.response?.status;
-        if (fStatus !== 404) {
-          this.logger.error(
-            `Fallback failed for ${endpoint}. Statuses: ${status} / ${fStatus}`,
-            { endpoint },
-          );
-        }
-        throw new HttpException(
-          fErr?.response?.data || fErr.message || 'API unavailable',
-          fStatus || 500,
-        );
-      }
-    }
-  }
-
-  async retryRequest<T>(
-    fn: () => Promise<T>,
-    retries = 3,
-    delay = 1000,
-  ): Promise<T> {
-    try {
-      return await fn();
-    } catch (e) {
-      const retryable =
-        e.code === 'ECONNRESET' ||
-        e.code === 'ETIMEDOUT' ||
-        e.status === 429 ||
-        (e.status >= 500 && e.status < 600);
-      if (retries > 0 && retryable) {
-        this.logger.warn(
-          `Retry ${retries} in ${delay}ms (Code: ${e.code || e.status})`,
-        );
-        await new Promise((r) => setTimeout(r, delay));
-        return this.retryRequest(fn, retries - 1, delay * 2);
-      }
-      throw e;
+      return await this.makeRequest<T>(this.primaryConfig, options);
+    } catch (error) {
+      // POST outcomes may be ambiguous: never retry or fail over a submission.
+      if (options.method !== 'GET' || !(error instanceof ProviderDeferred))
+        throw error;
+      if (
+        !this.fallbackConfig?.url ||
+        this.scope(this.primaryConfig, options) ===
+          this.scope(this.fallbackConfig, options)
+      )
+        throw error;
+      return this.makeRequest<T>(this.fallbackConfig, options);
     }
   }
 
@@ -149,39 +129,78 @@ export class BlockfrostService {
     config: BlockfrostConfig,
     options: RequestOptions,
   ): Promise<T> {
-    const { method, endpoint, data, headers = {} } = options;
-    const url = options.baseUrl
-      ? `${options.baseUrl}${endpoint}`
-      : `${config.url}${endpoint}`;
-
-    const requestHeaders = {
-      project_id: config.projectId,
-      ...headers,
-    };
-
-    try {
-      let response;
-
-      if (method === 'GET') {
-        response = await lastValueFrom(
-          this.httpService.get(url, {
-            headers: requestHeaders,
+    const scope = this.scope(config, options);
+    const dispatch = async (): Promise<T> => {
+      for (let attempt = 0; ; attempt++) {
+        batchAdmission();
+        await this.budget.acquire(scope, inBatch());
+        try {
+          const url = (options.baseUrl || config.url) + options.endpoint;
+          const settings = {
+            headers: { project_id: config.projectId, ...options.headers },
+            timeout: 30000,
+            maxRedirects: 0,
             responseType: options.responseType || 'json',
-          }),
-        );
-      } else if (method === 'POST') {
-        response = await lastValueFrom(
-          this.httpService.post(url, data, { headers: requestHeaders }),
-        );
+          };
+          const response = await lastValueFrom(
+            options.method === 'GET'
+              ? this.httpService.get(url, settings)
+              : this.httpService.post(url, options.data, settings),
+          );
+          const listRequest =
+            /^\/governance\/(dreps|proposals)(\?|$)/.test(options.endpoint) ||
+            /\/(delegators|votes)\?/.test(options.endpoint);
+          if (listRequest && !Array.isArray(response.data))
+            throw new HttpException('Invalid Cardano list response', 503);
+          const amountField = /^\/governance\/dreps\/[^/?]+$/.test(
+            options.endpoint,
+          )
+            ? 'amount'
+            : /^\/accounts\/[^/?]+$/.test(options.endpoint)
+              ? 'controlled_amount'
+              : undefined;
+          if (
+            amountField &&
+            (!/^\d+$/.test(String(response.data?.[amountField])) ||
+              !Number.isFinite(Number(response.data[amountField])))
+          )
+            throw new HttpException('Invalid Cardano amount response', 503);
+          return response.data as T;
+        } catch (error) {
+          const status = error?.response?.status;
+          const transient = !status || (status >= 500 && status < 600);
+          // Long Retry-After is handled as durable deferral, never an in-worker sleep.
+          if (
+            options.method === 'GET' &&
+            transient &&
+            !error?.response?.headers?.['retry-after'] &&
+            attempt < 2
+          ) {
+            await new Promise((resolve) =>
+              setTimeout(resolve, 250 * 2 ** attempt),
+            );
+            continue;
+          }
+          const failure = await this.budget.failure(scope, error);
+          if (options.method === 'POST' && transient)
+            throw new HttpException(
+              {
+                message:
+                  'Transaction submission outcome unknown; reconcile its hash before retrying',
+                code: 'SUBMISSION_OUTCOME_UNKNOWN',
+              },
+              503,
+            );
+          throw failure;
+        }
       }
-
-      return response.data;
-    } catch (error) {
-      throw new HttpException(
-        error?.response?.data || error.message || 'Request failed',
-        error?.response?.status || 500,
-      );
-    }
+    };
+    return options.method === 'GET' && !options.live
+      ? staged(
+          `request:${scope}:${options.baseUrl || config.url}:${options.endpoint}`,
+          dispatch,
+        )
+      : dispatch();
   }
 
   async getLatestBlock() {
@@ -220,9 +239,10 @@ export class BlockfrostService {
         {
           method: 'GET',
           endpoint: '/epochs/latest',
+          live: true,
         },
       );
-      if (typeof res?.epoch !== 'number') {
+      if (!Number.isSafeInteger(res?.epoch) || res.epoch < 0) {
         return {
           ok: false,
           reason:
@@ -231,6 +251,7 @@ export class BlockfrostService {
       }
       primaryEpoch = res.epoch;
     } catch (e) {
+      if (e instanceof ProviderDeferred) throw e;
       const status = e?.status || e?.response?.status || e?.message;
       return {
         ok: false,
@@ -239,15 +260,20 @@ export class BlockfrostService {
     }
 
     let tipEpoch: number | undefined;
-    if (this.fallbackConfig.url) {
+    const comparison = this.fallbackConfig || this.primaryConfig;
+    const endpoint = this.fallbackConfig ? '/epochs/latest' : '/blocks/latest';
+    if (comparison.url) {
       try {
-        const res = await this.makeRequest<{ epoch: number }>(
-          this.fallbackConfig,
-          { method: 'GET', endpoint: '/epochs/latest' },
-        );
-        if (typeof res?.epoch === 'number') tipEpoch = res.epoch;
-      } catch {
-        // Fallback unavailable — proceed on the primary epoch rather than block.
+        const res = await this.makeRequest<{ epoch: number }>(comparison, {
+          method: 'GET',
+          endpoint,
+          live: true,
+        });
+        if (Number.isSafeInteger(res?.epoch) && res.epoch >= 0)
+          tipEpoch = res.epoch;
+      } catch (e) {
+        if (e instanceof ProviderDeferred && e.reason !== 'transient') throw e;
+        // A transient comparison outage retains the primary-only policy.
       }
     }
 

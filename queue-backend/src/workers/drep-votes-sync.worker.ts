@@ -1,3 +1,10 @@
+import { ProviderDeferred } from '../blockfrost/request-budget';
+import {
+  batchDatabase,
+  runBatch,
+  syncItem,
+  targets,
+} from '../blockfrost/sync-run';
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Injectable, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
@@ -28,126 +35,150 @@ export class DrepVotesSyncWorker extends WorkerHost {
 
   async process(
     job: Job<DrepVotesSyncJobData, DrepVotesSyncJobResponse>,
+    token?: string,
   ): Promise<DrepVotesSyncJobResponse> {
-    this.logger.log(`Starting DRep votes sync: ${job.id}`);
+    return runBatch(this.dataSource, job, token, async () => {
+      this.logger.log(`Starting DRep votes sync: ${job.id}`);
 
-    try {
-      const { forceRefresh = false } = job.data;
-      let total = 0,
-        processed = 0;
+      try {
+        let total = 0,
+          processed = 0;
 
-      const drepsRepo = this.dataSource.getRepository(Drep);
-      const votesRepo = this.dataSource.getRepository(ProposalVote);
+        const drepsRepo = batchDatabase(this.dataSource).getRepository(Drep);
+        const votesRepo = batchDatabase(this.dataSource).getRepository(
+          ProposalVote,
+        );
 
-      const dreps = await drepsRepo.find({ order: { votingPowerAda: 'DESC' } });
+        const dreps = await targets('vote-dreps', () =>
+          drepsRepo.find({ order: { drepId: 'ASC' } }),
+        );
 
-      for (const d of dreps) {
-        try {
-          let page = 1,
-            hasMore = true,
-            synced = 0;
-
-          while (hasMore) {
+        for (const d of dreps) {
+          total += await syncItem(`drep-votes:${d.drepId}`, async () => {
+            let delta = 0;
             try {
-              const data = await this.blockfrostService.getDRepVotes(
-                d.drepId,
-                page,
-                100,
-                'desc',
-              );
-              if (!data || data.length === 0) break;
+              let page = 1,
+                hasMore = true;
 
-              let existingCount = 0;
-              for (const v of data) {
+              while (hasMore) {
                 try {
-                  const ext = await votesRepo.findOne({
-                    where: {
-                      txHash: v.tx_hash,
-                      certIndex: v.cert_index,
-                      voter: d.drepId,
-                    },
-                  });
-                  if (ext?.blockTime) {
-                    existingCount++;
-                    continue;
-                  }
+                  const data = await this.blockfrostService.getDRepVotes(
+                    d.drepId,
+                    page,
+                    100,
+                    'asc',
+                  );
+                  if (!data || data.length === 0) break;
 
-                  let bt: Date | null = null;
-                  try {
-                    const tx = await this.blockfrostService.getTransaction(
-                      v.tx_hash,
+                  for (const v of data) {
+                    delta += await syncItem(
+                      `vote:${d.drepId}:${v.tx_hash}:${v.cert_index}`,
+                      async () => {
+                        try {
+                          const ext = await votesRepo.findOne({
+                            where: {
+                              txHash: v.tx_hash,
+                              certIndex: v.cert_index,
+                              voter: d.drepId,
+                            },
+                          });
+                          if (ext?.blockTime) {
+                            return 0;
+                          }
+
+                          let bt: Date | null = null;
+                          try {
+                            const tx =
+                              await this.blockfrostService.getTransaction(
+                                v.tx_hash,
+                              );
+                            if (tx?.block_time)
+                              bt = new Date(tx.block_time * 1000);
+                          } catch (e) {
+                            if (e instanceof ProviderDeferred) throw e;
+
+                            this.logger.debug('Tx fetch failed');
+                          }
+
+                          await votesRepo.upsert(
+                            {
+                              proposalId:
+                                v.proposal_id || `${v.tx_hash}_${v.cert_index}`,
+                              txHash: v.tx_hash,
+                              certIndex: v.cert_index,
+                              voterRole: 'drep',
+                              voter: d.drepId,
+                              vote: v.vote,
+                              blockTime: bt,
+                            } as any,
+                            {
+                              conflictPaths: ['proposalId', 'voter'],
+                              skipUpdateIfNoValuesChanged: true,
+                            },
+                          );
+
+                          await new Promise((r) => setTimeout(r, 50));
+                          return 1;
+                        } catch (e) {
+                          if (e instanceof ProviderDeferred) throw e;
+
+                          this.logger.warn('Vote upsert failed');
+                          throw e;
+                        }
+                      },
                     );
-                    if (tx?.block_time) bt = new Date(tx.block_time * 1000);
-                  } catch (e) {
-                    this.logger.debug(`Tx fetch failed (${v.tx_hash})`);
                   }
 
-                  await votesRepo.upsert(
-                    {
-                      proposalId:
-                        v.proposal_id || `${v.tx_hash}_${v.cert_index}`,
-                      txHash: v.tx_hash,
-                      certIndex: v.cert_index,
-                      voterRole: 'drep',
-                      voter: d.drepId,
-                      vote: v.vote,
-                      blockTime: bt,
-                    } as any,
-                    {
-                      conflictPaths: ['proposalId', 'voter'],
-                      skipUpdateIfNoValuesChanged: true,
-                    },
-                  );
+                  if (data.length < 100) hasMore = false;
+                  else page++;
 
-                  synced++;
-                  total++;
-                  await new Promise((r) => setTimeout(r, 50));
+                  await new Promise((r) => setTimeout(r, 100));
                 } catch (e) {
-                  this.logger.warn(
-                    `Vote upsert failed (${d.drepId}): ${e.message}`,
-                  );
+                  if (e instanceof ProviderDeferred) throw e;
+
+                  if (e.status === 404) return 0;
+                  this.logger.warn('Votes page failed');
+                  throw e;
                 }
               }
 
-              if (existingCount > 80 && !forceRefresh) hasMore = false;
-              else if (data.length < 100) hasMore = false;
-              else page++;
+              {
+                const count = await votesRepo.count({
+                  where: { voter: d.drepId },
+                });
+                await drepsRepo.update(
+                  { drepId: d.drepId },
+                  { governanceVoteCount: count },
+                );
+              }
 
+              if (processed % 50 === 0)
+                this.logger.log(`Processed ${processed} DReps...`);
               await new Promise((r) => setTimeout(r, 100));
             } catch (e) {
-              this.logger.warn(
-                `Votes page ${page} failed (${d.drepId}): ${e.message}`,
-              );
-              hasMore = false;
+              if (e instanceof ProviderDeferred) throw e;
+
+              this.logger.warn('DRep sync failed');
+              throw e;
             }
-          }
 
-          if (synced > 0) {
-            const count = await votesRepo.count({ where: { voter: d.drepId } });
-            await drepsRepo.update(
-              { drepId: d.drepId },
-              { governanceVoteCount: count },
-            );
-          }
-
+            return delta;
+          });
           processed++;
-          if (processed % 50 === 0)
-            this.logger.log(`Processed ${processed} DReps...`);
-          await new Promise((r) => setTimeout(r, 100));
-        } catch (e) {
-          this.logger.warn(`DRep sync failed (${d.drepId}): ${e.message}`);
         }
-      }
 
-      return {
-        success: true,
-        message: 'Synced DRep votes',
-        drepVotesCount: total,
-        processedDreps: processed,
-      };
-    } catch (e) {
-      this.logger.error(`DRep sync failed: ${e.message}`, e.stack);
-      return { success: false, message: e.message };
-    }
+        return {
+          success: true,
+          message: 'Synced DRep votes',
+          drepVotesCount: total,
+          processedDreps: processed,
+        };
+      } catch (e) {
+        if (e instanceof ProviderDeferred) throw e;
+
+        this.logger.error('DRep sync failed');
+        throw e;
+      }
+    });
   }
 }

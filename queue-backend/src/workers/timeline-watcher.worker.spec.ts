@@ -1,3 +1,13 @@
+jest.mock('../blockfrost/sync-run', () => ({
+  batchDatabase: (db: unknown) => db,
+  runBatch: (
+    _db: unknown,
+    _job: unknown,
+    _token: unknown,
+    work: () => Promise<unknown>,
+  ) => work(),
+  targets: (_key: string, work: () => Promise<unknown>) => work(),
+}));
 import { Test, TestingModule } from '@nestjs/testing';
 import { TimelineWatcherWorker } from './timeline-watcher.worker';
 import { getDataSourceToken } from '@nestjs/typeorm';
@@ -29,13 +39,16 @@ describe('TimelineWatcherWorker', () => {
       find: jest.fn(),
     };
 
-    insertExecute = jest.fn().mockResolvedValue({ identifiers: [{ id: '999' }] });
+    insertExecute = jest
+      .fn()
+      .mockResolvedValue({ identifiers: [{ id: '999' }] });
     insertValues = jest.fn().mockReturnValue({
       orIgnore: jest.fn().mockReturnValue({ execute: insertExecute }),
     });
     rawQuery = jest.fn().mockResolvedValue([]);
 
     mockDataSource = {
+      transaction: (work: () => Promise<unknown>) => work(),
       getRepository: jest.fn((entity) => {
         if (entity.name === 'SyncState') return mockSyncStateRepo;
         if (entity.name === 'DrepTimelineEvent') return mockTimelineRepo;
@@ -48,7 +61,9 @@ describe('TimelineWatcherWorker', () => {
         }),
         update: jest.fn().mockReturnValue({
           set: jest.fn().mockReturnValue({
-            where: jest.fn().mockReturnValue({ execute: jest.fn().mockResolvedValue({}) }),
+            where: jest
+              .fn()
+              .mockReturnValue({ execute: jest.fn().mockResolvedValue({}) }),
           }),
         }),
       }),
@@ -89,7 +104,12 @@ describe('TimelineWatcherWorker', () => {
   describe('Delegation transfer logic', () => {
     it('generates no undelegation when there is no prior delegation', async () => {
       mockTimelineRepo.find.mockResolvedValue([
-        { id: '1', eventType: 'delegation', drepId: 'drepB', metadata: { stake_address: 'stake1xxx' } },
+        {
+          id: '1',
+          eventType: 'delegation',
+          drepId: 'drepB',
+          metadata: { stake_address: 'stake1xxx' },
+        },
       ]);
       rawQuery.mockResolvedValue([]); // no previous delegation row
 
@@ -100,7 +120,12 @@ describe('TimelineWatcherWorker', () => {
 
     it('generates no undelegation when re-delegating to the same drep', async () => {
       mockTimelineRepo.find.mockResolvedValue([
-        { id: '2', eventType: 'delegation', drepId: 'drepA', metadata: { stake_address: 'stake1yyy' } },
+        {
+          id: '2',
+          eventType: 'delegation',
+          drepId: 'drepA',
+          metadata: { stake_address: 'stake1yyy' },
+        },
       ]);
       rawQuery.mockResolvedValue([{ drep_id: 'drepA' }]);
 
@@ -135,7 +160,10 @@ describe('TimelineWatcherWorker', () => {
           previousDrep: 'drepA',
           txHash: 'txhash123',
           stakeAddress: 'stake1yyy',
-          metadata: expect.objectContaining({ stake_address: 'stake1yyy', target_drep: 'drepB' }),
+          metadata: expect.objectContaining({
+            stake_address: 'stake1yyy',
+            target_drep: 'drepB',
+          }),
         }),
       );
     });
@@ -187,7 +215,12 @@ describe('TimelineWatcherWorker', () => {
 
   it('keeps advancing the cursor even when one event throws', async () => {
     mockTimelineRepo.find.mockResolvedValue([
-      { id: '20', eventType: 'delegation', drepId: 'drepB', metadata: { stake_address: 'boom' } },
+      {
+        id: '20',
+        eventType: 'delegation',
+        drepId: 'drepB',
+        metadata: { stake_address: 'boom' },
+      },
       { id: '21', eventType: 'vote', metadata: {} },
     ]);
     rawQuery.mockRejectedValueOnce(new Error('db exploded'));

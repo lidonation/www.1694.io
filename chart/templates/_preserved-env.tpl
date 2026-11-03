@@ -11,5 +11,6 @@
 {{- if or (ne (index $annotations "meta.helm.sh/release-name") .root.Release.Name) (ne (index $annotations "meta.helm.sh/release-namespace") .root.Release.Namespace) (ne $existing.type "Opaque") (not $existing.data) }}
 {{- fail "preserveExistingAppEnv refuses an empty, invalid or differently owned Secret" }}
 {{- end }}
-{{- toYaml $existing.data }}
+{{/* Helm always selects gateway mode; never restore obsolete provider routes. */}}
+{{- omit $existing.data "BLOCKFROST_NETWORK_URL_FALLBACK" "BLOCKFROST_NETWORK_PROJECT_ID_FALLBACK" | toYaml }}
 {{- end }}

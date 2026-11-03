@@ -54,13 +54,31 @@ one is a startup error, never an invitation to reuse another provider's key.
 If both are absent, existing local `BLOCKFROST_NETWORK_URL` and
 `BLOCKFROST_NETWORK_PROJECT_ID` still select the primary.
 
-`BLOCKFROST_NETWORK_URL_FALLBACK` and
-`BLOCKFROST_NETWORK_PROJECT_ID_FALLBACK` are unchanged. Verify they point at the
-same network before rollout. The indexer continues comparing primary and
-fallback epochs before stake updates, refuses a lagging/invalid primary and
-tolerates an unreachable comparison source. Its not-found and retry policies
-are unchanged. Heavy sync jobs remain incremental; bypassing public quota
-is not a reason to force a full reindex.
+When the gateway pair is present, legacy fallback settings are ignored entirely,
+even if separately named quota scopes exist. Final gateway errors retain the
+merged quota layer's sanitized `ProviderDeferred` response and status; they never
+cause another provider attempt. Both services use the current metered transport:
+quota, rate-limit and authentication failures defer immediately, while transient
+GET failures allow at most two short retries (250/500 ms) before cooldown.
+Transaction POSTs are dispatched once, with no retry or fallback; ambiguous
+transport/5xx outcomes require hash reconciliation before resubmission.
+See [quota rollout and verification](blockfrost-quota-rollout.md) for limits,
+classification, cooldowns and deployment prerequisites.
+
+`BLOCKFROST_NETWORK_URL_FALLBACK` and its credential remain supported **only in
+legacy mode**. Legacy GET failover still requires a configured, independent
+quota scope and a provider deferral; shared scopes and authoritative 404s never
+fail over. Operators must configure the same network as the primary.
+
+Before stake updates, the indexer checks the primary epoch and compares it with
+`/blocks/latest` through the same gateway. Both probes are live rather than
+staged replay. It refuses invalid/lagging epochs. Quota, throttle, authentication,
+budget and configuration deferrals propagate to resumable processing; only a
+transiently unavailable comparison retains the existing primary-only tolerance.
+Legacy mode compares against the configured fallback's epoch. The gateway
+comparison detects inconsistent endpoint epochs, not a gateway whose entire
+index is stale: gateway operators still own upstream freshness. Heavy sync jobs
+remain incremental.
 
 IPFS is not on-chain data. The API's IPFS service and the queue's external
 Blockfrost IPFS endpoint keep separate credentials. The queue still supports
@@ -92,8 +110,10 @@ secret access was performed for this refactor.
    `/api/v0/epochs/latest/parameters`, a known DRep and a known address's UTXOs.
    Verify real governance amounts, recent tip/epoch, pagination, and that the
    `project_id` sent is the gateway key. Do not log the credential.
-4. Exercise fallback and the stale-primary guard in preview before production;
-   do not replay real transactions merely to test submission.
+4. Exercise gateway failures with controlled fixtures, not real provider calls.
+   Confirm HTTP 402/429/5xx and transport failures never attempt a direct provider;
+   the retained Jest tests exercise exhaustion and stale epoch denial offline.
+   Do not replay real transactions merely to test submission.
 5. Trigger manual `app-preview` with `DEPLOY_WEBSITE=true`, inspect API health
    and one incremental worker sync, then use the normal reviewed promotion and
    manual `production` deployment. Never force a full sync as a smoke test.
@@ -107,3 +127,36 @@ sh ci/tests/chart-cardano-api.test.sh
 ```
 
 The Helm regression is part of the existing `test_deploy_config` CI job.
+
+## Preview fallback cleanup (#234)
+
+Authorized operators must complete these steps; this MR does not deploy or edit
+live CI variables. Never print credentials or dump whole Secrets/environments.
+
+1. Remove `BLOCKFROST_NETWORK_URL_FALLBACK` and
+   `BLOCKFROST_NETWORK_PROJECT_ID_FALLBACK` from preview-scoped `ENV_FILE_BACKEND`
+   and `ENV_FILE_QUEUE` (and any global input containing them). Preserve the
+   gateway pair and key exactly. The CI preparation script filters these obsolete
+   keys into build/deploy files without changing the stored source variables.
+2. After review/merge, use the full manual `app-preview` job, not indexer-only
+   deployment. New images and the Helm upgrade roll both API and queue Deployments.
+   Secret rendering strips fallback keys from normal inputs and preserved Secrets,
+   so an indexer `--reuse-values` upgrade cannot restore obsolete routes. All
+   Helm releases use gateway mode; this does not change legacy local env files.
+3. Wait for both preview rollouts to finish. On the new pod UIDs, inspect only
+   `CARDANO_API_URL` and the **presence** (not values) of fallback keys in the app
+   process environment. The primary must be the preview Service above, and both
+   fallback keys must be absent. Confirm the gateway credential is present
+   without printing it. Check rendered/release-owned backend and queue Secrets
+   for absent fallback key names, not decoded contents.
+4. Run a controlled gateway-failure fixture against the new service build with
+   a mocked transport. All attempts must use the preview gateway with the
+   current quota-aware retry bound; no mainnet/direct-provider request is permitted. Check
+   one normal incremental sync for freshness; do not consume provider quota or
+   submit a transaction to prove the failure boundary.
+
+Offline deployment contract: `python3 ci/tests/cardano-fallback.test.py` renders
+preview and mainnet, both normal and preserved Secret paths. Kubernetes lookup
+is replaced only in the throwaway test chart with dummy release-owned Secrets;
+real ownership checks and filtering are retained. A live rollout is still required
+for issue completion; offline fixtures do not establish deployed pod state.
