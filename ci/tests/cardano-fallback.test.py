@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Offline normal/preserved Secret and env assembly contracts using dummy keys."""
 import base64
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -26,12 +27,12 @@ class FallbackIsolation(unittest.TestCase):
             self.assertEqual(dest.read_text(), content.split(KEYS[0])[0])
             self.assertEqual(source.read_text(), content)
 
-    def test_ci_builds_and_full_deploys_use_filtered_inputs(self):
+    def test_full_deploys_use_filtered_inputs(self):
         class Loader(yaml.SafeLoader):
             pass
         Loader.add_constructor('!reference', lambda loader, node: loader.construct_sequence(node))
         config = yaml.load((ROOT / '.gitlab-ci.yml').read_text(), Loader=Loader)
-        for job, components in [('build_backend', ['BACKEND']), ('build_queue_backend', ['QUEUE']), ('app-preview', ['BACKEND', 'QUEUE']), ('production', ['BACKEND', 'QUEUE'])]:
+        for job, components in [('app-preview', ['BACKEND', 'QUEUE']), ('production', ['BACKEND', 'QUEUE'])]:
             script = '\n'.join(s for s in config[job]['script'] if isinstance(s, str))
             for component in components:
                 self.assertIn(f'sh ci/prepare-cardano-env.sh "$ENV_FILE_{component}"', script, job)
@@ -63,13 +64,14 @@ class FallbackIsolation(unittest.TestCase):
                         helper.write_text(text.replace(lookup, 'index .root.Values.testSecrets .suffix'))
                     values_file = Path(tmp) / 'values.yaml'
                     values_file.write_text(yaml.safe_dump(values))
-                    command = ['helm', 'template', 'test', str(chart)]
+                    command = ['helm', 'template', 'test', str(chart), '--namespace', values['namespace']]
                     if production:
                         command += ['-f', str(chart / 'values.prod.yaml')]
                     command += ['-f', str(values_file)]
                     for key in ('clusterApiUrl', 'clusterApiUser', 'clusterApiPassword', 'gatewayUrl'):
                         command += ['--set-string', f'ipfs.{key}=dummy']
-                    result = subprocess.run(command, capture_output=True, text=True)
+                    process_env = {**os.environ, 'HELM_NAMESPACE': 'ci-inherited-namespace'}
+                    result = subprocess.run(command, capture_output=True, text=True, env=process_env)
                     self.assertEqual(result.returncode, 0, result.stderr)
                     docs = [doc for doc in yaml.safe_load_all(result.stdout) if doc]
                     for suffix in ('backend', 'queue', 'global', 'frontend'):
@@ -79,6 +81,14 @@ class FallbackIsolation(unittest.TestCase):
                             self.assertNotIn(key, data)
                         for key in ('CARDANO_API_URL', 'CARDANO_API_PROJECT_ID', 'OTHER'):
                             self.assertEqual(base64.b64decode(data[key]).decode(), env[key])
+                    if preserved:
+                        # Keep the real ownership check effective with an explicit release namespace.
+                        fixtures['backend']['metadata']['annotations']['meta.helm.sh/release-namespace'] = 'other-owner'
+                        values_file.write_text(yaml.safe_dump(values))
+                        rejected = subprocess.run(command, capture_output=True, text=True, env=process_env)
+                        self.assertNotEqual(rejected.returncode, 0)
+                        self.assertIn('refuses an empty, invalid or differently owned Secret', rejected.stderr)
+
 
 
 if __name__ == '__main__':

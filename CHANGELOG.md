@@ -21,6 +21,12 @@ changes.
   branch and merge request pipeline.
 
 ### Fixed
+- Frontend image builds skip the unused Cypress desktop binary download without
+  disabling dependency lifecycle scripts or normal end-to-end test installs.
+- Offline preserved-Secret regressions use an explicit Helm namespace, independent
+  of the runner environment, while still rejecting mismatched ownership.
+- Backend and queue image builds no longer require environment-scoped runtime
+  files; runtime credentials remain in the manual deployment workflow.
 - Gateway-mode API and queue failures no longer fall back to direct providers;
   deployment inputs and preserved Secrets discard obsolete fallback settings (#234).
 - Deployments reject missing or malformed Cardano gateway client credentials before

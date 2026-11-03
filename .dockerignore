@@ -1,0 +1,6 @@
+# Runtime inputs belong to Helm Secrets, never Docker image/cache layers.
+backend/.env
+backend/.env.*
+queue-backend/.env
+queue-backend/.env.*
+chart/*_env

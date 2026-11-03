@@ -24,7 +24,8 @@ precedence over this branch's original retry/error policy.
 - R4: Remove both obsolete fallback keys from all chart-rendered application
   Secrets, including preserved release Secrets and env files. Helm deployments
   always select gateway mode. Keep every other key, especially gateway credentials.
-  Filter build/deploy env inputs too; do not print secret values.
+  Build images without runtime env files; filter deploy inputs before Helm.
+  Do not print secret values. See ci-image-builds.md for the build boundary.
 - R5: Document authorized preview source cleanup, full Helm deploy, rolling both
   workloads, effective configuration checks and mocked failures. Live mutations
   and manual deployment jobs are not authorized by the implementation workflow.
