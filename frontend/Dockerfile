@@ -1,6 +1,9 @@
 FROM node:22-alpine AS base
 
 FROM base as dependencies
+# The desktop test runner is not used by the production image build. Keep
+# dependency lifecycle scripts, but avoid its large external binary download.
+ENV CYPRESS_INSTALL_BINARY=0
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 

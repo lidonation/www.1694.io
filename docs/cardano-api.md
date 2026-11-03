@@ -137,7 +137,8 @@ live CI variables. Never print credentials or dump whole Secrets/environments.
    `BLOCKFROST_NETWORK_PROJECT_ID_FALLBACK` from preview-scoped `ENV_FILE_BACKEND`
    and `ENV_FILE_QUEUE` (and any global input containing them). Preserve the
    gateway pair and key exactly. The CI preparation script filters these obsolete
-   keys into build/deploy files without changing the stored source variables.
+   keys into deploy files without changing the stored source variables. Image
+   builds do not consume these runtime inputs; Helm supplies them at rollout.
 2. After review/merge, use the full manual `app-preview` job, not indexer-only
    deployment. New images and the Helm upgrade roll both API and queue Deployments.
    Secret rendering strips fallback keys from normal inputs and preserved Secrets,
