@@ -226,8 +226,8 @@ production:
         --wait \
         --set image.repository=$CI_APPLICATION_REPOSITORY/www.1694.io \
         --set image.tag=$CI_APPLICATION_TAG \
-        --set backend.replicaCount=5 \
-        --set frontend.replicaCount=5 \
+        --set backend.replicaCount=1 \
+        --set frontend.replicaCount=2 \
         --set queue.replicaCount=2 \
         --set governanceIndexer.replicaCount="${GOVERNANCE_INDEXER_REPLICAS:-0}" \
         --set governanceIndexer.image.tag=$INDEXER_TAG \
