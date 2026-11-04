@@ -57,7 +57,7 @@ redis:
     size: "5Gi"
 
 backend:
-  replicaCount: 2
+  replicaCount: 1
   labels:
     service: backend
   image:
