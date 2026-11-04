@@ -352,7 +352,8 @@ test_deploy_config:
 # READ-ONLY mirror — all development happens on GitLab (see CONTRIBUTING.md).
 #
 # One-time setup (maintainer): create a GitHub fine-grained PAT with
-# Contents: read & write on IntersectMBO/drep-campaign-platform, then save it
+# Contents: read & write on lidonation/www.1694.io (and Workflows: read & write
+# when syncing GitHub Actions workflows), then save it
 # as a GitLab project CI/CD variable named GITHUB_MIRROR_TOKEN
 # (Settings > CI/CD > Variables; masked, and protected if prod-only).
 # Until the token is set, this job logs a notice and exits green.
@@ -361,7 +362,11 @@ test_deploy_config:
 mirror_to_github:
   tags: [lido-ci]   # portable: cluster runner or a Mac docker runner, whichever is free
   stage: test
-  image: alpine/git:latest
+  image:
+    name: alpine/git:latest
+    entrypoint: [""]
+  variables:
+    GIT_DEPTH: "0"
   # No docker here: drop the global docker:dind service, which the unprivileged
   # Mac docker runners cannot start.
   services: []

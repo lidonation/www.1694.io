@@ -21,6 +21,8 @@ changes.
   branch and merge request pipeline.
 
 ### Fixed
+- GitHub mirroring starts correctly on Docker runners and fetches full Git history
+  before syncing the public `main` and `dev` branches.
 - Frontend image builds skip the unused Cypress desktop binary download without
   disabling dependency lifecycle scripts or normal end-to-end test installs.
 - Offline preserved-Secret regressions use an explicit Helm namespace, independent
