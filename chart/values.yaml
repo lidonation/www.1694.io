@@ -178,3 +178,16 @@ gateway:
 # One-off routing upgrade without CI *_env files: server-side lookup preserves
 # only this exact release's nonempty Opaque Secrets. Normal CI must set false.
 preserveExistingAppEnv: false
+
+# Probe guard: a regex HTTPRoute on every host this release serves that sends
+# scanner probe paths through a Traefik Middleware allowing only a TEST-NET
+# address, so Traefik answers 403 before any backend. Families matched:
+# dotenv files (.env*), VCS metadata (.git/.svn/.hg/.bzr), tool/credential
+# dotdirs (.aws .ssh .docker .kube .npmrc .DS_Store .htaccess .htpasswd
+# .vscode .idea), PHP scripts (*.php, *.phtml), WordPress/phpMyAdmin/cgi-bin
+# trees, dumps and backups (*.sql *.bak *.old *.swp), key and credential files
+# (id_rsa*, credentials.*, service-account.*, secrets.*) and JS source maps
+# (*.js.map). Set enabled: false to remove both objects.
+probeGuard:
+  enabled: true
+  pathRegex: '(?i)^/(.*/)?(\.env[^/]*|\.(git|svn|hg|bzr)(/.*)?|\.(aws|ssh|docker|kube|npmrc|DS_Store|htaccess|htpasswd|vscode|idea)(/.*)?|[^/]*\.(php[0-9]?|phtml)|(wp-admin|wp-includes|wp-content|wp-json|wordpress|phpmyadmin|cgi-bin)(/.*)?|[^/]*\.(sql|bak|old|swp)|(id_rsa|id_dsa|id_ecdsa|id_ed25519|credentials|gcp-sa|service[-_]account|secrets?)\.(json|ya?ml|txt|pem|key)|[^/]*\.js\.map)$'

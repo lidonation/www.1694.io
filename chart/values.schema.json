@@ -169,6 +169,22 @@
           "type": "string"
         }
       }
+    },
+    "probeGuard": {
+      "type": "object",
+      "required": [
+        "enabled",
+        "pathRegex"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "pathRegex": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
     }
   }
 }
