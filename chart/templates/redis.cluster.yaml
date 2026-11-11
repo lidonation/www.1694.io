@@ -30,6 +30,10 @@ spec:
   kubernetesConfig:
     image: quay.io/opstree/redis:v8.4.0
     imagePullPolicy: IfNotPresent
+    # requirepass; the operator also hands it to the exporter sidecar.
+    redisSecret:
+      name: {{ .Values.redis.authSecretName }}
+      key: password
     resources:
       requests:
         cpu: "100m"

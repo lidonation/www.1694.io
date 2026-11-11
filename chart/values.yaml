@@ -55,6 +55,16 @@ redis:
   enabled: true
   storage:
     size: "5Gi"
+  # Password lives in the <chart>-redis-auth Secret. It is generated once on
+  # first install and preserved across upgrades (lookup); never set it here.
+  authSecretName: www-1694-redis-auth
+
+# Frontend isolation and Redis allowlist (templates/networkpolicy.yaml).
+networkPolicy:
+  enabled: true
+  gatewayNamespace: traefik
+  redisOperatorNamespace: redis-operator
+  monitoringNamespace: cattle-monitoring-system
 
 backend:
   replicaCount: 1

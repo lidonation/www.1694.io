@@ -103,7 +103,10 @@ spec:
             - name: REDIS_PORT
               value: "6379"
             - name: REDIS_PASSWORD
-              value: ""
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.redis.authSecretName }}
+                  key: password
           envFrom:
             - secretRef:
                 name: "{{ $.Chart.Name }}-global-secrets"

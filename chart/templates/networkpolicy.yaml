@@ -1,0 +1,95 @@
+{{- if .Values.networkPolicy.enabled }}
+# Frontend isolation. The 2026-11-11 compromise ran a shell inside a frontend
+# pod that could reach every Service in the cluster. The Next.js server only
+# needs the gateway in front of it and public HTTPS APIs (api.1694.io and the
+# third-party URLs in frontend_env all resolve to public addresses), so it gets
+# DNS plus the public internet and nothing in-cluster. Cilium does not match
+# cluster endpoints with CIDR rules, and the private ranges are excluded too.
+# Kubelet probes come from the node and are always allowed by Cilium.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: "{{ $.Chart.Name }}-frontend"
+  namespace: {{ .Values.namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      app: "nextjs"
+      service: "{{ .Values.frontend.labels.service }}"
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.networkPolicy.gatewayNamespace }}
+      ports:
+        - port: 3000
+          protocol: TCP
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+              - 169.254.0.0/16
+              - 100.64.0.0/10
+        - ipBlock:
+            cidr: ::/0
+            except:
+              - fc00::/7
+              - fe80::/10
+      ports:
+        - port: 443
+          protocol: TCP
+        - port: 80
+          protocol: TCP
+---
+# Redis accepts only the two workloads that use it, the operator that manages
+# it, and metrics scrapes on the exporter port.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: "{{ $.Chart.Name }}-redis"
+  namespace: {{ .Values.namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      app: www-1694-redis-cluster
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: "nestjs"
+              service: "{{ .Values.backend.labels.service }}"
+        - podSelector:
+            matchLabels:
+              service: "{{ .Values.queue.labels.service }}"
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.networkPolicy.redisOperatorNamespace }}
+      ports:
+        - port: 6379
+          protocol: TCP
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.networkPolicy.monitoringNamespace }}
+      ports:
+        - port: 9121
+          protocol: TCP
+{{- end }}
