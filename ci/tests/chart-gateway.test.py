@@ -182,13 +182,13 @@ class SharedGateway(unittest.TestCase):
                 docs = render(production)
                 self.assertFalse(any(d['kind'] in ('Gateway', 'Certificate', 'Ingress') for d in docs))
                 routes = [d for d in docs if d['kind'] == 'HTTPRoute']
-                self.assertEqual(len(routes), 3 if production else 2)
+                self.assertEqual(len(routes), 4 if production else 3)  # includes probe-guard
                 for route in routes:
                     self.assertEqual(route['spec']['parentRefs'], [{'name': 'public', 'namespace': 'traefik'}])
                     self.assertNotIn('http-redirect', route['metadata']['name'])
 
     def test_headers_and_backend_contract_is_retained(self):
-        for route in (d for d in render(True) if d['kind'] == 'HTTPRoute'):
+        for route in (d for d in render(True) if d['kind'] == 'HTTPRoute' and d['metadata']['name'] != 'probe-guard'):
             rule, = route['spec']['rules']
             if 'apex' in route['metadata']['name']:
                 self.assertNotIn('backendRefs', rule)

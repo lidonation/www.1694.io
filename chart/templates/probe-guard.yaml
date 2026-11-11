@@ -1,0 +1,50 @@
+{{- if and (.Values.httpRoute | default dict).enabled (.Values.probeGuard | default dict).enabled }}
+{{- $_ := required "gateway.hosts must contain the application hostname" .Values.gateway.hosts }}
+# Probe guard: scanner paths (see probeGuard.pathRegex) get a 403 from Traefik
+# before any backend. The allow list holds only a TEST-NET address, so no real
+# client passes. Traefik prefers this regex route over the site's PathPrefix /
+# routes for the same hosts; every other request is unchanged.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: probe-guard
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: probe-guard
+spec:
+  ipAllowList:
+    sourceRange:
+      - 192.0.2.1/32
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: probe-guard
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: probe-guard
+spec:
+  parentRefs: {{- include "www-1694.gateway.parentRefs" (dict "root" $) | nindent 4 }}
+  # Every host the frontend, API and apex-redirect routes serve.
+  hostnames:
+  {{- range (include "www-1694.listenerSetHosts" . | fromJsonArray) }}
+    - {{ . | quote }}
+  {{- end }}
+  rules:
+    - matches:
+        - path:
+            type: RegularExpression
+            value: {{ required "probeGuard.pathRegex is required" .Values.probeGuard.pathRegex | quote }}
+      filters:
+        - type: ExtensionRef
+          extensionRef:
+            group: traefik.io
+            kind: Middleware
+            name: probe-guard
+      # Never reached (the Middleware refuses first); a route needs a backend.
+      backendRefs:
+        - name: "{{ $.Chart.Name }}-frontend-service"
+          port: 80
+{{- end }}
