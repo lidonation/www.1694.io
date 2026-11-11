@@ -73,7 +73,19 @@ class SharedGateway(unittest.TestCase):
                 self.assertEqual(baseline.returncode, 0, baseline.stderr)
                 baseline_docs = [d for d in yaml.safe_load_all(baseline.stdout) if d]
                 excluded = ('ListenerSet', 'Certificate', 'HTTPRoute')
-                self.assertEqual([d for d in docs if d['kind'] not in excluded], [d for d in baseline_docs if d['kind'] not in excluded])
+
+                def comparable(documents):
+                    # The Redis password is random whenever lookup finds no live
+                    # Secret (always, offline), so blank it before comparing renders.
+                    out = []
+                    for d in documents:
+                        if d['kind'] in excluded:
+                            continue
+                        if d['kind'] == 'Secret' and d['metadata']['name'] == 'www-1694-redis-auth':
+                            d = {**d, 'data': {k: '<generated>' for k in d.get('data', {})}}
+                        out.append(d)
+                    return out
+                self.assertEqual(comparable(docs), comparable(baseline_docs))
                 self.assertEqual([d['spec']['hostnames'] for d in docs if d['kind'] == 'HTTPRoute'], [d['spec']['hostnames'] for d in baseline_docs if d['kind'] == 'HTTPRoute'])
                 certificate = next(d for d in docs if d['kind'] == 'Certificate')
                 self.assertEqual(certificate['spec']['dnsNames'], ['1694.io', '*.1694.io'])
