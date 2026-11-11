@@ -432,6 +432,7 @@ test_shared_gateway:
     - python3 ci/tests/image-builds.test.py
     - python3 ci/tests/cardano-fallback.test.py
     - python3 ci/tests/chart-gateway.test.py
+    - python3 ci/tests/chart-probe-guard.test.py
     - python3 ci/tests/acme-enrollment.test.py
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
