@@ -26,7 +26,7 @@ if [ -z "${TEST_SHELLS:-}" ]; then
   done
 fi
 
-printf 'APP_URL=https://example.test\n# IPFS_CLUSTER_API_URL=http://commented.out\nIPFS_CLUSTER_API_URL_OLD=http://similar.name\nIPFS_GATEWAY=https://other.gateway\nIPFS_KUBO_API_URL=http://kubo:5001\n' > "$tmp/clean_backend"
+printf 'APP_URL=https://example.test\n# IPFS_CLUSTER_API_URL=http://commented.out\nIPFS_CLUSTER_API_URL_OLD=http://similar.name\nIPFS_GATEWAY=https://other.gateway\n' > "$tmp/clean_backend"
 printf 'QUEUE_NAME=jobs\n' > "$tmp/clean_queue"
 printf 'NEXT_PUBLIC_API=https://api.example.test\nNEXT_PUBLIC_IPFS_GATEWAY=https://other.gateway\n' > "$tmp/clean_frontend"
 printf 'DATABASE_URL=postgres://u:p@db:5432/x\n' > "$tmp/clean_global"
@@ -158,6 +158,22 @@ for current_shell in $TEST_SHELLS; do
   run_clean "$current_shell -x"
   expect_rc 0 "all set, traced with -x"
   expect_no_secret "all set, traced with -x"
+
+  for obsolete in IPFS_KUBO_API_URL IPFS_KUBO_GATEWAY_URL; do
+    set_all
+    printf '  export %s=http://retired\n' "$obsolete" > "$tmp/obsolete"
+    run_check "$current_shell" "$tmp/obsolete"
+    expect_rc 1 "$obsolete rejected"
+    expect_output "$obsolete is retired" "$obsolete rejected"
+    expect_no_secret "$obsolete rejected"
+  done
+
+  set_all
+  env -i PATH="$PATH" IPFS_CLUSTER_API_URL="$URL" IPFS_CLUSTER_API_USER="$USR" IPFS_CLUSTER_API_PASSWORD="$PASS" IPFS_GATEWAY_URL="$GW" IPFS_KUBO_API_URL=obsolete "$current_shell" "$script" > "$tmp/out" 2>&1
+  rc=$?
+  expect_rc 1 "obsolete RPC variable in deployment environment"
+  expect_output "IPFS_KUBO_API_URL is retired" "obsolete RPC variable in deployment environment"
+  expect_no_secret "obsolete RPC variable in deployment environment"
 
   set_all
   PASS=''

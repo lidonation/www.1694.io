@@ -839,14 +839,9 @@ export class DrepService {
 
   async saveMetadataToIPFS(metadata: JsonLd): Promise<IPFSResponse> {
     try {
-      // Save to IPFS via blockfrost
-      const metadataStr = JSON.stringify(metadata);
-      const binary = Buffer.from(metadataStr);
-
-      // Prepare the FormData
-      const formData = new FormData();
-      formData.append('file', binary as any);
-      return await this.ipfsService.uploadAttachmentToIPFS(formData);
+      return await this.ipfsService.uploadAttachmentToIPFS(
+        Buffer.from(JSON.stringify(metadata)),
+      );
     } catch (error) {
       console.error(error);
       throw error;

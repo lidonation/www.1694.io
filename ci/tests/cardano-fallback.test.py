@@ -11,6 +11,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
 KEYS = ('BLOCKFROST_NETWORK_URL_FALLBACK', 'BLOCKFROST_NETWORK_PROJECT_ID_FALLBACK')
+RETIRED_IPFS = ('IPFS_KUBO_API_URL', 'IPFS_KUBO_GATEWAY_URL')
 
 
 class FallbackIsolation(unittest.TestCase):
@@ -50,6 +51,7 @@ class FallbackIsolation(unittest.TestCase):
                         file = chart / f'{suffix}_env'
                         file.unlink(missing_ok=True)
                         if preserved:
+                            env.update({key: 'http://retired' for key in RETIRED_IPFS})
                             fixtures[suffix] = {'metadata': {'annotations': {'meta.helm.sh/release-name': 'test', 'meta.helm.sh/release-namespace': 'default'}}, 'type': 'Opaque', 'data': {k: base64.b64encode(v.encode()).decode() for k, v in env.items()}}
                         else:
                             file.write_text(''.join(f'{k}={v}\n' for k, v in env.items()))
@@ -77,7 +79,7 @@ class FallbackIsolation(unittest.TestCase):
                     for suffix in ('backend', 'queue', 'global', 'frontend'):
                         secret = next(d for d in docs if d['kind'] == 'Secret' and d['metadata']['name'] == f'www-1694-{suffix}-secrets')
                         data = secret['data']
-                        for key in KEYS:
+                        for key in KEYS + (RETIRED_IPFS if preserved else ()):
                             self.assertNotIn(key, data)
                         for key in ('CARDANO_API_URL', 'CARDANO_API_PROJECT_ID', 'OTHER'):
                             self.assertEqual(base64.b64decode(data[key]).decode(), env[key])

@@ -178,15 +178,7 @@ export class AttachmentService {
     attachment: Express.Multer.File | Buffer | Uint8Array | Blob | FormData,
   ): Promise<IPFSResponse> {
     try {
-      const ipfsRes = await this.ipfsService.uploadAttachmentToIPFS(attachment);
-      //then auto-pin the attachment
-      const ipfsPinStatus = await this.ipfsService.pinAttachmentToIPFS(
-        ipfsRes.ipfs_hash,
-      );
-      return {
-        ...ipfsRes,
-        state: ipfsPinStatus.state,
-      };
+      return await this.ipfsService.uploadAttachmentToIPFS(attachment);
     } catch (error) {
       console.error(error?.response?.data || error?.response || error);
       throw new HttpException(

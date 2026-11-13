@@ -21,6 +21,7 @@ changes.
   branch and merge request pipeline.
 
 ### Fixed
+- IPFS uploads, pins, status and unpins use authenticated Contabo cluster REST instead of retired Kubo RPC; gateway reads use the canonical deployment setting and retain Blockfrost fallbacks (#244). Deployment checks reject obsolete Kubo settings and preserved Secrets discard them.
 - GitHub mirroring starts correctly on Docker runners and fetches full Git history
   before syncing the public `main` and `dev` branches.
 - Frontend image builds skip the unused Cypress desktop binary download without
