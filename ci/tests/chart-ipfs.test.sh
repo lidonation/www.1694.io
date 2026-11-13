@@ -159,9 +159,18 @@ expect_render_error "IPFS_CLUSTER_API_USER is also set in global_env" "user in g
 # Lines that only look similar are left alone.
 new_chart "# IPFS_CLUSTER_API_PASSWORD=$secret
 IPFS_CLUSTER_API_URL_OLD=http://old
-IPFS_GATEWAY=https://other.gateway" "IPFS_KUBO_API_URL=http://kubo:5001" "NEXT_PUBLIC_IPFS_GATEWAY=https://other.gateway"
+IPFS_GATEWAY=https://other.gateway" "QUEUE_NAME=jobs" "NEXT_PUBLIC_IPFS_GATEWAY=https://other.gateway"
 render_all_set
 expect_rc_zero "commented and similarly named keys"
+
+for obsolete in IPFS_KUBO_API_URL IPFS_KUBO_GATEWAY_URL; do
+  for env_file in backend_env queue_env frontend_env global_env; do
+    new_chart "" "" "" ""
+    printf '%s=http://retired\n' "$obsolete" > "$tmp/chart/$env_file"
+    render_all_set
+    expect_render_error "$obsolete is retired" "obsolete key in $env_file"
+  done
+done
 
 echo "chart-ipfs: $count checks, $failures failed ($("$helm" version --short 2>/dev/null))"
 [ "$failures" -eq 0 ]
