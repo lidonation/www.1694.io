@@ -7,6 +7,9 @@ Usage: include "www-1694.ipfs.rejectEnvKey" (dict "key" $key "file" "backend_env
 */}}
 {{- define "www-1694.ipfs.rejectEnvKey" -}}
 {{- $key := trim (regexReplaceAll "^\\s*export\\s+" .key "") -}}
+{{- if has $key (list "IPFS_KUBO_API_URL" "IPFS_KUBO_GATEWAY_URL") -}}
+{{- fail (printf "%s is retired in %s. Remove it and use IPFS_CLUSTER_API_* and IPFS_GATEWAY_URL." $key .file) -}}
+{{- end -}}
 {{- if has $key (list "IPFS_CLUSTER_API_URL" "IPFS_CLUSTER_API_USER" "IPFS_CLUSTER_API_PASSWORD" "IPFS_GATEWAY_URL") -}}
 {{- fail (printf "%s is also set in %s. Remove it there and keep it only as its own CI/CD variable (lidonation#791)." $key .file) -}}
 {{- end -}}

@@ -24,6 +24,14 @@ for key in $keys; do
   fi
 done
 
+obsolete_keys='IPFS_KUBO_API_URL IPFS_KUBO_GATEWAY_URL'
+for key in $obsolete_keys; do
+  if printenv "$key" >/dev/null 2>&1; then
+    echo "ERROR: $key is retired for environment $environment. Remove it and use IPFS_CLUSTER_API_* and IPFS_GATEWAY_URL." >&2
+    status=1
+  fi
+done
+
 for file in "$@"; do
   if [ -z "$file" ]; then
     echo "ERROR: an env file argument is empty for environment $environment. Check the job's file variables." >&2
@@ -35,6 +43,12 @@ for file in "$@"; do
     status=1
     continue
   fi
+  for key in $obsolete_keys; do
+    if grep -Eq "^[[:space:]]*(export[[:space:]]+)?${key}[[:space:]]*=" "$file"; then
+      echo "ERROR: $key is retired in env file $file for environment $environment. Remove it and use IPFS_CLUSTER_API_* and IPFS_GATEWAY_URL." >&2
+      status=1
+    fi
+  done
   for key in $keys; do
     if grep -Eq "^[[:space:]]*(export[[:space:]]+)?${key}[[:space:]]*=" "$file"; then
       echo "ERROR: $key is also set in env file $file for environment $environment. Remove it there and keep it only as its own CI/CD variable." >&2

@@ -12,5 +12,5 @@
 {{- fail "preserveExistingAppEnv refuses an empty, invalid or differently owned Secret" }}
 {{- end }}
 {{/* Helm always selects gateway mode; never restore obsolete provider routes. */}}
-{{- omit $existing.data "BLOCKFROST_NETWORK_URL_FALLBACK" "BLOCKFROST_NETWORK_PROJECT_ID_FALLBACK" | toYaml }}
+{{- omit $existing.data "BLOCKFROST_NETWORK_URL_FALLBACK" "BLOCKFROST_NETWORK_PROJECT_ID_FALLBACK" "IPFS_KUBO_API_URL" "IPFS_KUBO_GATEWAY_URL" | toYaml }}
 {{- end }}
