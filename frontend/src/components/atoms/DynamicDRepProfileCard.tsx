@@ -1,5 +1,6 @@
 'use client';
 import React, { useState } from 'react';
+import { votingOptionLabel } from '@/lib/drepDisplay';
 import {
   Typography,
   Skeleton,
@@ -95,7 +96,7 @@ const DynamicDRepProfileCard: React.FC<DynamicDRepProfileCardProps> = ({
   const displayName = name
     ? renderJsonLdValue(name)
     : drep?.type === 'voting_option'
-      ? drep?.view
+      ? votingOptionLabel(drep?.view) ?? drep?.view
       : convertString(drep?.view, isMobile);
 
   const handleDelegate = () => {

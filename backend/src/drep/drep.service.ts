@@ -84,7 +84,7 @@ export class DrepService {
       currentPage || 1,
       itemsPerPage || 24,
       sort,
-      order as 'ASC' | 'DESC',
+      order,
       onChainStatus,
       campaignStatus,
       includeRetired ?? false,
@@ -130,9 +130,9 @@ export class DrepService {
             voting_power: (
               parseFloat(blockfrostDrep.amount || '0') / 1000000
             ).toString(),
-            live_stake: (
-              parseFloat(blockfrostDrep.amount || '0') / 1000000
-            ).toString(),
+            // Blockfrost's amount is voting power; without indexed delegators
+            // the live stake is unknown, so do not report one as the other.
+            live_stake: null,
             epoch_no: blockfrostDrep.active_epoch,
             retired: blockfrostDrep.retired,
             active: blockfrostDrep.active,
