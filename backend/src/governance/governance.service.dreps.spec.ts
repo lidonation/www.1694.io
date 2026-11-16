@@ -28,10 +28,16 @@ const allDreps = [
   // Legacy alias of drep1a: same 56-char suffix, shorter hex.
   drep({ drepId: 'drep1a_legacy', hex: HEX_A_LEGACY, votingPowerAda: '100' }),
   drep({ drepId: 'drep1b', hex: HEX_B, votingPowerAda: '50' }),
+  // The voting options are stored with an empty hex in production.
   drep({
     drepId: 'drep_always_no_confidence',
-    hex: 'drep_always_no_confidence',
+    hex: '',
     votingPowerAda: '75',
+  }),
+  drep({
+    drepId: 'drep_always_abstain',
+    hex: '',
+    votingPowerAda: '1000',
   }),
 ];
 
@@ -49,6 +55,11 @@ const delegators = [
     drep_id: 'drep_always_no_confidence',
     stake_address: 'stake4',
     amount_lovelace: '75000000',
+  },
+  {
+    drep_id: 'drep_always_abstain',
+    stake_address: 'stake5',
+    amount_lovelace: '1000000000',
   },
 ];
 
@@ -130,6 +141,26 @@ describe('GovernanceService DRep list', () => {
     expect(data.find((d) => d.view === 'drep1a').live_stake).toBe(70);
   });
 
+  it('keeps the two voting options apart even though both have an empty hex', async () => {
+    const { data } = await service.getAllDReps();
+    const noConfidence = data.find(
+      (d) => d.view === 'drep_always_no_confidence',
+    );
+    const abstain = data.find((d) => d.view === 'drep_always_abstain');
+    expect(noConfidence.live_stake).toBe(75);
+    expect(noConfidence.delegation_vote_count).toBe(1);
+    expect(abstain.live_stake).toBe(1000);
+    expect(abstain.delegation_vote_count).toBe(1);
+  });
+
+  it('looks up a voting option by its own ID, not by its empty hex', async () => {
+    await service.getSingleDRep('drep_always_abstain');
+    expect(query).toHaveBeenCalledWith(expect.stringContaining('$1'), [
+      'drep_always_abstain',
+      '',
+    ]);
+  });
+
   it('marks the predefined voting options as voting_option', async () => {
     const { data } = await service.getAllDReps();
     const option = data.find((d) => d.view === 'drep_always_no_confidence');
@@ -140,6 +171,7 @@ describe('GovernanceService DRep list', () => {
   it('sorts by the snake_case keys the web app sends, case-insensitively', async () => {
     const byLive = await service.getAllDReps('', 1, 24, 'live_stake', 'desc');
     expect(byLive.data.map((d) => d.view)).toEqual([
+      'drep_always_abstain',
       'drep1a',
       'drep_always_no_confidence',
       'drep1b',
@@ -156,6 +188,7 @@ describe('GovernanceService DRep list', () => {
       'drep1b',
       'drep_always_no_confidence',
       'drep1a',
+      'drep_always_abstain',
     ]);
   });
 
@@ -167,6 +200,9 @@ describe('GovernanceService DRep list', () => {
     const stats = await service.getDRepStats('drep1a');
     expect(stats.liveStake).toBe(110);
     expect(stats.votingPower).toBe(100);
-    expect(query).toHaveBeenCalledWith(expect.stringContaining('$1'), [HEX_A]);
+    expect(query).toHaveBeenCalledWith(expect.stringContaining('$1'), [
+      'drep1a',
+      HEX_A,
+    ]);
   });
 });
