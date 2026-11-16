@@ -12,7 +12,7 @@ import { ProposalVote } from 'src/entities/governance/proposal-vote.entity';
 import { ProposalMetadata } from 'src/entities/governance/proposal-metadata.entity';
 import { BlockfrostService } from 'src/blockfrost/blockfrost.service';
 import {
-  LIVE_STAKE_FOR_HEX_SQL,
+  LIVE_STAKE_FOR_DREP_SQL,
   sumLovelaceAsAda,
 } from 'src/governance/drep-stake.util';
 
@@ -1046,7 +1046,10 @@ export class DRepRepository extends Repository<VoltaireDrep> {
     // Get voltaire drep data (claimed profile info) and the live stake
     const [voltaireDrep, liveStakeRows] = await Promise.all([
       this.getByVoterIdWithSignature(canonicalId),
-      this.voltaireDb.query(LIVE_STAKE_FOR_HEX_SQL, [drepData.hex]),
+      this.voltaireDb.query(LIVE_STAKE_FOR_DREP_SQL, [
+        drepData.drepId,
+        drepData.hex ?? '',
+      ]),
     ]);
     const liveStakeAda = sumLovelaceAsAda([
       liveStakeRows?.[0]?.live_stake_lovelace,

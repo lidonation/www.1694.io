@@ -1,4 +1,8 @@
-import { isVotingOption, sumLovelaceAsAda } from './drep-stake.util';
+import {
+  drepAliasKey,
+  isVotingOption,
+  sumLovelaceAsAda,
+} from './drep-stake.util';
 
 describe('drep-stake.util', () => {
   describe('sumLovelaceAsAda', () => {
@@ -28,6 +32,24 @@ describe('drep-stake.util', () => {
       expect(isVotingOption('drep_always_no_confidence')).toBe(true);
       expect(isVotingOption('drep1abc')).toBe(false);
       expect(isVotingOption(null)).toBe(false);
+    });
+  });
+
+  describe('drepAliasKey', () => {
+    it('groups legacy and CIP-129 IDs of one credential', () => {
+      const hex = 'a'.repeat(56);
+      expect(drepAliasKey({ drepId: 'drep1x', hex: '22' + hex })).toBe(
+        drepAliasKey({ drepId: 'drep1y', hex }),
+      );
+    });
+
+    it('never groups rows without a full hex, such as the voting options', () => {
+      expect(drepAliasKey({ drepId: 'drep_always_abstain', hex: '' })).not.toBe(
+        drepAliasKey({ drepId: 'drep_always_no_confidence', hex: '' }),
+      );
+      expect(drepAliasKey({ drepId: 'drep_always_abstain', hex: null })).toBe(
+        'id:drep_always_abstain',
+      );
     });
   });
 });
