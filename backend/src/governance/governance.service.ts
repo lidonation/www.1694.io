@@ -13,6 +13,25 @@ import {
 
 import { ConfigService } from '@nestjs/config';
 import { BlockfrostService } from '../blockfrost/blockfrost.service';
+import {
+  isVotingOption,
+  LIVE_STAKE_FOR_HEX_SQL,
+  sumLovelaceAsAda,
+} from './drep-stake.util';
+
+/** Raw drep_delegators row as the list query selects it. */
+interface DelegatorRow {
+  drep_id: string;
+  stake_address: string;
+  amount_lovelace: string;
+  updated_at: Date | string | null;
+}
+
+/** A delegator's current lovelace and when the sync last wrote it. */
+interface DelegatedAmount {
+  amount: string;
+  updatedAt: number;
+}
 
 /**
  * Number of epochs returned in a single timeline page: the anchor epoch plus
@@ -48,7 +67,8 @@ export class GovernanceService {
     page: number = 1,
     perPage: number = 24,
     sort?: string,
-    order: 'ASC' | 'DESC' = 'DESC',
+    // Any case; the web app sends lower-case `asc` / `desc`.
+    order: string = 'DESC',
     onChainStatus?: 'active' | 'inactive',
     campaignStatus?: 'claimed' | 'unclaimed',
     includeRetired: boolean = false,
@@ -105,16 +125,21 @@ export class GovernanceService {
       votesMap.get(row.voter).add(row.proposal_id);
     }
 
-    const delegatorsQuery = await this.governanceDataSource.query(
-      'SELECT drep_id, stake_address, amount_lovelace FROM drep_delegators',
-    );
+    const delegatorsQuery: DelegatorRow[] =
+      await this.governanceDataSource.query(
+        'SELECT drep_id, stake_address, amount_lovelace, updated_at FROM drep_delegators',
+      );
 
-    const delegatorsMap = new Map<string, Set<string>>();
+    // drep_id -> (stake_address -> currently delegated lovelace)
+    const delegatorsMap = new Map<string, Map<string, DelegatedAmount>>();
 
     for (const row of delegatorsQuery) {
       if (!delegatorsMap.has(row.drep_id))
-        delegatorsMap.set(row.drep_id, new Set());
-      delegatorsMap.get(row.drep_id).add(row.stake_address);
+        delegatorsMap.set(row.drep_id, new Map());
+      delegatorsMap.get(row.drep_id).set(row.stake_address, {
+        amount: row.amount_lovelace,
+        updatedAt: new Date(row.updated_at ?? 0).getTime() || 0,
+      });
     }
 
     // 3. In-memory Aggregation & Consolidation
@@ -141,7 +166,7 @@ export class GovernanceService {
       );
       const primary = group[0];
 
-      const uniqueDelegators = new Set<string>();
+      const uniqueDelegators = new Map<string, DelegatedAmount>();
       const uniqueVotes = new Set<string>();
 
       for (const member of group) {
@@ -154,7 +179,13 @@ export class GovernanceService {
         // Merge Delegators
         const memberDelegators = delegatorsMap.get(member.drepId);
         if (memberDelegators) {
-          for (const del of memberDelegators) uniqueDelegators.add(del);
+          // Same rule as LIVE_STAKE_FOR_HEX_SQL: an address listed under two
+          // aliases counts once, at its most recently synced amount.
+          for (const [address, entry] of memberDelegators) {
+            const seen = uniqueDelegators.get(address);
+            if (!seen || entry.updatedAt > seen.updatedAt)
+              uniqueDelegators.set(address, entry);
+          }
         }
       }
 
@@ -164,12 +195,22 @@ export class GovernanceService {
       consolidated.governanceVoteCount = uniqueVotes.size;
       consolidated.votingPowerAda = primary.votingPowerAda;
 
-      return consolidated;
+      // Live stake is what delegators hold right now; voting power is the
+      // epoch snapshot. They differ, so never report one as the other.
+      return {
+        drep: consolidated,
+        liveStakeAda: sumLovelaceAsAda(
+          Array.from(uniqueDelegators.values(), ({ amount }) => amount),
+        ),
+      };
     });
 
     // 4. Sort
     const sortCol = this.getSortColumn(sort);
-    consolidatedDReps.sort((a, b) => {
+    const sortOrder = String(order ?? 'DESC').toUpperCase();
+    consolidatedDReps.sort((rowA, rowB) => {
+      const a = rowA.drep;
+      const b = rowB.drep;
       let valA: any, valB: any;
 
       if (sortCol === 'delegationVoteCount') {
@@ -178,7 +219,10 @@ export class GovernanceService {
       } else if (sortCol === 'governanceVoteCount') {
         valA = a.governanceVoteCount;
         valB = b.governanceVoteCount;
-      } else if (sortCol === 'liveStakeAda' || sortCol === 'votingPowerAda') {
+      } else if (sortCol === 'liveStakeAda') {
+        valA = rowA.liveStakeAda;
+        valB = rowB.liveStakeAda;
+      } else if (sortCol === 'votingPowerAda') {
         valA = parseFloat(a.votingPowerAda || '0');
         valB = parseFloat(b.votingPowerAda || '0');
       } else if (sortCol === 'givenName') {
@@ -193,8 +237,8 @@ export class GovernanceService {
         valB = (b as any)[sortCol];
       }
 
-      if (valA < valB) return order === 'ASC' ? -1 : 1;
-      if (valA > valB) return order === 'ASC' ? 1 : -1;
+      if (valA < valB) return sortOrder === 'ASC' ? -1 : 1;
+      if (valA > valB) return sortOrder === 'ASC' ? 1 : -1;
       return 0;
     });
 
@@ -206,7 +250,9 @@ export class GovernanceService {
     );
 
     return {
-      data: paginated.map((drep) => this.formatDRepForAPI(drep)),
+      data: paginated.map(({ drep, liveStakeAda }) =>
+        this.formatDRepForAPI(drep, liveStakeAda),
+      ),
       pagination: {
         page,
         perPage,
@@ -689,7 +735,7 @@ export class GovernanceService {
 
     return {
       votingPower: parseFloat(drep.votingPowerAda),
-      liveStake: drep.votingPowerAda ? parseFloat(drep.votingPowerAda) : null,
+      liveStake: await this.getLiveStakeAda(drep.hex),
       delegatorsCount: drep.delegationVoteCount,
       governanceVotesCount: drep.governanceVoteCount,
       isActive: drep.active,
@@ -703,15 +749,30 @@ export class GovernanceService {
       where: { drepId: voterId },
     });
 
-    return drep ? this.formatDRepForAPI(drep) : null;
+    return drep
+      ? this.formatDRepForAPI(drep, await this.getLiveStakeAda(drep.hex))
+      : null;
+  }
+
+  /** Live stake in ada for the DRep with this hex (see LIVE_STAKE_FOR_HEX_SQL). */
+  async getLiveStakeAda(hex: string): Promise<number> {
+    const rows = await this.governanceDataSource.query(LIVE_STAKE_FOR_HEX_SQL, [
+      hex,
+    ]);
+    return sumLovelaceAsAda([rows?.[0]?.live_stake_lovelace]);
   }
 
   private getSortColumn(sort?: string): string {
+    // The web app sends snake_case keys (voting_power-desc); keep camelCase too.
     const sortMap = {
       votingPower: 'votingPowerAda',
+      voting_power: 'votingPowerAda',
       liveStake: 'liveStakeAda',
+      live_stake: 'liveStakeAda',
       delegators: 'delegationVoteCount',
+      delegation_vote_count: 'delegationVoteCount',
       votes: 'governanceVoteCount',
+      governance_vote_count: 'governanceVoteCount',
       name: 'givenName',
       updated: 'updatedAt',
     };
@@ -736,7 +797,7 @@ export class GovernanceService {
     return v;
   }
 
-  private formatDRepForAPI(drep: Drep) {
+  private formatDRepForAPI(drep: Drep, liveStakeAda: number | null = null) {
     const givenName = this.cipValue(
       drep.metadata?.json_metadata?.body?.givenName,
     );
@@ -746,13 +807,17 @@ export class GovernanceService {
       chainId: drep.hex,
       cip129Id: drep.drepId,
       hasScript: drep.hasScript,
-      type: drep.hasScript ? 'scripted' : 'drep',
+      type: isVotingOption(drep.drepId)
+        ? 'voting_option'
+        : drep.hasScript
+          ? 'scripted'
+          : 'drep',
       active: drep.active,
       retired: drep.retired,
       votingPower: drep.votingPowerAda ? parseFloat(drep.votingPowerAda) : 0,
       voting_power: drep.votingPowerAda ? parseFloat(drep.votingPowerAda) : 0,
-      liveStake: drep.votingPowerAda ? parseFloat(drep.votingPowerAda) : null,
-      live_stake: drep.votingPowerAda ? parseFloat(drep.votingPowerAda) : null,
+      liveStake: liveStakeAda,
+      live_stake: liveStakeAda,
       delegatorsCount: drep.delegationVoteCount,
       delegation_vote_count: drep.delegationVoteCount,
       votesCount: drep.governanceVoteCount,

@@ -25,9 +25,12 @@ export function generateStaticParams() {
 
 // Define common metadata for the application.
 export const metadata = {
-  title: 'Voltaire DRep Campaign Module',
+  title: {
+    default: '1694.io',
+    template: '%s | 1694.io',
+  },
   description:
-    'Town Halls and Campaigns for Voltaire DReps and their communities.',
+    'DRep campaign platform on Cardano where DReps build profiles, share updates, and connect with delegators, with live voting history and CIP-1694 resources.',
 };
 
 async function RootLayout({ children, params }) {
