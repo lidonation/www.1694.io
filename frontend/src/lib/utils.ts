@@ -174,19 +174,6 @@ export async function sha256(file: File) {
   return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
-export function percentageDifference(
-  newNumber: number,
-  oldNumber: number,
-  fixed = 2,
-) {
-  const percent = ((newNumber - oldNumber) / oldNumber) * 100;
-  if (!isNaN(percent)) {
-    return Number(percent.toFixed(fixed));
-  }
-
-  return null;
-}
-
 export const renderJsonLdValue = (value: any) => {
   if (typeof value === 'object') {
     return value['@value'] ? value['@value'] : 'Empty';

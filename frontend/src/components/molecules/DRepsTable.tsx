@@ -8,9 +8,14 @@ import {
   convertString,
   formatAsCurrency,
   handleCopyText,
-  percentageDifference,
   shortNumber,
 } from '@/lib';
+import {
+  formatPercentChange,
+  isVotingOptionView,
+  liveStakeChangePercent,
+  votingOptionLabel,
+} from '@/lib/drepDisplay';
 import { useScreenDimension } from '@/hooks';
 import { Box, IconButton, Skeleton, Tooltip } from '@mui/material';
 import Link from 'next/link';
@@ -124,55 +129,36 @@ const DRepsTable = ({
               </td>
             </tr>
           ) : DReps?.data && DReps?.data.length > 0 ? (
-            DReps.data.map((drep) => (
-              <tr
-                key={drep.view}
-                data-testid={`drep-id-${drep.view}`}
-                className={`text-left text-sm text-nowrap hover:bg-gray-50 ${drep.view}`}
-              >
-                <td className="py-2.5">
-                  <Box className="flex flex-row items-center gap-3">
-                    {!(
-                      drep?.type === 'voting_option' ||
-                      drep?.type === 'scripted'
-                    ) && (
-                      <DRepLogo
-                        drepView={drep?.view}
-                        metadata={drep?.metadata?.json_metadata}
-                      />
-                    )}
+            DReps.data.map((drep) => {
+              const isVotingOption =
+                drep?.type === 'voting_option' ||
+                isVotingOptionView(drep?.view);
+              const givenName =
+                typeof drep?.given_name === 'string' && drep.given_name.trim()
+                  ? drep.given_name.trim()
+                  : null;
+              const liveStakeChange = liveStakeChangePercent(
+                drep.live_stake,
+                drep.voting_power,
+              );
+              return (
+                <tr
+                  key={drep.view}
+                  data-testid={`drep-id-${drep.view}`}
+                  className={`text-left text-sm text-nowrap hover:bg-gray-50 ${drep.view}`}
+                >
+                  <td className="py-2.5">
+                    <Box className="flex flex-row items-center gap-3">
+                      {!isVotingOption && drep?.type !== 'scripted' && (
+                        <DRepLogo
+                          drepView={drep?.view}
+                          metadata={drep?.metadata?.json_metadata}
+                        />
+                      )}
 
-                    {drep?.type === 'voting_option' ||
-                      (drep?.type === 'scripted' && (
+                      {isVotingOption ? (
                         <Link
                           className="flex items-center gap-4"
-                          href={`/dreps/${drep?.view}`}
-                          prefetch={false}
-                        >
-                          <p className="font-medium uppercase hover:font-semibold">
-                            {drep?.type === 'scripted'
-                              ? ''
-                              : drep?.view.replace('drep_', '')}
-                          </p>
-                        </Link>
-                      ))}
-
-                    {drep?.type !== 'voting_option' && (
-                      <Box className="flex flex-nowrap items-center">
-                        <Tooltip title="Copy DRep ID (CIP-129)">
-                          <span>
-                            <IconButton
-                              size="small"
-                              onClick={() =>
-                                handleCopyText(drep?.view, addSuccessAlert)
-                              }
-                            >
-                              <CopyToClipBoard width={18} height={18} />
-                            </IconButton>
-                          </span>
-                        </Tooltip>
-
-                        <Link
                           href={`/dreps/${drep?.view}`}
                           prefetch={false}
                           onClick={(e) => {
@@ -180,19 +166,26 @@ const DRepsTable = ({
                             navigateToDRepWithLastTab(drep?.view);
                           }}
                         >
-                          <p className="hover:font-semibold">
-                            {convertString(drep?.view, isMobile)}
+                          <p className="font-medium hover:font-semibold">
+                            {votingOptionLabel(drep?.view)}
                           </p>
                         </Link>
-                      </Box>
-                    )}
+                      ) : (
+                        <Box className="flex flex-nowrap items-center">
+                          <Tooltip title="Copy DRep ID (CIP-129)">
+                            <span>
+                              <IconButton
+                                size="small"
+                                onClick={() =>
+                                  handleCopyText(drep?.view, addSuccessAlert)
+                                }
+                              >
+                                <CopyToClipBoard width={18} height={18} />
+                              </IconButton>
+                            </span>
+                          </Tooltip>
 
-                    <Box className="flex flex-row items-center gap-1.5">
-                      {typeof drep?.given_name === 'string' &&
-                      drep.given_name.trim() ? (
-                        <Tooltip title="DRep given name">
                           <Link
-                            className="inline-flex"
                             href={`/dreps/${drep?.view}`}
                             prefetch={false}
                             onClick={(e) => {
@@ -200,120 +193,136 @@ const DRepsTable = ({
                               navigateToDRepWithLastTab(drep?.view);
                             }}
                           >
-                            <span className="inline-block rounded-xl border border-black px-1.5 py-0.5 text-xs font-black text-black">
-                              {(() => {
-                                const gName = drep.given_name;
-                                return typeof gName === 'string' &&
-                                  gName.length > 25
-                                  ? `${gName.slice(0, 25)}...`
-                                  : gName;
-                              })()}
-                            </span>
+                            <p className="hover:font-semibold">
+                              {convertString(drep?.view, isMobile)}
+                            </p>
                           </Link>
-                        </Tooltip>
-                      ) : (
-                        <Tooltip title="DRep ID (no given name)">
-                          <Link
-                            className="inline-flex"
-                            href={`/dreps/${drep?.view}`}
-                            prefetch={false}
+                        </Box>
+                      )}
+
+                      <Box className="flex flex-row items-center gap-1.5">
+                        {/* Without a given name the ID above already names the DRep. */}
+                        {!isVotingOption && givenName && (
+                          <Tooltip title="DRep given name">
+                            <Link
+                              className="inline-flex"
+                              href={`/dreps/${drep?.view}`}
+                              prefetch={false}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                navigateToDRepWithLastTab(drep?.view);
+                              }}
+                            >
+                              <span className="inline-block rounded-xl border border-black px-1.5 py-0.5 text-xs font-black text-black">
+                                {givenName.length > 25
+                                  ? `${givenName.slice(0, 25)}...`
+                                  : givenName}
+                              </span>
+                            </Link>
+                          </Tooltip>
+                        )}
+
+                        {isVotingOption ? (
+                          <Tooltip
+                            title="Predefined voting option, not an individual DRep"
+                            disableFocusListener
                           >
-                            <span className="inline-block rounded-xl border border-gray-400 bg-gray-50 px-1.5 py-0.5 text-xs font-medium text-gray-600">
-                              {convertString(drep?.view, true)}
+                            <span>
+                              <button className="flex shrink-0 gap-2 hover:cursor-default">
+                                <StatusChip status="Voting Option" />
+                              </button>
                             </span>
-                          </Link>
-                        </Tooltip>
-                      )}
+                          </Tooltip>
+                        ) : (
+                          <Tooltip
+                            title="DRep onchain status"
+                            disableFocusListener
+                          >
+                            <span>
+                              <button className="flex shrink-0 gap-2 hover:cursor-default">
+                                <StatusChip
+                                  status={checkStatus(drep?.active)}
+                                />
+                                {drep.retired && (
+                                  <StatusChip status={'Retired'} />
+                                )}
+                              </button>
+                            </span>
+                          </Tooltip>
+                        )}
 
-                      <Tooltip title="DRep onchain status" disableFocusListener>
-                        <span>
-                          <button className="flex shrink-0 gap-2 hover:cursor-default">
-                            <StatusChip
-                              status={
-                                drep?.type === 'voting_option'
-                                  ? 'Active'
-                                  : checkStatus(drep?.active)
-                              }
-                            />
-                            {drep.retired && drep?.type !== 'voting_option' && (
-                              <StatusChip status={'Retired'} />
-                            )}
-                          </button>
-                        </span>
-                      </Tooltip>
+                        {drep.type === 'scripted' && (
+                          <Tooltip title="Scripted DRep" disableFocusListener>
+                            <span>
+                              <button className="flex shrink-0 gap-2 hover:cursor-default">
+                                <StatusChip status="Scripted" />
+                              </button>
+                            </span>
+                          </Tooltip>
+                        )}
 
-                      {drep.type === 'scripted' && (
-                        <Tooltip title="Scripted DRep" disableFocusListener>
-                          <span>
-                            <button className="flex shrink-0 gap-2 hover:cursor-default">
-                              <StatusChip status="Scripted" />
-                            </button>
-                          </span>
-                        </Tooltip>
-                      )}
-
-                      {drep.governance_vote_count && (
-                        <Tooltip title="Governance votes">
-                          <span className="inline-block shrink-0 rounded-full border border-blue-200 bg-blue-50 px-1.5 py-0.5 text-center text-xs font-normal text-nowrap text-black">
-                            Votes: {drep.governance_vote_count}
-                          </span>
-                        </Tooltip>
-                      )}
-                    </Box>
-                  </Box>
-                </td>
-
-                <td className="overflow-auto px-4 py-2">
-                  {drep.voting_power !== null ? (
-                    <Box className="flex w-full flex-nowrap items-center justify-start">
-                      <Tooltip
-                        title={`₳ ${formatAsCurrency(drep.voting_power)}`}
-                      >
-                        <Typography>
-                          ₳ {shortNumber(drep.voting_power, 2)}
-                        </Typography>
-                      </Tooltip>
-                    </Box>
-                  ) : (
-                    <p>-</p>
-                  )}
-                </td>
-
-                <td className="overflow-auto px-2 py-2">
-                  {drep.live_stake !== null ? (
-                    <Box className="flex w-full flex-row flex-nowrap items-center justify-start gap-1.5">
-                      <Tooltip title={`₳ ${formatAsCurrency(drep.live_stake)}`}>
-                        <Typography>
-                          ₳ {shortNumber(drep.live_stake, 2)}
-                        </Typography>
-                      </Tooltip>
-                      {drep.voting_power > 0.0 && (
-                        <Typography
-                          variant="body1"
-                          className={`font-bolder ${percentageDifference(drep.live_stake, drep.voting_power) > 0.0 ? 'text-success' : percentageDifference(drep.live_stake, drep.voting_power) < 0.0 ? 'text-extra_red' : ''}`}
-                        >
-                          {new Intl.NumberFormat('en-US', {
-                            signDisplay: 'exceptZero',
-                          }).format(
-                            percentageDifference(
-                              drep.live_stake,
-                              drep.voting_power,
-                            ),
+                        {/* Voting options never cast votes, so no vote count. */}
+                        {!isVotingOption &&
+                          typeof drep.governance_vote_count === 'number' && (
+                            <Tooltip title="Governance votes">
+                              <span className="inline-block shrink-0 rounded-full border border-blue-200 bg-blue-50 px-1.5 py-0.5 text-center text-xs font-normal text-nowrap text-black">
+                                Votes: {drep.governance_vote_count}
+                              </span>
+                            </Tooltip>
                           )}
-                          %
-                        </Typography>
-                      )}
+                      </Box>
                     </Box>
-                  ) : (
-                    <p>-</p>
-                  )}
-                </td>
+                  </td>
 
-                <td className="px-4 py-2">
-                  <p className="text-center">{drep.delegation_vote_count}</p>
-                </td>
-              </tr>
-            ))
+                  <td className="overflow-auto px-4 py-2">
+                    {drep.voting_power !== null ? (
+                      <Box className="flex w-full flex-nowrap items-center justify-start">
+                        <Tooltip
+                          title={`₳ ${formatAsCurrency(drep.voting_power)}`}
+                        >
+                          <Typography>
+                            ₳ {shortNumber(drep.voting_power, 2)}
+                          </Typography>
+                        </Tooltip>
+                      </Box>
+                    ) : (
+                      <p>-</p>
+                    )}
+                  </td>
+
+                  <td className="overflow-auto px-2 py-2">
+                    {drep.live_stake !== null &&
+                    drep.live_stake !== undefined ? (
+                      <Box className="flex w-full flex-row flex-nowrap items-center justify-start gap-1.5">
+                        <Tooltip
+                          title={`₳ ${formatAsCurrency(drep.live_stake)}`}
+                        >
+                          <Typography>
+                            ₳ {shortNumber(drep.live_stake, 2)}
+                          </Typography>
+                        </Tooltip>
+                        {liveStakeChange !== null && (
+                          <Tooltip title="Change against the voting power snapshot">
+                            <Typography
+                              variant="body1"
+                              className={`font-bolder ${liveStakeChange > 0 ? 'text-success' : 'text-extra_red'}`}
+                            >
+                              {formatPercentChange(liveStakeChange)}
+                            </Typography>
+                          </Tooltip>
+                        )}
+                      </Box>
+                    ) : (
+                      <p>-</p>
+                    )}
+                  </td>
+
+                  <td className="px-4 py-2">
+                    <p className="text-center">{drep.delegation_vote_count}</p>
+                  </td>
+                </tr>
+              );
+            })
           ) : (
             <tr>
               <td colSpan={10} className="px-4 py-6 text-center">

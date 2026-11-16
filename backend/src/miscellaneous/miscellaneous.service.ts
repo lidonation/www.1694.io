@@ -9,6 +9,11 @@ import { catchError, firstValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 import { Response } from 'express';
 import { IpfsService } from 'src/ipfs/ipfs.service';
+import {
+  sumLovelaceAsAda,
+  TOTAL_LIVE_STAKE_SQL,
+} from 'src/governance/drep-stake.util';
+
 @Injectable()
 export class MiscellaneousService {
   private readonly IPFS_GATEWAYS = ['ipfs.io', 'dweb.link'];
@@ -243,6 +248,7 @@ export class MiscellaneousService {
         totalRegisteredDReps,
         totalActiveDReps,
         totalVotingPower,
+        totalLiveStake,
         totalDelegators,
         totalProposals,
       ] = await Promise.all([
@@ -253,6 +259,7 @@ export class MiscellaneousService {
         this.voltaireDb.query(
           'SELECT SUM(COALESCE(voting_power_ada::numeric, 0)) as total FROM dreps WHERE active = true',
         ),
+        this.voltaireDb.query(TOTAL_LIVE_STAKE_SQL),
         this.voltaireDb.query(
           'SELECT COUNT(DISTINCT stake_address) as count FROM drep_delegators',
         ),
@@ -262,7 +269,8 @@ export class MiscellaneousService {
       const metrics: Metrics = {
         totalRegisteredDReps: parseInt(totalRegisteredDReps[0]?.count || '0'),
         totalActiveDReps: parseInt(totalActiveDReps[0]?.count || '0'),
-        totalLiveStake: parseFloat(totalVotingPower[0]?.total || '0'), // Already in ADA from enhanced table
+        // Live stake is what delegators hold now; voting power is the epoch snapshot.
+        totalLiveStake: sumLovelaceAsAda([totalLiveStake[0]?.total_lovelace]),
         totalProposals: parseInt(totalProposals[0]?.count || '0'),
         totalVotingPower: parseFloat(totalVotingPower[0]?.total || '0'), // Already in ADA from enhanced table
         totalRegisteredStakeAddresses: parseInt(

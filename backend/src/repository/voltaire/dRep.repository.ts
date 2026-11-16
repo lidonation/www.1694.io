@@ -11,6 +11,10 @@ import { Proposal } from 'src/entities/governance/proposal.entity';
 import { ProposalVote } from 'src/entities/governance/proposal-vote.entity';
 import { ProposalMetadata } from 'src/entities/governance/proposal-metadata.entity';
 import { BlockfrostService } from 'src/blockfrost/blockfrost.service';
+import {
+  LIVE_STAKE_FOR_HEX_SQL,
+  sumLovelaceAsAda,
+} from 'src/governance/drep-stake.util';
 
 interface GetAllDRepsParams {
   query?: string;
@@ -1039,8 +1043,14 @@ export class DRepRepository extends Repository<VoltaireDrep> {
       throw new NotFoundException('DRep not found in database!');
     }
 
-    // Get voltaire drep data (claimed profile info)
-    const voltaireDrep = await this.getByVoterIdWithSignature(canonicalId);
+    // Get voltaire drep data (claimed profile info) and the live stake
+    const [voltaireDrep, liveStakeRows] = await Promise.all([
+      this.getByVoterIdWithSignature(canonicalId),
+      this.voltaireDb.query(LIVE_STAKE_FOR_HEX_SQL, [drepData.hex]),
+    ]);
+    const liveStakeAda = sumLovelaceAsAda([
+      liveStakeRows?.[0]?.live_stake_lovelace,
+    ]);
 
     // Combine data from both sources
     const combinedResult = {
@@ -1049,7 +1059,7 @@ export class DRepRepository extends Repository<VoltaireDrep> {
       chain_id: drepData.hex,
       delegation_vote_count: drepData.delegationVoteCount,
       voting_power: drepData.votingPowerAda,
-      live_stake: drepData.votingPowerAda,
+      live_stake: liveStakeAda.toString(),
       epoch_no: drepData.snapshotEpochNo,
       retired: drepData.retired,
       active: drepData.active,
