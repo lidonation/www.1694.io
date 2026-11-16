@@ -1,11 +1,11 @@
 import { DRepRepository } from './dRep.repository';
-import { LIVE_STAKE_FOR_HEX_SQL } from 'src/governance/drep-stake.util';
+import { LIVE_STAKE_FOR_DREP_SQL } from 'src/governance/drep-stake.util';
 
 describe('DRepRepository.getSingleDrepViaVoterIDOptimized live stake', () => {
   it('returns live stake from delegators, not the voting power snapshot', async () => {
     const hex = '22' + 'c'.repeat(56);
     const query = jest.fn(async (sql: string) =>
-      sql === LIVE_STAKE_FOR_HEX_SQL
+      sql === LIVE_STAKE_FOR_DREP_SQL
         ? [{ live_stake_lovelace: '123456789' }]
         : [],
     );
@@ -34,6 +34,9 @@ describe('DRepRepository.getSingleDrepViaVoterIDOptimized live stake', () => {
 
     expect(result.voting_power).toBe('500.000000');
     expect(result.live_stake).toBe('123.456789');
-    expect(query).toHaveBeenCalledWith(LIVE_STAKE_FOR_HEX_SQL, [hex]);
+    expect(query).toHaveBeenCalledWith(LIVE_STAKE_FOR_DREP_SQL, [
+      'drep1c',
+      hex,
+    ]);
   });
 });

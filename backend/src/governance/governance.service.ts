@@ -15,7 +15,8 @@ import { ConfigService } from '@nestjs/config';
 import { BlockfrostService } from '../blockfrost/blockfrost.service';
 import {
   isVotingOption,
-  LIVE_STAKE_FOR_HEX_SQL,
+  drepAliasKey,
+  LIVE_STAKE_FOR_DREP_SQL,
   sumLovelaceAsAda,
 } from './drep-stake.util';
 
@@ -146,10 +147,7 @@ export class GovernanceService {
     const groups = new Map<string, Drep[]>();
 
     for (const drep of allDreps) {
-      const suffix =
-        drep.hex.length >= 56
-          ? drep.hex.slice(-56).toLowerCase()
-          : drep.hex.toLowerCase();
+      const suffix = drepAliasKey(drep);
 
       if (!groups.has(suffix)) {
         groups.set(suffix, []);
@@ -179,7 +177,7 @@ export class GovernanceService {
         // Merge Delegators
         const memberDelegators = delegatorsMap.get(member.drepId);
         if (memberDelegators) {
-          // Same rule as LIVE_STAKE_FOR_HEX_SQL: an address listed under two
+          // Same rule as LIVE_STAKE_FOR_DREP_SQL: an address listed under two
           // aliases counts once, at its most recently synced amount.
           for (const [address, entry] of memberDelegators) {
             const seen = uniqueDelegators.get(address);
@@ -735,7 +733,7 @@ export class GovernanceService {
 
     return {
       votingPower: parseFloat(drep.votingPowerAda),
-      liveStake: await this.getLiveStakeAda(drep.hex),
+      liveStake: await this.getLiveStakeAda(drep.drepId, drep.hex),
       delegatorsCount: drep.delegationVoteCount,
       governanceVotesCount: drep.governanceVoteCount,
       isActive: drep.active,
@@ -750,15 +748,19 @@ export class GovernanceService {
     });
 
     return drep
-      ? this.formatDRepForAPI(drep, await this.getLiveStakeAda(drep.hex))
+      ? this.formatDRepForAPI(
+          drep,
+          await this.getLiveStakeAda(drep.drepId, drep.hex),
+        )
       : null;
   }
 
-  /** Live stake in ada for the DRep with this hex (see LIVE_STAKE_FOR_HEX_SQL). */
-  async getLiveStakeAda(hex: string): Promise<number> {
-    const rows = await this.governanceDataSource.query(LIVE_STAKE_FOR_HEX_SQL, [
-      hex,
-    ]);
+  /** Live stake in ada for one DRep (see LIVE_STAKE_FOR_DREP_SQL). */
+  async getLiveStakeAda(drepId: string, hex: string | null): Promise<number> {
+    const rows = await this.governanceDataSource.query(
+      LIVE_STAKE_FOR_DREP_SQL,
+      [drepId, hex ?? ''],
+    );
     return sumLovelaceAsAda([rows?.[0]?.live_stake_lovelace]);
   }
 

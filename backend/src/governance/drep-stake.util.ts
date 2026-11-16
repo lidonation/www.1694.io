@@ -6,19 +6,36 @@ const VOTING_OPTION_IDS = new Set([
 ]);
 
 /**
- * Live stake (lovelace) of the DRep with hex $1: what every current delegator
- * holds, across all ID aliases (legacy and CIP-129, same 56-char hex suffix).
- * A stake address counts once even if it appears under more than one alias.
+ * Live stake (lovelace) of the DRep with ID $1 and hex $2: what every current
+ * delegator holds, across all ID aliases (legacy and CIP-129, same 56-char hex
+ * suffix). A stake address counts once even if it appears under more than one
+ * alias. Rows without a real hex (the voting options store '') only ever match
+ * their own ID, so drep_always_abstain and drep_always_no_confidence stay apart.
  */
-export const LIVE_STAKE_FOR_HEX_SQL = `
+export const LIVE_STAKE_FOR_DREP_SQL = `
   SELECT COALESCE(SUM(amount_lovelace), 0) AS live_stake_lovelace
     FROM (
       SELECT DISTINCT ON (dd.stake_address) dd.amount_lovelace
         FROM drep_delegators dd
         JOIN dreps d ON d.drep_id = dd.drep_id
-       WHERE LOWER(RIGHT(d.hex, 56)) = LOWER(RIGHT($1, 56))
+       WHERE d.drep_id = $1::text
+          OR (LENGTH($2::text) >= 56
+              AND LENGTH(d.hex) >= 56
+              AND LOWER(RIGHT(d.hex, 56)) = LOWER(RIGHT($2::text, 56)))
        ORDER BY dd.stake_address, dd.updated_at DESC
     ) live`;
+
+/**
+ * Key that groups the ID aliases of one DRep: the last 56 hex characters of
+ * the credential. A row without a full hex (the voting options store '') is
+ * keyed by its own ID so it is never merged with anything else.
+ */
+export function drepAliasKey(drep: { drepId: string; hex?: string | null }) {
+  const hex = drep.hex ?? '';
+  return hex.length >= 56
+    ? `hex:${hex.slice(-56).toLowerCase()}`
+    : `id:${drep.drepId}`;
+}
 
 /**
  * Total live stake (lovelace) delegated to active DReps, each stake address
